@@ -1,0 +1,30 @@
+// Copyright (C) 2024 cade
+//
+// This file is part of exp.
+//
+// exp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// exp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+#pragma once
+// NOLINTBEGIN
+// clang-format off
+#define EXP_VERSION_MAJOR @EXP_VERSION_MAJOR@
+#define EXP_VERSION_MINOR @EXP_VERSION_MINOR@ 
+#define EXP_VERSION_PATCH @EXP_VERSION_PATCH@
+#define EXP_GIT_REVISION "@EXP_GIT_REVISION@"
+#define EXP_BUILD_DIR "@EXP_BUILD_DIR@"
+#cmakedefine EXP_DEBUG
+#cmakedefine EXP_HOST_OS_LINUX
+#cmakedefine EXP_HOST_OS_WINDOWS
+#cmakedefine EXP_HOST_OS_APPLE
+// NOLINTEND
+// clang-format on
