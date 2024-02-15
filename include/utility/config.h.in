@@ -22,7 +22,7 @@
 #define EXP_VERSION_PATCH @EXP_VERSION_PATCH@
 #define EXP_GIT_REVISION "@EXP_GIT_REVISION@"
 #define EXP_BUILD_DIR "@EXP_BUILD_DIR@"
-#cmakedefine EXP_DEBUG
+#cmakedefine01 EXP_DEBUG
 #cmakedefine EXP_HOST_OS_LINUX
 #cmakedefine EXP_HOST_OS_WINDOWS
 #cmakedefine EXP_HOST_OS_APPLE

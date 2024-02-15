@@ -27,9 +27,9 @@ execute_process(
 )
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(EXP_DEBUG)
+  set(EXP_DEBUG 1)
 else()
-  unset(EXP_DEBUG)
+  set(EXP_DEBUG 0)
 endif()
 
 configure_file(

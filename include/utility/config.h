@@ -20,9 +20,9 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 0 
 #define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "4d540c4e6f780aac1f86f8eef98f465d9e4b86e0"
+#define EXP_GIT_REVISION "ef843c85cb60afcfb99d366e13cfbd347d7c0e7a"
 #define EXP_BUILD_DIR "/home/cade/projects/exp/build"
-/* #undef EXP_DEBUG */
+#define EXP_DEBUG 1
 #define EXP_HOST_OS_LINUX
 /* #undef EXP_HOST_OS_WINDOWS */
 /* #undef EXP_HOST_OS_APPLE */

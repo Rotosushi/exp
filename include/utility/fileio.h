@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -17,5 +17,16 @@
 #pragma once
 #include <stdio.h>
 
-void log(const char *file, int line, const char *buffer, size_t length,
-         FILE *restrict stream);
+/**
+ * @brief write <buffer> to <stream>
+ *
+ * @note if the write fails, an error is printed to stderr
+ * and exit is called
+ *
+ * @param buffer the buffer to write
+ * @param length the length of the buffer
+ * @param stream the stream to write to
+ * @return size_t the number of chars written
+ */
+size_t file_write(const char *restrict buffer, size_t length,
+                  FILE *restrict stream);

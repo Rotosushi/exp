@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 cade
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,24 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "utility/log.h"
+#include "utility/fileio.h"
 
-void log(const char *file, int line, const char *buffer, size_t length,
-         FILE *restrict stream) {
-  // #TODO: write "log: [<file> @ <line>] <buffer>\n" to <stream>
-  fwrite(file, sizeof(char), strnlen(file, SIZE_MAX), stream);
-  if (ferror(stream)) {
-    perror("fwrite failed");
-    abort();
+size_t file_write(const char *restrict buffer, size_t length,
+                  FILE *restrict stream) {
+  size_t bytes_written = 0;
+  int code = 0;
+  for (size_t i = 0; (code != EOF) && (i < length); ++i) {
+    code = fputc(buffer[i], stream);
+    bytes_written++;
   }
 
-  fwrite(buffer, sizeof(char), length, stream);
-  if (ferror(stream)) {
-    perror("fwrite failed");
-    abort();
+  if ((code == EOF) && (ferror(stream))) {
+    perror("putc failed");
+    exit(EXIT_FAILURE);
   }
+
+  return bytes_written;
 }
