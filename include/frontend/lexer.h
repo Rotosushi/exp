@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -15,16 +15,24 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR 0
-#define EXP_VERSION_MINOR 0 
-#define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "5d075000cdc3d32656b256c1a97288e3479c2551"
-#define EXP_BUILD_DIR "/home/cade/projects/exp/build"
-#define EXP_DEBUG 1
-#define EXP_HOST_OS_LINUX
-/* #undef EXP_HOST_OS_WINDOWS */
-/* #undef EXP_HOST_OS_APPLE */
-// NOLINTEND
-// clang-format on
+#include <stddef.h>
+
+#include "frontend/token.h"
+#include "utility/string_view.h"
+
+typedef struct Lexer {
+  const char *token;
+  const char *cursor;
+  size_t line;
+} Lexer;
+
+void lexer_init(Lexer *lexer);
+void lexer_reset(Lexer *lexer);
+void lexer_set_view(Lexer *lexer, const char *buffer);
+
+bool lexer_at_end(Lexer *lexer);
+
+string_view lexer_current_text(Lexer *lexer);
+size_t lexer_current_line(Lexer *lexer);
+
+Token lexer_scan(Lexer *lexer);

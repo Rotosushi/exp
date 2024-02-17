@@ -1,0 +1,107 @@
+// Copyright (C) 2024 Cade Weinberg
+// 
+// This file is part of exp.
+// 
+// exp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// exp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+
+so, when considering emitting assembly code which can map to 
+all of the constructions available within the langauge (that is,
+implement the semantics of the language in assembly). 
+I notice that there are a few major language elements that are 
+necessary to represent.
+
+-) globals
+-) functions 
+-) locals
+-) expressions
+
+obviously the above list is modulo types, and types are integral to 
+how each of those things are expressed. 
+and this discussion is also specific to what the target is,
+ linux/windows/mac/etc.. and what the output format is 
+ elf/coff/etc.. and what assembler is being targeted 
+ gas/nasm/masm/fasm/etc...
+
+so, for the sake of moving forward I am picking x86-64 
+(my native arch), Linux (Ubuntu if that ends up mattering,
+but I think what matters is system V abi),
+elf64 object files, using gas (/usr/bin/as)
+
+
+so, first we need to think about layout of the assembly file,
+and thus the layout of the object file to be linked.
+
+globals:
+global constants (with or without an initializer) 
+  can be placed into the .text section
+
+global variables can be placed into the .data section 
+global variables without an initializer can be placed into the .bss section 
+global variables with an explicit zero initializer can be placed into 
+  the .bss section as well
+
+functions:
+functions are placed into the .text section
+
+locals:
+locals are allocated into registers, or allocated onto the stack
+
+expressions:
+expressions are translated into code within functions,
+  and thus go into the .text section 
+
+
+then we need to consider how we initialize the different types 
+of variables and constants.
+(functions and expressions are not "initialized" per-say,
+given that they are always constant in the assembly file.)
+
+global variables are initialized when they are declared in the file.
+Int types use .long 
+Bool types use .byte 
+Nil types use .byte
+
+so, we need a function which emits global variables and global constants.
+this means we need to keep track of global variables and global constants.
+then we can and loop through our list of all globals and emit each.
+
+local variables are stored in registers and on the stack.
+we need a function which can allocate a variabler or constant into 
+a register if possible or allocates the variable or constant onto the 
+stack. 
+then we can loop through the list of locals, when emitting a function,
+and emit each local variable.
+
+to emit an expression we have to keep track of where local variables and 
+global variables are emitted in order to use their values within 
+instructions in the expression. as well as needing mappings from operations 
+to instructions. (such as '+' mapping to an addx instruction.)
+
+in order to emit a function we simply have to emit the function prefix,
+then emit all of the local variables, then emit each expression in the 
+function, then emit the function postfix.
+
+
+obviously there are a ton of details that this glosses over, 
+but I think the gist is correct.
+essentially define a function which maps each language construct to 
+assembly. then loop over all of the in memory representation of the 
+source code, and call these functions in order to emit the assembly 
+representation of the source code.
+all that is left after that is to invoke /usr/bin/as to produce an elf 
+object file. then /usr/bin/ld to produce an executable.
+
+
+
+

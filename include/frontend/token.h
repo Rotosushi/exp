@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -15,16 +15,47 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR 0
-#define EXP_VERSION_MINOR 0 
-#define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "5d075000cdc3d32656b256c1a97288e3479c2551"
-#define EXP_BUILD_DIR "/home/cade/projects/exp/build"
-#define EXP_DEBUG 1
-#define EXP_HOST_OS_LINUX
-/* #undef EXP_HOST_OS_WINDOWS */
-/* #undef EXP_HOST_OS_APPLE */
-// NOLINTEND
-// clang-format on
+
+typedef enum Token {
+  TOK_ERROR,
+  TOK_END,
+
+  TOK_BEGIN_PAREN,
+  TOK_END_PAREN,
+  TOK_BEGIN_BRACE,
+  TOK_END_BRACE,
+  TOK_COMMA,
+  TOK_SEMICOLON,
+  TOK_COLON,
+  TOK_RIGHT_ARROW,
+
+  TOK_MINUS,
+  TOK_PLUS,
+  TOK_SLASH,
+  TOK_STAR,
+  TOK_BANG,
+  TOK_BANG_EQUAL,
+  TOK_EQUAL,
+  TOK_EQUAL_EQUAL,
+  TOK_GREATER,
+  TOK_GREATER_EQUAL,
+  TOK_LESS,
+  TOK_LESS_EQUAL,
+  TOK_AND,
+  TOK_OR,
+  TOK_XOR,
+
+  TOK_FN,
+  TOK_VAR,
+  TOK_RETURN,
+
+  TOK_NIL,
+  TOK_TRUE,
+  TOK_FALSE,
+  TOK_INTEGER,
+  TOK_IDENTIFIER,
+
+  TOK_NIL_TYPE,
+  TOK_BOOL_TYPE,
+  TOK_INT_TYPE,
+} Token;

@@ -23,7 +23,7 @@
 
 #include "utility/numbers_to_string.h"
 
-bool test_base10_uintmax_to_str(uintmax_t value) {
+static bool test_base10_uintmax_to_str(uintmax_t value) {
   size_t buffer_length = uintmax_safe_strlen(value, 10);
   char buffer[buffer_length];
   uintmax_to_str(value, buffer, 10);
@@ -38,7 +38,7 @@ bool test_base10_uintmax_to_str(uintmax_t value) {
   return value != number;
 }
 
-bool test_base10_intmax_to_str(intmax_t value) {
+static bool test_base10_intmax_to_str(intmax_t value) {
   size_t buffer_length = intmax_safe_strlen(value, 10);
   char buffer[buffer_length];
   intmax_to_str(value, buffer, 10);

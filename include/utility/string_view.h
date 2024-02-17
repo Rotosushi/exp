@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -15,16 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR 0
-#define EXP_VERSION_MINOR 0 
-#define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "5d075000cdc3d32656b256c1a97288e3479c2551"
-#define EXP_BUILD_DIR "/home/cade/projects/exp/build"
-#define EXP_DEBUG 1
-#define EXP_HOST_OS_LINUX
-/* #undef EXP_HOST_OS_WINDOWS */
-/* #undef EXP_HOST_OS_APPLE */
-// NOLINTEND
-// clang-format on
+#include <stddef.h>
+
+typedef struct string_view {
+  const char *ptr;
+  size_t length;
+} string_view;

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/frontend/lexer.c
+
   ${EXP_SOURCE_DIR}/utility/fileio.c
   ${EXP_SOURCE_DIR}/utility/log_message.c
   ${EXP_SOURCE_DIR}/utility/numbers_to_string.c

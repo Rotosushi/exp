@@ -5,6 +5,7 @@ add_test (NAME "smoke test" COMMAND exp)
 create_test_sourcelist(Tests 
   CommonTests.c
   number_conversion.c
+  lexer_match.c
 )
 
 add_executable (CommonTests ${Tests})

@@ -54,8 +54,8 @@ size_t uintmax_safe_strlen(uintmax_t value, unsigned base);
  * @brief write the digits of <value> into <buffer>
  * converted into the given base
  *
- * @note the buffer must be large enough to hold the given value
- * @note the base can be any value between 2 and 32
+ * @note the buffer must be large enough to hold the given value.
+ * @note the base can be any value between 2 and 32.
  * @note the c style prefixes 0x, 0b, 0, are not prefixed to
  * the resulting string.
  *
@@ -70,8 +70,8 @@ char *intmax_to_str(intmax_t value, char *buffer, unsigned base);
  * @brief write the digits of <value> into <buffer>
  * converted into the given base
  *
- * @note the buffer must be large enough to hold the given value
- * @note the base can be any value between 2 and 32
+ * @note the buffer must be large enough to hold the given value.
+ * @note the base can be any value between 2 and 32.
  * @note the c style prefixes 0x, 0b, 0, are not prefixed to
  * the resulting string.
  *
