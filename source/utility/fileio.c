@@ -30,9 +30,19 @@ size_t file_write(const char *restrict buffer, size_t length,
   }
 
   if ((code == EOF) && (ferror(stream))) {
-    perror("putc failed");
+    perror("fputc failed");
     exit(EXIT_FAILURE);
   }
 
   return bytes_written;
+}
+
+size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
+  char *result = fgets(buffer, (int)length, stream);
+  if (result == NULL) {
+    perror("fgets failed");
+    exit(EXIT_FAILURE);
+  }
+
+  return (size_t)(result - buffer);
 }

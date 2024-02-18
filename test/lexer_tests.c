@@ -38,7 +38,7 @@ static bool test_lexer_scans_token(const char *buffer, Token token) {
   }
 }
 
-int lexer_match([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
+int lexer_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   bool failed = 0;
 
   failed |= test_lexer_scans_token("(", TOK_BEGIN_PAREN);

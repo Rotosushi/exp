@@ -30,3 +30,13 @@
  */
 size_t file_write(const char *restrict buffer, size_t length,
                   FILE *restrict stream);
+
+/**
+ * @brief read <length> chars into <buffer> from <stream>
+ *
+ * @param buffer the buffer to store chars into
+ * @param length the number of chars to read
+ * @param stream the stream to read from.
+ * @return size_t the number of chars actually read.
+ */
+size_t file_read(char *buffer, size_t length, FILE *restrict stream);

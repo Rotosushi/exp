@@ -102,6 +102,8 @@ representation of the source code.
 all that is left after that is to invoke /usr/bin/as to produce an elf 
 object file. then /usr/bin/ld to produce an executable.
 
+emitting assembly looks like writing strings into a buffer.
+
 
 
 
