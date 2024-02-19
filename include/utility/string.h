@@ -30,6 +30,25 @@ typedef struct string {
   char *buffer;
 } string;
 
+/*
+  the so called "small string optimization" is
+  a string structure which looks something like:
+  struct string {
+    size_t length;
+    size_t capacity;
+    bool is_small;
+    union {
+      char *buffer;
+      char small[sizeof(char *)];
+    };
+  };
+  so the string is only 1 bool larger than
+  the current string structure.
+  a fancy implementation could store the
+  bool within the allocation of the pointer
+  or so I have heard.
+*/
+
 /**
  * @brief initialize the given string
  *
@@ -38,7 +57,7 @@ typedef struct string {
  *
  * @param str
  */
-void string_init(string *str);
+void string_init(string *restrict str);
 
 /**
  * @brief reset the given string
@@ -47,7 +66,7 @@ void string_init(string *str);
  *
  * @param str
  */
-void string_reset(string *str);
+void string_reset(string *restrict str);
 
 /**
  * @brief return a string_view of the string
@@ -55,7 +74,7 @@ void string_reset(string *str);
  * @param str
  * @return string_view
  */
-string_view string_to_view(string const *str);
+string_view string_to_view(string const *restrict str);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -68,7 +87,7 @@ string_view string_to_view(string const *str);
  * @param str the string to resize
  * @param capacity the new capacity of the string
  */
-void string_resize(string *str, size_t capacity);
+void string_resize(string *restrict str, size_t capacity);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -77,7 +96,7 @@ void string_resize(string *str, size_t capacity);
  * @param str
  * @param capacity
  */
-void string_reserve_more(string *str, size_t capacity);
+void string_reserve_more(string *restrict str, size_t capacity);
 
 /**
  * @brief assigns the string to hold exactly the contents of <data>
@@ -86,7 +105,8 @@ void string_reserve_more(string *str, size_t capacity);
  * @param data
  * @param data_length
  */
-void string_assign(string *str, const char *data, size_t data_length);
+void string_assign(string *restrict str, const char *restrict data,
+                   size_t data_length);
 
 /**
  * @brief appends <data> to the current contents of <str>
@@ -95,7 +115,8 @@ void string_assign(string *str, const char *data, size_t data_length);
  * @param data
  * @param data_length
  */
-void string_append(string *str, const char *data, size_t data_length);
+void string_append(string *restrict str, const char *restrict data,
+                   size_t data_length);
 
 /**
  * @brief concatenates <s2> onto the end of <s1>
@@ -103,4 +124,12 @@ void string_append(string *str, const char *data, size_t data_length);
  * @param s1
  * @param s2
  */
-void string_concat(string *s1, string const *s2);
+void string_append_string(string *restrict s1, const string *restrict s2);
+
+/**
+ * @brief appends <c> onto the end of <str>
+ *
+ * @param str
+ * @param c
+ */
+void string_append_char(string *restrict str, const char c);
