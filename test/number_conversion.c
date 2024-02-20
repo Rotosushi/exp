@@ -22,32 +22,72 @@
 #include <time.h>
 
 #include "utility/numbers_to_string.h"
+#include "utility/panic.h"
 
 static bool test_base10_uintmax_to_str(uintmax_t value) {
-  size_t buffer_length = uintmax_safe_strlen(value, 10);
-  char buffer[buffer_length];
-  uintmax_to_str(value, buffer, 10);
+  size_t buffer_length = uintmax_safe_strlen(value, RADIX_DECIMAL);
+  char buffer[buffer_length + 1];
+  uintmax_to_str(value, buffer, RADIX_DECIMAL);
 
   uintmax_t number;
   int result = sscanf(buffer, "%ju", &number);
   if (result == EOF) {
-    perror("sscanf failed");
-    abort();
+    panic_errno("sscanf failed", sizeof("sscanf failed"));
+  }
+
+  return value != number;
+}
+
+static bool test_base10_uintmax_to_string(uintmax_t value) {
+  String number = uintmax_to_string(value, RADIX_DECIMAL);
+
+  uintmax_t scanned;
+  int result = sscanf(number.buffer, "%ju", &scanned);
+  if (result == EOF) {
+    panic_errno("sscanf failed", sizeof("sscanf failed"));
+  }
+
+  string_destroy(&number);
+  return value != scanned;
+}
+
+static bool test_base16_uintmax_to_str(uintmax_t value) {
+  size_t buffer_length = uintmax_safe_strlen(value, RADIX_HEXADECIMAL);
+  char buffer[buffer_length + 1];
+  uintmax_to_str(value, buffer, RADIX_HEXADECIMAL);
+
+  uintmax_t number;
+  int result = sscanf(buffer, "%jx", &number);
+  if (result == EOF) {
+    panic_errno("sscanf failed", sizeof("sscanf failed"));
+  }
+
+  return value != number;
+}
+
+static bool test_base8_uintmax_to_str(uintmax_t value) {
+  size_t buffer_length = uintmax_safe_strlen(value, RADIX_OCTAL);
+  char buffer[buffer_length + 1];
+  uintmax_to_str(value, buffer, RADIX_OCTAL);
+
+  uintmax_t number;
+  int result = sscanf(buffer, "%jo", &number);
+  if (result == EOF) {
+    panic_errno("sscanf failed", sizeof("sscanf failed"));
   }
 
   return value != number;
 }
 
 static bool test_base10_intmax_to_str(intmax_t value) {
-  size_t buffer_length = intmax_safe_strlen(value, 10);
-  char buffer[buffer_length];
-  intmax_to_str(value, buffer, 10);
+  size_t buffer_length = intmax_safe_strlen(value, RADIX_DECIMAL);
+  char buffer[buffer_length + 1];
+  intmax_to_str(value, buffer, RADIX_DECIMAL);
 
   intmax_t number;
   int result = sscanf(buffer, "%jd", &number);
   if (result == EOF) {
-    perror("sscanf failed");
-    abort();
+    panic_errno("sscanf failed", sizeof("sscanf failed"));
   }
 
   return value != number;
@@ -61,11 +101,29 @@ int number_conversion([[maybe_unused]] int argc,
   failed |= test_base10_uintmax_to_str(UINTMAX_MAX);
   failed |= test_base10_uintmax_to_str((uintmax_t)rand());
   failed |= test_base10_uintmax_to_str(0);
+  failed |= test_base10_uintmax_to_str(1);
+
+  failed |= test_base10_uintmax_to_string(UINTMAX_MAX);
+  failed |= test_base10_uintmax_to_string((uintmax_t)rand());
+  failed |= test_base10_uintmax_to_string(0);
+  failed |= test_base10_uintmax_to_string(1);
+
+  failed |= test_base16_uintmax_to_str(UINTMAX_MAX);
+  failed |= test_base16_uintmax_to_str((uintmax_t)rand());
+  failed |= test_base16_uintmax_to_str(0);
+  failed |= test_base16_uintmax_to_str(1);
+
+  failed |= test_base8_uintmax_to_str(UINTMAX_MAX);
+  failed |= test_base8_uintmax_to_str((uintmax_t)rand());
+  failed |= test_base8_uintmax_to_str(0);
+  failed |= test_base8_uintmax_to_str(1);
 
   failed |= test_base10_intmax_to_str(INTMAX_MIN);
   failed |= test_base10_intmax_to_str(INTMAX_MAX);
   failed |= test_base10_intmax_to_str((intmax_t)rand());
+  failed |= test_base10_intmax_to_str(-1);
   failed |= test_base10_intmax_to_str(0);
+  failed |= test_base10_intmax_to_str(1);
 
   if (failed) {
     return 1;

@@ -38,8 +38,8 @@ size_t lexer_current_text_length(Lexer *lexer) {
   return (size_t)(lexer->cursor - lexer->token);
 }
 
-string_view lexer_current_text(Lexer *lexer) {
-  string_view result = {lexer->token, lexer_current_text_length(lexer)};
+StringView lexer_current_text(Lexer *lexer) {
+  StringView result = {lexer->token, lexer_current_text_length(lexer)};
   return result;
 }
 

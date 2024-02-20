@@ -14,7 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_NEAREST_POWER_H
+#define EXP_UTILITY_NEAREST_POWER_H
+
 #include <stddef.h>
 
 /**
@@ -25,3 +27,5 @@
  * @return size_t
  */
 size_t nearest_power_of_two(size_t value);
+
+#endif // !EXP_UTILITY_NEAREST_POWER_H

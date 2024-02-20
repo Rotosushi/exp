@@ -16,33 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
 
-#include "utility/fileio.h"
+#include "filesystem/path.h"
 
-size_t file_write(const char *restrict buffer, size_t length,
-                  FILE *restrict stream) {
-  size_t bytes_written = 0;
-  int code = 0;
-  for (size_t i = 0; (code != EOF) && (i < length); ++i) {
-    code = fputc(buffer[i], stream);
-    bytes_written++;
-  }
-
-  if ((code == EOF) && (ferror(stream))) {
-    perror("fputc failed");
-    exit(EXIT_FAILURE);
-  }
-
-  return bytes_written;
-}
-
-size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
-  char *result = fgets(buffer, (int)length, stream);
-  if (result == NULL) {
-    perror("fgets failed");
-    exit(EXIT_FAILURE);
-  }
-
-  return (size_t)(result - buffer);
-}
+// #TODO

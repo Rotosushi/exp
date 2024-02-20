@@ -14,13 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_CONFIG_H
+#define EXP_UTILITY_CONFIG_H
 // NOLINTBEGIN
 // clang-format off
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 0 
 #define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "38d46933ab8bc8dd6581453075b623f67df697d2"
+#define EXP_GIT_REVISION "8bf7eee5d4ff8a698da5b03ae37b9baf5fc4e0cb"
 #define EXP_BUILD_DIR "/home/cade/projects/exp/build"
 #define EXP_DEBUG 1
 #define EXP_HOST_OS_LINUX
@@ -28,3 +29,5 @@
 /* #undef EXP_HOST_OS_APPLE */
 // NOLINTEND
 // clang-format on
+
+#endif // !EXP_UTILITY_CONFIG_H

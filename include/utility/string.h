@@ -16,7 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#ifndef EXP_UTILITY_STRING_H
+#define EXP_UTILITY_STRING_H
 
 #include "utility/string_view.h"
 
@@ -24,11 +25,11 @@
  * @brief represents a string at runtime.
  *
  */
-typedef struct string {
+typedef struct String {
   size_t length;
   size_t capacity;
   char *buffer;
-} string;
+} String;
 
 /*
   the so called "small string optimization" is
@@ -50,31 +51,49 @@ typedef struct string {
 */
 
 /**
- * @brief initialize the given string
+ * @brief create a new string
  *
- * @warning doesn't free the strings allocated buffer
- * if it exists.
- *
- * @param str
+ * @return string
  */
-void string_init(string *restrict str);
+String string_create();
 
+// #TODO:
+// String string_create_from_string_view(StringView *string_view);
+// String string_create_from_string_literal(const char *literal, size_t length);
 /**
- * @brief reset the given string
+ * @brief free the given string
  *
  * @note frees the strings allocated buffer, if any
  *
  * @param str
  */
-void string_reset(string *restrict str);
+void string_destroy(String *restrict str);
 
 /**
- * @brief return a string_view of the string
+ * @brief return a StringView of the string
  *
  * @param str
- * @return string_view
+ * @return StringView
  */
-string_view string_to_view(string const *restrict str);
+StringView string_to_view(String const *restrict str);
+
+/**
+ * @brief returns if the string is empty.
+ *
+ * @param string
+ * @return true
+ * @return false
+ */
+bool string_empty(String const *restrict string);
+
+/**
+ * @brief compare two strings lexigraphically
+ *
+ * @param s1
+ * @param s2
+ * @return int
+ */
+int string_compare(String const *restrict s1, String const *restrict s2);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -87,7 +106,7 @@ string_view string_to_view(string const *restrict str);
  * @param str the string to resize
  * @param capacity the new capacity of the string
  */
-void string_resize(string *restrict str, size_t capacity);
+void string_resize(String *restrict str, size_t capacity);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -96,7 +115,7 @@ void string_resize(string *restrict str, size_t capacity);
  * @param str
  * @param capacity
  */
-void string_reserve_more(string *restrict str, size_t capacity);
+void string_reserve_more(String *restrict str, size_t capacity);
 
 /**
  * @brief assigns the string to hold exactly the contents of <data>
@@ -105,7 +124,7 @@ void string_reserve_more(string *restrict str, size_t capacity);
  * @param data
  * @param data_length
  */
-void string_assign(string *restrict str, const char *restrict data,
+void string_assign(String *restrict str, const char *restrict data,
                    size_t data_length);
 
 /**
@@ -115,7 +134,7 @@ void string_assign(string *restrict str, const char *restrict data,
  * @param data
  * @param data_length
  */
-void string_append(string *restrict str, const char *restrict data,
+void string_append(String *restrict str, const char *restrict data,
                    size_t data_length);
 
 /**
@@ -124,7 +143,7 @@ void string_append(string *restrict str, const char *restrict data,
  * @param s1
  * @param s2
  */
-void string_append_string(string *restrict s1, const string *restrict s2);
+void string_append_string(String *restrict s1, const String *restrict s2);
 
 /**
  * @brief appends <c> onto the end of <str>
@@ -132,4 +151,6 @@ void string_append_string(string *restrict s1, const string *restrict s2);
  * @param str
  * @param c
  */
-void string_append_char(string *restrict str, const char c);
+void string_append_char(String *restrict str, const char c);
+
+#endif // !EXP_UTILITY_STRING_H

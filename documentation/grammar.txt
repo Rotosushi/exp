@@ -40,16 +40,25 @@
         | unop basic 
         | "(" affix ")"
 
-  literal = "nil"
-          | "true"
-          | "false"
-          | integer
+  literal = integer 
+          //| "true"
+          //| "false"
+          //| "nil"
 
-  type = "Nil"
-       | "Bool"
-       | "Int"
+  type = "Int"
+       //| "Bool"
+       //| "Nil"
 
   identifier = [a-zA-Z_][a-zA-Z0-9_]*
 
   integer = [0-9]+
+
+  unop = '-'
+       //|'!'
+
+  binop = '-'
+        | '+'
+        | '*'
+        | '/'
+        | '%'
   --

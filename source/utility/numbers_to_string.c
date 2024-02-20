@@ -20,39 +20,62 @@
 #include <math.h>
 
 #include "utility/numbers_to_string.h"
+#include "utility/panic.h"
 
-size_t intmax_safe_strlen(intmax_t value, unsigned base) {
-  assert((base >= 2) || (base <= 32));
+size_t intmax_safe_strlen(intmax_t value, Radix radix) {
+  size_t result = 0;
 
   if ((value == 0) || (value == 1)) {
-    // "0" or "1" + "\0"
-    return 2;
+    // "0" or "1"
+    result += 1;
+    return result;
   }
 
   if (value < 0) {
-    // "-" + "<value>" + "\0"
+    // negative sign "-"
+    result += 1;
+    if (value == -1) {
+      // "1"
+      result += 1;
+      return result;
+    }
+
     double absolute = fabs((double)value);
-    return (size_t)(ceil(log(absolute) / log((double)base)) + 2);
+    size_t number_length = (size_t)(ceil(log(absolute) / log((double)radix)));
+    if (__builtin_add_overflow(result, number_length, &result)) {
+      panic("value exceeds size_t", sizeof("value exceeds size_t"));
+    }
+    return result;
   } else {
-    // "<value>" + "\0"
-    return (size_t)(ceil(log((double)value) / log((double)base)) + 1);
+    size_t number_length =
+        (size_t)(ceil(log((double)value) / log((double)radix)));
+    if (__builtin_add_overflow(result, number_length, &result)) {
+      panic("value exceeds size_t", sizeof("value exceeds size_t"));
+    }
+    return result;
   }
 }
 
-size_t uintmax_safe_strlen(uintmax_t value, unsigned base) {
-  assert((base >= 2) || (base <= 32));
+size_t uintmax_safe_strlen(uintmax_t value, Radix radix) {
+  size_t result = 0;
 
   if ((value == 0) || (value == 1)) {
-    // "0" or "1" + "\0"
-    return 2;
+    // "0" or "1"
+    result += 1;
+    return result;
   }
 
-  // "<value>" + "\0"
-  return (size_t)(ceil(log((double)value) / log((double)base)) + 1);
+  size_t number_length =
+      (size_t)(ceil(log((double)value) / log((double)radix)));
+  if (__builtin_add_overflow(result, number_length, &result)) {
+    panic("value exceeds size_t", sizeof("value exceeds size_t"));
+  }
+  return result;
 }
 
-char *intmax_to_str(intmax_t value, char *buffer, unsigned base) {
-  assert((base >= 2) || (base <= 32));
+char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix) {
+  assert((radix == RADIX_BINARY) || (radix == RADIX_OCTAL) ||
+         (radix == RADIX_DECIMAL) || (radix == RADIX_HEXADECIMAL));
 
   intmax_t tmp_value;
   char *ptr1, *ptr2;
@@ -63,15 +86,15 @@ char *intmax_to_str(intmax_t value, char *buffer, unsigned base) {
   ptr1 = buffer;
   do {
     tmp_value = value;
-    value /= base;
-    *ptr1++ = mapping[35 + (tmp_value - value * base)];
+    value /= radix;
+    *ptr1++ = mapping[35 + (tmp_value - value * radix)];
   } while (value);
 
-  // append the sign and null terminator
+  // append the sign
   if (tmp_value < 0) {
     *ptr1++ = '-';
   }
-
+  // null terminate
   ptr2 = buffer;
   buffer = ptr1;
   *ptr1-- = '\0';
@@ -86,8 +109,21 @@ char *intmax_to_str(intmax_t value, char *buffer, unsigned base) {
   return buffer;
 }
 
-char *uintmax_to_str(uintmax_t value, char *buffer, unsigned base) {
-  assert((base >= 2) || (base <= 32));
+String intmax_to_string(intmax_t value, Radix radix) {
+  String str = string_create();
+
+  string_resize(&str, intmax_safe_strlen(value, radix));
+
+  char *end = intmax_to_str(value, str.buffer, radix);
+
+  str.length = (size_t)(end - str.buffer);
+
+  return str;
+}
+
+char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
+  assert((radix == RADIX_BINARY) || (radix == RADIX_OCTAL) ||
+         (radix == RADIX_DECIMAL) || (radix == RADIX_HEXADECIMAL));
 
   char *ptr1, *ptr2;
   char mapping[] =
@@ -97,8 +133,8 @@ char *uintmax_to_str(uintmax_t value, char *buffer, unsigned base) {
   ptr1 = buffer;
   do {
     uintmax_t tmp = value;
-    value /= base;
-    *ptr1++ = mapping[35 + (tmp - value * base)];
+    value /= radix;
+    *ptr1++ = mapping[35 + (tmp - value * radix)];
   } while (value);
 
   // append the null terminator
@@ -114,4 +150,16 @@ char *uintmax_to_str(uintmax_t value, char *buffer, unsigned base) {
   }
 
   return buffer;
+}
+
+String uintmax_to_string(uintmax_t value, Radix radix) {
+  String str = string_create();
+
+  string_resize(&str, uintmax_safe_strlen(value, radix));
+
+  char *end = uintmax_to_str(value, str.buffer, radix);
+
+  str.length = (size_t)(end - str.buffer);
+
+  return str;
 }

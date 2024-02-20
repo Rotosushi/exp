@@ -14,7 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_CONFIG_H
+#define EXP_UTILITY_CONFIG_H
 // NOLINTBEGIN
 // clang-format off
 #define EXP_VERSION_MAJOR @EXP_VERSION_MAJOR@
@@ -28,3 +29,5 @@
 #cmakedefine EXP_HOST_OS_APPLE
 // NOLINTEND
 // clang-format on
+
+#endif // !EXP_UTILITY_CONFIG_H

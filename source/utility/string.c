@@ -26,29 +26,32 @@
 #include "utility/panic.h"
 #include "utility/string.h"
 
-void string_init(string *restrict str) {
-  str->length = 0;
-  str->capacity = 0;
-  str->buffer = NULL;
+String string_create() {
+  String str;
+  str.length = 0;
+  str.capacity = 0;
+  str.buffer = NULL;
+  return str;
 }
 
-void string_reset(string *restrict str) {
+void string_destroy(String *restrict str) {
   if ((str->length == 0) && (str->capacity == 0) && (str->buffer == NULL)) {
     return;
   }
 
   str->length = 0;
   str->capacity = 0;
+
   free(str->buffer);
   str->buffer = NULL;
 }
 
-string_view string_to_view(string const *restrict str) {
-  string_view sv = {str->buffer, str->length};
+StringView string_to_view(String const *restrict str) {
+  StringView sv = {str->buffer, str->length};
   return sv;
 }
 
-void string_resize(string *restrict str, size_t capacity) {
+void string_resize(String *restrict str, size_t capacity) {
   assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
   if (capacity < (str->capacity - 1)) {
@@ -69,10 +72,10 @@ void string_resize(string *restrict str, size_t capacity) {
   new_buffer[str->length] = '\0';
 
   str->buffer = new_buffer;
-  str->capacity = capacity + 1;
+  str->capacity = capacity;
 }
 
-void string_reserve_more(string *restrict str, size_t more_capacity) {
+void string_reserve_more(String *restrict str, size_t more_capacity) {
   assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   size_t sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
@@ -88,14 +91,14 @@ void string_reserve_more(string *restrict str, size_t more_capacity) {
   new_buffer[str->length] = '\0';
 
   str->buffer = new_buffer;
-  str->capacity = sum_capacity + 1;
+  str->capacity = sum_capacity;
 }
 
-void string_assign(string *restrict str, const char *restrict data,
+void string_assign(String *restrict str, const char *restrict data,
                    size_t data_length) {
   assert((data_length != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  string_reset(str);
+  string_destroy(str);
   if (data_length == 0) {
     return;
   }
@@ -114,7 +117,7 @@ void string_assign(string *restrict str, const char *restrict data,
   str->capacity = new_capacity;
 }
 
-void string_append(string *restrict str, const char *restrict data,
+void string_append(String *restrict str, const char *restrict data,
                    size_t data_length) {
   if (data_length == 0) {
     return;
@@ -150,14 +153,14 @@ void string_append(string *restrict str, const char *restrict data,
   memcpy(str->buffer + str->length, data, data_length);
   str->length += data_length;
   str->buffer[str->length] = '\0';
-  str->capacity = new_capacity + 1;
+  str->capacity = new_capacity;
 }
 
-void string_append_string(string *restrict s1, const string *restrict s2) {
+void string_append_string(String *restrict s1, const String *restrict s2) {
   string_append(s1, s2->buffer, s2->length);
 }
 
-void string_append_char(string *restrict str, const char c) {
+void string_append_char(String *restrict str, const char c) {
   char buffer[2];
   buffer[0] = c;
   buffer[1] = '\0';

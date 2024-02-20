@@ -35,28 +35,28 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 
 // returns true on failure
 bool test_string_assign(const char *data, size_t data_length) {
-  string str;
-  string_init(&str);
+  String str = string_create();
 
   string_assign(&str, data, data_length);
 
   bool failed = s1_same_as_s2(str.buffer, str.length, data, data_length);
 
+  string_destroy(&str);
   return failed;
 }
 
 bool test_string_to_view(const char *data, size_t data_length) {
-  string str;
-  string_init(&str);
+  String str = string_create();
 
   string_assign(&str, data, data_length);
 
   bool failed = s1_same_as_s2(str.buffer, str.length, data, data_length);
 
-  string_view sv = string_to_view(&str);
+  StringView sv = string_to_view(&str);
 
   failed |= s1_same_as_s2(sv.ptr, sv.length, data, data_length);
 
+  string_destroy(&str);
   return failed;
 }
 
@@ -85,17 +85,19 @@ static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
 
 bool test_string_append(const char *d1, size_t d1_len, const char *d2,
                         size_t d2_len) {
-  string str;
-  string_init(&str);
+  String str = string_create();
 
   string_append(&str, d1, d1_len);
   string_append(&str, d2, d2_len);
 
+  bool failure;
   if (s1_same_as_sum_of_s2_s3(str.buffer, str.length, d1, d1_len, d2, d2_len)) {
-    return 1;
+    failure = 1;
   }
 
-  return 0;
+  failure = 0;
+  string_destroy(&str);
+  return failure;
 }
 
 int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {

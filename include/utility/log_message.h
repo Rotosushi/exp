@@ -14,7 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_LOG_MESSAGE_H
+#define EXP_UTILITY_LOG_MESSAGE_H
+
 #include <stdio.h>
 
 typedef enum LogLevel { LOG_FATAL, LOG_WARNING, LOG_STATUS } LogLevel;
@@ -40,3 +42,5 @@ void log_message(LogLevel log_level, const char *file, size_t file_length,
 #define LOG(log_level, message, message_length, stream)                        \
   log_message(log_level, __FILE__, sizeof(__FILE__), __LINE__, message,        \
               message_length, stream)
+
+#endif // !EXP_UTILITY_LOG_MESSAGE_H

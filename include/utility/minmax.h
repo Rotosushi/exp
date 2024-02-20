@@ -20,7 +20,8 @@
  * integer types.
  *
  */
-#pragma once
+#ifndef EXP_UTILITY_MINMAX_H
+#define EXP_UTILITY_MINMAX_H
 
 int imin(int a, int b);
 long lmin(long a, long b);
@@ -37,3 +38,5 @@ long long llmax(long long a, long long b);
 unsigned umax(unsigned a, unsigned b);
 unsigned long ulmax(unsigned long a, unsigned long b);
 unsigned long long ullmax(unsigned long long a, unsigned long long b);
+
+#endif // !EXP_UTILITY_MINMAX_H

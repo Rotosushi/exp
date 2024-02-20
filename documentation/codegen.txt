@@ -104,6 +104,59 @@ object file. then /usr/bin/ld to produce an executable.
 
 emitting assembly looks like writing strings into a buffer.
 
+in order to loop over language constructs, we must have an in memory 
+representation of said language constructs. The classical choice is 
+the abstract syntax tree. however that choice leads to performance 
+degradation as the language as a whole grows in complexity.
+
+another classical choice is the virtual machine. this choice has 
+performance considerations as well, though it is far faster than 
+chasing down pointers in an AST, and it is just as flexible.
+as many interpreters are based in virtual machines. To my knowledge 
+the only thing faster is running code directly on the cpu.
+
+however, I am writing a compiler, trying to generate code that runs 
+directly on the cpu. So this is "placing the cart before the horse" 
+as it were. 
+
+one step up from machine code is JIT, that is compile the source code
+to machine code and run that. as opposed to running code within a VM.
+this, again solves the problem of "generating machine code" with the 
+solution of "generate machine code". which is again putting the cart 
+before the horse.
+
+thus, generating machine code directly from virtual machine instructions.
+
+the only thing faster I think, would be to have the parser generate 
+machine code directly. The question arises, how do you typecheck 
+the emitted code? How do you account for types within expressions 
+at all?
+
+The classical approach has the parser create invalid expressions.
+These expressions are then typechecked, and only when both steps 
+have completed do we attempt to emit code for the expression.
+
+This is in some sense, a multi pass compiler design. 
+first we parse the source code, creating some form of
+intermediate representation (IR. could be an AST or a byte array or etc..).
+next we check that the IR is correct. (not adding bools to ints 
+or calling a function with the wrong arguments etc...
+this is what I have been calling Typechecking, though it is 
+fair to check for errors that are not related to types as well.)
+then we translate the IR into assembly. (this is what I have been calling 
+the code generation step.)
+then we assemble and link into the final executable.
+
+The issue with having the parser emit machine code directly is that 
+there is now the requirement that the parser produces correct 
+"intermediate representation" even though there is no IR at all.
+that is, what used to take two passes has been unified into a one pass.
+
+the issue becomes, it is allowed by the grammar recognized by the parser 
+to form operations on types which are not supported by those types.
+such as addition on boolean types. (or in the future, addition on 
+structure types.)
+
 
 
 

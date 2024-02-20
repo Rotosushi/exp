@@ -14,7 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_FRONTEND_LEXER_H
+#define EXP_FRONTEND_LEXER_H
+
 #include <stddef.h>
 
 #include "frontend/token.h"
@@ -32,7 +34,9 @@ void lexer_set_view(Lexer *lexer, const char *buffer);
 
 bool lexer_at_end(Lexer *lexer);
 
-string_view lexer_current_text(Lexer *lexer);
+StringView lexer_current_text(Lexer *lexer);
 size_t lexer_current_line(Lexer *lexer);
 
 Token lexer_scan(Lexer *lexer);
+
+#endif // !EXP_FRONTEND_LEXER_H

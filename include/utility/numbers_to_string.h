@@ -14,41 +14,83 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
+#define EXP_UTILITY_NUMBERS_TO_STRING_H
+
 #include <stddef.h>
 #include <stdint.h>
 
-// #TODO: handle the c-style prefixes 0x, 0b, 0, for
-// bases 16, 2, and 8, respectively
+#include "utility/string.h"
+
+// #TODO: size_t float_safe_strlen(float value);
+// #TODO: size_t double_safe_strlen(double value);
+// #TODO  char * float_to_string(float value, char *buffer, size_t buf_len);
+// #TODO: char * double_to_string(double value, char *buffer, size_t buf_len);
+
+typedef enum Radix {
+  RADIX_BINARY = 2,
+  RADIX_OCTAL = 8,
+  RADIX_DECIMAL = 10,
+  RADIX_HEXADECIMAL = 16,
+} Radix;
 
 /**
  * @brief return the length of the string which can hold
- * all of the digits in the given value plus null and the
- * minus sign if value is negative.
+ * all of the digits in the given value when converted
+ * into the given radix and the minus sign if value is negative.
  *
- * @note the base can be any value between 2 and 32
+ * @note does not include the null terminator.
  * @note the resulting string length does not include the
- * c-style prefixes 0x, 0b, 0 for bases other than 10
+ * c-style prefixes 0x, 0b, 0
  *
  * @param value the value whose digits are to be stored
- * @param base the base (radix) to convert the number into
- * @return size_t the length of the string plus null
+ * @param radix the radix to convert the number into
+ * @return size_t the length of the string
  */
-size_t intmax_safe_strlen(intmax_t value, unsigned base);
+size_t intmax_safe_strlen(intmax_t value, Radix radix);
 
 /**
  * @brief return the length of the string which can hold
- * all of the digits in the given value plus null.
+ * all of the digits in the given value when converted
+ * into the given radix
  *
- * @note the base can be any value between 2 and 32
+ * @note does not include the null terminator.
  * @note the resulting string length does not include the
- * c-style prefixes 0x, 0b, 0 for bases other than 10
+ * c-style prefixes 0x, 0b, 0
  *
  * @param value the value whose digits are to be stored
- * @param base the base (radix) to convert to number into
- * @return size_t the length of the string plus null
+ * @param radix the radix to convert the number into
+ * @return size_t the length of the string
  */
-size_t uintmax_safe_strlen(uintmax_t value, unsigned base);
+size_t uintmax_safe_strlen(uintmax_t value, Radix radix);
+
+/**
+ * @brief write the digits of <value> into <buffer>
+ * converted into the given radix
+ *
+ * @note the buffer must be large enough to hold the given value.
+ * @note the radix can be any value between 2 and 32.
+ * @note the c style prefixes 0x, 0b, 0, are not prefixed to
+ * the resulting string.
+ *
+ * @param value the number to convert
+ * @param buffer the buffer to write the string into
+ * @param radix the radix of the resulting string
+ * @return char* the end of the string, or NULL if conversion failed.
+ */
+char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix);
+
+/**
+ * @brief create a string holding the result of intmax_to_str
+ *
+ * @note it is the callers responsibility to call string_destroy()
+ * on the returned string
+ *
+ * @param value the value to convert
+ * @param radix the radix of the resulting string
+ * @return string the returned string
+ */
+String intmax_to_string(intmax_t value, Radix radix);
 
 /**
  * @brief write the digits of <value> into <buffer>
@@ -61,23 +103,21 @@ size_t uintmax_safe_strlen(uintmax_t value, unsigned base);
  *
  * @param value the number to convert
  * @param buffer the buffer to write the string into
- * @param base the base (or radix) of the resulting string
+ * @param radix the radix of the resulting string
  * @return char* the end of the string, or NULL if conversion failed.
  */
-char *intmax_to_str(intmax_t value, char *buffer, unsigned base);
+char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix);
 
 /**
- * @brief write the digits of <value> into <buffer>
- * converted into the given base
+ * @brief create a string holding the result of uintmax_to_str
  *
- * @note the buffer must be large enough to hold the given value.
- * @note the base can be any value between 2 and 32.
- * @note the c style prefixes 0x, 0b, 0, are not prefixed to
- * the resulting string.
+ * @note it is the callers responsibility to call string_destroy()
+ * on the returned string
  *
- * @param value the number to convert
- * @param buffer the buffer to write the string into
- * @param base the base (or radix) of the resulting string
- * @return char* the end of the string, or NULL if conversion failed.
+ * @param value the value to convert
+ * @param radix the radix of the resulting string
+ * @return string the returned string
  */
-char *uintmax_to_str(uintmax_t value, char *buffer, unsigned base);
+String uintmax_to_string(uintmax_t value, Radix radix);
+
+#endif // !EXP_UTILITY_NUMBERS_TO_STRING_H

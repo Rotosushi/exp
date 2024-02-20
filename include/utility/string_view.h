@@ -14,10 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_UTILITY_STRING_VIEW_H
+#define EXP_UTILITY_STRING_VIEW_H
+
 #include <stddef.h>
 
-typedef struct string_view {
+typedef struct StringView {
   const char *ptr;
   size_t length;
-} string_view;
+} StringView;
+
+#endif // !EXP_UTILITY_STRING_VIEW_H

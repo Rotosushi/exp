@@ -14,7 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
+#ifndef EXP_FILESYSTEM_IO_H
+#define EXP_FILESYSTEM_IO_H
+
 #include <stdio.h>
 
 /**
@@ -40,3 +42,5 @@ size_t file_write(const char *restrict buffer, size_t length,
  * @return size_t the number of chars actually read.
  */
 size_t file_read(char *buffer, size_t length, FILE *restrict stream);
+
+#endif // !EXP_FILESYSTEM_IO_H
