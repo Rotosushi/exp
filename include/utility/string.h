@@ -111,6 +111,14 @@ bool string_empty(String const *restrict string);
 int string_compare(String const *restrict s1, String const *restrict s2);
 
 /**
+ * @brief computes the hash of the given string.
+ *
+ * @param string
+ * @return size_t
+ */
+size_t string_hash(String const *restrict string);
+
+/**
  * @brief resize the string to be able to hold at least
  * <capacity> characters.
  *

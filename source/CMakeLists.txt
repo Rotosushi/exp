@@ -5,6 +5,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/filesystem/path.c
 
   ${EXP_SOURCE_DIR}/frontend/lexer.c
+  ${EXP_SOURCE_DIR}/frontend/parser.c
+
+  ${EXP_SOURCE_DIR}/imr/bytecode.c
 
   ${EXP_SOURCE_DIR}/utility/log_message.c
   ${EXP_SOURCE_DIR}/utility/minmax.c

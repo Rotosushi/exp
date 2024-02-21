@@ -14,9 +14,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_FRONTEND_PARSER_H
-#define EXP_FRONTEND_PARSER_H
+#ifndef EXP_IMR_OPCODE_H
+#define EXP_IMR_OPCODE_H
 
-#include "frontend/token.h"
+typedef enum Opcode {
+  OP_CONST,
 
-#endif // !EXP_FRONTEND_PARSER_H
+  OP_FN,
+
+  OP_LOAD,
+  OP_LOADI,
+
+  OP_STORE,
+  OP_STOREI,
+
+  OP_CALL,
+
+  OP_UOP_NEG,
+
+  OP_BOP_SUB,
+  OP_BOP_ADD,
+  OP_BOP_MUL,
+  OP_BOP_DIV,
+  OP_BOP_MOD,
+} Opcode;
+
+#endif // !EXP_IMR_OPCODE_H

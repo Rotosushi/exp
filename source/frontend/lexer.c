@@ -122,6 +122,8 @@ static Token lexer_check_keyword(Lexer *lexer, size_t begin, size_t length,
 
 static Token lexer_identifier_or_keyword(Lexer *lexer) {
   switch (lexer->token[0]) {
+  case 'c':
+    return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
   case 'f':
     if (lexer_current_text_length(lexer) > 1) {
       switch (lexer->token[1]) {

@@ -71,13 +71,29 @@ bool string_empty(String const *restrict string) {
 int string_compare(String const *restrict s1, String const *restrict s2) {
   assert(s1 != NULL);
   assert(s2 != NULL);
+  // '\0' < any char
   if (s1->length < s2->length) {
     return -1;
   } else if (s1->length > s2->length) {
+    // any char > '\0'
     return 1;
   } else {
     return strncmp(s1->buffer, s2->buffer, s1->length);
   }
+}
+
+// hash algorithm based on djb2
+// https://stackoverflow.com/questions/7666509/hash-function-for-string
+// specifically this answer https://stackoverflow.com/a/69812981
+size_t string_hash(String const *restrict string) {
+#define LARGE_PRIME 11931085111904720063ul
+
+  size_t hash = 5381;
+  for (size_t i = 0; i < string->length; ++i)
+    hash = (LARGE_PRIME * hash) + string->buffer[i];
+  return hash;
+
+#undef LARGE_PRIME
 }
 
 void string_resize(String *restrict str, size_t capacity) {

@@ -86,113 +86,113 @@ void path_append(Path *restrict p1, const Path *restrict p2);
  */
 void path_concat(Path *restrict p1, const Path *restrict p2);
 
-/**
- * @brief if the path refers to a file, removes
- * the filename section of the path.
- *
- * @param p1 the target
- */
-void path_remove_filename(Path *restrict p1);
+// /**
+//  * @brief if the path refers to a file, removes
+//  * the filename section of the path.
+//  *
+//  * @param p1 the target
+//  */
+// void path_remove_filename(Path *restrict p1);
 
-/**
- * @brief if the path refers to a file, replaces
- * the filename section with the given path.
- * else equivalent to path_concat
- *
- * @param p1 the destination
- * @param p2 the source
- */
-void path_replace_filename(Path *restrict p1, const Path *restrict p2);
+// /**
+//  * @brief if the path refers to a file, replaces
+//  * the filename section with the given path.
+//  * else equivalent to path_concat
+//  *
+//  * @param p1 the destination
+//  * @param p2 the source
+//  */
+// void path_replace_filename(Path *restrict p1, const Path *restrict p2);
 
-/**
- * @brief if the path refers to a file, replaces the
- * files extension with the given path's extension.
- *
- * @param p1 the destination
- * @param p2 the source
- */
-void path_replace_extension(Path *restrict p1, const Path *restrict p2);
+// /**
+//  * @brief if the path refers to a file, replaces the
+//  * files extension with the given path's extension.
+//  *
+//  * @param p1 the destination
+//  * @param p2 the source
+//  */
+// void path_replace_extension(Path *restrict p1, const Path *restrict p2);
 
-/**
- * @brief return the root-name of the path, if present.
- * otherwise returns an empty path
- *
- * @param path
- * @return Path
- */
-Path path_root_name(Path const *restrict path);
+// /**
+//  * @brief return the root-name of the path, if present.
+//  * otherwise returns an empty path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_root_name(Path const *restrict path);
 
-/**
- * @brief returns the root directory of the path, if present,
- * otherwise returns an empty path
- *
- * @param path
- * @return Path
- */
-Path path_root_directory(Path const *restrict path);
+// /**
+//  * @brief returns the root directory of the path, if present,
+//  * otherwise returns an empty path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_root_directory(Path const *restrict path);
 
-/**
- * @brief returns the root path of the path, if present.
- * otherwise returns an empty path
- *
- * @param path
- * @return Path
- */
-Path path_root_path(Path const *restrict path);
+// /**
+//  * @brief returns the root path of the path, if present.
+//  * otherwise returns an empty path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_root_path(Path const *restrict path);
 
-/**
- * @brief returns the path relative to the root path.
- *
- * @param path
- * @return Path
- */
-Path path_relative_path(Path const *restrict path);
+// /**
+//  * @brief returns the path relative to the root path.
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_relative_path(Path const *restrict path);
 
-/**
- * @brief returns the path of the parent path
- *
- * @param path
- * @return Path
- */
-Path path_parent_path(Path const *restrict path);
+// /**
+//  * @brief returns the path of the parent path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_parent_path(Path const *restrict path);
 
-/**
- * @brief returns the filename component of the path,
- * if any. otherwise returns an empty path
- *
- * @param path
- * @return Path
- */
-Path path_filename(Path const *restrict path);
+// /**
+//  * @brief returns the filename component of the path,
+//  * if any. otherwise returns an empty path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_filename(Path const *restrict path);
 
-/**
- * @brief returns the filename of the path,
- * without an extension.
- *
- * @param path
- * @return Path
- */
-Path path_stem(Path const *restrict path);
+// /**
+//  * @brief returns the filename of the path,
+//  * without an extension.
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_stem(Path const *restrict path);
 
-/**
- * @brief returns the extension of the path, if present.
- * otherwise returns an empty path
- *
- * @param path
- * @return Path
- */
-Path path_extension(Path const *restrict path);
+// /**
+//  * @brief returns the extension of the path, if present.
+//  * otherwise returns an empty path
+//  *
+//  * @param path
+//  * @return Path
+//  */
+// Path path_extension(Path const *restrict path);
 
-bool path_has_root_path(Path const *restrict path);
-bool path_has_root_name(Path const *restrict path);
-bool path_has_root_directory(Path const *restrict path);
-bool path_has_relative_path(Path const *restrict path);
-bool path_has_parent_path(Path const *restrict path);
-bool path_has_filename(Path const *restrict path);
-bool path_has_stem(Path const *restrict path);
-bool path_has_extension(Path const *restrict path);
+// bool path_has_root_path(Path const *restrict path);
+// bool path_has_root_name(Path const *restrict path);
+// bool path_has_root_directory(Path const *restrict path);
+// bool path_has_relative_path(Path const *restrict path);
+// bool path_has_parent_path(Path const *restrict path);
+// bool path_has_filename(Path const *restrict path);
+// bool path_has_stem(Path const *restrict path);
+// bool path_has_extension(Path const *restrict path);
 
-bool path_is_absolute(Path const *restrict path);
-bool path_is_relative(Path const *restrict path);
+// bool path_is_absolute(Path const *restrict path);
+// bool path_is_relative(Path const *restrict path);
 
 #endif // !EXP_FILESYSTEM_PATH_H

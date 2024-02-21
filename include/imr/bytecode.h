@@ -14,9 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_FRONTEND_PARSER_H
-#define EXP_FRONTEND_PARSER_H
+#ifndef EXP_IMR_BYTECODE_H
+#define EXP_IMR_BYTECODE_H
 
-#include "frontend/token.h"
-
-#endif // !EXP_FRONTEND_PARSER_H
+#endif // !EXP_IMR_BYTECODE_H
