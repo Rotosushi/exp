@@ -70,12 +70,27 @@ String string_create();
 void string_destroy(String *restrict str);
 
 /**
- * @brief return a StringView of the string
+ * @brief return a StringView of the entire string
  *
  * @param str
  * @return StringView
  */
 StringView string_to_view(String const *restrict str);
+
+/**
+ * @brief return a StringView of a subsection of <string>,
+ *  starting at <offset> and continuing for <length>.
+ *
+ * @warning assert((offset <= string->length) && ((offset + length) <=
+ * string->length))
+ *
+ * @param string
+ * @param offset
+ * @param length
+ * @return StringView
+ */
+StringView string_to_view_at(String const *restrict string, size_t offset,
+                             size_t length);
 
 /**
  * @brief returns if the string is empty.
@@ -87,7 +102,7 @@ StringView string_to_view(String const *restrict str);
 bool string_empty(String const *restrict string);
 
 /**
- * @brief compare two strings lexigraphically
+ * @brief compare two strings lexicographically
  *
  * @param s1
  * @param s2
@@ -152,5 +167,18 @@ void string_append_string(String *restrict s1, const String *restrict s2);
  * @param c
  */
 void string_append_char(String *restrict str, const char c);
+
+/**
+ * @brief erases the substring of str->buffer[offset]
+ * to str->buffer[offset + length]
+ *
+ * @warning assert((offset <= string->length) && ((offset + length) <=
+ * string->length))
+ *
+ * @param str
+ * @param offset
+ * @param length
+ */
+void string_erase(String *restrict str, size_t offset, size_t length);
 
 #endif // !EXP_UTILITY_STRING_H

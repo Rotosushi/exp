@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "filesystem/io.h"
 #include "utility/panic.h"
 #include "utility/string.h"
 
@@ -93,9 +94,32 @@ bool test_string_append(const char *d1, size_t d1_len, const char *d2,
   bool failure;
   if (s1_same_as_sum_of_s2_s3(str.buffer, str.length, d1, d1_len, d2, d2_len)) {
     failure = 1;
+  } else {
+    failure = 0;
   }
 
-  failure = 0;
+  string_destroy(&str);
+  return failure;
+}
+
+bool test_string_erase(char const *d1, size_t d1_length, size_t offset,
+                       size_t length, char const *d2, size_t d2_length) {
+  String str = string_create();
+
+  string_assign(&str, d1, d1_length);
+
+  // StringView view = string_to_view_at(&str, offset, length);
+
+  string_erase(&str, offset, length);
+
+  bool failure;
+  if (s1_same_as_s2(str.buffer, str.length, d2, d2_length)) {
+    fputs(str.buffer, stderr);
+    failure = 1;
+  } else {
+    failure = 0;
+  }
+
   string_destroy(&str);
   return failure;
 }
@@ -109,6 +133,18 @@ int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
 
   failure |= test_string_append("hello", sizeof("hello"), ", world!",
                                 sizeof(", world!"));
+
+  failure |= test_string_erase("hello world", sizeof("hello world"), 0, 5,
+                               " world", sizeof(" world"));
+
+  failure |= test_string_erase("hello world", sizeof("hello world"), 5, 6,
+                               "hello", sizeof("hello"));
+
+  failure |= test_string_erase("hello world", sizeof("hello world"), 2, 7,
+                               "held", sizeof("held"));
+
+  failure |= test_string_erase("hello world", sizeof("hello world"), 0, 12, "",
+                               sizeof(""));
 
   if (failure) {
     return 1;

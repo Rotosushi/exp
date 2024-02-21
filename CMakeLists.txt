@@ -17,7 +17,7 @@ set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
 
-set(WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion)
+set(WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 
 
 execute_process(

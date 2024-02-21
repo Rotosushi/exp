@@ -35,6 +35,7 @@ String string_create() {
 }
 
 void string_destroy(String *restrict str) {
+  assert(str != NULL);
   if ((str->length == 0) && (str->capacity == 0) && (str->buffer == NULL)) {
     return;
   }
@@ -47,11 +48,40 @@ void string_destroy(String *restrict str) {
 }
 
 StringView string_to_view(String const *restrict str) {
+  assert(str != NULL);
   StringView sv = {str->buffer, str->length};
   return sv;
 }
 
+StringView string_to_view_at(String const *restrict str, size_t offset,
+                             size_t length) {
+  assert(str != NULL);
+  assert(offset <= str->length);
+  assert((offset + length) <= str->length);
+
+  StringView sv = {str->buffer + offset, length};
+  return sv;
+}
+
+bool string_empty(String const *restrict string) {
+  assert(string != NULL);
+  return string->length == 0;
+}
+
+int string_compare(String const *restrict s1, String const *restrict s2) {
+  assert(s1 != NULL);
+  assert(s2 != NULL);
+  if (s1->length < s2->length) {
+    return -1;
+  } else if (s1->length > s2->length) {
+    return 1;
+  } else {
+    return strncmp(s1->buffer, s2->buffer, s1->length);
+  }
+}
+
 void string_resize(String *restrict str, size_t capacity) {
+  assert(str != NULL);
   assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
   if (capacity < (str->capacity - 1)) {
@@ -76,6 +106,7 @@ void string_resize(String *restrict str, size_t capacity) {
 }
 
 void string_reserve_more(String *restrict str, size_t more_capacity) {
+  assert(str != NULL);
   assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   size_t sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
@@ -96,6 +127,7 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
 
 void string_assign(String *restrict str, const char *restrict data,
                    size_t data_length) {
+  assert(str != NULL);
   assert((data_length != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
   string_destroy(str);
@@ -119,6 +151,7 @@ void string_assign(String *restrict str, const char *restrict data,
 
 void string_append(String *restrict str, const char *restrict data,
                    size_t data_length) {
+  assert(str != NULL);
   if (data_length == 0) {
     return;
   }
@@ -157,13 +190,50 @@ void string_append(String *restrict str, const char *restrict data,
 }
 
 void string_append_string(String *restrict s1, const String *restrict s2) {
+  assert(s1 != NULL);
+  assert(s2 != NULL);
   string_append(s1, s2->buffer, s2->length);
 }
 
 void string_append_char(String *restrict str, const char c) {
+  assert(str != NULL);
   char buffer[2];
   buffer[0] = c;
   buffer[1] = '\0';
 
   string_append(str, buffer, 1);
+}
+
+/*
+  essentially can be broken into these cases
+
+  1 offset == 0, length == str->length
+
+  2 offset == 0, length < str->length
+
+  3 offset > 0, (offset + length) == str->length
+
+  4 offset > 0, (offset + length) < str->length
+*/
+void string_erase(String *restrict str, size_t offset, size_t length) {
+  assert(str != NULL);
+  assert(offset <= str->length);
+  assert((offset + length) <= str->length);
+
+  if ((offset == 0) && (length == str->length)) {
+    // 'erase' the entire buffer
+    str->buffer[0] = '\0';
+    str->length = 1;
+    return;
+  }
+
+  // erase <length> characters starting from <str->buffer + offset>
+  char *pos = str->buffer + offset;
+  char *rest = pos + length;
+  size_t rest_length = (size_t)((str->buffer + str->length) - rest);
+  memmove(pos, rest, rest_length);
+  size_t new_length = offset + rest_length;
+  str->buffer[new_length] = '\0';
+  str->length = new_length;
+  return;
 }

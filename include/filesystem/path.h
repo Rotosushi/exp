@@ -120,7 +120,7 @@ void path_replace_extension(Path *restrict p1, const Path *restrict p2);
  * @param path
  * @return Path
  */
-Path path_root_name(Path *restrict path);
+Path path_root_name(Path const *restrict path);
 
 /**
  * @brief returns the root directory of the path, if present,
@@ -129,7 +129,7 @@ Path path_root_name(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_root_directory(Path *restrict path);
+Path path_root_directory(Path const *restrict path);
 
 /**
  * @brief returns the root path of the path, if present.
@@ -138,7 +138,7 @@ Path path_root_directory(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_root_path(Path *restrict path);
+Path path_root_path(Path const *restrict path);
 
 /**
  * @brief returns the path relative to the root path.
@@ -146,7 +146,7 @@ Path path_root_path(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_relative_path(Path *restrict path);
+Path path_relative_path(Path const *restrict path);
 
 /**
  * @brief returns the path of the parent path
@@ -154,7 +154,7 @@ Path path_relative_path(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_parent_path(Path *restrict path);
+Path path_parent_path(Path const *restrict path);
 
 /**
  * @brief returns the filename component of the path,
@@ -163,7 +163,7 @@ Path path_parent_path(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_filename(Path *restrict path);
+Path path_filename(Path const *restrict path);
 
 /**
  * @brief returns the filename of the path,
@@ -172,7 +172,7 @@ Path path_filename(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_stem(Path *restrict path);
+Path path_stem(Path const *restrict path);
 
 /**
  * @brief returns the extension of the path, if present.
@@ -181,7 +181,7 @@ Path path_stem(Path *restrict path);
  * @param path
  * @return Path
  */
-Path path_extension(Path *restrict path);
+Path path_extension(Path const *restrict path);
 
 bool path_has_root_path(Path const *restrict path);
 bool path_has_root_name(Path const *restrict path);
