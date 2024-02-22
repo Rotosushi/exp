@@ -17,26 +17,68 @@
 #ifndef EXP_IMR_OPCODE_H
 #define EXP_IMR_OPCODE_H
 
+/*
+  These codes need to allow instructions to represent
+
+  definitions
+    - variables
+    - constants
+    - functions
+
+  expressions
+    - constants
+    - references
+    - calls
+    - unary operators
+    - binary operators
+
+  if we assume that instructions are an opcode
+  followed by their arguments, layed out according
+  to the opcode.
+  and we have a bank of constants C[N]
+  and we have a bank of registers R[N]
+  and we have a stack of values S[N]
+*/
+
 typedef enum Opcode {
-  OP_CONST,
+  // for the sake of clarity, '[]' is referring to one byte
 
-  OP_FN,
+  // OP_DEFINE_GLOBAL_CONST
+  // [op][A][B]
+  // define a constant
+  //  A is the index into C[N]
+  //  A is the name of the global constant
+  //  B is the index into R[N]
+  //  B is the value of the global constant
+  OP_DEFINE_GLOBAL_CONST,
 
-  OP_LOAD,
-  OP_LOADI,
+  // #TODO OP_DEFINE_VAR_*
 
-  OP_STORE,
-  OP_STOREI,
+  // #TODO
+  // OP_DEFINE_FN
 
-  OP_CALL,
+  // #TODO:
+  // OP_LOAD,
+  // OP_LOADI,
+  // OP_LOADC,
 
-  OP_UOP_NEG,
+  // #TODO:
+  //  OP_STORE,
+  //  OP_STOREI,
 
-  OP_BOP_SUB,
-  OP_BOP_ADD,
-  OP_BOP_MUL,
-  OP_BOP_DIV,
-  OP_BOP_MOD,
+  // #TODO:
+  // OP_CALL,
+  // OP_RETURN,
+
+  // #TODO:
+  // OP_UOP_NEG,
+
+  // #TODO:
+  // OP_BOP_SUB,
+  // OP_BOP_ADD,
+  // OP_BOP_MUL,
+  // OP_BOP_DIV,
+  // OP_BOP_MOD,
 } Opcode;
 
 #endif // !EXP_IMR_OPCODE_H

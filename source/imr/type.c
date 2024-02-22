@@ -16,29 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stdlib.h>
+#include "imr/type.h"
 
-#include "imr/bytecode.h"
-
-Bytecode bytecode_create() {
-  Bytecode bc;
-  bc.length = 0;
-  bc.capacity = 0;
-  bc.buffer = NULL;
-  return bc;
-}
-
-void bytecode_destroy(Bytecode *restrict bytecode) {
-  assert(bytecode != NULL);
-
-  if ((bytecode->buffer == NULL)) {
-    bytecode->length = 0;
-    bytecode->capacity = 0;
-    return;
-  }
-
-  bytecode->length = 0;
-  bytecode->capacity = 0;
-  free(bytecode->buffer);
+Type type_create_integer() {
+  Type t;
+  t.kind = TYPEKIND_INTEGER;
+  return t;
 }

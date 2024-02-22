@@ -16,5 +16,16 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_BYTECODE_H
 #define EXP_IMR_BYTECODE_H
+#include <stddef.h>
+#include <stdint.h>
+
+typedef struct Bytecode {
+  size_t length;
+  size_t capacity;
+  uint8_t *buffer;
+} Bytecode;
+
+Bytecode bytecode_create();
+void bytecode_destroy(Bytecode *restrict bytecode);
 
 #endif // !EXP_IMR_BYTECODE_H
