@@ -40,15 +40,19 @@
   and we have a stack of values S[N]
 */
 
+/**
+ * @brief the valid opcodes for instructions
+ *
+ */
 typedef enum Opcode {
-  // for the sake of clarity, '[]' is referring to one byte
+  // for the sake of brevity, '[]' is referring to one byte
 
   // OP_DEFINE_GLOBAL_CONST
   // [op][A][B]
   // define a constant
   //  A is the index into C[N]
   //  A is the name of the global constant
-  //  B is the index into R[N]
+  //  B is the index into C[N]
   //  B is the value of the global constant
   OP_DEFINE_GLOBAL_CONST,
 

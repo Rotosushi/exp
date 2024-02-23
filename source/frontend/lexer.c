@@ -16,47 +16,81 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 
 #include "frontend/lexer.h"
 
-void lexer_init(Lexer *lexer) {
-  lexer->cursor = lexer->token = NULL;
-  lexer->line = 1;
+Lexer lexer_create() {
+  Lexer lexer;
+  lexer_init(&lexer);
+  return lexer;
 }
 
-void lexer_reset(Lexer *lexer) { lexer_init(lexer); }
+void lexer_init(Lexer *restrict lexer) {
+  assert(lexer != NULL);
+  lexer->cursor = lexer->token = NULL;
+  lexer->line = lexer->column = 1;
+}
 
-void lexer_set_view(Lexer *lexer, const char *buffer) {
+void lexer_reset(Lexer *restrict lexer) {
+  assert(lexer != NULL);
+  lexer_init(lexer);
+}
+
+void lexer_set_view(Lexer *restrict lexer, char const *buffer) {
+  assert(lexer != NULL);
   lexer->cursor = lexer->token = buffer;
 }
 
-bool lexer_at_end(Lexer *lexer) { return *lexer->cursor == '\0'; }
+bool lexer_at_end(Lexer *restrict lexer) {
+  assert(lexer != NULL);
+  if ((lexer->cursor == NULL) || (lexer->token == NULL)) {
+    return 1;
+  }
+  return *lexer->cursor == '\0';
+}
 
-size_t lexer_current_text_length(Lexer *lexer) {
+static size_t lexer_current_text_length(Lexer const *restrict lexer) {
+  assert(lexer != NULL);
   return (size_t)(lexer->cursor - lexer->token);
 }
 
-StringView lexer_current_text(Lexer *lexer) {
+StringView lexer_current_text(Lexer const *restrict lexer) {
+  assert(lexer != NULL);
   StringView result = {lexer->token, lexer_current_text_length(lexer)};
   return result;
 }
 
-size_t lexer_current_line(Lexer *lexer) { return lexer->line; }
+size_t lexer_current_line(Lexer const *restrict lexer) {
+  assert(lexer != NULL);
+  return lexer->line;
+}
+
+size_t lexer_current_column(Lexer const *restrict lexer) {
+  assert(lexer != NULL);
+  return lexer->column;
+}
 
 static bool isid(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
 }
 
-static char lexer_next(Lexer *lexer) {
+static char lexer_next(Lexer *restrict lexer) {
+  assert(lexer != NULL);
+  lexer->column++;
   lexer->cursor++;
   return lexer->cursor[-1];
 }
 
-static char lexer_peek(Lexer *lexer) { return *lexer->cursor; }
+static char lexer_peek(Lexer *restrict lexer) {
+  assert(lexer != NULL);
+  return *lexer->cursor;
+}
 
-static char lexer_peek_next(Lexer *lexer) {
+static char lexer_peek_next(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   if (lexer_at_end(lexer)) {
     return '\0';
   }
@@ -64,10 +98,12 @@ static char lexer_peek_next(Lexer *lexer) {
   return lexer->cursor[1];
 }
 
-static void lexer_skip_whitespace(Lexer *lexer) {
+static void lexer_skip_whitespace(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   while (1) {
     switch (lexer_peek(lexer)) {
     case '\n':
+      lexer->column = 1;
       lexer->line++;
       [[fallthrough]];
     case ' ':
@@ -89,7 +125,8 @@ static void lexer_skip_whitespace(Lexer *lexer) {
   }
 }
 
-static bool lexer_match(Lexer *lexer, char c) {
+static bool lexer_match(Lexer *restrict lexer, char c) {
+  assert(lexer != NULL);
   if (lexer_at_end(lexer)) {
     return 0;
   }
@@ -98,11 +135,13 @@ static bool lexer_match(Lexer *lexer, char c) {
     return 0;
   }
 
+  lexer->column++;
   lexer->cursor++;
   return 1;
 }
 
-static Token lexer_integer(Lexer *lexer) {
+static Token lexer_integer(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   while (isdigit(lexer_peek(lexer))) {
     lexer_next(lexer);
   }
@@ -110,8 +149,10 @@ static Token lexer_integer(Lexer *lexer) {
   return TOK_INTEGER;
 }
 
-static Token lexer_check_keyword(Lexer *lexer, size_t begin, size_t length,
-                                 const char *rest, Token keyword) {
+static Token lexer_check_keyword(Lexer *restrict lexer, size_t begin,
+                                 size_t length, const char *rest,
+                                 Token keyword) {
+  assert(lexer != NULL);
   if ((lexer_current_text_length(lexer) == (begin + length)) &&
       (memcmp(lexer->token + begin, rest, length) == 0)) {
     return keyword;
@@ -120,7 +161,8 @@ static Token lexer_check_keyword(Lexer *lexer, size_t begin, size_t length,
   return TOK_IDENTIFIER;
 }
 
-static Token lexer_identifier_or_keyword(Lexer *lexer) {
+static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   switch (lexer->token[0]) {
   case 'c':
     return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
@@ -157,7 +199,8 @@ static Token lexer_identifier_or_keyword(Lexer *lexer) {
   return TOK_IDENTIFIER;
 }
 
-static Token lexer_identifier(Lexer *lexer) {
+static Token lexer_identifier(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   while (isid(lexer_peek(lexer)) || isdigit(lexer_peek(lexer))) {
     lexer_next(lexer);
   }
@@ -165,7 +208,8 @@ static Token lexer_identifier(Lexer *lexer) {
   return lexer_identifier_or_keyword(lexer);
 }
 
-Token lexer_scan(Lexer *lexer) {
+Token lexer_scan(Lexer *restrict lexer) {
+  assert(lexer != NULL);
   lexer_skip_whitespace(lexer);
   lexer->token = lexer->cursor;
 

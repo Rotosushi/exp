@@ -16,20 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "imr/type.h"
+#include <stdlib.h>
+#include <time.h>
 
-Type type_create_integer() {
-  Type type;
-  type.kind = TYPEKIND_INTEGER;
-  return type;
-}
+#include "imr/registers.h"
 
-Type type_create_string_literal() {
-  Type type;
-  type.kind = TYPEKIND_STRING_LITERAL;
-  return type;
-}
+int registers_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
+  srand((unsigned)time(NULL));
+  Registers registers;
+  bool failure = 0;
 
-bool type_equality(Type const *t1, Type const *t2) {
-  return t1->kind == t2->kind;
+  Value *r0 = registers_at(&registers, 0);
+  *r0 = value_create_integer(rand());
+  Value *r1 = registers_at(&registers, 0);
+  failure |= !value_equality(r0, r1);
+
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }

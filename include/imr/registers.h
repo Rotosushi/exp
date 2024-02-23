@@ -14,19 +14,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_STRING_VIEW_H
-#define EXP_UTILITY_STRING_VIEW_H
+#ifndef EXP_IMR_REGISTERS_H
+#define EXP_IMR_REGISTERS_H
+#include <stdint.h>
 
-#include <stddef.h>
+#include "imr/value.h"
 
-typedef struct StringView {
-  char const *ptr;
-  size_t length;
-} StringView;
+#define REGISTERS_CAPACITY 32
 
-StringView string_view_create();
-StringView string_view_create_from_string(char const *string, size_t length);
-StringView string_view_create_from_cstring(char const *cstring);
-bool string_view_equality(StringView sv1, StringView sv2);
+/**
+ * @brief represents the working registers of
+ * the virtual machine
+ *
+ */
+typedef struct Registers {
+  Value buffer[REGISTERS_CAPACITY];
+} Registers;
 
-#endif // !EXP_UTILITY_STRING_VIEW_H
+/**
+ * @brief return the <Value*> of the register at the
+ * given <index>
+ *
+ * @param registers
+ * @param index
+ * @return Value*
+ */
+Value *registers_at(Registers *restrict registers, uint8_t index);
+
+#endif // !EXP_IMR_REGISTERS_H

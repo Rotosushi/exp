@@ -7,7 +7,10 @@ create_test_sourcelist(Tests
   number_conversion.c
   lexer_tests.c
   string_tests.c
-  
+  constants_tests.c
+  registers_tests.c
+  string_interner_tests.c
+  type_interner_tests.c
 )
 
 add_executable (CommonTests ${Tests})

@@ -17,21 +17,53 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "utility/string_view.h"
+
 typedef enum ValueKind {
   VALUEKIND_INTEGER,
   // VALUEKIND_BOOLEAN,
   // VALUEKIND_NIL,
+  VALUEKIND_STRING_LITERAL,
 } ValueKind;
 
+/**
+ * @brief represents Values in the compiler
+ *
+ */
 typedef struct Value {
   ValueKind kind;
   union {
     long integer;
     // bool boolean;
     // bool nil;
+    StringView string_literal;
   };
 } Value;
 
+/**
+ * @brief create an Integer value
+ *
+ * @param i
+ * @return Value
+ */
 Value value_create_integer(long i);
+
+/**
+ * @brief create a StringLiteral value
+ *
+ * @param sv
+ * @return Value
+ */
+Value value_create_string_literal(StringView sv);
+
+/**
+ * @brief equality compares values
+ *
+ * @param v1
+ * @param v2
+ * @return true
+ * @return false
+ */
+bool value_equality(Value *v1, Value *v2);
 
 #endif // !EXP_IMR_VALUE_H

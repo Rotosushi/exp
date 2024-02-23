@@ -17,6 +17,10 @@
 #ifndef EXP_FRONTEND_TOKEN_H
 #define EXP_FRONTEND_TOKEN_H
 
+/**
+ * @brief the Tokens that the Lexer returns
+ *
+ */
 typedef enum Token {
   TOK_ERROR,
   TOK_END,

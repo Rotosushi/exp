@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/env/string_interner.c
+  ${EXP_SOURCE_DIR}/env/type_interner.c
+
   ${EXP_SOURCE_DIR}/filesystem/io.c
   ${EXP_SOURCE_DIR}/filesystem/path.c
 
@@ -8,6 +11,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/imr/constants.c
+  ${EXP_SOURCE_DIR}/imr/registers.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
@@ -16,6 +21,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numbers_to_string.c
   ${EXP_SOURCE_DIR}/utility/panic.c
+  ${EXP_SOURCE_DIR}/utility/string_view.c
   ${EXP_SOURCE_DIR}/utility/string.c
 )
 

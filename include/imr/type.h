@@ -21,6 +21,7 @@ typedef enum TypeKind {
   TYPEKIND_INTEGER,
   // TYPEKIND_BOOLEAN,
   // TYPEKIND_NIL,
+  TYPEKIND_STRING_LITERAL,
   // TYPEKIND_FUNCTION,
 } TypeKind;
 
@@ -36,6 +37,10 @@ typedef struct IntegerType {
 //   char empty;
 // } NilType;
 
+typedef struct StringLiteralType {
+  char empty;
+} StringLiteralType;
+
 // struct Type;
 // typedef struct FunctionType {
 //   Type *return_type;
@@ -43,16 +48,42 @@ typedef struct IntegerType {
 //   Type *argument_types;
 // };
 
+/**
+ * @brief represents Types in the compiler
+ *
+ */
 typedef struct Type {
   TypeKind kind;
   union {
     IntegerType integer_type;
     // BooleanType boolean_type;
     // NilType nil_type;
+    StringLiteralType string_literal_type;
     // FunctionType function_type;
   };
 } Type;
 
+/**
+ * @brief create a new IntegerType
+ *
+ * @return Type
+ */
 Type type_create_integer();
+
+/**
+ * @brief create a new StringLiteralType
+ *
+ * @return Type
+ */
+Type type_create_string_literal();
+
+/**
+ * @brief equality compares types
+ *
+ * @param t1
+ * @param t2
+ * @return bool
+ */
+bool type_equality(Type const *t1, Type const *t2);
 
 #endif // !EXP_IMR_TYPE_H

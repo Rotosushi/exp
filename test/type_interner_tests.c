@@ -16,20 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "imr/type.h"
+#include <stdlib.h>
 
-Type type_create_integer() {
-  Type type;
-  type.kind = TYPEKIND_INTEGER;
-  return type;
-}
+#include "env/type_interner.h"
 
-Type type_create_string_literal() {
-  Type type;
-  type.kind = TYPEKIND_STRING_LITERAL;
-  return type;
-}
+int type_interner_tests([[maybe_unused]] int argc,
+                        [[maybe_unused]] char *argv[]) {
+  TypeInterner ti = type_interner_create();
+  bool failure = 0;
 
-bool type_equality(Type const *t1, Type const *t2) {
-  return t1->kind == t2->kind;
+  Type *t0 = type_interner_integer_type(&ti);
+  Type *t1 = type_interner_integer_type(&ti);
+  failure |= !type_equality(t0, t1);
+  failure |= t0 != t1;
+
+  Type *t2 = type_interner_string_literal_type(&ti);
+  failure |= type_equality(t2, t0);
+  failure |= t0 == t2;
+
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }

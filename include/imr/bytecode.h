@@ -19,13 +19,39 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+ * @brief represents a section of instructions.
+ *
+ */
 typedef struct Bytecode {
   size_t length;
   size_t capacity;
   uint8_t *buffer;
 } Bytecode;
 
+/**
+ * @brief create a new Bytecode
+ *
+ * @return Bytecode
+ */
 Bytecode bytecode_create();
+/**
+ * @brief destroy a Bytecode
+ *
+ * @param bytecode
+ */
 void bytecode_destroy(Bytecode *restrict bytecode);
+
+/**
+ * @brief define a global constant
+ *
+ * @param bytecode the bytecode to emit into
+ * @param name_index the index of the constant which holds the name of the
+ * global
+ * @param value_index the index of the constant which holds the value of the
+ * global
+ */
+void bytecode_emit_global_const(Bytecode *restrict bytecode, size_t name_index,
+                                size_t value_index);
 
 #endif // !EXP_IMR_BYTECODE_H

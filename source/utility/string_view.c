@@ -16,20 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "imr/type.h"
+#include <string.h>
 
-Type type_create_integer() {
-  Type type;
-  type.kind = TYPEKIND_INTEGER;
-  return type;
+#include "utility/string_view.h"
+
+StringView string_view_create() {
+  StringView sv;
+  sv.length = 0;
+  sv.ptr = NULL;
+  return sv;
 }
 
-Type type_create_string_literal() {
-  Type type;
-  type.kind = TYPEKIND_STRING_LITERAL;
-  return type;
+StringView string_view_create_from_string(char const *string, size_t length) {
+  StringView sv = {string, length};
+  return sv;
 }
 
-bool type_equality(Type const *t1, Type const *t2) {
-  return t1->kind == t2->kind;
+StringView string_view_create_from_cstring(char const *cstring) {
+  StringView sv = {cstring, strlen(cstring)};
+  return sv;
+}
+
+bool string_view_equality(StringView sv1, StringView sv2) {
+  if (sv1.length != sv2.length) {
+    return 0;
+  }
+
+  if (sv1.ptr == sv2.ptr) {
+    return 1;
+  }
+
+  return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
 }

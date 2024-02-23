@@ -16,20 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "imr/type.h"
+#include "imr/registers.h"
+#include "utility/panic.h"
 
-Type type_create_integer() {
-  Type type;
-  type.kind = TYPEKIND_INTEGER;
-  return type;
-}
+Value *registers_at(Registers *restrict registers, uint8_t index) {
+  if (REGISTERS_CAPACITY < index) {
+    panic("index out of bounds", sizeof("index out of bounds"));
+  }
 
-Type type_create_string_literal() {
-  Type type;
-  type.kind = TYPEKIND_STRING_LITERAL;
-  return type;
-}
-
-bool type_equality(Type const *t1, Type const *t2) {
-  return t1->kind == t2->kind;
+  return registers->buffer + index;
 }

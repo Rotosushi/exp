@@ -26,17 +26,54 @@ typedef struct Lexer {
   const char *token;
   const char *cursor;
   size_t line;
+  size_t column;
 } Lexer;
 
-void lexer_init(Lexer *lexer);
-void lexer_reset(Lexer *lexer);
-void lexer_set_view(Lexer *lexer, const char *buffer);
+/**
+ * @brief create a new lexer
+ *
+ * @return Lexer
+ */
+Lexer lexer_create();
 
-bool lexer_at_end(Lexer *lexer);
+/**
+ * @brief initialize a new lexer
+ *
+ * @param lexer
+ */
+void lexer_init(Lexer *restrict lexer);
 
-StringView lexer_current_text(Lexer *lexer);
-size_t lexer_current_line(Lexer *lexer);
+/**
+ * @brief reset a lexer to is initialized state
+ *
+ * @param lexer
+ */
+void lexer_reset(Lexer *restrict lexer);
 
-Token lexer_scan(Lexer *lexer);
+/**
+ * @brief set the buffer the lexer scans
+ *
+ * @note the lexer expects the buffer to be null terminated
+ *
+ * @param lexer
+ * @param buffer
+ */
+void lexer_set_view(Lexer *restrict lexer, char const *buffer);
+
+/**
+ * @brief returns true when the <lexer> has scanned all
+ * of it's buffer
+ *
+ * @param lexer
+ * @return true
+ * @return false
+ */
+bool lexer_at_end(Lexer *restrict lexer);
+
+StringView lexer_current_text(Lexer const *restrict lexer);
+size_t lexer_current_line(Lexer const *restrict lexer);
+size_t lexer_current_column(Lexer const *restrict lexer);
+
+Token lexer_scan(Lexer *restrict lexer);
 
 #endif // !EXP_FRONTEND_LEXER_H
