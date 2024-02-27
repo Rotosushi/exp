@@ -20,6 +20,7 @@
 #include "utility/string_view.h"
 
 typedef enum ValueKind {
+  VALUEKIND_NIL,
   VALUEKIND_INTEGER,
   // VALUEKIND_BOOLEAN,
   // VALUEKIND_NIL,
@@ -33,12 +34,19 @@ typedef enum ValueKind {
 typedef struct Value {
   ValueKind kind;
   union {
-    long integer;
+    bool nil;
     // bool boolean;
-    // bool nil;
+    long integer;
     StringView string_literal;
   };
 } Value;
+
+/**
+ * @brief create a nil value
+ *
+ * @return Value
+ */
+Value value_create_nil();
 
 /**
  * @brief create an Integer value

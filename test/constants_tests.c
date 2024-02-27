@@ -43,14 +43,14 @@ int constants_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   failure |= test_constants(&constants, value_create_integer(rand()));
 
   failure |= test_constants(
-      &constants, value_create_string_literal(string_view_create_from_string(
-                      "hello", sizeof("hello"))));
+      &constants, value_create_string_literal(
+                      string_view_from_string("hello", sizeof("hello"))));
   failure |= test_constants(
-      &constants, value_create_string_literal(string_view_create_from_string(
-                      "world", sizeof("world"))));
-  failure |= test_constants(
-      &constants, value_create_string_literal(string_view_create_from_string(
-                      "hello, world", sizeof("hello, world"))));
+      &constants, value_create_string_literal(
+                      string_view_from_string("world", sizeof("world"))));
+  failure |= test_constants(&constants,
+                            value_create_string_literal(string_view_from_string(
+                                "hello, world", sizeof("hello, world"))));
 
   constants_destroy(&constants);
   if (failure) {

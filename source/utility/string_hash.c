@@ -16,35 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string.h>
+#include "utility/string_hash.h"
 
-#include "utility/string_view.h"
+// hash algorithm based on djb2
+// https://stackoverflow.com/questions/7666509/hash-function-for-string
+// specifically this answer https://stackoverflow.com/a/69812981
+size_t string_hash(char const *restrict string, size_t length) {
+  // generated randomly using: https://asecuritysite.com/encryption/nprimes?y=64
+  // no testing has been done to check if this prime is "good"
+#define LARGE_PRIME 11931085111904720063ul
 
-StringView string_view_create() {
-  StringView sv;
-  sv.length = 0;
-  sv.ptr = NULL;
-  return sv;
-}
+  size_t hash = 5381;
+  for (size_t i = 0; i < length; ++i)
+    hash = (LARGE_PRIME * hash) + (unsigned char)(string[i]);
+  return hash;
 
-StringView string_view_from_string(char const *string, size_t length) {
-  StringView sv = {string, length};
-  return sv;
-}
-
-StringView string_view_from_cstring(char const *cstring) {
-  StringView sv = {cstring, strlen(cstring)};
-  return sv;
-}
-
-bool string_view_equality(StringView sv1, StringView sv2) {
-  if (sv1.length != sv2.length) {
-    return 0;
-  }
-
-  if (sv1.ptr == sv2.ptr) {
-    return 1;
-  }
-
-  return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
+#undef LARGE_PRIME
 }

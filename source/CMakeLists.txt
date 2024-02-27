@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/backend/emitter.c
+
+  ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
+  ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
 
   ${EXP_SOURCE_DIR}/filesystem/io.c
@@ -21,6 +25,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numbers_to_string.c
   ${EXP_SOURCE_DIR}/utility/panic.c
+  ${EXP_SOURCE_DIR}/utility/string_hash.c
   ${EXP_SOURCE_DIR}/utility/string_view.c
   ${EXP_SOURCE_DIR}/utility/string.c
 )

@@ -34,6 +34,7 @@ int type_interner_tests([[maybe_unused]] int argc,
   failure |= type_equality(t2, t0);
   failure |= t0 == t2;
 
+  type_interner_destroy(&ti);
   if (failure) {
     return EXIT_FAILURE;
   } else {

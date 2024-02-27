@@ -93,8 +93,8 @@ static bool test_base10_intmax_to_str(intmax_t value) {
   return value != number;
 }
 
-int number_conversion([[maybe_unused]] int argc,
-                      [[maybe_unused]] char *argv[]) {
+int number_conversion_tests([[maybe_unused]] int argc,
+                            [[maybe_unused]] char *argv[]) {
   bool failed = 0;
   srand((unsigned)time(NULL));
 

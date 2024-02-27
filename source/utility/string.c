@@ -82,22 +82,6 @@ int string_compare(String const *restrict s1, String const *restrict s2) {
   }
 }
 
-// hash algorithm based on djb2
-// https://stackoverflow.com/questions/7666509/hash-function-for-string
-// specifically this answer https://stackoverflow.com/a/69812981
-size_t string_hash(String const *restrict string) {
-  // generated randomly using: https://asecuritysite.com/encryption/nprimes?y=64
-  // no testing has been done to check if this prime is "good"
-#define LARGE_PRIME 11931085111904720063ul
-
-  size_t hash = 5381;
-  for (size_t i = 0; i < string->length; ++i)
-    hash = (LARGE_PRIME * hash) + (uint8_t)(string->buffer[i]);
-  return hash;
-
-#undef LARGE_PRIME
-}
-
 void string_resize(String *restrict str, size_t capacity) {
   assert(str != NULL);
   assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");

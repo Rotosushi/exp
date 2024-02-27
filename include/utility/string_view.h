@@ -25,8 +25,8 @@ typedef struct StringView {
 } StringView;
 
 StringView string_view_create();
-StringView string_view_create_from_string(char const *string, size_t length);
-StringView string_view_create_from_cstring(char const *cstring);
+StringView string_view_from_string(char const *string, size_t length);
+StringView string_view_from_cstring(char const *cstring);
 bool string_view_equality(StringView sv1, StringView sv2);
 
 #endif // !EXP_UTILITY_STRING_VIEW_H

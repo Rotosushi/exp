@@ -21,7 +21,7 @@
 
 typedef struct StringInterner {
   size_t capacity;
-  size_t length;
+  size_t count;
   String *buffer;
 } StringInterner;
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,20 +14,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_CONFIG_H
-#define EXP_UTILITY_CONFIG_H
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR 0
-#define EXP_VERSION_MINOR 0 
-#define EXP_VERSION_PATCH 1
-#define EXP_GIT_REVISION "df6fe7288c9f96f5cca6c1bb352f3a2c6e3d77c9"
-#define EXP_BUILD_DIR "/home/cade/projects/exp/build"
-#define EXP_DEBUG 1
-#define EXP_HOST_OS_LINUX
-/* #undef EXP_HOST_OS_WINDOWS */
-/* #undef EXP_HOST_OS_APPLE */
-// NOLINTEND
-// clang-format on
+#ifndef EXP_UTILITY_STRING_HASH_H
+#define EXP_UTILITY_STRING_HASH_H
+#include <stddef.h>
 
-#endif // !EXP_UTILITY_CONFIG_H
+/**
+ * @brief computes the hash of the given string.
+ *
+ * @param string
+ * @return size_t
+ */
+size_t string_hash(char const *restrict string, size_t length);
+
+#endif // !EXP_UTILITY_STRING_HASH_H

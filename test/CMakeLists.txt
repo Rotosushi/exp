@@ -4,13 +4,14 @@ add_test (NAME "smoke test" COMMAND exp)
 
 create_test_sourcelist(Tests 
   CommonTests.c
-  number_conversion.c
+  number_conversion_tests.c
   lexer_tests.c
   string_tests.c
   constants_tests.c
   registers_tests.c
   string_interner_tests.c
   type_interner_tests.c
+  symbol_table_tests.c
 )
 
 add_executable (CommonTests ${Tests})

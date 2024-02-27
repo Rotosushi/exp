@@ -17,6 +17,7 @@
 
   -- grammar
   top = function 
+      | declaration
 
   function = "fn" identifier formal-argument-list ("->" type)? block
 
