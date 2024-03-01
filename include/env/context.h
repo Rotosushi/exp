@@ -18,17 +18,40 @@
 #define EXP_ENV_CONTEXT_H
 
 #include "env/string_interner.h"
+#include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "imr/bytecode.h"
-#include "imr/constants.h"
-#include "imr/registers.h"
+#include "filesystem/path.h"
+// #include "imr/bytecode.h"
+// #include "imr/constants.h"
+// #include "imr/registers.h"
 
 typedef struct Context {
+  Path source_path;
   StringInterner string_interner;
   TypeInterner type_interner;
-  Constants constants;
-  Bytecode global_bytecode;
-  Registers registers;
+  SymbolTable global_symbols;
+  //  Constants constants;
+  //  Bytecode global_bytecode;
+  //  Registers registers;
 } Context;
+
+Context context_create();
+void context_destroy(Context *restrict context);
+
+void context_set_source_path(Context *restrict context,
+                             char const *restrict data, size_t length);
+
+StringView context_source_path(Context *restrict context);
+
+StringView context_intern(Context *restrict context, char const *data,
+                          size_t length);
+
+Type *context_integer_type(Context *restrict context);
+
+bool context_insert_global(Context *restrict context, StringView name,
+                           Type *type, Value value);
+
+SymbolTableElement *context_lookup_global(Context *restrict context,
+                                          StringView name);
 
 #endif // !EXP_ENV_CONTEXT_H

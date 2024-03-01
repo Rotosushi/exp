@@ -60,6 +60,15 @@ StringView path_to_view(const Path *restrict path);
 bool path_empty(Path const *restrict path);
 
 /**
+ * @brief assigns <data> to <path>
+ *
+ * @param path
+ * @param data
+ * @param length
+ */
+void path_assign(Path *restrict path, char const *restrict data, size_t length);
+
+/**
  * @brief compare two paths lexigraphically
  *
  * @param p1

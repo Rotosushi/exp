@@ -73,4 +73,16 @@ SymbolTableElement *symbol_table_lookup(SymbolTable *restrict symbol_table,
  */
 bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name);
 
+typedef struct SymbolTableIterator {
+  SymbolTableElement *element;
+  SymbolTableElement *end;
+} SymbolTableIterator;
+
+SymbolTableIterator
+symbol_table_iterator_create(SymbolTable *restrict symbol_table);
+
+void symbol_table_iterator_next(SymbolTableIterator *restrict iter);
+
+bool symbol_table_iterator_done(SymbolTableIterator *restrict iter);
+
 #endif // !EXP_ENV_SYMBOL_TABLE_H

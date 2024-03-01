@@ -19,22 +19,84 @@
 #include "imr/value.h"
 #include "utility/panic.h"
 
+Value value_create_nil() {
+  Value value;
+  value.kind = VALUEKIND_NIL;
+  value.nil = 0;
+  return value;
+}
+
+Value value_create_boolean(bool b) {
+  Value value;
+  value.kind = VALUEKIND_BOOLEAN;
+  value.boolean = b;
+  return value;
+}
+
 Value value_create_integer(long i) {
-  Value v;
-  v.kind = VALUEKIND_INTEGER;
-  v.integer = i;
-  return v;
+  Value value;
+  value.kind = VALUEKIND_INTEGER;
+  value.integer = i;
+  return value;
 }
 
 Value value_create_string_literal(StringView sv) {
-  Value v;
-  v.kind = VALUEKIND_STRING_LITERAL;
-  v.string_literal = sv;
-  return v;
+  Value value;
+  value.kind = VALUEKIND_STRING_LITERAL;
+  value.string_literal = sv;
+  return value;
+}
+
+void value_assign(Value *dest, Value *source) {
+  if (dest == source) {
+    return;
+  }
+
+  switch (source->kind) {
+  case VALUEKIND_NIL:
+    dest->kind = VALUEKIND_NIL;
+    dest->nil = 0;
+    break;
+
+  case VALUEKIND_BOOLEAN:
+    dest->kind = VALUEKIND_BOOLEAN;
+    dest->boolean = source->boolean;
+    break;
+
+  case VALUEKIND_INTEGER:
+    dest->kind = VALUEKIND_INTEGER;
+    dest->integer = source->integer;
+    break;
+
+  case VALUEKIND_STRING_LITERAL:
+    dest->kind = VALUEKIND_STRING_LITERAL;
+    dest->string_literal = source->string_literal;
+    break;
+
+  default:
+    panic("bad VALUEKIND", sizeof("bad VALUEKIND"));
+    break;
+  }
 }
 
 bool value_equality(Value *v1, Value *v2) {
+  if (v1 == v2) {
+    return 1;
+  }
+
   switch (v1->kind) {
+  case VALUEKIND_NIL:
+    return v2->kind == VALUEKIND_NIL;
+    break;
+
+  case VALUEKIND_BOOLEAN:
+    if (v2->kind != VALUEKIND_BOOLEAN) {
+      return 0;
+    }
+
+    return v1->boolean == v2->boolean;
+    break;
+
   case VALUEKIND_INTEGER:
     if (v2->kind != VALUEKIND_INTEGER) {
       return 0;

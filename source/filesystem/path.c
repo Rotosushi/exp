@@ -35,6 +35,10 @@ bool path_empty(Path const *restrict path) {
   return string_empty(&path->string);
 }
 
+void path_assign(Path *restrict path, char const *data, size_t length) {
+  string_assign(&path->string, data, length);
+}
+
 int path_compare(Path const *restrict p1, Path const *restrict p2) {
   return string_compare(&p1->string, &p2->string);
 }

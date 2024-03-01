@@ -18,24 +18,24 @@
 #define EXP_IMR_TYPE_H
 
 typedef enum TypeKind {
+  TYPEKIND_NIL,
+  TYPEKIND_BOOLEAN,
   TYPEKIND_INTEGER,
-  // TYPEKIND_BOOLEAN,
-  // TYPEKIND_NIL,
   TYPEKIND_STRING_LITERAL,
   // TYPEKIND_FUNCTION,
 } TypeKind;
 
-typedef struct IntegerType {
+typedef struct NilType {
   char empty; // zero length structs are not valid C
+} NilType;
+
+typedef struct BooleanType {
+  char empty;
+} BooleanType;
+
+typedef struct IntegerType {
+  char empty;
 } IntegerType;
-
-// typedef struct BooleanType {
-//   char empty;
-// } BooleanType;
-
-// typedef struct NilType {
-//   char empty;
-// } NilType;
 
 typedef struct StringLiteralType {
   char empty;
@@ -55,13 +55,27 @@ typedef struct StringLiteralType {
 typedef struct Type {
   TypeKind kind;
   union {
+    NilType nil_type;
+    BooleanType boolean_type;
     IntegerType integer_type;
-    // BooleanType boolean_type;
-    // NilType nil_type;
     StringLiteralType string_literal_type;
     // FunctionType function_type;
   };
 } Type;
+
+/**
+ * @brief create a new NilType
+ *
+ * @return Type
+ */
+Type type_create_nil();
+
+/**
+ * @brief create a new BooleanType
+ *
+ * @return Type
+ */
+Type type_create_boolean();
 
 /**
  * @brief create a new IntegerType

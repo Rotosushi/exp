@@ -122,10 +122,10 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
       symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
 
   // if the element already exists, we
-  // do nothing. (note that there is
-  // no reason we can't reassign
-  // the type and value here)
+  // reassign the type and value
   if (element->name.ptr != NULL) {
+    element->type = type;
+    element->value = value;
     return 0;
   }
 
@@ -169,4 +169,32 @@ bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name) {
   element->type = NULL;
   element->value = value_create_integer(1L);
   return 1;
+}
+
+SymbolTableIterator
+symbol_table_iterator_create(SymbolTable *restrict symbol_table) {
+  assert(symbol_table != NULL);
+
+  SymbolTableIterator iter = {symbol_table->elements,
+                              symbol_table->elements + symbol_table->capacity};
+  if ((iter.element != NULL) && (iter.element->name.ptr == NULL)) {
+    symbol_table_iterator_next(&iter);
+  }
+  return iter;
+}
+
+void symbol_table_iterator_next(SymbolTableIterator *restrict iter) {
+  assert(iter != NULL);
+
+  if ((iter->element != iter->end) && (iter->element != NULL)) {
+    do {
+      iter->element += 1;
+    } while ((iter->element->name.ptr == NULL) && (iter->element != iter->end));
+  }
+}
+
+bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
+  assert(iter != NULL);
+
+  return iter->element == iter->end;
 }

@@ -21,6 +21,8 @@
 
 TypeInterner type_interner_create() {
   TypeInterner type_interner;
+  type_interner.nil_type = type_create_nil();
+  type_interner.boolean_type = type_create_boolean();
   type_interner.integer_type = type_create_integer();
   type_interner.string_literal_type = type_create_string_literal();
   return type_interner;
@@ -29,6 +31,14 @@ TypeInterner type_interner_create() {
 void type_interner_destroy(
     [[maybe_unused]] TypeInterner *restrict type_interner) {
   return;
+}
+
+Type *type_interner_nil_type(TypeInterner *restrict type_interner) {
+  return &(type_interner->nil_type);
+}
+
+Type *type_interner_boolean_type(TypeInterner *restrict type_interner) {
+  return &(type_interner->boolean_type);
 }
 
 Type *type_interner_integer_type(TypeInterner *restrict type_interner) {

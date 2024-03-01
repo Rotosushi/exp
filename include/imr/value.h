@@ -21,9 +21,8 @@
 
 typedef enum ValueKind {
   VALUEKIND_NIL,
+  VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
-  // VALUEKIND_BOOLEAN,
-  // VALUEKIND_NIL,
   VALUEKIND_STRING_LITERAL,
 } ValueKind;
 
@@ -35,7 +34,7 @@ typedef struct Value {
   ValueKind kind;
   union {
     bool nil;
-    // bool boolean;
+    bool boolean;
     long integer;
     StringView string_literal;
   };
@@ -47,6 +46,14 @@ typedef struct Value {
  * @return Value
  */
 Value value_create_nil();
+
+/**
+ * @brief create a boolean value
+ *
+ * @param b
+ * @return Value
+ */
+Value value_create_boolean(bool b);
 
 /**
  * @brief create an Integer value
@@ -63,6 +70,14 @@ Value value_create_integer(long i);
  * @return Value
  */
 Value value_create_string_literal(StringView sv);
+
+/**
+ * @brief assign dest the value of source
+ *
+ * @param dest
+ * @param source
+ */
+void value_assign(Value *dest, Value *source);
 
 /**
  * @brief equality compares values

@@ -18,15 +18,31 @@
  */
 #include "imr/type.h"
 
+Type type_create_nil() {
+  Type type;
+  type.kind = TYPEKIND_NIL;
+  type.nil_type.empty = 0;
+  return type;
+}
+
+Type type_create_boolean() {
+  Type type;
+  type.kind = TYPEKIND_BOOLEAN;
+  type.boolean_type.empty = 0;
+  return type;
+}
+
 Type type_create_integer() {
   Type type;
   type.kind = TYPEKIND_INTEGER;
+  type.integer_type.empty = 0;
   return type;
 }
 
 Type type_create_string_literal() {
   Type type;
   type.kind = TYPEKIND_STRING_LITERAL;
+  type.string_literal_type.empty = 0;
   return type;
 }
 

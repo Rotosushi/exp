@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_EMITTER_H
 #define EXP_BACKEND_EMITTER_H
 
-#include "env/symbol_table.h"
+#include "env/context.h"
 #include "utility/string_view.h"
 
 /*
@@ -43,15 +43,20 @@
   thus, defining global constants is like 1/4 or 1/3 or 1/2
   (depending on how you slice the compiler)
   of the entire compiler. (modulo types)
+
+  Bytecode, Registers, and the VirtualMachine, are all components
+  of an interpreter, not a compiler.
+  their existence paves a way for compile time execution.
+  but they are not the code that emits assembly instructions.
 */
 
 /**
  * @brief writes assembly to <path> defining each symbol
- * within <symbol_table>
+ * within <context>'s global_symbols
  *
  * @param symbol_table
  * @param path
  */
-void emit(SymbolTable *restrict symbol_table, StringView path);
+void emit(Context *restrict context, StringView path);
 
 #endif // !EXP_BACKEND_EMITTER_H
