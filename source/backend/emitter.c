@@ -131,6 +131,8 @@ the .bss section.
     break;
 
   case TYPEKIND_INTEGER:
+    // #TODO think of a way to split these into
+    // functions for reuse across multiple types.
     file_write("  .globl ", sizeof("  .globl "), file);
     file_write(name.ptr, name.length, file);
     file_write("\n", sizeof("\n"), file);
@@ -141,6 +143,7 @@ the .bss section.
       file_write("  .bss\n", sizeof("  .bss\n"), file);
     }
 
+    // #TODO use alignment_of
     file_write("  .align ", sizeof("  .align "), file);
     file_write("8\n", sizeof("8\n"), file);
 
@@ -148,6 +151,7 @@ the .bss section.
     file_write(name.ptr, name.length, file);
     file_write(", @object\n", sizeof(", @object\n"), file);
 
+    // #TODO use size_of
     file_write("  .size ", sizeof("  .size "), file);
     file_write(name.ptr, name.length, file);
     file_write(", 8\n", sizeof(", 8\n"), file);
