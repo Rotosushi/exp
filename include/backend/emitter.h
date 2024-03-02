@@ -57,6 +57,6 @@
  * @param symbol_table
  * @param path
  */
-void emit(Context *restrict context, StringView path);
+void emit(Context *restrict context);
 
 #endif // !EXP_BACKEND_EMITTER_H
