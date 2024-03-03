@@ -12,6 +12,7 @@ create_test_sourcelist(Tests
   string_interner_tests.c
   type_interner_tests.c
   symbol_table_tests.c
+  emit_tests.c
 )
 
 add_executable (CommonTests ${Tests})

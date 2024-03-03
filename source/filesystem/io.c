@@ -20,21 +20,13 @@
 
 #include "filesystem/io.h"
 
-size_t file_write(const char *restrict buffer, size_t length,
-                  FILE *restrict stream) {
-  size_t bytes_written = 0;
-  int code = 0;
-  for (size_t i = 0; (code != EOF) && (i < length); ++i) {
-    code = fputc(buffer[i], stream);
-    bytes_written++;
-  }
-
+void file_write(const char *restrict buffer, [[maybe_unused]] size_t length,
+                FILE *restrict stream) {
+  int code = fputs(buffer, stream);
   if ((code == EOF) && (ferror(stream))) {
-    perror("fputc failed");
+    perror("fputs failed");
     exit(EXIT_FAILURE);
   }
-
-  return bytes_written;
 }
 
 size_t file_read(char *buffer, size_t length, FILE *restrict stream) {

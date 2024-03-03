@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,22 +14,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_CONFIG_H
-#define EXP_UTILITY_CONFIG_H
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR @EXP_VERSION_MAJOR@
-#define EXP_VERSION_MINOR @EXP_VERSION_MINOR@ 
-#define EXP_VERSION_PATCH @EXP_VERSION_PATCH@
-#define EXP_GIT_REVISION "@EXP_GIT_REVISION@"
-#define EXP_TEST_DIR "@EXP_TEST_DIR@"
-#cmakedefine01 EXP_DEBUG
-#cmakedefine EXP_HOST_OS_LINUX
-#cmakedefine EXP_HOST_OS_WINDOWS
-#cmakedefine EXP_HOST_OS_APPLE
+#ifndef EXP_UTILITY_PROCESS_H
+#define EXP_UTILITY_PROCESS_H
+#include <stddef.h>
 
-#define EXP_VERSION_STRING "@EXP_VERSION_STRING@"
-// NOLINTEND
-// clang-format on
+/**
+ * @brief fork/execvp the given file, passing args
+ *
+ * @warning args must have a NULL at the end
+ *
+ * @param file
+ * @param args
+ * @return int
+ */
+int process(char const *file, char const *args[]);
 
-#endif // !EXP_UTILITY_CONFIG_H
+#endif // !EXP_UTILITY_PROCESS_H

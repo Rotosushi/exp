@@ -32,6 +32,23 @@ else()
   set(EXP_DEBUG 0)
 endif()
 
+string(TIMESTAMP EXP_BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+set(EXP_VERSION_STRING "")
+string(APPEND EXP_VERSION_STRING 
+"exp version ("
+${EXP_VERSION_MAJOR}
+"."
+${EXP_VERSION_MINOR}
+"."
+${EXP_VERSION_PATCH}
+") built at ("
+${EXP_BUILD_TIME}
+") git revision ("
+${EXP_GIT_REVISION}
+")"
+)
+
 configure_file(
   ${EXP_INCLUDE_DIR}/utility/config.h.in 
   ${EXP_INCLUDE_DIR}/utility/config.h
