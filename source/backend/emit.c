@@ -281,12 +281,7 @@ the .bss section.
     directive_align(type, file);
     directive_type(name, type, file);
 
-    // the size of a string is not held in the StringLiteral type
-    if (type->kind == TYPEKIND_STRING_LITERAL) {
-      directive_size(name, value->string_literal.length, file);
-    } else {
-      directive_size(name, size_of(type), file);
-    }
+    directive_size(name, size_of(type), file);
 
     directive_label(name, file);
 

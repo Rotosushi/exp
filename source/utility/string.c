@@ -96,12 +96,13 @@ void string_resize(String *restrict str, size_t capacity) {
     panic_errno("realloc failed");
   }
 
+  // the new buffer is smaller than it once was
   if (str->length > capacity) {
     str->length = capacity;
   }
 
   str->buffer = new_buffer;
-  str->capacity = capacity;
+  str->capacity = capacity + 1;
   str->buffer[str->length] = '\0';
 }
 
@@ -114,37 +115,25 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  char *new_buffer = realloc(str->buffer, (sum_capacity + 1) * sizeof(char));
+  size_t new_capacity = nearest_power_of_two(sum_capacity);
+
+  char *new_buffer = realloc(str->buffer, new_capacity * sizeof(char));
   if (new_buffer == NULL) {
     panic_errno("realloc failed");
   }
 
   str->buffer = new_buffer;
-  str->capacity = sum_capacity;
+  str->capacity = new_capacity;
 }
 
 void string_assign(String *restrict str, const char *restrict data,
                    size_t data_length) {
   assert(str != NULL);
-  assert((data_length != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  string_destroy(str);
-  if (data_length == 0) {
-    return;
-  }
-
-  // allocate space for at least 8 characters. to
-  // avoid frequent reallocations of small size strings.
-  size_t new_capacity = ulmax(data_length, 8);
-
-  str->buffer = malloc((new_capacity + 1) * sizeof(char));
-  if (str->buffer == NULL) {
-    panic_errno("malloc failed");
-  }
+  string_resize(str, data_length);
   memcpy(str->buffer, data, data_length);
   str->buffer[data_length] = '\0';
   str->length = data_length;
-  str->capacity = new_capacity;
 }
 
 void string_append(String *restrict str, const char *restrict data,
@@ -154,36 +143,13 @@ void string_append(String *restrict str, const char *restrict data,
     return;
   }
 
-  // if the data will fit in the existing capacity
-  if ((str->capacity >= str->length) &&
-      ((str->capacity - str->length) > data_length)) {
-    memcpy(str->buffer + str->length, data, data_length);
-    str->length += data_length;
-    str->buffer[str->length] = '\0';
-    return;
+  if ((str->capacity - str->length) <= data_length) {
+    string_reserve_more(str, data_length);
   }
-
-  assert((data_length != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
-  size_t sum_capacity;
-  if (__builtin_add_overflow(str->capacity, data_length, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX");
-  }
-  assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
-
-  // grow the capacity of the string by a factor of two until
-  // it is large enough to append <data>
-  size_t new_capacity = nearest_power_of_two(sum_capacity);
-
-  char *result = realloc(str->buffer, new_capacity + 1);
-  if (result == NULL) {
-    panic_errno("realloc failed");
-  }
-  str->buffer = result;
 
   memcpy(str->buffer + str->length, data, data_length);
   str->length += data_length;
   str->buffer[str->length] = '\0';
-  str->capacity = new_capacity;
 }
 
 void string_append_string(String *restrict s1, const String *restrict s2) {
@@ -220,7 +186,7 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
   if ((offset == 0) && (length == str->length)) {
     // 'erase' the entire buffer
     str->buffer[0] = '\0';
-    str->length = 1;
+    str->length = 0;
     return;
   }
 
@@ -266,9 +232,5 @@ void string_insert(String *restrict str, size_t offset, char const *data,
     str->length += added_length;
   }
 
-  // memcpy(str->buffer + offset, data, length);
-  char *cursor = str->buffer + offset;
-  for (size_t i = 0; i < length; ++i) {
-    cursor[i] = data[i];
-  }
+  memcpy(str->buffer + offset, data, length);
 }

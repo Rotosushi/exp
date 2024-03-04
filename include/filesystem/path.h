@@ -77,7 +77,7 @@ void path_assign(Path *restrict path, char const *restrict data, size_t length);
 Path path_clone(Path *restrict path);
 
 /**
- * @brief compare two paths lexigraphically
+ * @brief compare two paths lexicographically
  *
  * @param p1
  * @param p2

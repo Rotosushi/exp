@@ -9,6 +9,7 @@ create_test_sourcelist(Tests
   string_tests.c
   constants_tests.c
   registers_tests.c
+  path_tests.c
   string_interner_tests.c
   type_interner_tests.c
   symbol_table_tests.c

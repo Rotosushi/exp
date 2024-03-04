@@ -114,10 +114,6 @@ int string_compare(String const *restrict s1, String const *restrict s2);
  * @brief resize the string to be able to hold at least
  * <capacity> characters.
  *
- * @note if <capacity> is less than or equal to the strings
- * current capacity, the strings allocated buffer is not
- * reallocated.
- *
  * @param str the string to resize
  * @param capacity the new capacity of the string
  */
@@ -182,8 +178,8 @@ void string_append_char(String *restrict str, const char c);
 void string_erase(String *restrict str, size_t offset, size_t length);
 
 /**
- * @brief write <data> into <str>, starting at <offset>
- *
+ * @brief write <data> into <str>, starting at <offset>,
+ * growing <str> as necessary
  * @param str
  * @param offset
  * @param data
