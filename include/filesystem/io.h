@@ -30,8 +30,7 @@
  * @param stream the stream to write to
  * @return size_t the number of chars written
  */
-void file_write(const char *restrict buffer, size_t length,
-                FILE *restrict stream);
+void file_write(const char *restrict buffer, FILE *restrict stream);
 
 /**
  * @brief read <length> chars into <buffer> from <stream>

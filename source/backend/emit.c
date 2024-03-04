@@ -60,21 +60,21 @@
 static StringView cpu_type = {"znver3", sizeof("znver3")};
 
 static void directive_file(StringView path, FILE *file) {
-  file_write("  .file \"", sizeof(".file \""), file);
-  file_write(path.ptr, path.length, file);
-  file_write("\"\n", sizeof("\"\n"), file);
+  file_write("  .file \"", file);
+  file_write(path.ptr, file);
+  file_write("\"\n", file);
 }
 
 static void directive_arch(StringView cpu_type, FILE *file) {
-  file_write("  .arch ", sizeof(".arch "), file);
-  file_write(cpu_type.ptr, cpu_type.length, file);
-  file_write("\n", sizeof("\n"), file);
+  file_write("  .arch ", file);
+  file_write(cpu_type.ptr, file);
+  file_write("\n", file);
 }
 
 static void directive_ident(StringView comment, FILE *file) {
-  file_write("  .ident \"", sizeof("  .ident \""), file);
-  file_write(comment.ptr, comment.length, file);
-  file_write("\"\n", sizeof("\"\n"), file);
+  file_write("  .ident \"", file);
+  file_write(comment.ptr, file);
+  file_write("\"\n", file);
 }
 
 static void directive_noexecstack(FILE *file) {
@@ -84,25 +84,21 @@ static void directive_noexecstack(FILE *file) {
    */
   static char const noexecstack[] =
       "  .section .note.GNU-stack,\"\",@progbits\n";
-  file_write(noexecstack, sizeof(noexecstack), file);
+  file_write(noexecstack, file);
 }
 
 static void directive_globl(StringView name, FILE *file) {
-  file_write("  .globl ", sizeof("  .globl "), file);
-  file_write(name.ptr, name.length, file);
-  file_write("\n", sizeof("\n"), file);
+  file_write("  .globl ", file);
+  file_write(name.ptr, file);
+  file_write("\n", file);
 }
 
-static void directive_data(FILE *file) {
-  file_write("  .data\n", sizeof("  .data\n"), file);
-}
+static void directive_data(FILE *file) { file_write("  .data\n", file); }
 
-static void directive_bss(FILE *file) {
-  file_write("  .bss\n", sizeof("  .bss\n"), file);
-}
+static void directive_bss(FILE *file) { file_write("  .bss\n", file); }
 
 [[maybe_unused]] static void directive_text(FILE *file) {
-  file_write("  .text\n", sizeof("  .text\n"), file);
+  file_write("  .text\n", file);
 }
 
 static void directive_align(Type *type, FILE *file) {
@@ -110,12 +106,13 @@ static void directive_align(Type *type, FILE *file) {
   size_t len = uintmax_safe_strlen(align, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(align, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed", sizeof("conversion failed"));
+    panic("conversion failed");
   }
+  str[len] = '\0';
 
-  file_write("  .align ", sizeof("  .align "), file);
-  file_write(str, len, file);
-  file_write("\n", sizeof("\n"), file);
+  file_write("  .align ", file);
+  file_write(str, file);
+  file_write("\n", file);
 }
 
 /**
@@ -129,20 +126,21 @@ static void directive_size(StringView name, size_t size, FILE *file) {
   size_t len = uintmax_safe_strlen(size, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(size, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed", sizeof("conversion failed"));
+    panic("conversion failed");
   }
+  str[len] = '\0';
 
-  file_write("  .size ", sizeof("  .size "), file);
-  file_write(name.ptr, name.length, file);
-  file_write(", ", sizeof(", "), file);
-  file_write(str, len, file);
-  file_write("\n", sizeof("\n"), file);
+  file_write("  .size ", file);
+  file_write(name.ptr, file);
+  file_write(", ", file);
+  file_write(str, file);
+  file_write("\n", file);
 }
 
 static void directive_type(StringView name, Type *type, FILE *file) {
-  file_write("  .type ", sizeof("  .type "), file);
-  file_write(name.ptr, name.length, file);
-  file_write(", ", sizeof(", "), file);
+  file_write("  .type ", file);
+  file_write(name.ptr, file);
+  file_write(", ", file);
 
   switch (type->kind) {
   // essentially everything is an @object unless it's an @function.
@@ -155,41 +153,45 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   case TYPEKIND_BOOLEAN:
   case TYPEKIND_INTEGER:
   case TYPEKIND_STRING_LITERAL:
-    file_write("@object", sizeof("@object"), file);
+    file_write("@object", file);
     break;
 
   default:
-    panic("bad TYPEKIND", sizeof("bad TYPEKIND"));
+    panic("bad TYPEKIND");
   }
 
-  file_write("\n", sizeof("\n"), file);
+  file_write("\n", file);
 }
 
 static void directive_quad(long value, FILE *file) {
   size_t len = intmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (intmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed", sizeof("conversion failed"));
+    panic("conversion failed");
   }
-  file_write("  .quad ", sizeof("  .quad "), file);
-  file_write(str, len, file);
-  file_write("\n", sizeof("\n"), file);
+  str[len] = '\0';
+
+  file_write("  .quad ", file);
+  file_write(str, file);
+  file_write("\n", file);
 }
 
 static void directive_zero(size_t bytes, FILE *file) {
   size_t len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(bytes, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed", sizeof("conversion failed"));
+    panic("conversion failed");
   }
-  file_write("  .zero ", sizeof("  .zero "), file);
-  file_write(str, len, file);
-  file_write("\n", sizeof("\n"), file);
+  str[len] = '\0';
+
+  file_write("  .zero ", file);
+  file_write(str, file);
+  file_write("\n", file);
 }
 
 static void directive_label(StringView name, FILE *file) {
-  file_write(name.ptr, name.length, file);
-  file_write(":\n", sizeof(":\n"), file);
+  file_write(name.ptr, file);
+  file_write(":\n", file);
 }
 
 /**
@@ -205,7 +207,7 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
   StringView path = context_source_path(context);
   directive_file(path, file);
   directive_arch(cpu_type, file);
-  file_write("\n", sizeof("\n"), file);
+  file_write("\n", file);
 }
 
 /**
@@ -300,18 +302,18 @@ the .bss section.
     break;
 
   default:
-    panic("bad VALUEKIND", sizeof("bad VALUEKIND"));
+    panic("bad VALUEKIND");
   }
 
   // give an extra line between globals in the assembly file
-  file_write("\n", sizeof("\n"), file);
+  file_write("\n", file);
 }
 
 void emit(Context *restrict context) {
   StringView path = context_source_path(context);
   FILE *file = fopen(path.ptr, "w");
   if (file == NULL) {
-    panic_errno("fopen failed", sizeof("fopen failed"));
+    panic_errno("fopen failed");
   }
 
   SymbolTableIterator iter =
@@ -328,6 +330,6 @@ void emit(Context *restrict context) {
   emit_x64_linux_footer(context, file);
 
   if (fclose(file) == EOF) {
-    panic_errno("fclose failed", sizeof("fclose failed"));
+    panic_errno("fclose failed");
   }
 }

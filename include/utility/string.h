@@ -181,4 +181,15 @@ void string_append_char(String *restrict str, const char c);
  */
 void string_erase(String *restrict str, size_t offset, size_t length);
 
+/**
+ * @brief write <data> into <str>, starting at <offset>
+ *
+ * @param str
+ * @param offset
+ * @param data
+ * @param length
+ */
+void string_insert(String *restrict str, size_t offset, char const *data,
+                   size_t length);
+
 #endif // !EXP_UTILITY_STRING_H

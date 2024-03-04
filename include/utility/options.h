@@ -14,12 +14,18 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_PANIC_H
-#define EXP_UTILITY_PANIC_H
+#ifndef EXP_UTILITY_OPTIONS_H
+#define EXP_UTILITY_OPTIONS_H
 
-#include <stddef.h>
+#include "filesystem/path.h"
 
-[[noreturn]] void panic(const char *msg);
-[[noreturn]] void panic_errno(const char *msg);
+typedef struct Options {
+  Path source;
+} Options;
 
-#endif // !EXP_UTILITY_PANIC_H
+Options options_create();
+void options_destroy(Options *restrict options);
+
+[[nodiscard]] Options parse_options(int argc, char const *argv[]);
+
+#endif // !EXP_UTILITY_OPTIONS_H

@@ -35,8 +35,15 @@ bool path_empty(Path const *restrict path) {
   return string_empty(&path->string);
 }
 
-void path_assign(Path *restrict path, char const *data, size_t length) {
+void path_assign(Path *restrict path, char const *restrict data,
+                 size_t length) {
   string_assign(&path->string, data, length);
+}
+
+Path path_clone(Path *restrict path) {
+  Path result = path_create();
+  string_assign(&result.string, path->string.buffer, path->string.length);
+  return result;
 }
 
 int path_compare(Path const *restrict p1, Path const *restrict p2) {
@@ -52,42 +59,20 @@ void path_concat(Path *restrict p1, const Path *restrict p2) {
   string_append_string(&p1->string, &p2->string);
 }
 
-/*
-static StringView path_compute_filename(Path const *restrict path) {
-  char const *cursor = path->string.buffer + path->string.length;
-}
+// void path_replace_extension(Path *restrict p1, const Path *restrict p2) {
+//   // the path is something like
+//   // /some/kind/of/file.txt
+//   // or
+//   // /some/kind/of/.file.txt
+//   // or
+//   // /some/kind/of/.file
+//   size_t length = p1->string.length;
+//   size_t cursor = length;
+//   char *buffer = p1->string.buffer;
+//   while (1) {
+//     if (buffer[cursor] == '.') {
+//     }
 
-void path_remove_filename(Path *restrict p1) {}
-
-void path_replace_filename(Path *restrict p1, const Path *restrict p2) {}
-
-void path_replace_extension(Path *restrict p1, const Path *restrict p2) {}
-
-Path path_root_name(Path const *restrict path) {}
-
-Path path_root_directory(Path const *restrict path) {}
-
-Path path_root_path(Path const *restrict path) {}
-
-Path path_relative_path(Path const *restrict path) {}
-
-Path path_parent_path(Path const *restrict path) {}
-
-Path path_filename(Path const *restrict path) {}
-
-Path path_stem(Path const *restrict path) {}
-
-Path path_extension(Path const *restrict path) {}
-
-bool path_has_root_path(Path const *restrict path) {}
-bool path_has_root_name(Path const *restrict path) {}
-bool path_has_root_directory(Path const *restrict path) {}
-bool path_has_relative_path(Path const *restrict path) {}
-bool path_has_parent_path(Path const *restrict path) {}
-bool path_has_filename(Path const *restrict path) {}
-bool path_has_stem(Path const *restrict path) {}
-bool path_has_extension(Path const *restrict path) {}
-
-bool path_is_absolute(Path const *restrict path) {}
-bool path_is_relative(Path const *restrict path) {}
-*/
+//     --cursor;
+//   }
+// }

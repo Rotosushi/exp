@@ -38,6 +38,6 @@ size_t size_of(Type *restrict type) {
     return 0;
 
   default:
-    panic("bad TYPEKIND", sizeof("bad TYPEKIND"));
+    panic("bad TYPEKIND");
   }
 }

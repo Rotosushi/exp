@@ -29,24 +29,23 @@
 int process(char const *cmd, char const *args[]) {
   pid_t pid = fork();
   if (pid < 0) {
-    panic_errno("fork failed", sizeof("fork failed"));
+    panic_errno("fork failed");
   } else if (pid == 0) {
     // child process
     execvp(cmd, (char *const *)args);
 
-    panic_errno("execvp failed", sizeof("execvp failed"));
+    panic_errno("execvp failed");
   } else {
     // parent process
     siginfo_t status;
     if (waitid(P_PID, (id_t)pid, &status, WEXITED | WSTOPPED) == -1) {
-      panic_errno("waitid failed", sizeof("waitid failed"));
+      panic_errno("waitid failed");
     }
 
     if (status.si_code == CLD_EXITED) {
       return status.si_status;
     } else {
-      panic("child possibly killed by signal.",
-            sizeof("child possibly killed by signal."));
+      panic("child possibly killed by signal.");
     }
   }
 }

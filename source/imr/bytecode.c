@@ -50,8 +50,7 @@ static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
   assert(bytecode != NULL);
   size_t sum_capacity;
   if (__builtin_add_overflow(bytecode->length, 1, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
@@ -60,7 +59,7 @@ static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
 
     uint8_t *result = realloc(bytecode->buffer, new_capacity);
     if (result == NULL) {
-      panic_errno("realloc failed", sizeof("realloc failed"));
+      panic_errno("realloc failed");
     }
     bytecode->buffer = result;
     bytecode->capacity = new_capacity;

@@ -74,7 +74,7 @@ void value_assign(Value *dest, Value *source) {
     break;
 
   default:
-    panic("bad VALUEKIND", sizeof("bad VALUEKIND"));
+    panic("bad VALUEKIND");
     break;
   }
 }
@@ -114,6 +114,6 @@ bool value_equality(Value *v1, Value *v2) {
     break;
 
   default:
-    panic("bad VALUEKIND", sizeof("bad VALUEKIND"));
+    panic("bad VALUEKIND");
   }
 }

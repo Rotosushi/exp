@@ -35,12 +35,10 @@ typedef enum LogLevel { LOG_FATAL, LOG_WARNING, LOG_STATUS } LogLevel;
  * @param message_length the length of the message
  * @param stream the stream to write to
  */
-void log_message(LogLevel log_level, const char *file, size_t file_length,
-                 int line, const char *message, size_t message_length,
-                 FILE *restrict stream);
+void log_message(LogLevel log_level, const char *file, int line,
+                 const char *message, FILE *restrict stream);
 
-#define LOG(log_level, message, message_length, stream)                        \
-  log_message(log_level, __FILE__, sizeof(__FILE__), __LINE__, message,        \
-              message_length, stream)
+#define LOG(log_level, message, stream)                                        \
+  log_message(log_level, __FILE__, __LINE__, message, stream)
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

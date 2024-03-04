@@ -100,8 +100,7 @@ static bool
 string_interner_large_enough(StringInterner *restrict string_interner) {
   size_t new_count;
   if (__builtin_add_overflow(string_interner->count, 1, &new_count)) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
 
   size_t load_limit = (size_t)floor((double)string_interner->capacity *

@@ -43,14 +43,14 @@ size_t intmax_safe_strlen(intmax_t value, Radix radix) {
     double absolute = fabs((double)value);
     size_t number_length = (size_t)(ceil(log(absolute) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      panic("value exceeds size_t", sizeof("value exceeds size_t"));
+      panic("value exceeds size_t");
     }
     return result;
   } else {
     size_t number_length =
         (size_t)(ceil(log((double)value) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      panic("value exceeds size_t", sizeof("value exceeds size_t"));
+      panic("value exceeds size_t");
     }
     return result;
   }
@@ -68,7 +68,7 @@ size_t uintmax_safe_strlen(uintmax_t value, Radix radix) {
   size_t number_length =
       (size_t)(ceil(log((double)value) / log((double)radix)));
   if (__builtin_add_overflow(result, number_length, &result)) {
-    panic("value exceeds size_t", sizeof("value exceeds size_t"));
+    panic("value exceeds size_t");
   }
   return result;
 }

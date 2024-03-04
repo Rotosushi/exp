@@ -16,24 +16,37 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
+#include <stdio.h>
 
 #include "filesystem/io.h"
+#include "utility/config.h"
+#include "utility/options.h"
+#include "utility/panic.h"
 
-void file_write(const char *restrict buffer, FILE *restrict stream) {
-  int code = fputs(buffer, stream);
-  if ((code == EOF) && (ferror(stream))) {
-    perror("fputs failed");
-    exit(EXIT_FAILURE);
-  }
+// static void print_version(FILE *file) { file_write(EXP_VERSION_STRING, file);
+// }
+
+// static void print_help(FILE *file) {}
+
+Options options_create() {
+  Options options;
+  options.source = path_create();
+  return options;
 }
 
-size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
-  char *result = fgets(buffer, (int)length, stream);
-  if (result == NULL) {
-    perror("fgets failed");
-    exit(EXIT_FAILURE);
-  }
-
-  return (size_t)(result - buffer);
+void options_destroy(Options *restrict options) {
+  path_destroy(&(options->source));
 }
+
+#if defined(EXP_HOST_OS_LINUX)
+#include <getopt.h>
+
+// Options parse_options(int argc, char const *argv[]) {
+//   Options options = options_create();
+
+//   return options;
+// }
+
+#else
+#error "unsupported host OS"
+#endif

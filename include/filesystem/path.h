@@ -69,6 +69,14 @@ bool path_empty(Path const *restrict path);
 void path_assign(Path *restrict path, char const *restrict data, size_t length);
 
 /**
+ * @brief clone the given path
+ *
+ * @param path
+ * @return Path
+ */
+Path path_clone(Path *restrict path);
+
+/**
  * @brief compare two paths lexigraphically
  *
  * @param p1
@@ -95,6 +103,15 @@ void path_append(Path *restrict p1, const Path *restrict p2);
  */
 void path_concat(Path *restrict p1, const Path *restrict p2);
 
+/**
+ * @brief if the path refers to a file, replaces the
+ * files extension with the given path's extension.
+ *
+ * @param p1 the destination
+ * @param p2 the source
+ */
+void path_replace_extension(Path *restrict p1, const Path *restrict p2);
+
 // /**
 //  * @brief if the path refers to a file, removes
 //  * the filename section of the path.
@@ -112,15 +129,6 @@ void path_concat(Path *restrict p1, const Path *restrict p2);
 //  * @param p2 the source
 //  */
 // void path_replace_filename(Path *restrict p1, const Path *restrict p2);
-
-// /**
-//  * @brief if the path refers to a file, replaces the
-//  * files extension with the given path's extension.
-//  *
-//  * @param p1 the destination
-//  * @param p2 the source
-//  */
-// void path_replace_extension(Path *restrict p1, const Path *restrict p2);
 
 // /**
 //  * @brief return the root-name of the path, if present.

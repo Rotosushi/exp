@@ -66,7 +66,7 @@ static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
                                     const char *restrict s3, size_t s3_len) {
   size_t total_length;
   if (__builtin_add_overflow(s2_len, s3_len, &total_length)) {
-    panic("size_t overflow", sizeof("size_t overflow"));
+    panic("size_t overflow");
   }
 
   if (s1_len != total_length) {
@@ -124,6 +124,27 @@ bool test_string_erase(char const *d1, size_t d1_length, size_t offset,
   return failure;
 }
 
+bool test_string_insert(char const *d1, size_t d1_length, size_t offset,
+                        char const *d2, size_t d2_length, char const *d3,
+                        size_t d3_length) {
+  String str = string_create();
+
+  string_assign(&str, d1, d1_length);
+
+  string_insert(&str, offset, d2, d2_length);
+
+  bool failure;
+  if (s1_same_as_s2(str.buffer, str.length, d3, d3_length)) {
+    fputs(str.buffer, stderr);
+    failure = 1;
+  } else {
+    failure = 0;
+  }
+
+  string_destroy(&str);
+  return failure;
+}
+
 int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   bool failure = 0;
   failure |= test_string_assign("", sizeof(""));
@@ -145,6 +166,13 @@ int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
 
   failure |= test_string_erase("hello world", sizeof("hello world"), 0, 12, "",
                                sizeof(""));
+
+  failure |= test_string_insert("hello", sizeof("hello"), 0, "world",
+                                sizeof("world"), "world", sizeof("world"));
+
+  failure |= test_string_insert("hello", sizeof("hello"), 5, " world",
+                                sizeof(" world"), "hello world",
+                                sizeof("hello world"));
 
   if (failure) {
     return 1;

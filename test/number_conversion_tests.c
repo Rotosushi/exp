@@ -32,7 +32,7 @@ static bool test_base10_uintmax_to_str(uintmax_t value) {
   uintmax_t number;
   int result = sscanf(buffer, "%ju", &number);
   if (result == EOF) {
-    panic_errno("sscanf failed", sizeof("sscanf failed"));
+    panic_errno("sscanf failed");
   }
 
   return value != number;
@@ -44,7 +44,7 @@ static bool test_base10_uintmax_to_string(uintmax_t value) {
   uintmax_t scanned;
   int result = sscanf(number.buffer, "%ju", &scanned);
   if (result == EOF) {
-    panic_errno("sscanf failed", sizeof("sscanf failed"));
+    panic_errno("sscanf failed");
   }
 
   string_destroy(&number);
@@ -59,7 +59,7 @@ static bool test_base16_uintmax_to_str(uintmax_t value) {
   uintmax_t number;
   int result = sscanf(buffer, "%jx", &number);
   if (result == EOF) {
-    panic_errno("sscanf failed", sizeof("sscanf failed"));
+    panic_errno("sscanf failed");
   }
 
   return value != number;
@@ -73,7 +73,7 @@ static bool test_base8_uintmax_to_str(uintmax_t value) {
   uintmax_t number;
   int result = sscanf(buffer, "%jo", &number);
   if (result == EOF) {
-    panic_errno("sscanf failed", sizeof("sscanf failed"));
+    panic_errno("sscanf failed");
   }
 
   return value != number;
@@ -87,7 +87,7 @@ static bool test_base10_intmax_to_str(intmax_t value) {
   intmax_t number;
   int result = sscanf(buffer, "%jd", &number);
   if (result == EOF) {
-    panic_errno("sscanf failed", sizeof("sscanf failed"));
+    panic_errno("sscanf failed");
   }
 
   return value != number;

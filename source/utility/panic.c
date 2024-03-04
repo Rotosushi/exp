@@ -26,23 +26,23 @@
 #include "utility/config.h"
 #include "utility/panic.h"
 
-[[noreturn]] void panic(const char *msg, size_t msg_len) {
+[[noreturn]] void panic(const char *msg) {
 #if EXP_DEBUG
   __builtin_trap();
 #endif
 
-  file_write(msg, msg_len, stderr);
+  file_write(msg, stderr);
   exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void panic_errno(const char *msg, size_t msg_len) {
+[[noreturn]] void panic_errno(const char *msg) {
 #if EXP_DEBUG
   __builtin_trap();
 #endif
 
-  file_write(msg, msg_len, stderr);
-  file_write(": ", sizeof(": "), stderr);
+  file_write(msg, stderr);
+  file_write(": ", stderr);
   const char *errmsg = strerror(errno);
-  file_write(errmsg, strlen(errmsg), stderr);
+  file_write(errmsg, stderr);
   exit(EXIT_FAILURE);
 }

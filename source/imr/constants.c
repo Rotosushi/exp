@@ -49,13 +49,11 @@ size_t constants_append(Constants *restrict constants, Value value) {
 
   size_t sum;
   if (__builtin_add_overflow(constants->length, 1, &sum)) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
 
   if (sum == __SIZE_MAX__) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
 
   if (constants->capacity < sum) {
@@ -63,13 +61,12 @@ size_t constants_append(Constants *restrict constants, Value value) {
 
     size_t alloc_size;
     if (__builtin_mul_overflow(new_capacity, sizeof(Value), &alloc_size)) {
-      panic("cannot allocate more than SIZE_MAX",
-            sizeof("cannot allocate more than SIZE_MAX"));
+      panic("cannot allocate more than SIZE_MAX");
     }
 
     Value *result = realloc(constants->buffer, alloc_size);
     if (result == NULL) {
-      panic_errno("realloc failed", sizeof("realloc failed"));
+      panic_errno("realloc failed");
     }
     constants->buffer = result;
     constants->capacity = new_capacity;
@@ -85,7 +82,7 @@ Value *constants_at(Constants *restrict constants, size_t index) {
   assert(constants != NULL);
 
   if (index >= constants->length) {
-    panic("index out of bounds", sizeof("index out of bounds"));
+    panic("index out of bounds");
   }
 
   return constants->buffer + index;

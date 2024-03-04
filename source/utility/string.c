@@ -86,25 +86,23 @@ void string_resize(String *restrict str, size_t capacity) {
   assert(str != NULL);
   assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  if ((str->capacity > 0) && (capacity < (str->capacity - 1))) {
-    str->length = capacity;
-    str->buffer[capacity] = '\0';
-    return;
-  }
-
+  // "resize" to the same size means we can exit early.
   if ((str->capacity > 0) && (capacity == (str->capacity - 1))) {
     return;
   }
 
-  // capacity > (str->capacity - 1)
   char *new_buffer = realloc(str->buffer, (capacity + 1) * sizeof(char));
   if (new_buffer == NULL) {
-    panic_errno("realloc failed", sizeof("realloc failed"));
+    panic_errno("realloc failed");
   }
-  new_buffer[str->length] = '\0';
+
+  if (str->length > capacity) {
+    str->length = capacity;
+  }
 
   str->buffer = new_buffer;
   str->capacity = capacity;
+  str->buffer[str->length] = '\0';
 }
 
 void string_reserve_more(String *restrict str, size_t more_capacity) {
@@ -112,16 +110,14 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
   assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   size_t sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
   char *new_buffer = realloc(str->buffer, (sum_capacity + 1) * sizeof(char));
   if (new_buffer == NULL) {
-    panic_errno("realloc failed", sizeof("realloc failed"));
+    panic_errno("realloc failed");
   }
-  new_buffer[str->length] = '\0';
 
   str->buffer = new_buffer;
   str->capacity = sum_capacity;
@@ -143,7 +139,7 @@ void string_assign(String *restrict str, const char *restrict data,
 
   str->buffer = malloc((new_capacity + 1) * sizeof(char));
   if (str->buffer == NULL) {
-    panic_errno("malloc failed", sizeof("malloc failed"));
+    panic_errno("malloc failed");
   }
   memcpy(str->buffer, data, data_length);
   str->buffer[data_length] = '\0';
@@ -170,8 +166,7 @@ void string_append(String *restrict str, const char *restrict data,
   assert((data_length != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   size_t sum_capacity;
   if (__builtin_add_overflow(str->capacity, data_length, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX",
-          sizeof("cannot allocate more than SIZE_MAX"));
+    panic("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
@@ -181,7 +176,7 @@ void string_append(String *restrict str, const char *restrict data,
 
   char *result = realloc(str->buffer, new_capacity + 1);
   if (result == NULL) {
-    panic_errno("realloc failed", sizeof("realloc failed"));
+    panic_errno("realloc failed");
   }
   str->buffer = result;
 
@@ -238,4 +233,42 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
   str->buffer[new_length] = '\0';
   str->length = new_length;
   return;
+}
+
+/*
+  there are four cases that need to be considered.
+
+  1 offset == 0, length < str->length
+
+  2 offset == 0, length >= str->length
+
+  3 offset > 0, offset + length < str->length
+
+  4 offset > 0, offset + length >= str->length
+
+  case 1, we can just write the data into the existing buffer
+    new_length == existing length
+  case 3, we can just write the data into the existing buffer
+    new_length == existing length
+
+  case 2, we have to resize the existing buffer, then we can write
+
+  case 4, we have to resize the existing buffer, then we can write
+*/
+void string_insert(String *restrict str, size_t offset, char const *data,
+                   size_t length) {
+  assert(str != NULL);
+  assert(offset <= str->length);
+
+  if ((offset + length) >= str->capacity) {
+    string_resize(str, (offset + length));
+    size_t added_length = (offset + length) - str->length;
+    str->length += added_length;
+  }
+
+  // memcpy(str->buffer + offset, data, length);
+  char *cursor = str->buffer + offset;
+  for (size_t i = 0; i < length; ++i) {
+    cursor[i] = data[i];
+  }
 }
