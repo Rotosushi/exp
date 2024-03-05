@@ -14,19 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_OPTIONS_H
-#define EXP_UTILITY_OPTIONS_H
+#ifndef EXP_CORE_COMPILE_H
+#define EXP_CORE_COMPILE_H
 
-#include "filesystem/path.h"
-
-typedef struct Options {
-  Path source;
-  Path output;
-} Options;
-
-Options options_create();
-void options_destroy(Options *restrict options);
-
-[[nodiscard]] Options parse_options(int argc, char const *argv[]);
-
-#endif // !EXP_UTILITY_OPTIONS_H
+#endif // !EXP_CORE_COMPILE_H

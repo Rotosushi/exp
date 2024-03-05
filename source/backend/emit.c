@@ -250,8 +250,8 @@ a global object declaration in assembly looks like:
   .byte <init> | .zero <sizeof> | .quad <init> | .int <init> | ...
 
 
--- all global constant symbols can go into the .data section, unless they
-are uninitialized. then they default initialized to zero, and can go into
+-- all global constant symbols can go into the .data section. unless they
+are uninitialized, then they are default initialized to zero, and can go into
 the .bss section.
 
 --

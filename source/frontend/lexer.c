@@ -49,7 +49,7 @@ bool lexer_at_end(Lexer *restrict lexer) {
   if ((lexer->cursor == NULL) || (lexer->token == NULL)) {
     return 1;
   }
-  return *lexer->cursor == '\0';
+  return *(lexer->cursor) == '\0';
 }
 
 static size_t lexer_current_text_length(Lexer const *restrict lexer) {

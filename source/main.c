@@ -16,8 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdlib.h>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[],
-         [[maybe_unused]] char *envv[]) {
-  return 0;
+#include "utility/options.h"
+
+int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
+  [[maybe_unused]] Options options = parse_options(argc, argv);
+
+  return EXIT_SUCCESS;
 }

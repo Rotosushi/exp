@@ -17,6 +17,7 @@
 #ifndef EXP_FRONTEND_PARSER_H
 #define EXP_FRONTEND_PARSER_H
 
+#include "env/context.h"
 #include "frontend/lexer.h"
 
 /*
@@ -50,13 +51,6 @@ typedef struct Parser {
 Parser parser_create();
 
 /**
- * @brief destroy a parser
- *
- * @param parser
- */
-void parser_destroy(Parser *restrict parser);
-
-/**
  * @brief reset a parser
  *
  * @param parser
@@ -67,9 +61,9 @@ void parser_reset(Parser *restrict parser);
  * @brief set the text the parser will parse
  *
  * @param parser
- * @param view
+ * @param buffer
  */
-void parser_set_view(Parser *restrict parser, StringView view);
+void parser_set_view(Parser *restrict parser, char const *buffer);
 
 /**
  * @brief Parse the source
@@ -78,6 +72,6 @@ void parser_set_view(Parser *restrict parser, StringView view);
  * @param bytecode
  * @return int
  */
-int parser_parse(Parser *restrict parser);
+int parser_parse(Parser *restrict parser, Context *restrict context);
 
 #endif // !EXP_FRONTEND_PARSER_H
