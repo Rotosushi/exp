@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "backend/emit.h"
+#include "backend/emit_x64_linux_assembly.h"
 #include "filesystem/io.h"
 #include "intrinsics/alignment.h"
 #include "intrinsics/size.h"
@@ -304,7 +304,7 @@ the .bss section.
   file_write("\n", file);
 }
 
-void emit(Context *restrict context) {
+void emit_x64_linux_assembly(Context *restrict context) {
   StringView path = context_source_path(context);
   FILE *file = fopen(path.ptr, "w");
   if (file == NULL) {

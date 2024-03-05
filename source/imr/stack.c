@@ -26,7 +26,6 @@
 
 Stack stack_create() {
   Stack stack;
-  stack.count = 0;
   stack.capacity = 0;
   stack.buffer = NULL;
   stack.top = NULL;
@@ -35,7 +34,6 @@ Stack stack_create() {
 
 void stack_destroy(Stack *restrict stack) {
   assert(stack != NULL);
-  stack->count = 0;
   stack->capacity = 0;
   free(stack->buffer);
   stack->buffer = NULL;

@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_EMITTER_H
-#define EXP_BACKEND_EMITTER_H
+#ifndef EXP_BACKEND_EMIT_X64_LINUX_ASSEMBLY_H
+#define EXP_BACKEND_EMIT_X64_LINUX_ASSEMBLY_H
 
 #include "env/context.h"
 #include "utility/string_view.h"
@@ -57,6 +57,6 @@
  * @param symbol_table
  * @param path
  */
-void emit(Context *restrict context);
+void emit_x64_linux_assembly(Context *restrict context);
 
-#endif // !EXP_BACKEND_EMITTER_H
+#endif // !EXP_BACKEND_EMIT_X64_LINUX_ASSEMBLY_H

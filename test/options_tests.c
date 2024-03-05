@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/options.h"
+#include "utility/cli_options.h"
 
 static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
                           const char *restrict s2, size_t s2_len) {
@@ -35,17 +35,17 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 }
 
 bool test_options(int argc, char const *argv[], char const *d1, size_t d1_len) {
-  Options options = parse_options(argc, argv);
+  CLIOptions cli_options = parse_options(argc, argv);
 
   bool failure = 0;
-  if (s1_same_as_s2(options.source.string.buffer, options.source.string.length,
-                    d1, d1_len)) {
+  if (s1_same_as_s2(cli_options.source.string.buffer,
+                    cli_options.source.string.length, d1, d1_len)) {
     failure |= 1;
   } else {
     failure |= 0;
   }
 
-  options_destroy(&options);
+  cli_options_destroy(&cli_options);
   return failure;
 }
 

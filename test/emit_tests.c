@@ -18,9 +18,10 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
-#include "backend/emit.h"
+#include "backend/emit_x64_linux_assembly.h"
 #include "env/context.h"
 #include "utility/config.h"
 #include "utility/process.h"
@@ -29,23 +30,24 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   srand((unsigned)time(NULL));
   bool failed = 0;
 
-  Context context = context_create();
-
   static char const source[] = EXP_TEST_DIR "/asm.s";
   static char const object[] = EXP_TEST_DIR "/asm.o";
 
-  context_set_source_path(&context, source, sizeof(source));
+  CLIOptions cli_options = cli_options_create();
+  path_assign(&cli_options.output, object, strlen(object));
+  path_assign(&cli_options.source, source, strlen(source));
+  Context context = context_create(&cli_options);
 
   Type *integer_type = context_integer_type(&context);
-  StringView g0 = context_intern(&context, "g0", sizeof("g0"));
-  StringView g1 = context_intern(&context, "g1", sizeof("g1"));
+  StringView g0 = context_intern(&context, "g0", strlen("g0"));
+  StringView g1 = context_intern(&context, "g1", strlen("g1"));
 
   context_insert_global(&context, g0, integer_type,
                         value_create_integer(rand()));
   context_insert_global(&context, g1, integer_type,
                         value_create_integer(rand()));
 
-  emit(&context);
+  emit_x64_linux_assembly(&context);
 
   char const *args[] = {source, "-o", object, NULL};
 
@@ -58,9 +60,11 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
 
   remove(source);
 
+  context_destroy(&context);
+  cli_options_destroy(&cli_options);
   if (failed) {
-    return 1;
+    return EXIT_FAILURE;
   } else {
-    return 0;
+    return EXIT_SUCCESS;
   }
 }

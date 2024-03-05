@@ -21,9 +21,8 @@
 #include <string.h>
 
 #include "filesystem/io.h"
+#include "utility/cli_options.h"
 #include "utility/config.h"
-#include "utility/options.h"
-#include "utility/panic.h"
 
 static void print_version(FILE *file) {
   file_write(EXP_VERSION_STRING, file);
@@ -38,23 +37,23 @@ static void print_help(FILE *file) {
   file_write("\n", file);
 }
 
-Options options_create() {
-  Options options;
-  options.source = path_create();
-  options.output = path_create();
-  return options;
+CLIOptions cli_options_create() {
+  CLIOptions cli_options;
+  cli_options.output = path_create();
+  cli_options.source = path_create();
+  return cli_options;
 }
 
-void options_destroy(Options *restrict options) {
-  path_destroy(&(options->source));
-  path_destroy(&(options->output));
+void cli_options_destroy(CLIOptions *restrict cli_options) {
+  path_destroy(&cli_options->output);
+  path_destroy(&cli_options->source);
 }
 
 #if defined(EXP_HOST_OS_LINUX)
 #include <getopt.h>
 
-Options parse_options(int argc, char const *argv[]) {
-  Options options = options_create();
+CLIOptions parse_options(int argc, char const *argv[]) {
+  CLIOptions options = cli_options_create();
   static char const *short_options = "hvo:";
 
   int option = 0;

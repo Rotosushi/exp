@@ -17,29 +17,28 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
+#include "env/options.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "filesystem/path.h"
 // #include "imr/bytecode.h"
-// #include "imr/constants.h"
+#include "imr/constants.h"
+#include "imr/stack.h"
 // #include "imr/registers.h"
 
 typedef struct Context {
-  Path source_path;
+  Options options;
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbols;
-  //  Constants constants;
+  Constants constants;
+  Stack stack;
   //  Bytecode global_bytecode;
   //  Registers registers;
 } Context;
 
-Context context_create();
+Context context_create(CLIOptions *restrict options);
 void context_destroy(Context *restrict context);
-
-void context_set_source_path(Context *restrict context,
-                             char const *restrict data, size_t length);
 
 StringView context_source_path(Context *restrict context);
 

@@ -14,19 +14,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_OPTIONS_H
-#define EXP_UTILITY_OPTIONS_H
+#ifndef EXP_UTILITY_CLI_OPTIONS_H
+#define EXP_UTILITY_CLI_OPTIONS_H
 
 #include "filesystem/path.h"
 
-typedef struct Options {
+typedef struct CLIOptions {
   Path source;
   Path output;
-} Options;
+} CLIOptions;
 
-Options options_create();
-void options_destroy(Options *restrict options);
+CLIOptions cli_options_create();
+void cli_options_destroy(CLIOptions *restrict cli_options);
 
-[[nodiscard]] Options parse_options(int argc, char const *argv[]);
+[[nodiscard]] CLIOptions parse_options(int argc, char const *argv[]);
 
-#endif // !EXP_UTILITY_OPTIONS_H
+#endif // !EXP_UTILITY_CLI_OPTIONS_H

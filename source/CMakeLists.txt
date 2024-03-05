@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
-  ${EXP_SOURCE_DIR}/backend/emit.c
+  ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
 
   ${EXP_SOURCE_DIR}/env/context.c
+  ${EXP_SOURCE_DIR}/env/options.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
@@ -24,11 +25,11 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/intrinsics/alignment.c
   ${EXP_SOURCE_DIR}/intrinsics/size.c
 
+  ${EXP_SOURCE_DIR}/utility/cli_options.c
   ${EXP_SOURCE_DIR}/utility/log_message.c
   ${EXP_SOURCE_DIR}/utility/minmax.c
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numbers_to_string.c
-  ${EXP_SOURCE_DIR}/utility/options.c
   ${EXP_SOURCE_DIR}/utility/panic.c
   ${EXP_SOURCE_DIR}/utility/process.c
   ${EXP_SOURCE_DIR}/utility/string_hash.c

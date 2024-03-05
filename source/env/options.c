@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 cade
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,12 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "utility/cli_options.h"
+#include "env/options.h"
+#include "filesystem/io.h"
+#include "utility/config.h"
+#include "utility/panic.h"
 
-int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
-  [[maybe_unused]] CLIOptions cli_options = parse_options(argc, argv);
+Options options_create() {
+  Options options;
+  options.source = path_create();
+  options.output = path_create();
+  return options;
+}
 
-  return EXIT_SUCCESS;
+Options options_from_cli_options(CLIOptions *restrict cli_options) {
+  Options options = options_create();
+  options.source = path_clone(&cli_options->source);
+  options.output = path_clone(&cli_options->output);
+  return options;
+}
+
+void options_destroy(Options *restrict options) {
+  path_destroy(&(options->source));
+  path_destroy(&(options->output));
 }
