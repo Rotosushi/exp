@@ -86,12 +86,12 @@ void stack_push(Stack *restrict stack, Value value) {
 
 Value stack_pop(Stack *restrict stack) {
   assert(stack != NULL);
-  Value result = stack_peek(stack);
+  Value *result = stack_peek(stack);
   stack->top -= 1;
-  return result;
+  return *result;
 }
 
-Value stack_peek(Stack *restrict stack) {
+Value *stack_peek(Stack *restrict stack) {
   assert(stack != NULL);
-  return stack->top[-1];
+  return stack->top - 1;
 }

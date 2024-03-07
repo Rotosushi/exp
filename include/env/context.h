@@ -21,10 +21,10 @@
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-// #include "imr/bytecode.h"
+#include "imr/bytecode.h"
 #include "imr/constants.h"
+#include "imr/registers.h"
 #include "imr/stack.h"
-// #include "imr/registers.h"
 
 typedef struct Context {
   Options options;
@@ -33,24 +33,62 @@ typedef struct Context {
   SymbolTable global_symbols;
   Constants constants;
   Stack stack;
-  //  Bytecode global_bytecode;
-  //  Registers registers;
+  Bytecode global_bytecode;
+  Registers registers;
 } Context;
 
-Context context_create(CLIOptions *restrict options);
+/**
+ * @brief create a new options
+ *
+ * @note takes ownership of the options passed in.
+ *
+ * @param options
+ * @return Context
+ */
+Context context_create(Options *restrict options);
 void context_destroy(Context *restrict context);
 
+// context options functions
 StringView context_source_path(Context *restrict context);
 
+StringView context_output_path(Context *restrict context);
+
+// string interner functions
 StringView context_intern(Context *restrict context, char const *data,
                           size_t length);
 
+// type interner functions
+Type *context_nil_type(Context *restrict context);
+
+Type *context_boolean_type(Context *restrict context);
+
 Type *context_integer_type(Context *restrict context);
 
-bool context_insert_global(Context *restrict context, StringView name,
-                           Type *type, Value value);
+Type *context_string_literal_type(Context *restrict context);
 
-SymbolTableElement *context_lookup_global(Context *restrict context,
-                                          StringView name);
+// symbol table functions
+bool context_insert_global_symbol(Context *restrict context, StringView name,
+                                  Type *type, Value value);
+
+SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
+                                                 StringView name);
+
+// Constants functions
+size_t context_constants_append(Context *restrict context, Value value);
+
+Value *context_constants_at(Context *restrict context, size_t index);
+
+// Stack functions
+bool context_stack_empty(Context *restrict context);
+
+void context_stack_push(Context *restrict context, Value value);
+
+Value context_stack_pop(Context *restrict context);
+
+Value *context_stack_peek(Context *restrict context);
+
+// global Bytecode functions
+void context_bytecode_emit_constant(Context *restrict context,
+                                    size_t name_index);
 
 #endif // !EXP_ENV_CONTEXT_H

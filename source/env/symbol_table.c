@@ -120,11 +120,12 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
   SymbolTableElement *element =
       symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
 
-  // if the element already exists, we
-  // reassign the type and value
+  // if the element already exists,
+  // we return false. we don't want
+  // to reassign a global so as to
+  // not define conflicting global
+  // symbols in the object file.
   if (element->name.ptr != NULL) {
-    element->type = type;
-    element->value = value;
     return 0;
   }
 

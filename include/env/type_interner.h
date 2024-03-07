@@ -16,6 +16,8 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_TYPE_INTERNER_H
 #define EXP_ENV_TYPE_INTERNER_H
+#include <stddef.h>
+
 #include "imr/type.h"
 
 /**
@@ -78,5 +80,11 @@ Type *type_interner_integer_type(TypeInterner *restrict type_interner);
  * @return Type*
  */
 Type *type_interner_string_literal_type(TypeInterner *restrict type_interner);
+
+size_t type_interner_type_to_index(TypeInterner *restrict type_interner,
+                                   Type *type);
+
+Type *type_interner_index_to_type(TypeInterner *restrict type_interner,
+                                  size_t index);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

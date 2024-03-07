@@ -71,6 +71,6 @@ Value stack_pop(Stack *restrict stack);
  * @param stack
  * @return Value*
  */
-Value stack_peek(Stack *restrict stack);
+Value *stack_peek(Stack *restrict stack);
 
 #endif // !EXP_IMR_STACK_H

@@ -43,15 +43,37 @@ Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
 /**
- * @brief define a global constant
+ * @brief push a constant onto the stack
  *
  * @param bytecode the bytecode to emit into
- * @param name_index the index of the constant which holds the name of the
- * global
- * @param value_index the index of the constant which holds the value of the
- * global
+ * @param name_index the index of the constant to push
  */
-void bytecode_emit_global_const(Bytecode *restrict bytecode, size_t name_index,
-                                size_t value_index);
+void bytecode_emit_push_constant(Bytecode *restrict bytecode,
+                                 size_t name_index);
+
+void bytecode_emit_push_register(Bytecode *restrict bytecode,
+                                 uint8_t register_index);
+
+void bytecode_emit_pop(Bytecode *restrict bytecode);
+
+void bytecode_emit_pop_register(Bytecode *restrict bytecode,
+                                uint8_t register_index);
+
+void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
+                                             uint8_t register_index,
+                                             size_t constant_index);
+
+/**
+ * @brief define a global constant
+ *
+ * @param bytecode
+ * @param name_index
+ * @param type_index
+ * @param value_index
+ */
+void bytecode_emit_define_global_constant(Bytecode *restrict bytecode,
+                                          uint8_t name_index,
+                                          uint8_t type_index,
+                                          uint8_t value_index);
 
 #endif // !EXP_IMR_BYTECODE_H

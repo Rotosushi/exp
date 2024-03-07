@@ -31,7 +31,7 @@
   affix = basic // (binop precedece-parser)?
 
   basic = literal
-        | identifier
+        //| identifier
         //| unop basic
         //| "(" affix ")"
 

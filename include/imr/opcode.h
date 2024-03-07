@@ -35,8 +35,9 @@
   if we assume that instructions are an opcode
   followed by their arguments, layed out according
   to the opcode.
-  and we have a bank of constants C[N]
-  and we have a bank of registers R[N]
+  and we have a array of constants C[N]
+  and we have a array of types T[N]
+  and we have a array of registers R[N]
   and we have a stack of values S[N]
 */
 
@@ -47,16 +48,44 @@
 typedef enum Opcode {
   // for the sake of brevity, '[]' is referring to one byte
 
-  // OP_DEFINE_GLOBAL_CONST
-  // [op][A][B]
-  // define a constant
-  //  A is the index into C[N]
-  //  A is the name of the global constant
-  //  B is the index into C[N]
-  //  B is the value of the global constant
-  OP_DEFINE_GLOBAL_CONST,
+  // OP_PUSH_CONSTANT
+  // [op][A]
+  // push a constant onto the stack
+  //  C[A] is the source constant
+  OP_PUSH_CONSTANT,
 
-  // #TODO OP_DEFINE_VAR_*
+  // OP_PUSH_REGISTER
+  // [op][A]
+  // push a register onto the stack
+  // R[A] is the source register
+  OP_PUSH_REGISTER,
+
+  // OP_POP
+  // [op]
+  // pop the top value off the stack
+  OP_POP,
+
+  // OP_POP_REGISTER
+  // [op][A]
+  // pop the top value off the stack,
+  // and store it into a register
+  // R[A] is the target register
+  OP_POP_REGISTER,
+
+  // OP_MOVE_CONSTANT_TO_REGISTER
+  // [op][A][B]
+  // Move a constant into a register
+  // R[A] is the target register
+  // C[B] is the source constant
+  OP_MOVE_CONSTANT_TO_REGISTER,
+
+  // OP_DEFINE_GLOBAL_CONSTANT
+  // [op][A][B][C]
+  // define a global symbol
+  //  R[A] is the name of the global
+  //  R[B] is the type of the global
+  //  R[C] is the value of the global
+  OP_DEFINE_GLOBAL_CONSTANT,
 
   // #TODO
   // OP_DEFINE_FN

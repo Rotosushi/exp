@@ -20,13 +20,9 @@
 
 #include "env/context.h"
 
-Context context_create(CLIOptions *restrict cli_options) {
+Context context_create(Options *restrict options) {
   Context context;
-  if (cli_options == NULL) {
-    context.options = options_create();
-  } else {
-    context.options = options_from_cli_options(cli_options);
-  }
+  context.options = *options;
   context.string_interner = string_interner_create();
   context.type_interner = type_interner_create();
   context.global_symbols = symbol_table_create();
@@ -50,10 +46,25 @@ StringView context_source_path(Context *restrict context) {
   return path_to_view(&(context->options.source));
 }
 
+StringView context_output_path(Context *restrict context) {
+  assert(context != NULL);
+  return path_to_view(&(context->options.output));
+}
+
 StringView context_intern(Context *restrict context, char const *data,
                           size_t length) {
   assert(context != NULL);
   return string_interner_insert(&(context->string_interner), data, length);
+}
+
+Type *context_nil_type(Context *restrict context) {
+  assert(context != NULL);
+  return type_interner_nil_type(&(context->type_interner));
+}
+
+Type *context_boolean_type(Context *restrict context) {
+  assert(context != NULL);
+  return type_interner_boolean_type(&(context->type_interner));
 }
 
 Type *context_integer_type(Context *restrict context) {
@@ -61,14 +72,55 @@ Type *context_integer_type(Context *restrict context) {
   return type_interner_integer_type(&(context->type_interner));
 }
 
-bool context_insert_global(Context *restrict context, StringView name,
-                           Type *type, Value value) {
+Type *context_string_literal_type(Context *restrict context) {
+  assert(context != NULL);
+  return type_interner_string_literal_type(&(context->type_interner));
+}
+
+bool context_insert_global_symbol(Context *restrict context, StringView name,
+                                  Type *type, Value value) {
   assert(context != NULL);
   return symbol_table_insert(&(context->global_symbols), name, type, value);
 }
 
-SymbolTableElement *context_lookup_global(Context *restrict context,
-                                          StringView name) {
+SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
+                                                 StringView name) {
   assert(context != NULL);
   return symbol_table_lookup(&(context->global_symbols), name);
+}
+
+size_t context_constants_append(Context *restrict context, Value value) {
+  assert(context != NULL);
+  return constants_append(&(context->constants), value);
+}
+
+Value *context_constants_at(Context *restrict context, size_t index) {
+  assert(context != NULL);
+  return constants_at(&(context->constants), index);
+}
+
+bool context_stack_empty(Context *restrict context) {
+  assert(context != NULL);
+  return stack_empty(&(context->stack));
+}
+
+void context_stack_push(Context *restrict context, Value value) {
+  assert(context != NULL);
+  stack_push(&context->stack, value);
+}
+
+Value context_stack_pop(Context *restrict context) {
+  assert(context != NULL);
+  return stack_pop(&context->stack);
+}
+
+Value *context_stack_peek(Context *restrict context) {
+  assert(context != NULL);
+  return stack_peek(&context->stack);
+}
+
+void context_bytecode_emit_constant(Context *restrict context,
+                                    size_t name_index) {
+  assert(context != NULL);
+  bytecode_emit_push_constant(&context->global_bytecode, name_index);
 }

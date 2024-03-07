@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "imr/type.h"
 #include "utility/string_view.h"
 
 typedef enum ValueKind {
@@ -24,6 +25,8 @@ typedef enum ValueKind {
   VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
   VALUEKIND_STRING_LITERAL,
+
+  VALUEKIND_TYPE,
 } ValueKind;
 
 /**
@@ -37,6 +40,8 @@ typedef struct Value {
     bool boolean;
     long integer;
     StringView string_literal;
+
+    Type *type;
   };
 } Value;
 
@@ -70,6 +75,14 @@ Value value_create_integer(long i);
  * @return Value
  */
 Value value_create_string_literal(StringView sv);
+
+/**
+ * @brief create a Type value
+ *
+ * @param t
+ * @return Value
+ */
+Value value_create_type(Type *t);
 
 /**
  * @brief assign dest the value of source

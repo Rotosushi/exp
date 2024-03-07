@@ -18,6 +18,7 @@
  */
 
 #include "env/type_interner.h"
+#include "utility/panic.h"
 
 TypeInterner type_interner_create() {
   TypeInterner type_interner;
@@ -47,4 +48,35 @@ Type *type_interner_integer_type(TypeInterner *restrict type_interner) {
 
 Type *type_interner_string_literal_type(TypeInterner *restrict type_interner) {
   return &(type_interner->string_literal_type);
+}
+
+size_t type_interner_type_to_index(TypeInterner *restrict type_interner,
+                                   Type *type) {
+  if (type == &type_interner->nil_type) {
+    return 0;
+  } else if (type == &type_interner->boolean_type) {
+    return 1;
+  } else if (type == &type_interner->integer_type) {
+    return 2;
+  } else if (type == &type_interner->string_literal_type) {
+    return 3;
+  } else {
+    panic("unknown type");
+  }
+}
+
+Type *type_interner_index_to_type(TypeInterner *restrict type_interner,
+                                  size_t index) {
+  switch (index) {
+  case 0:
+    return &type_interner->nil_type;
+  case 1:
+    return &type_interner->boolean_type;
+  case 2:
+    return &type_interner->integer_type;
+  case 3:
+    return &type_interner->string_literal_type;
+  default:
+    panic("unkown index");
+  }
 }

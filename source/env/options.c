@@ -32,6 +32,13 @@ Options options_create() {
   return options;
 }
 
+Options options_clone(Options *restrict other) {
+  Options options = options_create();
+  options.source = path_clone(&other->source);
+  options.output = path_clone(&other->output);
+  return options;
+}
+
 Options options_from_cli_options(CLIOptions *restrict cli_options) {
   Options options = options_create();
   options.source = path_clone(&cli_options->source);

@@ -33,19 +33,19 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   static char const source[] = EXP_TEST_DIR "/asm.s";
   static char const object[] = EXP_TEST_DIR "/asm.o";
 
-  CLIOptions cli_options = cli_options_create();
-  path_assign(&cli_options.output, object, strlen(object));
-  path_assign(&cli_options.source, source, strlen(source));
-  Context context = context_create(&cli_options);
+  Options options = options_create();
+  path_assign(&options.output, object, strlen(object));
+  path_assign(&options.source, source, strlen(source));
+  Context context = context_create(&options);
 
   Type *integer_type = context_integer_type(&context);
   StringView g0 = context_intern(&context, "g0", strlen("g0"));
   StringView g1 = context_intern(&context, "g1", strlen("g1"));
 
-  context_insert_global(&context, g0, integer_type,
-                        value_create_integer(rand()));
-  context_insert_global(&context, g1, integer_type,
-                        value_create_integer(rand()));
+  context_insert_global_symbol(&context, g0, integer_type,
+                               value_create_integer(rand()));
+  context_insert_global_symbol(&context, g1, integer_type,
+                               value_create_integer(rand()));
 
   emit_x64_linux_assembly(&context);
 
@@ -61,7 +61,6 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   remove(source);
 
   context_destroy(&context);
-  cli_options_destroy(&cli_options);
   if (failed) {
     return EXIT_FAILURE;
   } else {

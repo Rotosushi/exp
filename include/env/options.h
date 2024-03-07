@@ -26,6 +26,7 @@ typedef struct Options {
 } Options;
 
 Options options_create();
+Options options_clone(Options *restrict options);
 Options options_from_cli_options(CLIOptions *restrict cli_options);
 void options_destroy(Options *restrict options);
 

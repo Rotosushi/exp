@@ -46,34 +46,74 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
   free(bytecode->buffer);
 }
 
-static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
-  assert(bytecode != NULL);
+static bool bytecode_full(Bytecode *restrict bytecode) {
   size_t sum_capacity;
   if (__builtin_add_overflow(bytecode->length, 1, &sum_capacity)) {
     panic("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
+  return bytecode->capacity < sum_capacity;
+}
 
-  if (bytecode->capacity < sum_capacity) {
-    size_t new_capacity = nearest_power_of_two(sum_capacity);
+static void bytecode_grow(Bytecode *restrict bytecode) {
+  size_t new_capacity = nearest_power_of_two(bytecode->capacity + 1);
 
-    uint8_t *result = realloc(bytecode->buffer, new_capacity);
-    if (result == NULL) {
-      panic_errno("realloc failed");
-    }
-    bytecode->buffer = result;
-    bytecode->capacity = new_capacity;
+  uint8_t *result = realloc(bytecode->buffer, new_capacity);
+  if (result == NULL) {
+    panic_errno("realloc failed");
+  }
+  bytecode->buffer = result;
+  bytecode->capacity = new_capacity;
+}
+
+static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
+  assert(bytecode != NULL);
+
+  if (bytecode_full(bytecode)) {
+    bytecode_grow(bytecode);
   }
 
   bytecode->buffer[bytecode->length] = byte;
   bytecode->length += 1;
 }
 
-void bytecode_emit_global_const(Bytecode *restrict bytecode, size_t name_index,
-                                size_t value_index) {
-  assert(name_index < 256 && "TODO");
+void bytecode_emit_push_constant(Bytecode *restrict bytecode,
+                                 size_t value_index) {
   assert(value_index < 256 && "TODO");
-  bytecode_emit_byte(bytecode, (uint8_t)OP_DEFINE_GLOBAL_CONST);
-  bytecode_emit_byte(bytecode, (uint8_t)name_index);
+  bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT);
   bytecode_emit_byte(bytecode, (uint8_t)value_index);
+}
+
+void bytecode_emit_push_register(Bytecode *restrict bytecode,
+                                 uint8_t register_index) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_REGISTER);
+  bytecode_emit_byte(bytecode, register_index);
+}
+
+void bytecode_emit_pop(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_POP);
+}
+
+void bytecode_emit_pop_register(Bytecode *restrict bytecode,
+                                uint8_t register_index) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_POP_REGISTER);
+  bytecode_emit_byte(bytecode, register_index);
+}
+
+void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
+                                             uint8_t register_index,
+                                             size_t constant_index) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_MOVE_CONSTANT_TO_REGISTER);
+  bytecode_emit_byte(bytecode, register_index);
+  bytecode_emit_byte(bytecode, (uint8_t)constant_index);
+}
+
+void bytecode_emit_define_global_constant(Bytecode *restrict bytecode,
+                                          uint8_t name_index,
+                                          uint8_t type_index,
+                                          uint8_t value_index) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_DEFINE_GLOBAL_CONSTANT);
+  bytecode_emit_byte(bytecode, name_index);
+  bytecode_emit_byte(bytecode, type_index);
+  bytecode_emit_byte(bytecode, value_index);
 }

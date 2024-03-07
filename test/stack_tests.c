@@ -31,8 +31,8 @@ int stack_tests([[maybe_unused]] int argc,
 
   Value i0 = value_create_integer(rand());
   stack_push(&stack, i0);
-  Value s0 = stack_peek(&stack);
-  failed |= !value_equality(&i0, &s0);
+  Value *s0 = stack_peek(&stack);
+  failed |= !value_equality(&i0, s0);
 
   stack_push(&stack, value_create_integer(rand()));
   stack_push(&stack, value_create_integer(rand()));
