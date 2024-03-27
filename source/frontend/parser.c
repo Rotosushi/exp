@@ -133,6 +133,7 @@ static MaybeError parse_basic(Parser *restrict parser,
     size_t index =
         context_constants_append(context, value_create_integer(integer));
     context_emit_push_constant(context, index);
+    nexttok(parser);
     return success();
   }
 
@@ -162,6 +163,10 @@ static MaybeError parse_declaration(Parser *restrict parser,
   context_emit_push_constant(context, index);
 
   nexttok(parser);
+
+  if (!expect(parser, TOK_EQUAL)) {
+    return error(parser, ERROR_EXPECTED_EQUAL);
+  }
 
   MaybeError maybe = parse_affix(parser, context);
   if (maybe.has_error) {
@@ -207,6 +212,9 @@ int parse(char const *restrict buffer, Context *restrict context) {
 
   Parser parser = parser_create();
   parser_set_view(&parser, buffer);
+
+  // prime the parser
+  nexttok(&parser);
 
   while (!finished(&parser)) {
     MaybeError maybe = parse_top(&parser, context);

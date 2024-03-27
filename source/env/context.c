@@ -28,6 +28,7 @@ Context context_create(Options *restrict options) {
   context.string_interner = string_interner_create();
   context.type_interner = type_interner_create();
   context.global_symbols = symbol_table_create();
+  context.global_bytecode = bytecode_create();
   context.constants = constants_create();
   context.stack = stack_create();
   return context;
@@ -39,6 +40,7 @@ void context_destroy(Context *restrict context) {
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));
+  bytecode_destroy(&(context->global_bytecode));
   constants_destroy(&(context->constants));
   stack_destroy(&(context->stack));
 }
