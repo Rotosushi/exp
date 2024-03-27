@@ -16,9 +16,9 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
-
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "utility/string.h"
 
@@ -92,6 +92,8 @@ char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix);
  */
 String intmax_to_string(intmax_t value, Radix radix);
 
+void print_intmax(intmax_t value, Radix radix, FILE *file);
+
 /**
  * @brief write the digits of <value> into <buffer>
  * converted into the given base
@@ -119,5 +121,7 @@ char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix);
  * @return string the returned string
  */
 String uintmax_to_string(uintmax_t value, Radix radix);
+
+void print_uintmax(uintmax_t value, Radix radix, FILE *file);
 
 #endif // !EXP_UTILITY_NUMBERS_TO_STRING_H

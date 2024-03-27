@@ -31,47 +31,20 @@
   affix = basic // (binop precedece-parser)?
 
   basic = literal
-        | identifier
+        //| identifier
         //| unop basic
         //| "(" affix ")"
 
   literal = integer
 */
 
-typedef struct Parser {
-  Lexer lexer;
-  Token curtok;
-} Parser;
-
 /**
- * @brief return a new parser
+ * @brief Parse the buffer
  *
- * @return Parser
+ * @param buffer the buffer to parse
+ * @param context the context to parse within
+ * @return int EXIT_FAILURE or EXIT_SUCCESS
  */
-Parser parser_create();
-
-/**
- * @brief reset a parser
- *
- * @param parser
- */
-void parser_reset(Parser *restrict parser);
-
-/**
- * @brief set the text the parser will parse
- *
- * @param parser
- * @param buffer
- */
-void parser_set_view(Parser *restrict parser, char const *buffer);
-
-/**
- * @brief Parse the source
- *
- * @param parser
- * @param bytecode
- * @return int
- */
-int parser_parse(Parser *restrict parser, Context *restrict context);
+int parse(char const *restrict buffer, Context *restrict context);
 
 #endif // !EXP_FRONTEND_PARSER_H

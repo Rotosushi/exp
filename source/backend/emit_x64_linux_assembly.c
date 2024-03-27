@@ -148,7 +148,9 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   // common symbols @common (linker merges these symbols across translation
   // units), and indirect-functions @gnu_indirect_function.
   // (the actual function to be called can be resolved at runtime;
-  // it's complex. https://maskray.me/blog/2021-01-18-gnu-indirect-function)
+  // it's complex. https://maskray.me/blog/2021-01-18-gnu-indirect-function
+  // and mainly used so programmers can override malloc/free in the
+  // c stdlib. or so I've read.)
   case TYPEKIND_NIL:
   case TYPEKIND_BOOLEAN:
   case TYPEKIND_INTEGER:
@@ -305,7 +307,7 @@ the .bss section.
 }
 
 void emit_x64_linux_assembly(Context *restrict context) {
-  StringView path = context_source_path(context);
+  StringView path = context_output_path(context);
   FILE *file = fopen(path.ptr, "w");
   if (file == NULL) {
     panic_errno("fopen failed");

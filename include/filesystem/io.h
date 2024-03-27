@@ -19,6 +19,12 @@
 
 #include <stdio.h>
 
+#include "utility/string.h"
+
+FILE *file_open(char const *restrict path, char const *restrict modes);
+
+void file_close(FILE *restrict file);
+
 /**
  * @brief write <buffer> to <stream>
  *
@@ -41,5 +47,9 @@ void file_write(const char *restrict buffer, FILE *restrict stream);
  * @return size_t the number of chars actually read.
  */
 size_t file_read(char *buffer, size_t length, FILE *restrict stream);
+
+size_t file_length(FILE *restrict file);
+
+String file_readall(FILE *restrict file);
 
 #endif // !EXP_FILESYSTEM_IO_H

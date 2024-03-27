@@ -19,7 +19,12 @@
 
 #include <stdio.h>
 
-typedef enum LogLevel { LOG_FATAL, LOG_WARNING, LOG_STATUS } LogLevel;
+typedef enum LogLevel {
+  LOG_FATAL,
+  LOG_ERROR,
+  LOG_WARNING,
+  LOG_STATUS
+} LogLevel;
 
 /**
  * @brief logs a message to the given stream

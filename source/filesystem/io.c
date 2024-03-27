@@ -16,9 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <stdlib.h>
 
 #include "filesystem/io.h"
+#include "utility/panic.h"
+
+FILE *file_open(char const *restrict path, char const *restrict modes) {
+  assert(path != NULL);
+  assert(modes != NULL);
+  FILE *file = fopen(path, modes);
+  if (file == NULL) {
+    panic_errno("fopen failed");
+  }
+  return file;
+}
+
+void file_close(FILE *restrict file) {
+  assert(file != NULL);
+  if (fclose(file) == EOF) {
+    panic_errno("fclose failed");
+  }
+}
 
 void file_write(const char *restrict buffer, FILE *restrict stream) {
   int code = fputs(buffer, stream);
@@ -36,4 +55,47 @@ size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
   }
 
   return (size_t)(result - buffer);
+}
+
+size_t file_length(FILE *restrict file) {
+  if (fseek(file, 0L, SEEK_END) != 0) {
+    panic_errno("fseek failed");
+  }
+
+  long size = ftell(file);
+  if (size == -1L) {
+    panic_errno("ftell failed");
+  }
+
+  rewind(file);
+  return (size_t)size;
+}
+
+String file_readall(FILE *restrict stream) {
+  assert(stream != NULL);
+
+  String result = string_create();
+  string_resize(&result, file_length(stream));
+#define BUFSZ 1024
+  static char buffer[BUFSZ];
+  while (1) {
+    char *p = fgets(buffer, BUFSZ, stream);
+    if ((p == NULL)) {
+      if (feof(stream)) {
+        break;
+      } else if (ferror(stream)) {
+        fclose(stream);
+        panic_errno("fgets failed");
+      }
+    }
+
+    string_append(&result, buffer);
+
+    if (feof(stream)) {
+      break;
+    }
+  }
+#undef BUFSZ
+
+  return result;
 }

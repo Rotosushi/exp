@@ -38,7 +38,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 bool test_string_assign(const char *data, size_t data_length) {
   String str = string_create();
 
-  string_assign(&str, data, data_length);
+  string_assign(&str, data);
 
   bool failed;
   if (s1_same_as_s2(str.buffer, str.length, data, data_length)) {
@@ -55,7 +55,7 @@ bool test_string_assign(const char *data, size_t data_length) {
 bool test_string_to_view(const char *data, size_t data_length) {
   String str = string_create();
 
-  string_assign(&str, data, data_length);
+  string_assign(&str, data);
 
   bool failed;
   if (s1_same_as_s2(str.buffer, str.length, data, data_length)) {
@@ -105,8 +105,8 @@ bool test_string_append(const char *d1, size_t d1_len, const char *d2,
                         size_t d2_len) {
   String str = string_create();
 
-  string_append(&str, d1, d1_len);
-  string_append(&str, d2, d2_len);
+  string_append(&str, d1);
+  string_append(&str, d2);
 
   bool failure;
   if (s1_same_as_sum_of_s2_s3(str.buffer, str.length, d1, d1_len, d2, d2_len)) {
@@ -120,11 +120,11 @@ bool test_string_append(const char *d1, size_t d1_len, const char *d2,
   return failure;
 }
 
-bool test_string_erase(char const *d1, size_t d1_length, size_t offset,
-                       size_t length, char const *d2, size_t d2_length) {
+bool test_string_erase(char const *d1, size_t offset, size_t length,
+                       char const *d2, size_t d2_length) {
   String str = string_create();
 
-  string_assign(&str, d1, d1_length);
+  string_assign(&str, d1);
 
   // StringView view = string_to_view_at(&str, offset, length);
 
@@ -142,14 +142,13 @@ bool test_string_erase(char const *d1, size_t d1_length, size_t offset,
   return failure;
 }
 
-bool test_string_insert(char const *d1, size_t d1_length, size_t offset,
-                        char const *d2, size_t d2_length, char const *d3,
-                        size_t d3_length) {
+bool test_string_insert(char const *d1, size_t offset, char const *d2,
+                        char const *d3, size_t d3_length) {
   String str = string_create();
 
-  string_assign(&str, d1, d1_length);
+  string_assign(&str, d1);
 
-  string_insert(&str, offset, d2, d2_length);
+  string_insert(&str, offset, d2);
 
   bool failure;
   if (s1_same_as_s2(str.buffer, str.length, d3, d3_length)) {
@@ -175,28 +174,21 @@ int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
 
   failure |= test_string_append("hello", strlen("hello"), "/", strlen("/"));
 
-  failure |= test_string_erase("hello world", strlen("hello world"), 0, 5,
-                               " world", strlen(" world"));
+  failure |= test_string_erase("hello world", 0, 5, " world", strlen(" world"));
 
-  failure |= test_string_erase("hello world", strlen("hello world"), 5, 6,
-                               "hello", strlen("hello"));
+  failure |= test_string_erase("hello world", 5, 6, "hello", strlen("hello"));
 
-  failure |= test_string_erase("hello world", strlen("hello world"), 2, 7,
-                               "held", strlen("held"));
+  failure |= test_string_erase("hello world", 2, 7, "held", strlen("held"));
 
-  failure |= test_string_erase("hello world", strlen("hello world"), 0, 11, "",
-                               strlen(""));
+  failure |= test_string_erase("hello world", 0, 11, "", strlen(""));
 
-  failure |= test_string_insert("hello", strlen("hello"), 0, "world",
-                                strlen("world"), "world", strlen("world"));
+  failure |= test_string_insert("hello", 0, "world", "world", strlen("world"));
 
-  failure |= test_string_insert("hello", strlen("hello"), 5, " world",
-                                strlen(" world"), "hello world",
+  failure |= test_string_insert("hello", 5, " world", "hello world",
                                 strlen("hello world"));
 
-  failure |=
-      test_string_insert("hello", strlen("hello"), 4, " world",
-                         strlen(" world"), "hell world", strlen("hell world"));
+  failure |= test_string_insert("hello", 4, " world", "hell world",
+                                strlen("hell world"));
 
   if (failure) {
     return 1;

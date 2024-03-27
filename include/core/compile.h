@@ -17,4 +17,8 @@
 #ifndef EXP_CORE_COMPILE_H
 #define EXP_CORE_COMPILE_H
 
+#include "env/context.h"
+
+int compile(Context *restrict context);
+
 #endif // !EXP_CORE_COMPILE_H

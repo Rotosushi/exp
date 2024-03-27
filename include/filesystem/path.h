@@ -66,7 +66,7 @@ bool path_empty(Path const *restrict path);
  * @param data
  * @param length
  */
-void path_assign(Path *restrict path, char const *restrict data, size_t length);
+void path_assign(Path *restrict path, char const *restrict data);
 
 /**
  * @brief clone the given path

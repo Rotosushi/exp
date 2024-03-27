@@ -59,7 +59,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 
 bool test_path_assign(char const *data, size_t length) {
   Path path = path_create();
-  path_assign(&path, data, length);
+  path_assign(&path, data);
 
   StringView sv = path_to_view(&path);
 
@@ -70,13 +70,13 @@ bool test_path_assign(char const *data, size_t length) {
   return failure;
 }
 
-bool test_path_append(char const *d1, size_t d1_len, char const *d2,
-                      size_t d2_len, char const *d3, size_t d3_len) {
+bool test_path_append(char const *d1, char const *d2, char const *d3,
+                      size_t d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 
-  path_assign(&p1, d1, d1_len);
-  path_assign(&p2, d2, d2_len);
+  path_assign(&p1, d1);
+  path_assign(&p2, d2);
 
   path_append(&p1, &p2);
 
@@ -90,13 +90,13 @@ bool test_path_append(char const *d1, size_t d1_len, char const *d2,
   return failure;
 }
 
-bool test_path_concat(char const *d1, size_t d1_len, char const *d2,
-                      size_t d2_len, char const *d3, size_t d3_len) {
+bool test_path_concat(char const *d1, char const *d2, char const *d3,
+                      size_t d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 
-  path_assign(&p1, d1, d1_len);
-  path_assign(&p2, d2, d2_len);
+  path_assign(&p1, d1);
+  path_assign(&p2, d2);
 
   path_concat(&p1, &p2);
 
@@ -110,13 +110,13 @@ bool test_path_concat(char const *d1, size_t d1_len, char const *d2,
   return failure;
 }
 
-bool test_path_replace_extension(char const *d1, size_t d1_len, char const *d2,
-                                 size_t d2_len, char const *d3, size_t d3_len) {
+bool test_path_replace_extension(char const *d1, char const *d2, char const *d3,
+                                 size_t d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 
-  path_assign(&p1, d1, d1_len);
-  path_assign(&p2, d2, d2_len);
+  path_assign(&p1, d1);
+  path_assign(&p2, d2);
 
   path_replace_extension(&p1, &p2);
 
@@ -133,28 +133,22 @@ int path_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
 
   failure |= test_path_assign("hello/world.txt", strlen("hello/world.txt"));
 
-  failure |= test_path_append("hello", strlen("hello"), "world.txt",
-                              strlen("world.txt"), "hello/world.txt",
+  failure |= test_path_append("hello", "world.txt", "hello/world.txt",
                               strlen("hello/world.txt"));
 
-  failure |= test_path_concat("hello/", strlen("hello/"), "world.txt",
-                              strlen("world.txt"), "hello/world.txt",
+  failure |= test_path_concat("hello/", "world.txt", "hello/world.txt",
                               strlen("hello/world.txt"));
 
-  failure |= test_path_replace_extension("hello.txt", strlen("hello.txt"),
-                                         ".data", strlen(".data"), "hello.data",
+  failure |= test_path_replace_extension("hello.txt", ".data", "hello.data",
                                          strlen("hello.data"));
 
-  failure |= test_path_replace_extension("hello", strlen("hello"), ".data",
-                                         strlen(".data"), "hello.data",
+  failure |= test_path_replace_extension("hello", ".data", "hello.data",
                                          strlen("hello.data"));
 
-  failure |= test_path_replace_extension("hello.", strlen("hello."), ".data",
-                                         strlen(".data"), "hello.data",
+  failure |= test_path_replace_extension("hello.", ".data", "hello.data",
                                          strlen("hello.data"));
 
-  failure |= test_path_replace_extension("hello.", strlen("hello."), "data",
-                                         strlen("data"), "hello.data",
+  failure |= test_path_replace_extension("hello.", "data", "hello.data",
                                          strlen("hello.data"));
 
   if (failure) {

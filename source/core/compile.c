@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 cade
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,23 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <stdlib.h>
 
+#include "backend/emit_x64_linux_assembly.h"
 #include "core/compile.h"
-#include "env/context.h"
-#include "utility/cli_options.h"
+#include "core/interpret.h"
+#include "frontend/parser.h"
 
-int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
-  CLIOptions cli_options = parse_options(argc, argv);
-  Options options;
-  options.source = path_clone(&cli_options.source);
-  options.output = path_clone(&cli_options.output);
+int compile(Context *restrict context) {
 
-  Context context = context_create(&options);
+  String buffer = context_buffer_source(context);
+  if (parse(buffer.buffer, context) == EXIT_FAILURE) {
+    return EXIT_FAILURE;
+  }
 
-  int result = compile(&context);
+  if (interpret(context) == EXIT_FAILURE) {
+    return EXIT_FAILURE;
+  }
 
-  context_destroy(&context);
-  cli_options_destroy(&cli_options);
-  return result;
+  emit_x64_linux_assembly(context);
+  return EXIT_SUCCESS;
 }

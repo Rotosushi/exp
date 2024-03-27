@@ -23,7 +23,7 @@
 #include "env/type_interner.h"
 #include "imr/bytecode.h"
 #include "imr/constants.h"
-#include "imr/registers.h"
+// #include "imr/registers.h"
 #include "imr/stack.h"
 
 typedef struct Context {
@@ -31,10 +31,10 @@ typedef struct Context {
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbols;
+  Bytecode global_bytecode;
   Constants constants;
   Stack stack;
-  Bytecode global_bytecode;
-  Registers registers;
+  // Registers registers;
 } Context;
 
 /**
@@ -51,11 +51,16 @@ void context_destroy(Context *restrict context);
 // context options functions
 StringView context_source_path(Context *restrict context);
 
+FILE *context_open_source(Context *restrict context);
+
+String context_buffer_source(Context *restrict context);
+
 StringView context_output_path(Context *restrict context);
 
+FILE *context_open_output(Context *restrict context);
+
 // string interner functions
-StringView context_intern(Context *restrict context, char const *data,
-                          size_t length);
+StringView context_intern(Context *restrict context, StringView sv);
 
 // type interner functions
 Type *context_nil_type(Context *restrict context);
@@ -88,7 +93,10 @@ Value context_stack_pop(Context *restrict context);
 Value *context_stack_peek(Context *restrict context);
 
 // global Bytecode functions
-void context_bytecode_emit_constant(Context *restrict context,
-                                    size_t name_index);
+void context_emit_stop(Context *restrict context);
+
+void context_emit_push_constant(Context *restrict context, size_t index);
+
+void context_emit_define_global_constant(Context *restrict context);
 
 #endif // !EXP_ENV_CONTEXT_H

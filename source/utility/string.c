@@ -47,6 +47,14 @@ void string_destroy(String *restrict str) {
   str->buffer = NULL;
 }
 
+static void string_assign_impl(String *restrict str, char const *restrict data,
+                               size_t length) {
+  string_resize(str, length);
+  memcpy(str->buffer, data, length);
+  str->buffer[length] = '\0';
+  str->length = length;
+}
+
 StringView string_to_view(String const *restrict str) {
   assert(str != NULL);
   StringView sv = {str->buffer, str->length};
@@ -62,6 +70,14 @@ StringView string_to_view_at(String const *restrict str, size_t offset,
   StringView sv = {str->buffer + offset, length};
   return sv;
 }
+
+String string_from_view(StringView sv) {
+  String string;
+  string_assign_impl(&string, sv.ptr, sv.length);
+  return string;
+}
+
+void print_string(String *string, FILE *file) { fputs(string->buffer, file); }
 
 bool string_empty(String const *restrict string) {
   assert(string != NULL);
@@ -126,36 +142,47 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
   str->capacity = new_capacity;
 }
 
-void string_assign(String *restrict str, const char *restrict data,
-                   size_t data_length) {
+void string_assign(String *restrict str, const char *restrict data) {
   assert(str != NULL);
 
-  string_resize(str, data_length);
-  memcpy(str->buffer, data, data_length);
-  str->buffer[data_length] = '\0';
-  str->length = data_length;
+  size_t data_length = strlen(data);
+
+  string_assign_impl(str, data, data_length);
 }
 
-void string_append(String *restrict str, const char *restrict data,
-                   size_t data_length) {
-  assert(str != NULL);
-  if (data_length == 0) {
+void string_assign_view(String *restrict str, StringView sv) {
+  string_assign_impl(str, sv.ptr, sv.length);
+}
+
+static void string_append_impl(String *restrict str, char const *restrict data,
+                               size_t size) {
+  if (size == 0) {
     return;
   }
 
-  if ((str->capacity - str->length) <= data_length) {
-    string_reserve_more(str, data_length);
+  if ((str->capacity - str->length) <= size) {
+    string_reserve_more(str, size);
   }
 
-  memcpy(str->buffer + str->length, data, data_length);
-  str->length += data_length;
+  memcpy(str->buffer + str->length, data, size);
+  str->length += size;
   str->buffer[str->length] = '\0';
+}
+
+void string_append(String *restrict str, const char *restrict data) {
+  assert(str != NULL);
+  string_append_impl(str, data, strlen(data));
+}
+
+void string_append_view(String *restrict str, StringView sv) {
+  assert(str != NULL);
+  string_append_impl(str, sv.ptr, sv.length);
 }
 
 void string_append_string(String *restrict s1, const String *restrict s2) {
   assert(s1 != NULL);
   assert(s2 != NULL);
-  string_append(s1, s2->buffer, s2->length);
+  string_append(s1, s2->buffer);
 }
 
 void string_append_char(String *restrict str, const char c) {
@@ -164,7 +191,7 @@ void string_append_char(String *restrict str, const char c) {
   buffer[0] = c;
   buffer[1] = '\0';
 
-  string_append(str, buffer, 1);
+  string_append(str, buffer);
 }
 
 /*
@@ -221,10 +248,11 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
 
   case 4, we have to resize the existing buffer, then we can write
 */
-void string_insert(String *restrict str, size_t offset, char const *data,
-                   size_t length) {
+void string_insert(String *restrict str, size_t offset,
+                   char const *restrict data) {
   assert(str != NULL);
   assert(offset <= str->length);
+  size_t length = strlen(data);
 
   if ((offset + length) >= str->capacity) {
     string_resize(str, (offset + length));

@@ -19,6 +19,8 @@
 #include <assert.h>
 
 #include "env/context.h"
+#include "filesystem/io.h"
+#include "utility/panic.h"
 
 Context context_create(Options *restrict options) {
   Context context;
@@ -46,15 +48,38 @@ StringView context_source_path(Context *restrict context) {
   return path_to_view(&(context->options.source));
 }
 
+FILE *context_open_source(Context *restrict context) {
+  StringView path = context_source_path(context);
+  return file_open(path.ptr, "r");
+}
+
+String context_buffer_source(Context *restrict context) {
+  FILE *file = context_open_source(context);
+
+  String result = file_readall(file);
+
+  file_close(file);
+
+  return result;
+}
+
 StringView context_output_path(Context *restrict context) {
   assert(context != NULL);
   return path_to_view(&(context->options.output));
 }
 
-StringView context_intern(Context *restrict context, char const *data,
-                          size_t length) {
+FILE *context_open_output(Context *restrict context) {
+  StringView path = context_output_path(context);
+  FILE *file = fopen(path.ptr, "w");
+  if (file == NULL) {
+    panic_errno("fopen failed");
+  }
+  return file;
+}
+
+StringView context_intern(Context *restrict context, StringView sv) {
   assert(context != NULL);
-  return string_interner_insert(&(context->string_interner), data, length);
+  return string_interner_insert(&(context->string_interner), sv.ptr, sv.length);
 }
 
 Type *context_nil_type(Context *restrict context) {
@@ -119,8 +144,17 @@ Value *context_stack_peek(Context *restrict context) {
   return stack_peek(&context->stack);
 }
 
-void context_bytecode_emit_constant(Context *restrict context,
-                                    size_t name_index) {
+void context_emit_stop(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_push_constant(&context->global_bytecode, name_index);
+  bytecode_emit_stop(&context->global_bytecode);
+}
+
+void context_emit_push_constant(Context *restrict context, size_t index) {
+  assert(context != NULL);
+  bytecode_emit_push_constant(&context->global_bytecode, index);
+}
+
+void context_emit_define_global_constant(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_define_global_constant(&context->global_bytecode);
 }

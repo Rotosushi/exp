@@ -16,9 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "env/error.h"
 #include "frontend/parser.h"
+#include "utility/numbers_to_string.h"
+#include "utility/panic.h"
+
+typedef struct Parser {
+  Lexer lexer;
+  Token curtok;
+} Parser;
+
+typedef struct MaybeError {
+  bool has_error;
+  Error error;
+} MaybeError;
+
+static MaybeError success() {
+  MaybeError me;
+  me.has_error = 0;
+  me.error = error_create();
+  return me;
+}
+
+static MaybeError error(Parser *restrict parser, ErrorCode code) {
+  MaybeError me;
+  me.has_error = 0;
+  me.error = error_from_view(code, lexer_current_text(&parser->lexer));
+  return me;
+}
 
 /*
   #NOTE: I am going to implement a subset of the total grammar to begin.
@@ -26,35 +56,167 @@
 
   top = declaration ";"
 
-  declaration = "const" identifier (":" type)? = affix
+  declaration = "const" identifier = affix
 
   affix = basic // (binop precedece-parser)?
 
-  basic = literal
-        //| identifier
-        //| unop basic
-        //| "(" affix ")"
-
-  literal = integer
+  basic = integer
+      //| "true" | "false"
+      //| "nil"
+      //| identifier
+      //| unop basic
+      //| "(" affix ")"
 */
 
-Parser parser_create() {
+static Parser parser_create() {
   Parser parser;
   parser.lexer = lexer_create();
   parser.curtok = TOK_ERROR;
   return parser;
 }
 
-void parser_reset(Parser *restrict parser) {
-  lexer_reset(&(parser->lexer));
-  parser->curtok = TOK_ERROR;
-}
+// static void parser_reset(Parser *restrict parser) {
+//   assert(parser != NULL);
+//   lexer_reset(&(parser->lexer));
+//   parser->curtok = TOK_ERROR;
+// }
 
-void parser_set_view(Parser *restrict parser, char const *buffer) {
+static void parser_set_view(Parser *restrict parser, char const *buffer) {
+  assert(parser != NULL);
+  assert(buffer != NULL);
   lexer_set_view(&(parser->lexer), buffer);
 }
 
-// int parser_parse(Parser *restrict parser, Context *restrict context) {
+static bool finished(Parser *restrict parser) {
+  return lexer_at_end(&parser->lexer);
+}
 
-//   return EXIT_SUCCESS;
-// }
+static StringView curtxt(Parser *restrict parser) {
+  return lexer_current_text(&parser->lexer);
+}
+
+static size_t curline(Parser *restrict parser) {
+  return lexer_current_line(&parser->lexer);
+}
+
+static size_t curcol(Parser *restrict parser) {
+  return lexer_current_column(&parser->lexer);
+}
+
+static void nexttok(Parser *restrict parser) {
+  parser->curtok = lexer_scan(&parser->lexer);
+}
+
+static bool peek(Parser *restrict parser, Token token) {
+  return parser->curtok == token;
+}
+
+static bool expect(Parser *restrict parser, Token token) {
+  if (peek(parser, token)) {
+    nexttok(parser);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+static MaybeError parse_basic(Parser *restrict parser,
+                              Context *restrict context) {
+  switch (parser->curtok) {
+  case TOK_INTEGER: {
+    StringView sv = curtxt(parser);
+    long integer = strtol(sv.ptr, NULL, 10);
+    if (errno == ERANGE) {
+      return error(parser, ERROR_INTEGER_TO_LARGE);
+    }
+
+    size_t index =
+        context_constants_append(context, value_create_integer(integer));
+    context_emit_push_constant(context, index);
+    return success();
+  }
+
+  default:
+    return error(parser, ERROR_UNEXPECTED_TOKEN);
+  }
+}
+
+static MaybeError parse_affix(Parser *restrict parser,
+                              Context *restrict context) {
+  return parse_basic(parser, context);
+}
+
+static MaybeError parse_declaration(Parser *restrict parser,
+                                    Context *restrict context) {
+  if (!expect(parser, TOK_CONST)) {
+    return error(parser, ERROR_EXPECTED_KEYWORD_CONST);
+  }
+
+  if (!peek(parser, TOK_IDENTIFIER)) {
+    return error(parser, ERROR_EXPECTED_IDENTIFIER);
+  }
+
+  StringView name = context_intern(context, curtxt(parser));
+  size_t index =
+      context_constants_append(context, value_create_string_literal(name));
+  context_emit_push_constant(context, index);
+
+  nexttok(parser);
+
+  MaybeError maybe = parse_affix(parser, context);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  context_emit_define_global_constant(context);
+  return success();
+}
+
+static MaybeError parse_top(Parser *restrict parser,
+                            Context *restrict context) {
+  MaybeError maybe = parse_declaration(parser, context);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  if (!expect(parser, TOK_SEMICOLON)) {
+    return error(parser, ERROR_EXPECTED_SEMICOLON);
+  } else {
+    return success();
+  }
+}
+
+static void print_error(Error *error, Parser *restrict parser,
+                        Context *restrict context) {
+  fputs("In file [", stderr);
+  StringView source = context_source_path(context);
+  fputs(source.ptr, stderr);
+  fputs("@", stderr);
+  print_uintmax(curline(parser), RADIX_DECIMAL, stderr);
+  fputs(":", stderr);
+  print_uintmax(curcol(parser), RADIX_DECIMAL, stderr);
+  fputs("]\nError: ", stderr);
+  fputs(error_code_cstring(error->code), stderr);
+  fputs("[", stderr);
+  print_string(&error->message, stderr);
+  fputs("]", stderr);
+}
+
+int parse(char const *restrict buffer, Context *restrict context) {
+  assert(context != NULL);
+
+  Parser parser = parser_create();
+  parser_set_view(&parser, buffer);
+
+  while (!finished(&parser)) {
+    MaybeError maybe = parse_top(&parser, context);
+    if (maybe.has_error) {
+      print_error(&maybe.error, &parser, context);
+      return EXIT_FAILURE;
+    }
+  }
+
+  context_emit_stop(context);
+
+  return EXIT_SUCCESS;
+}

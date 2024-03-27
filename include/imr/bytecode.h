@@ -43,6 +43,13 @@ Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
 /**
+ * @brief emit a stop instruction
+ *
+ * @param bytecode
+ */
+void bytecode_emit_stop(Bytecode *restrict bytecode);
+
+/**
  * @brief push a constant onto the stack
  *
  * @param bytecode the bytecode to emit into
@@ -51,17 +58,17 @@ void bytecode_destroy(Bytecode *restrict bytecode);
 void bytecode_emit_push_constant(Bytecode *restrict bytecode,
                                  size_t name_index);
 
-void bytecode_emit_push_register(Bytecode *restrict bytecode,
-                                 uint8_t register_index);
+// void bytecode_emit_push_register(Bytecode *restrict bytecode,
+//                                  uint8_t register_index);
 
 void bytecode_emit_pop(Bytecode *restrict bytecode);
 
-void bytecode_emit_pop_register(Bytecode *restrict bytecode,
-                                uint8_t register_index);
+// void bytecode_emit_pop_register(Bytecode *restrict bytecode,
+//                                 uint8_t register_index);
 
-void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
-                                             uint8_t register_index,
-                                             size_t constant_index);
+// void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
+//                                              uint8_t register_index,
+//                                              size_t constant_index);
 
 /**
  * @brief define a global constant
@@ -71,9 +78,6 @@ void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
  * @param type_index
  * @param value_index
  */
-void bytecode_emit_define_global_constant(Bytecode *restrict bytecode,
-                                          uint8_t name_index,
-                                          uint8_t type_index,
-                                          uint8_t value_index);
+void bytecode_emit_define_global_constant(Bytecode *restrict bytecode);
 
 #endif // !EXP_IMR_BYTECODE_H

@@ -122,6 +122,7 @@ StringView string_interner_insert(StringInterner *restrict string_interner,
     return string_to_view(element);
   }
 
-  string_assign(element, data, length);
+  StringView sv = {data, length};
+  string_assign_view(element, sv);
   return string_to_view(element);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 cade
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -17,22 +17,34 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdlib.h>
+#include <string.h>
 
-#include "core/compile.h"
-#include "env/context.h"
-#include "utility/cli_options.h"
+#include "frontend/parser.h"
 
-int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
-  CLIOptions cli_options = parse_options(argc, argv);
-  Options options;
-  options.source = path_clone(&cli_options.source);
-  options.output = path_clone(&cli_options.output);
+static Context init_context() {
+  Options options = options_create();
+  Context result = context_create(&options);
+  return result;
+}
 
-  Context context = context_create(&options);
+bool test_parse(char const *body) {
+  Context context = init_context();
 
-  int result = compile(&context);
+  bool failure = (parse(body, &context) == EXIT_FAILURE);
 
   context_destroy(&context);
-  cli_options_destroy(&cli_options);
-  return result;
+
+  return failure;
+}
+
+int parse_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+  bool failure = 0;
+
+  failure |= test_parse("const x = 3;");
+
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }

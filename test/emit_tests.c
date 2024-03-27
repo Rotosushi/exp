@@ -34,13 +34,13 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   static char const object[] = EXP_TEST_DIR "/asm.o";
 
   Options options = options_create();
-  path_assign(&options.output, object, strlen(object));
-  path_assign(&options.source, source, strlen(source));
+  path_assign(&options.output, object);
+  path_assign(&options.source, source);
   Context context = context_create(&options);
 
   Type *integer_type = context_integer_type(&context);
-  StringView g0 = context_intern(&context, "g0", strlen("g0"));
-  StringView g1 = context_intern(&context, "g1", strlen("g1"));
+  StringView g0 = context_intern(&context, string_view_from_cstring("g0"));
+  StringView g1 = context_intern(&context, string_view_from_cstring("g1"));
 
   context_insert_global_symbol(&context, g0, integer_type,
                                value_create_integer(rand()));

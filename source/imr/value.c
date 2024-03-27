@@ -17,6 +17,7 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "imr/value.h"
+#include "env/context.h"
 #include "utility/panic.h"
 
 Value value_create_nil() {
@@ -44,6 +45,13 @@ Value value_create_string_literal(StringView sv) {
   Value value;
   value.kind = VALUEKIND_STRING_LITERAL;
   value.string_literal = sv;
+  return value;
+}
+
+Value value_create_type(Type *type) {
+  Value value;
+  value.kind = VALUEKIND_TYPE;
+  value.type = type;
   return value;
 }
 
@@ -112,6 +120,28 @@ bool value_equality(Value *v1, Value *v2) {
 
     return string_view_equality(v1->string_literal, v2->string_literal);
     break;
+
+  default:
+    panic("bad VALUEKIND");
+  }
+}
+
+Type *type_of(Value *restrict value, Context *restrict context) {
+  switch (value->kind) {
+  case VALUEKIND_NIL:
+    return context_nil_type(context);
+
+  case VALUEKIND_BOOLEAN:
+    return context_boolean_type(context);
+
+  case VALUEKIND_INTEGER:
+    return context_integer_type(context);
+
+  case VALUEKIND_STRING_LITERAL:
+    return context_string_literal_type(context);
+
+  case VALUEKIND_TYPE:
+    return value->type;
 
   default:
     panic("bad VALUEKIND");

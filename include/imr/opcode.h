@@ -47,6 +47,10 @@
  */
 typedef enum Opcode {
   // for the sake of brevity, '[]' is referring to one byte
+  // OP_STOP
+  // [op]
+  // stop the interpretation of bytecode
+  OP_STOP,
 
   // OP_PUSH_CONSTANT
   // [op][A]
@@ -54,37 +58,16 @@ typedef enum Opcode {
   //  C[A] is the source constant
   OP_PUSH_CONSTANT,
 
-  // OP_PUSH_REGISTER
-  // [op][A]
-  // push a register onto the stack
-  // R[A] is the source register
-  OP_PUSH_REGISTER,
-
   // OP_POP
   // [op]
   // pop the top value off the stack
   OP_POP,
 
-  // OP_POP_REGISTER
-  // [op][A]
-  // pop the top value off the stack,
-  // and store it into a register
-  // R[A] is the target register
-  OP_POP_REGISTER,
-
-  // OP_MOVE_CONSTANT_TO_REGISTER
-  // [op][A][B]
-  // Move a constant into a register
-  // R[A] is the target register
-  // C[B] is the source constant
-  OP_MOVE_CONSTANT_TO_REGISTER,
-
   // OP_DEFINE_GLOBAL_CONSTANT
-  // [op][A][B][C]
+  // [op]
   // define a global symbol
-  //  R[A] is the name of the global
-  //  R[B] is the type of the global
-  //  R[C] is the value of the global
+  // S[-1] is the value of the constant
+  // S[-2] is the name of the constant
   OP_DEFINE_GLOBAL_CONSTANT,
 
   // #TODO

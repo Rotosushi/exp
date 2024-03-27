@@ -72,7 +72,7 @@ CLIOptions parse_options(int argc, char const *argv[]) {
     }
 
     case 'o': {
-      path_assign(&(options.output), optarg, strlen(optarg));
+      path_assign(&(options.output), optarg);
       break;
     }
 
@@ -88,7 +88,7 @@ CLIOptions parse_options(int argc, char const *argv[]) {
 
   if (optind < argc) {
     char const *source = argv[optind];
-    path_assign(&(options.source), source, strlen(source));
+    path_assign(&(options.source), source);
   } else { // no input file given
     file_write("an input file must be specified.\n", stderr);
     exit(EXIT_SUCCESS);

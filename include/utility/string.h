@@ -18,6 +18,7 @@
  */
 #ifndef EXP_UTILITY_STRING_H
 #define EXP_UTILITY_STRING_H
+#include <stdio.h>
 
 #include "utility/string_view.h"
 
@@ -46,8 +47,8 @@ typedef struct String {
   so the string is only 1 bool larger than
   the current string structure.
   a fancy implementation could store the
-  bool within the allocation of the pointer
-  or so I have heard.
+  bool within the allocation of another
+  data member, or so I have heard.
 */
 
 /**
@@ -92,6 +93,10 @@ StringView string_to_view(String const *restrict str);
 StringView string_to_view_at(String const *restrict string, size_t offset,
                              size_t length);
 
+String string_from_view(StringView sv);
+
+void print_string(String *string, FILE *file);
+
 /**
  * @brief returns if the string is empty.
  *
@@ -135,8 +140,9 @@ void string_reserve_more(String *restrict str, size_t capacity);
  * @param data
  * @param data_length
  */
-void string_assign(String *restrict str, const char *restrict data,
-                   size_t data_length);
+void string_assign(String *restrict str, const char *restrict data);
+
+void string_assign_view(String *restrict str, StringView sv);
 
 /**
  * @brief appends <data> to the current contents of <str>
@@ -145,8 +151,9 @@ void string_assign(String *restrict str, const char *restrict data,
  * @param data
  * @param data_length
  */
-void string_append(String *restrict str, const char *restrict data,
-                   size_t data_length);
+void string_append(String *restrict str, const char *restrict data);
+
+void string_append_view(String *restrict str, StringView sv);
 
 /**
  * @brief concatenates <s2> onto the end of <s1>
@@ -178,14 +185,12 @@ void string_append_char(String *restrict str, const char c);
 void string_erase(String *restrict str, size_t offset, size_t length);
 
 /**
- * @brief write <data> into <str>, starting at <offset>,
- * growing <str> as necessary
+ * @brief insert data into <str>; growing <str> as necessary
  * @param str
  * @param offset
  * @param data
- * @param length
  */
-void string_insert(String *restrict str, size_t offset, char const *data,
-                   size_t length);
+void string_insert(String *restrict str, size_t offset,
+                   char const *restrict data);
 
 #endif // !EXP_UTILITY_STRING_H

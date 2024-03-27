@@ -41,16 +41,15 @@ bool path_empty(Path const *restrict path) {
   return string_empty(&path->string);
 }
 
-void path_assign(Path *restrict path, char const *restrict data,
-                 size_t length) {
+void path_assign(Path *restrict path, char const *restrict data) {
   assert(path != NULL);
-  string_assign(&path->string, data, length);
+  string_assign(&path->string, data);
 }
 
 Path path_clone(Path *restrict path) {
   assert(path != NULL);
   Path result = path_create();
-  string_assign(&result.string, path->string.buffer, path->string.length);
+  string_assign(&result.string, path->string.buffer);
   return result;
 }
 
@@ -122,6 +121,6 @@ void path_replace_extension(Path *restrict p1, const Path *restrict p2) {
       }
     }
     // insert the given extension.
-    string_insert(&(p1->string), cursor, p2->string.buffer, p2->string.length);
+    string_insert(&(p1->string), cursor, p2->string.buffer);
   }
 }

@@ -17,6 +17,7 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,6 +27,7 @@
 #include "utility/panic.h"
 
 #define LOG_FATAL_MSG "fatal"
+#define LOG_ERROR_MSG "error"
 #define LOG_WARNING_MSG "warning"
 #define LOG_STATUS_MSG "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
@@ -37,6 +39,10 @@ void log_message(LogLevel log_level, const char *file, int line,
   switch (log_level) {
   case LOG_FATAL:
     file_write(LOG_FATAL_MSG, stream);
+    break;
+
+  case LOG_ERROR:
+    file_write(LOG_ERROR_MSG, stream);
     break;
 
   case LOG_WARNING:
@@ -58,14 +64,7 @@ void log_message(LogLevel log_level, const char *file, int line,
 
   file_write(":", stream);
 
-  size_t line_length = uintmax_safe_strlen((uintmax_t)line, 10);
-  char line_buffer[line_length];
-  if (uintmax_to_str((uintmax_t)line, line_buffer, 10) == NULL) {
-    panic("conversion failed");
-  }
-  line_buffer[line_length] = '\0';
-
-  file_write(line_buffer, stream);
+  print_intmax(line, RADIX_DECIMAL, stream);
 
   file_write("] ", stream);
 

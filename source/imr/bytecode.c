@@ -77,6 +77,10 @@ static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
   bytecode->length += 1;
 }
 
+void bytecode_emit_stop(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_STOP);
+}
+
 void bytecode_emit_push_constant(Bytecode *restrict bytecode,
                                  size_t value_index) {
   assert(value_index < 256 && "TODO");
@@ -84,36 +88,30 @@ void bytecode_emit_push_constant(Bytecode *restrict bytecode,
   bytecode_emit_byte(bytecode, (uint8_t)value_index);
 }
 
-void bytecode_emit_push_register(Bytecode *restrict bytecode,
-                                 uint8_t register_index) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_REGISTER);
-  bytecode_emit_byte(bytecode, register_index);
-}
+// void bytecode_emit_push_register(Bytecode *restrict bytecode,
+//                                  uint8_t register_index) {
+//   bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_REGISTER);
+//   bytecode_emit_byte(bytecode, register_index);
+// }
 
 void bytecode_emit_pop(Bytecode *restrict bytecode) {
   bytecode_emit_byte(bytecode, (uint8_t)OP_POP);
 }
 
-void bytecode_emit_pop_register(Bytecode *restrict bytecode,
-                                uint8_t register_index) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_POP_REGISTER);
-  bytecode_emit_byte(bytecode, register_index);
-}
+// void bytecode_emit_pop_register(Bytecode *restrict bytecode,
+//                                 uint8_t register_index) {
+//   bytecode_emit_byte(bytecode, (uint8_t)OP_POP_REGISTER);
+//   bytecode_emit_byte(bytecode, register_index);
+// }
 
-void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
-                                             uint8_t register_index,
-                                             size_t constant_index) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_MOVE_CONSTANT_TO_REGISTER);
-  bytecode_emit_byte(bytecode, register_index);
-  bytecode_emit_byte(bytecode, (uint8_t)constant_index);
-}
+// void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
+//                                              uint8_t register_index,
+//                                              size_t constant_index) {
+//   bytecode_emit_byte(bytecode, (uint8_t)OP_MOVE_CONSTANT_TO_REGISTER);
+//   bytecode_emit_byte(bytecode, register_index);
+//   bytecode_emit_byte(bytecode, (uint8_t)constant_index);
+// }
 
-void bytecode_emit_define_global_constant(Bytecode *restrict bytecode,
-                                          uint8_t name_index,
-                                          uint8_t type_index,
-                                          uint8_t value_index) {
+void bytecode_emit_define_global_constant(Bytecode *restrict bytecode) {
   bytecode_emit_byte(bytecode, (uint8_t)OP_DEFINE_GLOBAL_CONSTANT);
-  bytecode_emit_byte(bytecode, name_index);
-  bytecode_emit_byte(bytecode, type_index);
-  bytecode_emit_byte(bytecode, value_index);
 }

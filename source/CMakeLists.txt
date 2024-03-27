@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 3.20)
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
 
+  ${EXP_SOURCE_DIR}/core/compile.c
+  ${EXP_SOURCE_DIR}/core/interpret.c
+
   ${EXP_SOURCE_DIR}/env/context.c
+  ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/options.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c

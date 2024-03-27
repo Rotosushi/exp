@@ -9,6 +9,7 @@ create_test_sourcelist(Tests
   lexer_tests.c
   number_conversion_tests.c
   options_tests.c
+  parse_tests.c
   path_tests.c
   registers_tests.c
   stack_tests.c
