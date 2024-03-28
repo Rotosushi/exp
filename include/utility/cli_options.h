@@ -17,7 +17,7 @@
 #ifndef EXP_UTILITY_CLI_OPTIONS_H
 #define EXP_UTILITY_CLI_OPTIONS_H
 
-#include "filesystem/path.h"
+#include "utility/path.h"
 
 typedef struct CLIOptions {
   Path source;

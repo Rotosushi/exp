@@ -17,8 +17,8 @@
 #ifndef EXP_ENV_OPTIONS_H
 #define EXP_ENV_OPTIONS_H
 
-#include "filesystem/path.h"
 #include "utility/cli_options.h"
+#include "utility/path.h"
 
 typedef struct Options {
   Path source;

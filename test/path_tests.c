@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "filesystem/path.h"
+#include "utility/path.h"
 
 static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
                           const char *restrict s2, size_t s2_len) {

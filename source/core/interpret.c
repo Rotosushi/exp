@@ -41,6 +41,7 @@ int interpret(Context *restrict context) {
 
     case OP_PUSH_CONSTANT: {
       uint8_t index = READBYTE();
+
       Value *constant = context_constants_at(context, index);
       context_stack_push(context, *constant);
       break;

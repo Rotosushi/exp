@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "env/context.h"
-#include "filesystem/io.h"
+#include "utility/io.h"
 #include "utility/panic.h"
 
 Context context_create(Options *restrict options) {

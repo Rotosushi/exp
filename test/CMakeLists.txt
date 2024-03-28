@@ -4,6 +4,7 @@ add_test (NAME "smoke test" COMMAND exp)
 
 create_test_sourcelist(Tests 
   CommonTests.c
+  compile_tests.c
   constants_tests.c
   emit_tests.c
   lexer_tests.c

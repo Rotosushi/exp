@@ -25,9 +25,7 @@
 #include "frontend/parser.h"
 
 int compile(Context *restrict context) {
-
-  String buffer = context_buffer_source(context);
-  if (parse(buffer.buffer, context) == EXIT_FAILURE) {
+  if (parse_source(context) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 

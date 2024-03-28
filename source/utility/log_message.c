@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "filesystem/io.h"
+#include "utility/io.h"
 #include "utility/log_message.h"
 #include "utility/numbers_to_string.h"
 #include "utility/panic.h"

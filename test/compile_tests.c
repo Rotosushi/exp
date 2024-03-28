@@ -14,35 +14,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#define __STDC_WANT_LIB_EXT1__ 1
-#include <errno.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "utility/config.h"
-#include "utility/io.h"
-#include "utility/panic.h"
+#include
 
-[[noreturn]] void panic(const char *msg) {
-#if EXP_DEBUG
-  __builtin_trap();
-#endif
+int compile_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
 
-  file_write(msg, stderr);
-  exit(EXIT_FAILURE);
-}
-
-[[noreturn]] void panic_errno(const char *msg) {
-#if EXP_DEBUG
-  __builtin_trap();
-#endif
-
-  file_write(msg, stderr);
-  file_write(": ", stderr);
-  const char *errmsg = strerror(errno);
-  file_write(errmsg, stderr);
-  exit(EXIT_FAILURE);
+  return EXIT_SUCCESS;
 }

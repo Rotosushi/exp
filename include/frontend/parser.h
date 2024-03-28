@@ -47,4 +47,6 @@
  */
 int parse(char const *restrict buffer, Context *restrict context);
 
+int parse_source(Context *restrict context);
+
 #endif // !EXP_FRONTEND_PARSER_H

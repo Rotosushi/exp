@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "filesystem/path.h"
+#include "utility/path.h"
 
 Path path_create() {
   Path path;

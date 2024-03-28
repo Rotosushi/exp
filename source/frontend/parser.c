@@ -173,27 +173,25 @@ static MaybeError parse_declaration(Parser *restrict parser,
     return maybe;
   }
 
+  if (!expect(parser, TOK_SEMICOLON)) {
+    return error(parser, ERROR_EXPECTED_SEMICOLON);
+  }
+
   context_emit_define_global_constant(context);
   return success();
 }
 
 static MaybeError parse_top(Parser *restrict parser,
                             Context *restrict context) {
-  MaybeError maybe = parse_declaration(parser, context);
-  if (maybe.has_error) {
-    return maybe;
-  }
-
-  if (!expect(parser, TOK_SEMICOLON)) {
-    return error(parser, ERROR_EXPECTED_SEMICOLON);
-  } else {
-    return success();
-  }
+  return parse_declaration(parser, context);
 }
 
+// #TODO: factor this into an error printing function
+// to be used throughout the compiler to provide a
+// consistent syntax of errors emitted.
 static void print_error(Error *error, Parser *restrict parser,
                         Context *restrict context) {
-  fputs("In file [", stderr);
+  fputs("[", stderr);
   StringView source = context_source_path(context);
   fputs(source.ptr, stderr);
   fputs("@", stderr);
@@ -208,12 +206,12 @@ static void print_error(Error *error, Parser *restrict parser,
 }
 
 int parse(char const *restrict buffer, Context *restrict context) {
+  assert(buffer != NULL);
   assert(context != NULL);
 
   Parser parser = parser_create();
-  parser_set_view(&parser, buffer);
 
-  // prime the parser
+  parser_set_view(&parser, buffer);
   nexttok(&parser);
 
   while (!finished(&parser)) {
@@ -227,4 +225,12 @@ int parse(char const *restrict buffer, Context *restrict context) {
   context_emit_stop(context);
 
   return EXIT_SUCCESS;
+}
+
+int parse_source(Context *restrict context) {
+  assert(context != NULL);
+  String buffer = context_buffer_source(context);
+  int result = parse(buffer.buffer, context);
+  string_destroy(&buffer);
+  return result;
 }

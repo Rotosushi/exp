@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "filesystem/io.h"
+#include "utility/io.h"
 #include "utility/panic.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes) {

@@ -19,10 +19,10 @@
 #include <assert.h>
 
 #include "backend/emit_x64_linux_assembly.h"
-#include "filesystem/io.h"
 #include "intrinsics/alignment.h"
 #include "intrinsics/size.h"
 #include "utility/config.h"
+#include "utility/io.h"
 #include "utility/numbers_to_string.h"
 #include "utility/panic.h"
 

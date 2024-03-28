@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "filesystem/io.h"
 #include "utility/cli_options.h"
 #include "utility/config.h"
+#include "utility/io.h"
 
 static void print_version(FILE *file) {
   file_write(EXP_VERSION_STRING, file);
