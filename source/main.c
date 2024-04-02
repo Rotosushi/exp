@@ -23,8 +23,9 @@
 #include "utility/cli_options.h"
 
 int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
-  CLIOptions cli_options = parse_options(argc, argv);
-  Options options;
+  CLIOptions cli_options = parse_cli_options(argc, argv);
+
+  ContextOptions options = context_options_create();
   options.source = path_clone(&cli_options.source);
   options.output = path_clone(&cli_options.output);
 

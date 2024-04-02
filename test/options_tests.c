@@ -35,7 +35,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 }
 
 bool test_options(int argc, char const *argv[], char const *d1, size_t d1_len) {
-  CLIOptions cli_options = parse_options(argc, argv);
+  CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
   if (s1_same_as_s2(cli_options.source.string.buffer,

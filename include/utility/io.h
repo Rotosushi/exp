@@ -25,6 +25,8 @@ FILE *file_open(char const *restrict path, char const *restrict modes);
 
 void file_close(FILE *restrict file);
 
+void file_remove(char const *restrict path);
+
 /**
  * @brief write <buffer> to <stream>
  *

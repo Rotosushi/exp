@@ -20,14 +20,13 @@
 #include "utility/cli_options.h"
 #include "utility/path.h"
 
-typedef struct Options {
+typedef struct ContextOptions {
   Path source;
   Path output;
-} Options;
+} ContextOptions;
 
-Options options_create();
-Options options_clone(Options *restrict options);
-Options options_from_cli_options(CLIOptions *restrict cli_options);
-void options_destroy(Options *restrict options);
+ContextOptions context_options_create();
+ContextOptions context_options_clone(ContextOptions *restrict options);
+void context_options_destroy(ContextOptions *restrict options);
 
 #endif // !EXP_ENV_OPTIONS_H

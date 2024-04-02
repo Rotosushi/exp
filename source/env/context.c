@@ -22,7 +22,7 @@
 #include "utility/io.h"
 #include "utility/panic.h"
 
-Context context_create(Options *restrict options) {
+Context context_create(ContextOptions *restrict options) {
   Context context;
   context.options = *options;
   context.string_interner = string_interner_create();
@@ -36,7 +36,7 @@ Context context_create(Options *restrict options) {
 
 void context_destroy(Context *restrict context) {
   assert(context != NULL);
-  options_destroy(&(context->options));
+  context_options_destroy(&(context->options));
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));

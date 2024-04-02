@@ -24,17 +24,19 @@
 #include "backend/emit_x64_linux_assembly.h"
 #include "env/context.h"
 #include "utility/config.h"
+#include "utility/io.h"
 #include "utility/process.h"
 
 int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   srand((unsigned)time(NULL));
   bool failed = 0;
 
-  static char const source[] = EXP_TEST_DIR "/asm.s";
+  static char const source[] = EXP_TEST_DIR "/asm.exp";
+  static char const assembly[] = EXP_TEST_DIR "/asm.s";
   static char const object[] = EXP_TEST_DIR "/asm.o";
 
-  Options options = options_create();
-  path_assign(&options.output, object);
+  ContextOptions options = context_options_create();
+  path_assign(&options.output, assembly);
   path_assign(&options.source, source);
   Context context = context_create(&options);
 
@@ -49,16 +51,16 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
 
   emit_x64_linux_assembly(&context);
 
-  char const *args[] = {source, "-o", object, NULL};
+  char const *args[] = {assembly, "-o", object, NULL};
 
   int code = process("as", args);
   if (code != 0) {
     failed = 1;
   } else {
-    remove(object);
+    file_remove(object);
   }
 
-  remove(source);
+  file_remove(assembly);
 
   context_destroy(&context);
   if (failed) {

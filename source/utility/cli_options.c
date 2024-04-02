@@ -52,7 +52,7 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
 #if defined(EXP_HOST_OS_LINUX)
 #include <getopt.h>
 
-CLIOptions parse_options(int argc, char const *argv[]) {
+CLIOptions parse_cli_options(int argc, char const *argv[]) {
   CLIOptions options = cli_options_create();
   static char const *short_options = "hvo:";
 

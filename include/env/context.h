@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/options.h"
+#include "env/context_options.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
@@ -27,7 +27,7 @@
 #include "imr/stack.h"
 
 typedef struct Context {
-  Options options;
+  ContextOptions options;
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbols;
@@ -45,7 +45,7 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-Context context_create(Options *restrict options);
+Context context_create(ContextOptions *restrict options);
 void context_destroy(Context *restrict context);
 
 // context options functions

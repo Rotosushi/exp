@@ -20,33 +20,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "env/options.h"
+#include "env/context_options.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/panic.h"
 
-Options options_create() {
-  Options options;
+ContextOptions context_options_create() {
+  ContextOptions options;
   options.source = path_create();
   options.output = path_create();
   return options;
 }
 
-Options options_clone(Options *restrict other) {
-  Options options = options_create();
+ContextOptions context_options_clone(ContextOptions *restrict other) {
+  ContextOptions options = context_options_create();
   options.source = path_clone(&other->source);
   options.output = path_clone(&other->output);
   return options;
 }
 
-Options options_from_cli_options(CLIOptions *restrict cli_options) {
-  Options options = options_create();
+ContextOptions
+context_options_from_cli_options(CLIOptions *restrict cli_options) {
+  ContextOptions options = context_options_create();
   options.source = path_clone(&cli_options->source);
   options.output = path_clone(&cli_options->output);
   return options;
 }
 
-void options_destroy(Options *restrict options) {
+void context_options_destroy(ContextOptions *restrict options) {
   path_destroy(&(options->source));
   path_destroy(&(options->output));
 }

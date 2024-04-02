@@ -22,7 +22,7 @@
 #include "frontend/parser.h"
 
 static Context init_context() {
-  Options options = options_create();
+  ContextOptions options = context_options_create();
   Context result = context_create(&options);
   return result;
 }

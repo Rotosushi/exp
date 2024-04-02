@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "utility/config.h"
 #include "utility/io.h"
 #include "utility/panic.h"
 
@@ -39,24 +40,45 @@ void file_close(FILE *restrict file) {
   }
 }
 
+void file_remove(char const *restrict path) {
+  if (remove(path)) {
+    panic_errno("remove failed");
+  }
+}
+
 void file_write(const char *restrict buffer, FILE *restrict stream) {
   int code = fputs(buffer, stream);
   if ((code == EOF) && (ferror(stream))) {
-    perror("fputs failed");
-    exit(EXIT_FAILURE);
+    panic_errno("fputs failed");
   }
 }
 
 size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
   char *result = fgets(buffer, (int)length, stream);
   if (result == NULL) {
-    perror("fgets failed");
-    exit(EXIT_FAILURE);
+    panic_errno("fgets failed");
   }
 
   return (size_t)(result - buffer);
 }
 
+#if defined(EXP_HOST_OS_LINUX)
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+size_t file_length(FILE *restrict file) {
+  int fd = fileno(file);
+
+  struct stat info;
+  if (fstat(fd, &info) != 0) {
+    panic_errno("fstat failed");
+  }
+
+  return (size_t)info.st_size;
+}
+
+#else
 size_t file_length(FILE *restrict file) {
   if (fseek(file, 0L, SEEK_END) != 0) {
     panic_errno("fseek failed");
@@ -70,6 +92,7 @@ size_t file_length(FILE *restrict file) {
   rewind(file);
   return (size_t)size;
 }
+#endif
 
 String file_readall(FILE *restrict stream) {
   assert(stream != NULL);
