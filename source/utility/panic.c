@@ -23,22 +23,30 @@
 #include <string.h>
 
 #include "utility/debug.h"
-#include "utility/io.h"
+#include "utility/log.h"
 #include "utility/panic.h"
+#include "utility/string.h"
 
-[[noreturn]] void panic(const char *msg) {
+[[noreturn]] void panic(const char *msg, const char *file, int line) {
   EXP_BREAK();
 
-  file_write(msg, stderr);
+  log_message(LOG_FATAL, file, (size_t)line, msg, stderr);
   exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void panic_errno(const char *msg) {
+[[noreturn]] void panic_errno(const char *msg, const char *file, int line) {
   EXP_BREAK();
 
-  file_write(msg, stderr);
-  file_write(": ", stderr);
-  const char *errmsg = strerror(errno);
-  file_write(errmsg, stderr);
+  static char const *text = " errno: ";
+  char const *errmsg = strerror(errno);
+  size_t msglen = strlen(msg), errmsglen = strlen(errmsg),
+         textlen = strlen(text), buflen = msglen + errmsglen + textlen;
+  char buf[buflen + 1];
+  memcpy(buf, msg, msglen);
+  memcpy(buf + msglen, text, textlen);
+  memcpy(buf + msglen + textlen, errmsg, errmsglen);
+  buf[buflen] = '\0';
+
+  log_message(LOG_FATAL, file, (size_t)line, buf, stderr);
   exit(EXIT_FAILURE);
 }

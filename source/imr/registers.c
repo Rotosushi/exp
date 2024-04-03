@@ -21,7 +21,7 @@
 
 Value *registers_at(Registers *restrict registers, uint8_t index) {
   if (REGISTERS_CAPACITY < index) {
-    panic("index out of bounds");
+    PANIC("index out of bounds");
   }
 
   return registers->buffer + index;

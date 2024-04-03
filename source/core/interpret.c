@@ -86,7 +86,7 @@ int interpret(Context *restrict context) {
     }
 
     default: {
-      panic("Unknown Opcode");
+      PANIC("Unknown Opcode");
     }
     }
   }

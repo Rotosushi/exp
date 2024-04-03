@@ -106,7 +106,7 @@ static void directive_align(Type *type, FILE *file) {
   size_t len = uintmax_safe_strlen(align, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(align, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   str[len] = '\0';
 
@@ -126,7 +126,7 @@ static void directive_size(StringView name, size_t size, FILE *file) {
   size_t len = uintmax_safe_strlen(size, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(size, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   str[len] = '\0';
 
@@ -159,7 +159,7 @@ static void directive_type(StringView name, Type *type, FILE *file) {
     break;
 
   default:
-    panic("bad TYPEKIND");
+    PANIC("bad TYPEKIND");
   }
 
   file_write("\n", file);
@@ -169,7 +169,7 @@ static void directive_quad(long value, FILE *file) {
   size_t len = intmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (intmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   str[len] = '\0';
 
@@ -182,7 +182,7 @@ static void directive_byte(unsigned char value, FILE *file) {
   size_t len = uintmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   str[len] = '\0';
 
@@ -195,7 +195,7 @@ static void directive_zero(size_t bytes, FILE *file) {
   size_t len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(bytes, str, RADIX_DECIMAL) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   str[len] = '\0';
 
@@ -351,7 +351,7 @@ compiler to prevent writes to constants.
     break;
 
   default:
-    panic("bad VALUEKIND");
+    PANIC("bad VALUEKIND");
   }
 
   // give an extra line between globals in the assembly file
@@ -362,7 +362,7 @@ void emit_x64_linux_assembly(Context *restrict context) {
   StringView path = context_output_path(context);
   FILE *file = fopen(path.ptr, "w");
   if (file == NULL) {
-    panic_errno("fopen failed");
+    PANIC_ERRNO("fopen failed");
   }
 
   SymbolTableIterator iter =
@@ -379,6 +379,6 @@ void emit_x64_linux_assembly(Context *restrict context) {
   emit_x64_linux_footer(context, file);
 
   if (fclose(file) == EOF) {
-    panic_errno("fclose failed");
+    PANIC_ERRNO("fclose failed");
   }
 }

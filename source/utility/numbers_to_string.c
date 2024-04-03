@@ -43,14 +43,14 @@ size_t intmax_safe_strlen(intmax_t value, Radix radix) {
     double absolute = fabs((double)value);
     size_t number_length = (size_t)(ceil(log(absolute) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      panic("value exceeds size_t");
+      PANIC("value exceeds size_t");
     }
     return result;
   } else {
     size_t number_length =
         (size_t)(ceil(log((double)value) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      panic("value exceeds size_t");
+      PANIC("value exceeds size_t");
     }
     return result;
   }
@@ -68,7 +68,7 @@ size_t uintmax_safe_strlen(uintmax_t value, Radix radix) {
   size_t number_length =
       (size_t)(ceil(log((double)value) / log((double)radix)));
   if (__builtin_add_overflow(result, number_length, &result)) {
-    panic("value exceeds size_t");
+    PANIC("value exceeds size_t");
   }
   return result;
 }
@@ -116,7 +116,7 @@ String intmax_to_string(intmax_t value, Radix radix) {
 
   char *end = intmax_to_str(value, str.buffer, radix);
   if (end == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
 
   str.length = (size_t)(end - str.buffer);
@@ -127,7 +127,7 @@ String intmax_to_string(intmax_t value, Radix radix) {
 void print_intmax(intmax_t value, Radix radix, FILE *file) {
   char buf[intmax_safe_strlen(value, radix)];
   if (intmax_to_str(value, buf, radix) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   fputs(buf, file);
 }
@@ -170,7 +170,7 @@ String uintmax_to_string(uintmax_t value, Radix radix) {
 
   char *end = uintmax_to_str(value, str.buffer, radix);
   if (end == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
 
   str.length = (size_t)(end - str.buffer);
@@ -181,7 +181,7 @@ String uintmax_to_string(uintmax_t value, Radix radix) {
 void print_uintmax(uintmax_t value, Radix radix, FILE *file) {
   char buf[uintmax_safe_strlen(value, radix)];
   if (uintmax_to_str(value, buf, radix) == NULL) {
-    panic("conversion failed");
+    PANIC("conversion failed");
   }
   fputs(buf, file);
 }

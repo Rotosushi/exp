@@ -99,7 +99,7 @@ void value_assign(Value *dest, Value *source) {
     break;
 
   default:
-    panic("bad VALUEKIND");
+    PANIC("bad VALUEKIND");
     break;
   }
 }
@@ -145,7 +145,7 @@ bool value_equality(Value *v1, Value *v2) {
     return type_equality(v1->type, v2->type);
 
   default:
-    panic("bad VALUEKIND");
+    PANIC("bad VALUEKIND");
   }
 }
 
@@ -170,6 +170,6 @@ Type *type_of(Value *restrict value, Context *restrict context) {
     return value->type;
 
   default:
-    panic("bad VALUEKIND");
+    PANIC("bad VALUEKIND");
   }
 }

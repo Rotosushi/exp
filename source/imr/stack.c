@@ -57,7 +57,7 @@ static void stack_grow(Stack *restrict stack) {
 
   size_t new_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Value), &new_size)) {
-    panic("cannot allocate more than SIZE_MAX");
+    PANIC("cannot allocate more than SIZE_MAX");
   }
 
   // since stack->top >= stack->buffer, this subtraction
@@ -66,7 +66,7 @@ static void stack_grow(Stack *restrict stack) {
 
   Value *buffer = realloc(stack->buffer, new_size);
   if (buffer == NULL) {
-    panic_errno("realloc failed");
+    PANIC_ERRNO("realloc failed");
   }
 
   stack->buffer = buffer;

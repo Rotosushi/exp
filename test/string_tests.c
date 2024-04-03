@@ -83,7 +83,7 @@ static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
                                     const char *restrict s3, size_t s3_len) {
   size_t total_length;
   if (__builtin_add_overflow(s2_len, s3_len, &total_length)) {
-    panic("size_t overflow");
+    PANIC("size_t overflow");
   }
 
   if (s1_len != total_length) {

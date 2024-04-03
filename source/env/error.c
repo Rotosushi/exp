@@ -45,7 +45,7 @@ char const *error_code_cstring(ErrorCode code) {
     return "Unexpected Token: ";
 
   default:
-    panic("bad ErrorCode");
+    PANIC("bad ErrorCode");
   }
 }
 

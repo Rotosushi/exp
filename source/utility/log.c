@@ -58,13 +58,15 @@ void log_message(LogLevel level, const char *restrict file, size_t line,
     abort();
   }
 
-  file_write(" @ ", stream);
+  if (file != NULL) {
+    file_write(" @ ", stream);
 
-  file_write(file, stream);
+    file_write(file, stream);
 
-  file_write(":", stream);
+    file_write(":", stream);
 
-  print_uintmax(line, RADIX_DECIMAL, stream);
+    print_uintmax(line, RADIX_DECIMAL, stream);
+  }
 
   file_write("] ", stream);
 

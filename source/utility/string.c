@@ -109,7 +109,7 @@ void string_resize(String *restrict str, size_t capacity) {
 
   char *new_buffer = realloc(str->buffer, (capacity + 1) * sizeof(char));
   if (new_buffer == NULL) {
-    panic_errno("realloc failed");
+    PANIC_ERRNO("realloc failed");
   }
 
   // the new buffer is smaller than it once was
@@ -127,7 +127,7 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
   assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   size_t sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX");
+    PANIC("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
@@ -135,7 +135,7 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
 
   char *new_buffer = realloc(str->buffer, new_capacity * sizeof(char));
   if (new_buffer == NULL) {
-    panic_errno("realloc failed");
+    PANIC_ERRNO("realloc failed");
   }
 
   str->buffer = new_buffer;

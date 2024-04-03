@@ -53,12 +53,12 @@ static void constants_grow(Constants *restrict constants) {
 
   size_t alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Value), &alloc_size)) {
-    panic("cannot allocate more than SIZE_MAX");
+    PANIC("cannot allocate more than SIZE_MAX");
   }
 
   Value *result = realloc(constants->buffer, alloc_size);
   if (result == NULL) {
-    panic_errno("realloc failed");
+    PANIC_ERRNO("realloc failed");
   }
   constants->buffer = result;
   constants->capacity = new_capacity;
@@ -81,7 +81,7 @@ Value *constants_at(Constants *restrict constants, size_t index) {
   assert(constants != NULL);
 
   if (index >= constants->length) {
-    panic("index out of bounds");
+    PANIC("index out of bounds");
   }
 
   return constants->buffer + index;

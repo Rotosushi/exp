@@ -47,6 +47,6 @@ size_t align_of(Type *restrict type) {
     return 8;
 
   default:
-    panic("bad TYPEKIND");
+    PANIC("bad TYPEKIND");
   }
 }

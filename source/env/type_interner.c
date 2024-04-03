@@ -61,7 +61,7 @@ size_t type_interner_type_to_index(TypeInterner *restrict type_interner,
   } else if (type == &type_interner->string_literal_type) {
     return 3;
   } else {
-    panic("unknown type");
+    PANIC("unknown type");
   }
 }
 
@@ -77,6 +77,6 @@ Type *type_interner_index_to_type(TypeInterner *restrict type_interner,
   case 3:
     return &type_interner->string_literal_type;
   default:
-    panic("unkown index");
+    PANIC("unkown index");
   }
 }

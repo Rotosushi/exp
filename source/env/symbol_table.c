@@ -101,7 +101,7 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table,
 static bool symbol_table_large_enough(SymbolTable *restrict symbol_table) {
   size_t new_count;
   if (__builtin_add_overflow(symbol_table->count, 1, &new_count)) {
-    panic("cannot allocate more than SIZE_MAX");
+    PANIC("cannot allocate more than SIZE_MAX");
   }
 
   size_t load_limit =

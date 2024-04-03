@@ -50,7 +50,7 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
 static bool bytecode_full(Bytecode *restrict bytecode) {
   size_t sum_capacity;
   if (__builtin_add_overflow(bytecode->length, 1, &sum_capacity)) {
-    panic("cannot allocate more than SIZE_MAX");
+    PANIC("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
   return bytecode->capacity < sum_capacity;
@@ -61,7 +61,7 @@ static void bytecode_grow(Bytecode *restrict bytecode) {
 
   uint8_t *result = realloc(bytecode->buffer, new_capacity);
   if (result == NULL) {
-    panic_errno("realloc failed");
+    PANIC_ERRNO("realloc failed");
   }
   bytecode->buffer = result;
   bytecode->capacity = new_capacity;

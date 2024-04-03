@@ -23,6 +23,7 @@
 #include "utility/cli_options.h"
 #include "utility/config.h"
 #include "utility/io.h"
+#include "utility/log.h"
 
 static void print_version(FILE *file) {
   file_write(EXP_VERSION_STRING, file);
@@ -77,7 +78,7 @@ CLIOptions parse_cli_options(int argc, char const *argv[]) {
     }
 
     default: {
-      char buf[] = {(char)option, '\0'};
+      char buf[2] = {(char)option, '\0'};
       file_write("unknown option [", stderr);
       file_write(buf, stderr);
       file_write("]\n", stderr);
@@ -90,7 +91,8 @@ CLIOptions parse_cli_options(int argc, char const *argv[]) {
     char const *source = argv[optind];
     path_assign(&(options.source), source);
   } else { // no input file given
-    file_write("an input file must be specified.\n", stderr);
+    log_message(LOG_ERROR, NULL, 0, "an input file must be specified.\n",
+                stderr);
     exit(EXIT_SUCCESS);
   }
 

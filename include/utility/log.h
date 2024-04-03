@@ -27,16 +27,13 @@ typedef enum LogLevel {
 } LogLevel;
 
 /**
- * @brief logs an internal message to the given stream.
- *
- * an internal message is a warning or error caused by an internal bug or
- * to expose internal behavior of the compiler
+ * @brief logs a message to the given stream.
  *
  * @note message is formatted as
- * "[<fatal|warning|status> @ <file>:<line>] <message>\n"
+ * "[<fatal|error|warning|status> (@ <file>:<line>)?] <message>\n"
  *
  * @param level the severity of the message
- * @param file the filename related to the message
+ * @param file the filename related to the message (can be NULL)
  * @param line the linenum related to the message
  * @param message the message to print
  * @param stream the stream to write to

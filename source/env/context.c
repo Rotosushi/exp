@@ -74,7 +74,7 @@ FILE *context_open_output(Context *restrict context) {
   StringView path = context_output_path(context);
   FILE *file = fopen(path.ptr, "w");
   if (file == NULL) {
-    panic_errno("fopen failed");
+    PANIC_ERRNO("fopen failed");
   }
   return file;
 }

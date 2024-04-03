@@ -28,7 +28,7 @@ FILE *file_open(char const *restrict path, char const *restrict modes) {
   assert(modes != NULL);
   FILE *file = fopen(path, modes);
   if (file == NULL) {
-    panic_errno("fopen failed");
+    PANIC_ERRNO("fopen failed");
   }
   return file;
 }
@@ -36,27 +36,27 @@ FILE *file_open(char const *restrict path, char const *restrict modes) {
 void file_close(FILE *restrict file) {
   assert(file != NULL);
   if (fclose(file) == EOF) {
-    panic_errno("fclose failed");
+    PANIC_ERRNO("fclose failed");
   }
 }
 
 void file_remove(char const *restrict path) {
   if (remove(path)) {
-    panic_errno("remove failed");
+    PANIC_ERRNO("remove failed");
   }
 }
 
 void file_write(const char *restrict buffer, FILE *restrict stream) {
   int code = fputs(buffer, stream);
   if ((code == EOF) && (ferror(stream))) {
-    panic_errno("fputs failed");
+    PANIC_ERRNO("fputs failed");
   }
 }
 
 size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
   char *result = fgets(buffer, (int)length, stream);
   if (result == NULL) {
-    panic_errno("fgets failed");
+    PANIC_ERRNO("fgets failed");
   }
 
   return (size_t)(result - buffer);
@@ -72,7 +72,7 @@ size_t file_length(FILE *restrict file) {
 
   struct stat info;
   if (fstat(fd, &info) != 0) {
-    panic_errno("fstat failed");
+    PANIC_ERRNO("fstat failed");
   }
 
   return (size_t)info.st_size;
@@ -81,12 +81,12 @@ size_t file_length(FILE *restrict file) {
 #else
 size_t file_length(FILE *restrict file) {
   if (fseek(file, 0L, SEEK_END) != 0) {
-    panic_errno("fseek failed");
+    PANIC_ERRNO("fseek failed");
   }
 
   long size = ftell(file);
   if (size == -1L) {
-    panic_errno("ftell failed");
+    PANIC_ERRNO("ftell failed");
   }
 
   rewind(file);
@@ -108,7 +108,7 @@ String file_readall(FILE *restrict stream) {
         break;
       } else if (ferror(stream)) {
         fclose(stream);
-        panic_errno("fgets failed");
+        PANIC_ERRNO("fgets failed");
       }
     }
 
