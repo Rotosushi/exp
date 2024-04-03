@@ -41,6 +41,9 @@ int parse_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
   failure |= test_parse("const x = 3;");
+  failure |= test_parse("const x = true;");
+  failure |= test_parse("const x = false;");
+  failure |= test_parse("const x = nil;");
 
   if (failure) {
     return EXIT_FAILURE;

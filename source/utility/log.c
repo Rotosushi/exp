@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "utility/io.h"
-#include "utility/log_message.h"
+#include "utility/log.h"
 #include "utility/numbers_to_string.h"
 #include "utility/panic.h"
 
@@ -32,11 +32,11 @@
 #define LOG_STATUS_MSG "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
 
-void log_message(LogLevel log_level, const char *file, int line,
-                 const char *message, FILE *restrict stream) {
+void log_message(LogLevel level, const char *restrict file, size_t line,
+                 const char *restrict message, FILE *restrict stream) {
   file_write("[", stream);
 
-  switch (log_level) {
+  switch (level) {
   case LOG_FATAL:
     file_write(LOG_FATAL_MSG, stream);
     break;
@@ -64,7 +64,7 @@ void log_message(LogLevel log_level, const char *file, int line,
 
   file_write(":", stream);
 
-  print_intmax(line, RADIX_DECIMAL, stream);
+  print_uintmax(line, RADIX_DECIMAL, stream);
 
   file_write("] ", stream);
 

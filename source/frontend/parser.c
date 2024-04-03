@@ -71,7 +71,7 @@ static MaybeError error(Parser *restrict parser, ErrorCode code) {
 static Parser parser_create() {
   Parser parser;
   parser.lexer = lexer_create();
-  parser.curtok = TOK_ERROR;
+  parser.curtok = TOK_END;
   return parser;
 }
 
@@ -99,9 +99,9 @@ static size_t curline(Parser *restrict parser) {
   return lexer_current_line(&parser->lexer);
 }
 
-static size_t curcol(Parser *restrict parser) {
-  return lexer_current_column(&parser->lexer);
-}
+// static size_t curcol(Parser *restrict parser) {
+//   return lexer_current_column(&parser->lexer);
+// }
 
 static void nexttok(Parser *restrict parser) {
   parser->curtok = lexer_scan(&parser->lexer);
@@ -167,6 +167,14 @@ static MaybeError parse_basic(Parser *restrict parser,
     return success();
   }
 
+  case TOK_ERROR_UNMATCHED_DOUBLE_QUOTE: {
+    return error(parser, ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE);
+  }
+
+  case TOK_ERROR_UNEXPECTED_CHAR: {
+    return error(parser, ERROR_LEXER_ERROR_UNEXPECTED_CHAR);
+  }
+
   default:
     return error(parser, ERROR_UNEXPECTED_TOKEN);
   }
@@ -216,25 +224,6 @@ static MaybeError parse_top(Parser *restrict parser,
   return parse_declaration(parser, context);
 }
 
-// #TODO: factor this into an error printing function
-// to be used throughout the compiler to provide a
-// consistent syntax of errors emitted.
-static void print_error(Error *error, Parser *restrict parser,
-                        Context *restrict context) {
-  fputs("[", stderr);
-  StringView source = context_source_path(context);
-  fputs(source.ptr, stderr);
-  fputs("@", stderr);
-  print_uintmax(curline(parser), RADIX_DECIMAL, stderr);
-  fputs(":", stderr);
-  print_uintmax(curcol(parser), RADIX_DECIMAL, stderr);
-  fputs("]\nError: ", stderr);
-  fputs(error_code_cstring(error->code), stderr);
-  fputs("[", stderr);
-  print_string(&error->message, stderr);
-  fputs("]", stderr);
-}
-
 int parse(char const *restrict buffer, Context *restrict context) {
   assert(buffer != NULL);
   assert(context != NULL);
@@ -247,7 +236,8 @@ int parse(char const *restrict buffer, Context *restrict context) {
   while (!finished(&parser)) {
     MaybeError maybe = parse_top(&parser, context);
     if (maybe.has_error) {
-      print_error(&maybe.error, &parser, context);
+      StringView source = context_source_path(context);
+      error_print(&maybe.error, source.ptr, curline(&parser));
       return EXIT_FAILURE;
     }
   }

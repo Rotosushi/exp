@@ -192,6 +192,11 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
   // #TODO handle escape sequences
   while (lexer_peek(lexer) != '"') {
     lexer_next(lexer);
+
+    // unmatched '"' in token stream.
+    if (lexer_at_end(lexer)) {
+      return TOK_ERROR_UNMATCHED_DOUBLE_QUOTE;
+    }
   }
 
   return TOK_STRING_LITERAL;
@@ -326,8 +331,6 @@ Token lexer_scan(Lexer *restrict lexer) {
     return lexer_identifier(lexer);
 
   default:
-    break;
+    return TOK_ERROR_UNEXPECTED_CHAR;
   }
-
-  return TOK_ERROR;
 }

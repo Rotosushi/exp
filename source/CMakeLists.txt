@@ -28,7 +28,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/utility/cli_options.c
   ${EXP_SOURCE_DIR}/utility/io.c
-  ${EXP_SOURCE_DIR}/utility/log_message.c
+  ${EXP_SOURCE_DIR}/utility/log.c
   ${EXP_SOURCE_DIR}/utility/minmax.c
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numbers_to_string.c

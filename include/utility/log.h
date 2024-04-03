@@ -27,23 +27,21 @@ typedef enum LogLevel {
 } LogLevel;
 
 /**
- * @brief logs a message to the given stream
+ * @brief logs an internal message to the given stream.
  *
- * @note log_message is formatted as
+ * an internal message is a warning or error caused by an internal bug or
+ * to expose internal behavior of the compiler
+ *
+ * @note message is formatted as
  * "[<fatal|warning|status> @ <file>:<line>] <message>\n"
  *
- * @param log_level the severity of the message
- * @param file the filename the log_message originated from
- * @param file_length the length of the filename
- * @param line the linenum the log_message originated from
+ * @param level the severity of the message
+ * @param file the filename related to the message
+ * @param line the linenum related to the message
  * @param message the message to print
- * @param message_length the length of the message
  * @param stream the stream to write to
  */
-void log_message(LogLevel log_level, const char *file, int line,
-                 const char *message, FILE *restrict stream);
-
-#define LOG(log_level, message, stream)                                        \
-  log_message(log_level, __FILE__, __LINE__, message, stream)
+void log_message(LogLevel level, const char *restrict file, size_t line,
+                 const char *restrict message, FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

@@ -104,6 +104,8 @@ int lexer_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   failed |= test_lexer_scans_token("hello1232", TOK_IDENTIFIER);
   failed |= test_lexer_scans_token("9473289", TOK_INTEGER);
 
+  failed |= test_lexer_scans_token("\"hello world!\"", TOK_STRING_LITERAL);
+
   if (failed) {
     return 1;
   } else {

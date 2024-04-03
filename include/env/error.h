@@ -17,10 +17,14 @@
 #ifndef EXP_ENV_ERROR_H
 #define EXP_ENV_ERROR_H
 
+#include "utility/log.h"
 #include "utility/string.h"
 
 typedef enum ErrorCode {
   ERROR_NONE,
+
+  ERROR_LEXER_ERROR_UNEXPECTED_CHAR,
+  ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE,
 
   ERROR_INTEGER_TO_LARGE,
 
@@ -46,5 +50,7 @@ void error_destroy(Error *restrict error);
 
 void error_assign(Error *restrict error, ErrorCode code,
                   char const *restrict data);
+
+void error_print(Error *restrict error, char const *restrict file, size_t line);
 
 #endif // !EXP_ENV_ERROR_H

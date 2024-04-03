@@ -23,12 +23,17 @@ char const *error_code_cstring(ErrorCode code) {
   switch (code) {
   case ERROR_NONE:
     return "none";
+
+  case ERROR_LEXER_ERROR_UNEXPECTED_CHAR:
+    return "Unexcepted char in stream: ";
+  case ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE:
+    return "missing '\"' to end string literal.";
+
   case ERROR_INTEGER_TO_LARGE:
     return "Integer literal too large.";
 
   case ERROR_EXPECTED_IDENTIFIER:
     return "Expected an Identifier. Found: ";
-
   case ERROR_EXPECTED_SEMICOLON:
     return "Expected: [;]. Found: ";
   case ERROR_EXPECTED_EQUAL:
@@ -74,4 +79,16 @@ void error_assign(Error *restrict error, ErrorCode code,
                   char const *restrict data) {
   error->code = code;
   string_assign(&error->message, data);
+}
+
+void error_print(Error *restrict error, char const *restrict file,
+                 size_t line) {
+  String msg = string_create();
+  string_append(&msg, "\nError: ");
+  string_append(&msg, error_code_cstring(error->code));
+  string_append(&msg, "[");
+  string_append(&msg, error->message.buffer);
+  string_append(&msg, "]");
+  log_message(LOG_ERROR, file, line, msg.buffer, stderr);
+  string_destroy(&msg);
 }
