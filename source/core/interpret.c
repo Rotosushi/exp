@@ -26,6 +26,7 @@
 
 int interpret(Context *restrict context) {
 #define READBYTE() (*ip++)
+#define CURIDX() (size_t)(ip - context->global_bytecode.buffer)
   uint8_t *ip = context->global_bytecode.buffer;
 
   while (1) {
@@ -39,8 +40,35 @@ int interpret(Context *restrict context) {
       break;
     }
 
-    case OP_PUSH_CONSTANT: {
-      uint8_t index = READBYTE();
+    case OP_PUSH_CONSTANT_U8: {
+      size_t index = context_read_immediate(context, CURIDX(), sizeof(uint8_t));
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, *constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U16: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint16_t));
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, *constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U32: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint32_t));
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, *constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U64: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint64_t));
 
       Value *constant = context_constants_at(context, index);
       context_stack_push(context, *constant);
@@ -64,4 +92,5 @@ int interpret(Context *restrict context) {
   }
 
 #undef READBYTE
+#undef CURIDX
 }

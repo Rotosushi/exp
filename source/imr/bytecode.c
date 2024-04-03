@@ -17,6 +17,7 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "imr/bytecode.h"
@@ -77,15 +78,54 @@ static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
   bytecode->length += 1;
 }
 
+static void bytecode_emit_immediate(Bytecode *restrict bytecode,
+                                    size_t immediate, size_t bytes) {
+  assert((bytes == sizeof(uint8_t)) || (bytes == sizeof(uint16_t)) ||
+         (bytes == sizeof(uint32_t)) || (bytes == sizeof(uint64_t)));
+  for (size_t i = 0, j = bytes; i < bytes; ++i, --j) {
+    size_t shift = (j * 8) - 8;
+    uint8_t byte = (immediate >> shift) & 0xFF;
+    bytecode_emit_byte(bytecode, byte);
+  }
+}
+
+size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
+                               size_t bytes) {
+  assert((bytes == sizeof(uint8_t)) || (bytes == sizeof(uint16_t)) ||
+         (bytes == sizeof(uint32_t)) || (bytes == sizeof(uint64_t)));
+  assert((offset + bytes) <= bytecode->length);
+  size_t result = 0;
+  for (size_t i = 0, j = bytes; i < bytes; ++i, --j) {
+    size_t shift = (j * 8) - 8;
+    uint8_t byte = bytecode->buffer[offset + i];
+    result |= (((size_t)byte) << shift);
+  }
+  return result;
+}
+
 void bytecode_emit_stop(Bytecode *restrict bytecode) {
   bytecode_emit_byte(bytecode, (uint8_t)OP_STOP);
 }
 
-void bytecode_emit_push_constant(Bytecode *restrict bytecode,
-                                 size_t value_index) {
-  assert(value_index < 256 && "TODO");
-  bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT);
-  bytecode_emit_byte(bytecode, (uint8_t)value_index);
+void bytecode_emit_push_constant(Bytecode *restrict bytecode, size_t index) {
+  if (index <= UINT8_MAX) {
+    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U8);
+    bytecode_emit_immediate(bytecode, index, sizeof(uint8_t));
+  } else if (index <= UINT16_MAX) {
+    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U16);
+    bytecode_emit_immediate(bytecode, index, sizeof(uint16_t));
+  } else if (index <= UINT32_MAX) {
+    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U32);
+    bytecode_emit_immediate(bytecode, index, sizeof(uint32_t));
+  } else {
+    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U64);
+    bytecode_emit_immediate(bytecode, index, sizeof(uint64_t));
+  }
+  // #NOTE:
+  // iff the index to the constant somehow is >= UINT64_MAX then
+  // it is going to overflow the size_t it is being passed in as.
+  // this is clearly a defect. but cannot be caught at this point
+  // in execution because we are downstream of the overflow.
 }
 
 // void bytecode_emit_push_register(Bytecode *restrict bytecode,

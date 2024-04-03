@@ -20,6 +20,13 @@
 #include "env/context.h"
 #include "utility/panic.h"
 
+Value value_create() {
+  Value value;
+  value.kind = VALUEKIND_UNINITIALIZED;
+  value.nil = 0;
+  return value;
+}
+
 Value value_create_nil() {
   Value value;
   value.kind = VALUEKIND_NIL;
@@ -61,6 +68,11 @@ void value_assign(Value *dest, Value *source) {
   }
 
   switch (source->kind) {
+  case VALUEKIND_UNINITIALIZED:
+    dest->kind = VALUEKIND_UNINITIALIZED;
+    dest->nil = 0;
+    break;
+
   case VALUEKIND_NIL:
     dest->kind = VALUEKIND_NIL;
     dest->nil = 0;
@@ -81,6 +93,11 @@ void value_assign(Value *dest, Value *source) {
     dest->string_literal = source->string_literal;
     break;
 
+  case VALUEKIND_TYPE:
+    dest->kind = VALUEKIND_TYPE;
+    dest->type = source->type;
+    break;
+
   default:
     panic("bad VALUEKIND");
     break;
@@ -93,9 +110,11 @@ bool value_equality(Value *v1, Value *v2) {
   }
 
   switch (v1->kind) {
+  case VALUEKIND_UNINITIALIZED:
+    return v2->kind == VALUEKIND_UNINITIALIZED;
+
   case VALUEKIND_NIL:
     return v2->kind == VALUEKIND_NIL;
-    break;
 
   case VALUEKIND_BOOLEAN:
     if (v2->kind != VALUEKIND_BOOLEAN) {
@@ -103,7 +122,6 @@ bool value_equality(Value *v1, Value *v2) {
     }
 
     return v1->boolean == v2->boolean;
-    break;
 
   case VALUEKIND_INTEGER:
     if (v2->kind != VALUEKIND_INTEGER) {
@@ -111,7 +129,6 @@ bool value_equality(Value *v1, Value *v2) {
     }
 
     return v1->integer == v2->integer;
-    break;
 
   case VALUEKIND_STRING_LITERAL:
     if (v2->kind != VALUEKIND_STRING_LITERAL) {
@@ -119,7 +136,13 @@ bool value_equality(Value *v1, Value *v2) {
     }
 
     return string_view_equality(v1->string_literal, v2->string_literal);
-    break;
+
+  case VALUEKIND_TYPE:
+    if (v2->kind != VALUEKIND_TYPE) {
+      return 0;
+    }
+
+    return type_equality(v1->type, v2->type);
 
   default:
     panic("bad VALUEKIND");
@@ -128,6 +151,9 @@ bool value_equality(Value *v1, Value *v2) {
 
 Type *type_of(Value *restrict value, Context *restrict context) {
   switch (value->kind) {
+  case VALUEKIND_UNINITIALIZED:
+    return context_nil_type(context);
+
   case VALUEKIND_NIL:
     return context_nil_type(context);
 

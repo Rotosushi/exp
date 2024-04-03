@@ -41,13 +41,17 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   Context context = context_create(&options);
 
   Type *integer_type = context_integer_type(&context);
+  Type *boolean_type = context_boolean_type(&context);
   StringView g0 = context_intern(&context, string_view_from_cstring("g0"));
   StringView g1 = context_intern(&context, string_view_from_cstring("g1"));
+  StringView g2 = context_intern(&context, string_view_from_cstring("g2"));
 
   context_insert_global_symbol(&context, g0, integer_type,
                                value_create_integer(rand()));
   context_insert_global_symbol(&context, g1, integer_type,
                                value_create_integer(rand()));
+  context_insert_global_symbol(&context, g2, boolean_type,
+                               value_create_boolean((bool)(rand() % 2)));
 
   emit_x64_linux_assembly(&context);
 

@@ -93,6 +93,9 @@ Value context_stack_pop(Context *restrict context);
 Value *context_stack_peek(Context *restrict context);
 
 // global Bytecode functions
+size_t context_read_immediate(Context *restrict context, size_t offset,
+                              size_t bytes);
+
 void context_emit_stop(Context *restrict context);
 
 void context_emit_push_constant(Context *restrict context, size_t index);

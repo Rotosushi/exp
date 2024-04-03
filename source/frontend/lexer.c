@@ -53,7 +53,6 @@ bool lexer_at_end(Lexer *restrict lexer) {
 }
 
 static size_t lexer_current_text_length(Lexer const *restrict lexer) {
-  assert(lexer != NULL);
   return (size_t)(lexer->cursor - lexer->token);
 }
 
@@ -78,19 +77,14 @@ static bool isid(char c) {
 }
 
 static char lexer_next(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   lexer->column++;
   lexer->cursor++;
   return lexer->cursor[-1];
 }
 
-static char lexer_peek(Lexer *restrict lexer) {
-  assert(lexer != NULL);
-  return *lexer->cursor;
-}
+static char lexer_peek(Lexer *restrict lexer) { return *lexer->cursor; }
 
 static char lexer_peek_next(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   if (lexer_at_end(lexer)) {
     return '\0';
   }
@@ -99,7 +93,6 @@ static char lexer_peek_next(Lexer *restrict lexer) {
 }
 
 static void lexer_skip_whitespace(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   while (1) {
     switch (lexer_peek(lexer)) {
     case '\n':
@@ -126,7 +119,6 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
 }
 
 static bool lexer_match(Lexer *restrict lexer, char c) {
-  assert(lexer != NULL);
   if (lexer_at_end(lexer)) {
     return 0;
   }
@@ -141,7 +133,6 @@ static bool lexer_match(Lexer *restrict lexer, char c) {
 }
 
 static Token lexer_integer(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   while (isdigit(lexer_peek(lexer))) {
     lexer_next(lexer);
   }
@@ -152,7 +143,6 @@ static Token lexer_integer(Lexer *restrict lexer) {
 static Token lexer_check_keyword(Lexer *restrict lexer, size_t begin,
                                  size_t length, const char *rest,
                                  Token keyword) {
-  assert(lexer != NULL);
   if ((lexer_current_text_length(lexer) == (begin + length)) &&
       (memcmp(lexer->token + begin, rest, length) == 0)) {
     return keyword;
@@ -162,7 +152,6 @@ static Token lexer_check_keyword(Lexer *restrict lexer, size_t begin,
 }
 
 static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   switch (lexer->token[0]) {
   case 'c':
     return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
@@ -199,8 +188,16 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
   return TOK_IDENTIFIER;
 }
 
+static Token lexer_string_literal(Lexer *restrict lexer) {
+  // #TODO handle escape sequences
+  while (lexer_peek(lexer) != '"') {
+    lexer_next(lexer);
+  }
+
+  return TOK_STRING_LITERAL;
+}
+
 static Token lexer_identifier(Lexer *restrict lexer) {
-  assert(lexer != NULL);
   while (isid(lexer_peek(lexer)) || isdigit(lexer_peek(lexer))) {
     lexer_next(lexer);
   }
@@ -257,6 +254,9 @@ Token lexer_scan(Lexer *restrict lexer) {
     return TOK_OR;
   case '^':
     return TOK_XOR;
+
+  case '"':
+    return lexer_string_literal(lexer);
 
   case '0':
   case '1':

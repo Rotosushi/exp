@@ -52,11 +52,17 @@ typedef enum Opcode {
   // stop the interpretation of bytecode
   OP_STOP,
 
-  // OP_PUSH_CONSTANT
+  // OP_PUSH_CONSTANT_U8
   // [op][A]
   // push a constant onto the stack
   //  C[A] is the source constant
-  OP_PUSH_CONSTANT,
+  OP_PUSH_CONSTANT_U8,
+  // OP_PUSH_CONSTANT_U*
+  // [op][A][A][A][A] [A][A][A][A]
+  // the same with a larger immediate index.
+  OP_PUSH_CONSTANT_U16,
+  OP_PUSH_CONSTANT_U32,
+  OP_PUSH_CONSTANT_U64,
 
   // OP_POP
   // [op]

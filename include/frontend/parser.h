@@ -26,7 +26,7 @@
 
   top = declaration ";"
 
-  declaration = "const" identifier (":" type)? = affix
+  declaration = "const" identifier = affix
 
   affix = basic // (binop precedece-parser)?
 
@@ -36,6 +36,8 @@
         //| "(" affix ")"
 
   literal = integer
+          | "true"
+          | "false"
 */
 
 /**

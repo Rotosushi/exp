@@ -21,6 +21,8 @@
 #include "utility/string_view.h"
 
 typedef enum ValueKind {
+  VALUEKIND_UNINITIALIZED,
+
   VALUEKIND_NIL,
   VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
@@ -46,6 +48,13 @@ typedef struct Value {
 } Value;
 
 #define VALUE_IS(value, k) (value.kind == k)
+
+/**
+ * @brief create an uninitialized value
+ *
+ * @return Value
+ */
+Value value_create();
 
 /**
  * @brief create a nil value

@@ -178,6 +178,19 @@ static void directive_quad(long value, FILE *file) {
   file_write("\n", file);
 }
 
+static void directive_byte(unsigned char value, FILE *file) {
+  size_t len = uintmax_safe_strlen(value, RADIX_DECIMAL);
+  char str[len + 1];
+  if (uintmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
+    panic("conversion failed");
+  }
+  str[len] = '\0';
+
+  file_write("  .byte ", file);
+  file_write(str, file);
+  file_write("\n", file);
+}
+
 static void directive_zero(size_t bytes, FILE *file) {
   size_t len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
   char str[len + 1];
@@ -189,6 +202,12 @@ static void directive_zero(size_t bytes, FILE *file) {
   file_write("  .zero ", file);
   file_write(str, file);
   file_write("\n", file);
+}
+
+static void directive_string(StringView sv, FILE *file) {
+  file_write("  .string \"", file);
+  file_write(sv.ptr, file);
+  file_write("\"\n", file);
 }
 
 static void directive_label(StringView name, FILE *file) {
@@ -231,16 +250,16 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
 }
 
 /**
- * @brief emit the assembly for the given global symbol into the assembly
- * file representing the given context.
+ * @brief emit the assembly for the given global constant symbol
+ * into the assembly file representing the given context.
  *
  * @param context
  * @param element
  * @param file
  */
 static void
-emit_x64_linux_global_symbol([[maybe_unused]] Context *restrict context,
-                             SymbolTableElement *global, FILE *file) {
+emit_x64_linux_global_const([[maybe_unused]] Context *restrict context,
+                            SymbolTableElement *global, FILE *file) {
   /*
 a global object declaration in assembly looks like:
   .globl <name>
@@ -251,51 +270,84 @@ a global object declaration in assembly looks like:
 <name>:
   .byte <init> | .zero <sizeof> | .quad <init> | .int <init> | ...
 
-
--- all global constant symbols can go into the .data section. unless they
+-- all global symbols can go into the .data section. unless they
 are uninitialized, then they are default initialized to zero, and can go into
-the .bss section.
-
---
+the .bss section. This holds for constants and variables, it is up to the
+compiler to prevent writes to constants.
 
 */
   StringView name = global->name;
   Type *type = global->type;
   Value *value = &(global->value);
   switch (type->kind) {
-  // #TODO
   case TYPEKIND_NIL:
+    directive_globl(name, file);
+    directive_bss(file);
+    directive_type(name, type, file);
+    directive_size(name, size_of(type), file);
+
+    directive_label(name, file);
+    directive_zero(1UL, file);
+    break;
+
   case TYPEKIND_BOOLEAN:
+    directive_globl(name, file);
+    if (value->kind == VALUEKIND_BOOLEAN) {
+      directive_data(file);
+    } else {
+      directive_bss(file);
+    }
+    directive_type(name, type, file);
+    directive_size(name, size_of(type), file);
+
+    directive_label(name, file);
+    if (value->kind == VALUEKIND_BOOLEAN) {
+      directive_byte((unsigned char)value->boolean, file);
+    } else {
+      directive_zero(1UL, file);
+    }
     break;
 
   case TYPEKIND_INTEGER:
     directive_globl(name, file);
-
-    // an integer type global with an initializer
-    // goes into the .data section.
-    // otherwise it goes into the .bss section.
     if (value->kind == VALUEKIND_INTEGER) {
       directive_data(file);
     } else {
       directive_bss(file);
     }
-
     directive_align(type, file);
     directive_type(name, type, file);
-
     directive_size(name, size_of(type), file);
 
     directive_label(name, file);
-
     if (value->kind == VALUEKIND_INTEGER) {
       directive_quad(value->integer, file);
-    } else { // the value is 0 because there was no initializer
+    } else {
       directive_zero(size_of(type), file);
     }
     break;
 
-  // #TODO
   case TYPEKIND_STRING_LITERAL:
+    directive_globl(name, file);
+    if (value->kind == VALUEKIND_STRING_LITERAL) {
+      directive_data(file);
+    } else {
+      directive_bss(file);
+    }
+    directive_align(type, file);
+    directive_type(name, type, file);
+    if (value->kind == VALUEKIND_STRING_LITERAL) {
+      directive_size(name, value->string_literal.length, file);
+    } else {
+      directive_size(name, 0UL, file);
+    }
+
+    directive_label(name, file);
+    if (value->kind == VALUEKIND_STRING_LITERAL) {
+      directive_string(value->string_literal, file);
+    } else {
+      directive_string(string_view_from_cstring(""), file);
+    }
     break;
 
   default:
@@ -319,7 +371,7 @@ void emit_x64_linux_assembly(Context *restrict context) {
   emit_x64_linux_header(context, file);
 
   while (!symbol_table_iterator_done(&iter)) {
-    emit_x64_linux_global_symbol(context, iter.element, file);
+    emit_x64_linux_global_const(context, iter.element, file);
 
     symbol_table_iterator_next(&iter);
   }

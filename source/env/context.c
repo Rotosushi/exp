@@ -146,6 +146,12 @@ Value *context_stack_peek(Context *restrict context) {
   return stack_peek(&context->stack);
 }
 
+size_t context_read_immediate(Context *restrict context, size_t offset,
+                              size_t bytes) {
+  assert(context != NULL);
+  return bytecode_read_immediate(&context->global_bytecode, offset, bytes);
+}
+
 void context_emit_stop(Context *restrict context) {
   assert(context != NULL);
   bytecode_emit_stop(&context->global_bytecode);

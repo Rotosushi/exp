@@ -123,6 +123,27 @@ static bool expect(Parser *restrict parser, Token token) {
 static MaybeError parse_basic(Parser *restrict parser,
                               Context *restrict context) {
   switch (parser->curtok) {
+  case TOK_NIL: {
+    size_t index = context_constants_append(context, value_create_nil());
+    context_emit_push_constant(context, index);
+    nexttok(parser);
+    return success();
+  }
+
+  case TOK_TRUE: {
+    size_t index = context_constants_append(context, value_create_boolean(1));
+    context_emit_push_constant(context, index);
+    nexttok(parser);
+    return success();
+  }
+
+  case TOK_FALSE: {
+    size_t index = context_constants_append(context, value_create_boolean(0));
+    context_emit_push_constant(context, index);
+    nexttok(parser);
+    return success();
+  }
+
   case TOK_INTEGER: {
     StringView sv = curtxt(parser);
     long integer = strtol(sv.ptr, NULL, 10);
@@ -132,6 +153,15 @@ static MaybeError parse_basic(Parser *restrict parser,
 
     size_t index =
         context_constants_append(context, value_create_integer(integer));
+    context_emit_push_constant(context, index);
+    nexttok(parser);
+    return success();
+  }
+
+  case TOK_STRING_LITERAL: {
+    StringView sl = context_intern(context, curtxt(parser));
+    size_t index =
+        context_constants_append(context, value_create_string_literal(sl));
     context_emit_push_constant(context, index);
     nexttok(parser);
     return success();

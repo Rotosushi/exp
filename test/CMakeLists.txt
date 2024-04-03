@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 add_test (NAME "smoke test" COMMAND exp)
 
 create_test_sourcelist(Tests 
-  CommonTests.c
+  exp_tests.c
   compile_tests.c
   constants_tests.c
   emit_tests.c
@@ -20,14 +20,14 @@ create_test_sourcelist(Tests
   type_interner_tests.c
 )
 
-add_executable (CommonTests ${Tests})
-target_include_directories(CommonTests PUBLIC ${EXP_INCLUDE_DIR})
-target_link_libraries(CommonTests PUBLIC exp_common m)
+add_executable (exp_tests ${Tests})
+target_include_directories(exp_tests PUBLIC ${EXP_INCLUDE_DIR})
+target_link_libraries(exp_tests PUBLIC exp_common m)
 
 set (TestsToRun ${Tests})
-remove (TestsToRun CommonTests.c)
+remove (TestsToRun exp_tests.c)
 
 foreach (test ${TestsToRun})
   get_filename_component (TestName ${test} NAME_WE)
-  add_test (NAME ${TestName} COMMAND CommonTests ${TestName})
+  add_test (NAME ${TestName} COMMAND exp_tests ${TestName})
 endforeach()

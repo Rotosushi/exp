@@ -22,23 +22,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/config.h"
+#include "utility/debug.h"
 #include "utility/io.h"
 #include "utility/panic.h"
 
 [[noreturn]] void panic(const char *msg) {
-#if EXP_DEBUG
-  __builtin_trap();
-#endif
+  EXP_BREAK();
 
   file_write(msg, stderr);
   exit(EXIT_FAILURE);
 }
 
 [[noreturn]] void panic_errno(const char *msg) {
-#if EXP_DEBUG
-  __builtin_trap();
-#endif
+  EXP_BREAK();
 
   file_write(msg, stderr);
   file_write(": ", stderr);

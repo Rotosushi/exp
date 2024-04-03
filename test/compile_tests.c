@@ -63,7 +63,10 @@ static bool compile_test(char const *restrict body) {
 int compile_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   bool failed = 0;
 
-  failed |= compile_test("const x = 3;");
+  failed |= compile_test("const x = 3;\nconst y = 7;");
+  failed |= compile_test("const x = true;\nconst y = false;");
+  failed |= compile_test("const x = nil;");
+  // failed |= compile_test("const x = \"hello world!\"");
 
   if (failed)
     return EXIT_FAILURE;

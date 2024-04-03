@@ -43,6 +43,22 @@ Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
 /**
+ * @brief read the immediate value at the given index within
+ * the given bytecode
+ *
+ * @warning does not understand where instructions start/end
+ * all this function does is read the next few bytes starting
+ * from the given offset.
+ *
+ * @param bytecode
+ * @param offset
+ * @param bytes
+ * @return size_t
+ */
+size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
+                               size_t bytes);
+
+/**
  * @brief emit a stop instruction
  *
  * @param bytecode
