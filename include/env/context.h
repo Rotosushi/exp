@@ -102,4 +102,15 @@ void context_emit_push_constant(Context *restrict context, size_t index);
 
 void context_emit_define_global_constant(Context *restrict context);
 
+void context_emit_unop_minus(Context *restrict context);
+
+void context_emit_binop_plus(Context *restrict context);
+
+void context_emit_binop_minus(Context *restrict context);
+
+void context_emit_binop_star(Context *restrict context);
+
+void context_emit_binop_slash(Context *restrict context);
+
+void context_emit_binop_percent(Context *restrict context);
 #endif // !EXP_ENV_CONTEXT_H

@@ -17,6 +17,7 @@
 #ifndef EXP_CORE_INTERPRET_H
 #define EXP_CORE_INTERPRET_H
 #include "env/context.h"
+#include "env/error.h"
 
 int interpret(Context *restrict context);
 

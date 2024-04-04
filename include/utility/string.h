@@ -95,6 +95,8 @@ StringView string_to_view_at(String const *restrict string, size_t offset,
 
 String string_from_view(StringView sv);
 
+String string_from_cstring(char const *restrict cs);
+
 void print_string(String *string, FILE *file);
 
 /**
@@ -143,6 +145,8 @@ void string_reserve_more(String *restrict str, size_t capacity);
 void string_assign(String *restrict str, const char *restrict data);
 
 void string_assign_view(String *restrict str, StringView sv);
+
+void string_move(String *restrict s1, String *restrict s2);
 
 /**
  * @brief appends <data> to the current contents of <str>

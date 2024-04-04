@@ -96,4 +96,46 @@ void bytecode_emit_pop(Bytecode *restrict bytecode);
  */
 void bytecode_emit_define_global_constant(Bytecode *restrict bytecode);
 
+/**
+ * @brief emit a unop negate '-'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_unop_minus(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a binop '+'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_binop_plus(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a binop '-'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_binop_minus(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a binop '*'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_binop_star(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a binop '/'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_binop_slash(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a binop '%'
+ *
+ * @param bytecode
+ */
+void bytecode_emit_binop_percent(Bytecode *restrict bytecode);
+
 #endif // !EXP_IMR_BYTECODE_H

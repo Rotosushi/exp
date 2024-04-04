@@ -76,6 +76,39 @@ typedef enum Opcode {
   // S[-2] is the name of the constant
   OP_DEFINE_GLOBAL_CONSTANT,
 
+  // OP_UNOP_MINUS
+  // [op]
+  // negate the top value of the stack
+  OP_UNOP_MINUS,
+
+  // OP_BINOP_PLUS
+  // [op]
+  // add the top two values of the stack
+  OP_BINOP_PLUS,
+
+  // OP_BINOP_MINUS
+  // [op]
+  // subtract the top value of the stack from
+  // the next value on the stack
+  OP_BINOP_MINUS,
+
+  // OP_BINOP_STAR
+  // [op]
+  // mutliply the top two values of the stack
+  OP_BINOP_STAR,
+
+  // OP_BINOP_SLASH
+  // [op]
+  // divide the second from the top value of the stack
+  // by the top value of the stack
+  OP_BINOP_SLASH,
+
+  // OP_BINOP_PERCENT
+  // [op]
+  // divide the second from the top value of the stack
+  // by the top value of the stack, returing the remainder
+  OP_BINOP_PERCENT,
+
   // #TODO
   // OP_DEFINE_FN
 
@@ -91,16 +124,6 @@ typedef enum Opcode {
   // #TODO:
   // OP_CALL,
   // OP_RETURN,
-
-  // #TODO:
-  // OP_UOP_NEG,
-
-  // #TODO:
-  // OP_BOP_SUB,
-  // OP_BOP_ADD,
-  // OP_BOP_MUL,
-  // OP_BOP_DIV,
-  // OP_BOP_MOD,
 } Opcode;
 
 #endif // !EXP_IMR_OPCODE_H

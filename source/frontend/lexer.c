@@ -189,6 +189,8 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
 }
 
 static Token lexer_string_literal(Lexer *restrict lexer) {
+  // eat the '"'
+  lexer->token++;
   // #TODO handle escape sequences
   while (lexer_peek(lexer) != '"') {
     lexer_next(lexer);
@@ -198,6 +200,9 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
       return TOK_ERROR_UNMATCHED_DOUBLE_QUOTE;
     }
   }
+  // eat the '"'
+  lexer->column++;
+  lexer->cursor++;
 
   return TOK_STRING_LITERAL;
 }
@@ -235,6 +240,8 @@ Token lexer_scan(Lexer *restrict lexer) {
     return TOK_COLON;
   case ',':
     return TOK_COMMA;
+  case '.':
+    return TOK_DOT;
 
   case '-':
     return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
@@ -244,6 +251,8 @@ Token lexer_scan(Lexer *restrict lexer) {
     return TOK_SLASH;
   case '*':
     return TOK_STAR;
+  case '%':
+    return TOK_PERCENT;
 
   case '!':
     return lexer_match(lexer, '=') ? TOK_BANG_EQUAL : TOK_BANG;

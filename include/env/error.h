@@ -26,14 +26,19 @@ typedef enum ErrorCode {
   ERROR_LEXER_ERROR_UNEXPECTED_CHAR,
   ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE,
 
-  ERROR_INTEGER_TO_LARGE,
+  ERROR_PARSER_INTEGER_TO_LARGE,
 
-  ERROR_EXPECTED_SEMICOLON,
-  ERROR_EXPECTED_EQUAL,
-  ERROR_EXPECTED_IDENTIFIER,
-  ERROR_EXPECTED_KEYWORD_CONST,
+  ERROR_PARSER_EXPECTED_END_PAREN,
+  ERROR_PARSER_EXPECTED_SEMICOLON,
+  ERROR_PARSER_EXPECTED_EQUAL,
+  ERROR_PARSER_EXPECTED_KEYWORD_CONST,
 
-  ERROR_UNEXPECTED_TOKEN,
+  ERROR_PARSER_EXPECTED_EXPRESSION,
+  ERROR_PARSER_EXPECTED_IDENTIFIER,
+
+  ERROR_PARSER_UNEXPECTED_TOKEN,
+
+  ERROR_INTERPRET_EXPECTED_TYPE_INT,
 } ErrorCode;
 
 char const *error_code_cstring(ErrorCode code);
@@ -52,5 +57,15 @@ void error_assign(Error *restrict error, ErrorCode code,
                   char const *restrict data);
 
 void error_print(Error *restrict error, char const *restrict file, size_t line);
+
+typedef struct MaybeError {
+  bool has_error;
+  Error error;
+} MaybeError;
+
+MaybeError success();
+MaybeError error(ErrorCode code, String data);
+
+void maybe_error_destroy(MaybeError *restrict m);
 
 #endif // !EXP_ENV_ERROR_H

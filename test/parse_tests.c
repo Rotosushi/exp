@@ -23,7 +23,7 @@
 
 static Context init_context() {
   ContextOptions options = context_options_create();
-  Context result = context_create(&options);
+  Context result         = context_create(&options);
   return result;
 }
 
@@ -44,6 +44,14 @@ int parse_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   failure |= test_parse("const x = true;");
   failure |= test_parse("const x = false;");
   failure |= test_parse("const x = nil;");
+  failure |= test_parse("const x = \"Hello, World\";");
+
+  failure |= test_parse("const x = -42;");
+  failure |= test_parse("const x = 3 + 3;");
+  failure |= test_parse("const x = 3 - 2;");
+  failure |= test_parse("const x = 3 * 3;");
+  failure |= test_parse("const x = 3 / 3;");
+  failure |= test_parse("const x = 3 % 3;");
 
   if (failure) {
     return EXIT_FAILURE;

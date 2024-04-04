@@ -28,9 +28,9 @@
 
 String string_create() {
   String str;
-  str.length = 0;
+  str.length   = 0;
   str.capacity = 0;
-  str.buffer = NULL;
+  str.buffer   = NULL;
   return str;
 }
 
@@ -40,7 +40,7 @@ void string_destroy(String *restrict str) {
     return;
   }
 
-  str->length = 0;
+  str->length   = 0;
   str->capacity = 0;
 
   free(str->buffer);
@@ -52,7 +52,7 @@ static void string_assign_impl(String *restrict str, char const *restrict data,
   string_resize(str, length);
   memcpy(str->buffer, data, length);
   str->buffer[length] = '\0';
-  str->length = length;
+  str->length         = length;
 }
 
 StringView string_to_view(String const *restrict str) {
@@ -72,9 +72,15 @@ StringView string_to_view_at(String const *restrict str, size_t offset,
 }
 
 String string_from_view(StringView sv) {
-  String string;
+  String string = string_create();
   string_assign_impl(&string, sv.ptr, sv.length);
   return string;
+}
+
+String string_from_cstring(char const *restrict cs) {
+  String str = string_create();
+  string_assign_impl(&str, cs, strlen(cs));
+  return str;
 }
 
 void print_string(String *string, FILE *file) { fputs(string->buffer, file); }
@@ -117,8 +123,8 @@ void string_resize(String *restrict str, size_t capacity) {
     str->length = capacity;
   }
 
-  str->buffer = new_buffer;
-  str->capacity = capacity + 1;
+  str->buffer              = new_buffer;
+  str->capacity            = capacity + 1;
   str->buffer[str->length] = '\0';
 }
 
@@ -138,7 +144,7 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
     PANIC_ERRNO("realloc failed");
   }
 
-  str->buffer = new_buffer;
+  str->buffer   = new_buffer;
   str->capacity = new_capacity;
 }
 
@@ -152,6 +158,17 @@ void string_assign(String *restrict str, const char *restrict data) {
 
 void string_assign_view(String *restrict str, StringView sv) {
   string_assign_impl(str, sv.ptr, sv.length);
+}
+
+void string_move(String *restrict s1, String *restrict s2) {
+  string_destroy(s1);
+  s1->length   = s2->length;
+  s1->capacity = s2->capacity;
+  s1->buffer   = s2->buffer;
+
+  s2->buffer   = NULL;
+  s2->capacity = 0;
+  s2->length   = 0;
 }
 
 static void string_append_impl(String *restrict str, char const *restrict data,
@@ -213,18 +230,18 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
   if ((offset == 0) && (length == str->length)) {
     // 'erase' the entire buffer
     str->buffer[0] = '\0';
-    str->length = 0;
+    str->length    = 0;
     return;
   }
 
   // erase <length> characters starting from <str->buffer + offset>
-  char *pos = str->buffer + offset;
-  char *rest = pos + length;
+  char *pos          = str->buffer + offset;
+  char *rest         = pos + length;
   size_t rest_length = (size_t)((str->buffer + str->length) - rest);
   memmove(pos, rest, rest_length);
-  size_t new_length = offset + rest_length;
+  size_t new_length       = offset + rest_length;
   str->buffer[new_length] = '\0';
-  str->length = new_length;
+  str->length             = new_length;
   return;
 }
 

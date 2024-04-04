@@ -27,9 +27,9 @@
 
 Bytecode bytecode_create() {
   Bytecode bc;
-  bc.length = 0;
+  bc.length   = 0;
   bc.capacity = 0;
-  bc.buffer = NULL;
+  bc.buffer   = NULL;
   return bc;
 }
 
@@ -37,12 +37,12 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
   assert(bytecode != NULL);
 
   if ((bytecode->buffer == NULL)) {
-    bytecode->length = 0;
+    bytecode->length   = 0;
     bytecode->capacity = 0;
     return;
   }
 
-  bytecode->length = 0;
+  bytecode->length   = 0;
   bytecode->capacity = 0;
   free(bytecode->buffer);
 }
@@ -63,7 +63,7 @@ static void bytecode_grow(Bytecode *restrict bytecode) {
   if (result == NULL) {
     PANIC_ERRNO("realloc failed");
   }
-  bytecode->buffer = result;
+  bytecode->buffer   = result;
   bytecode->capacity = new_capacity;
 }
 
@@ -154,4 +154,28 @@ void bytecode_emit_pop(Bytecode *restrict bytecode) {
 
 void bytecode_emit_define_global_constant(Bytecode *restrict bytecode) {
   bytecode_emit_byte(bytecode, (uint8_t)OP_DEFINE_GLOBAL_CONSTANT);
+}
+
+void bytecode_emit_unop_minus(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_UNOP_MINUS);
+}
+
+void bytecode_emit_binop_plus(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_PLUS);
+}
+
+void bytecode_emit_binop_minus(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_MINUS);
+}
+
+void bytecode_emit_binop_star(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_STAR);
+}
+
+void bytecode_emit_binop_slash(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_SLASH);
+}
+
+void bytecode_emit_binop_percent(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_PERCENT);
 }

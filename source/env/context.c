@@ -24,13 +24,13 @@
 
 Context context_create(ContextOptions *restrict options) {
   Context context;
-  context.options = *options;
+  context.options         = *options;
   context.string_interner = string_interner_create();
-  context.type_interner = type_interner_create();
-  context.global_symbols = symbol_table_create();
+  context.type_interner   = type_interner_create();
+  context.global_symbols  = symbol_table_create();
   context.global_bytecode = bytecode_create();
-  context.constants = constants_create();
-  context.stack = stack_create();
+  context.constants       = constants_create();
+  context.stack           = stack_create();
   return context;
 }
 
@@ -72,7 +72,7 @@ StringView context_output_path(Context *restrict context) {
 
 FILE *context_open_output(Context *restrict context) {
   StringView path = context_output_path(context);
-  FILE *file = fopen(path.ptr, "w");
+  FILE *file      = fopen(path.ptr, "w");
   if (file == NULL) {
     PANIC_ERRNO("fopen failed");
   }
@@ -165,4 +165,34 @@ void context_emit_push_constant(Context *restrict context, size_t index) {
 void context_emit_define_global_constant(Context *restrict context) {
   assert(context != NULL);
   bytecode_emit_define_global_constant(&context->global_bytecode);
+}
+
+void context_emit_unop_minus(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_unop_minus(&context->global_bytecode);
+}
+
+void context_emit_binop_plus(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_binop_plus(&context->global_bytecode);
+}
+
+void context_emit_binop_minus(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_binop_minus(&context->global_bytecode);
+}
+
+void context_emit_binop_star(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_binop_star(&context->global_bytecode);
+}
+
+void context_emit_binop_slash(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_binop_slash(&context->global_bytecode);
+}
+
+void context_emit_binop_percent(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_binop_percent(&context->global_bytecode);
 }

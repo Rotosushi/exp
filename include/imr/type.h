@@ -17,6 +17,8 @@
 #ifndef EXP_IMR_TYPE_H
 #define EXP_IMR_TYPE_H
 
+#include "utility/string.h"
+
 typedef enum TypeKind {
   TYPEKIND_NIL,
   TYPEKIND_BOOLEAN,
@@ -99,5 +101,7 @@ Type type_create_string_literal();
  * @return bool
  */
 bool type_equality(Type const *t1, Type const *t2);
+
+String type_to_string(Type const *t);
 
 #endif // !EXP_IMR_TYPE_H

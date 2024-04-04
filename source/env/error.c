@@ -29,20 +29,28 @@ char const *error_code_cstring(ErrorCode code) {
   case ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE:
     return "missing '\"' to end string literal.";
 
-  case ERROR_INTEGER_TO_LARGE:
+  case ERROR_PARSER_INTEGER_TO_LARGE:
     return "Integer literal too large.";
 
-  case ERROR_EXPECTED_IDENTIFIER:
-    return "Expected an Identifier. Found: ";
-  case ERROR_EXPECTED_SEMICOLON:
+  case ERROR_PARSER_EXPECTED_END_PAREN:
+    return "Expected: [)]. Found: ";
+  case ERROR_PARSER_EXPECTED_SEMICOLON:
     return "Expected: [;]. Found: ";
-  case ERROR_EXPECTED_EQUAL:
+  case ERROR_PARSER_EXPECTED_EQUAL:
     return "Expected: [=]. Found: ";
-  case ERROR_EXPECTED_KEYWORD_CONST:
+  case ERROR_PARSER_EXPECTED_KEYWORD_CONST:
     return "Expected: [const]. Found: ";
 
-  case ERROR_UNEXPECTED_TOKEN:
+  case ERROR_PARSER_EXPECTED_EXPRESSION:
+    return "Expected an Expression. Found: ";
+  case ERROR_PARSER_EXPECTED_IDENTIFIER:
+    return "Expected an Identifier. Found: ";
+
+  case ERROR_PARSER_UNEXPECTED_TOKEN:
     return "Unexpected Token: ";
+
+  case ERROR_INTERPRET_EXPECTED_TYPE_INT:
+    return "Expected Type [Int]. Have: ";
 
   default:
     PANIC("bad ErrorCode");
@@ -51,7 +59,7 @@ char const *error_code_cstring(ErrorCode code) {
 
 Error error_create() {
   Error error;
-  error.code = ERROR_NONE;
+  error.code    = ERROR_NONE;
   error.message = string_create();
   return error;
 }
@@ -65,7 +73,7 @@ Error error_construct(ErrorCode code, char const *restrict data) {
 
 Error error_from_view(ErrorCode code, StringView sv) {
   Error error;
-  error.code = code;
+  error.code    = code;
   error.message = string_from_view(sv);
   return error;
 }
@@ -91,4 +99,24 @@ void error_print(Error *restrict error, char const *restrict file,
   string_append(&msg, "]");
   log_message(LOG_ERROR, file, line, msg.buffer, stderr);
   string_destroy(&msg);
+}
+
+MaybeError success() {
+  MaybeError me;
+  me.has_error = 0;
+  me.error     = error_create();
+  return me;
+}
+
+MaybeError error(ErrorCode code, String data) {
+  MaybeError me;
+  me.has_error  = 1;
+  me.error.code = code;
+  string_move(&me.error.message, &data);
+  return me;
+}
+
+void maybe_error_destroy(MaybeError *restrict m) {
+  m->has_error = 0;
+  error_destroy(&m->error);
 }
