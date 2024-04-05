@@ -33,10 +33,10 @@ static void write_file(char const *restrict path, char const *data) {
 }
 
 static bool compile_test(char const *restrict body) {
-  bool failed = 0;
-  static char const source[] = EXP_TEST_DIR "/test.exp";
+  bool failed                  = 0;
+  static char const source[]   = EXP_TEST_DIR "/test.exp";
   static char const assembly[] = EXP_TEST_DIR "/test.s";
-  static char const object[] = EXP_TEST_DIR "/test.o";
+  static char const object[]   = EXP_TEST_DIR "/test.o";
 
   ContextOptions options = context_options_create();
   path_assign(&options.output, assembly);
@@ -67,6 +67,13 @@ int compile_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   failed |= compile_test("const x = true;\nconst y = false;");
   failed |= compile_test("const x = nil;");
   failed |= compile_test("const x = \"hello world!\";");
+
+  failed |= compile_test("const x = -3;");
+  failed |= compile_test("const x = 3 + 3;");
+  failed |= compile_test("const x = 3 - 2;");
+  failed |= compile_test("const x = 3 * 3;");
+  failed |= compile_test("const x = 3 / 3;");
+  failed |= compile_test("const x = 3 % 3;");
 
   if (failed)
     return EXIT_FAILURE;

@@ -25,6 +25,106 @@
 #include "imr/value.h"
 #include "utility/panic.h"
 
+static MaybeError unop_minus(Context *restrict context) {
+  Value *top = context_stack_peek(context);
+  Type *type = type_of(top, context);
+  if (type != context_integer_type(context)) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(type));
+  }
+  top->integer = -(top->integer);
+  return success();
+}
+
+static MaybeError binop_plus(Context *restrict context) {
+  Value b            = context_stack_pop(context);
+  Type *b_type       = type_of(&b, context);
+  Type *integer_type = context_integer_type(context);
+  if (b_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
+  }
+
+  Value *a     = context_stack_peek(context);
+  Type *a_type = type_of(a, context);
+  if (a_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
+  }
+
+  a->integer += b.integer;
+  return success();
+}
+
+static MaybeError binop_minus(Context *restrict context) {
+  Value b            = context_stack_pop(context);
+  Type *b_type       = type_of(&b, context);
+  Type *integer_type = context_integer_type(context);
+  if (b_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
+  }
+
+  Value *a     = context_stack_peek(context);
+  Type *a_type = type_of(a, context);
+  if (a_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
+  }
+
+  a->integer -= b.integer;
+  return success();
+}
+
+static MaybeError binop_star(Context *restrict context) {
+  Value b            = context_stack_pop(context);
+  Type *b_type       = type_of(&b, context);
+  Type *integer_type = context_integer_type(context);
+  if (b_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
+  }
+
+  Value *a     = context_stack_peek(context);
+  Type *a_type = type_of(a, context);
+  if (a_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
+  }
+
+  a->integer *= b.integer;
+  return success();
+}
+
+static MaybeError binop_slash(Context *restrict context) {
+  Value b            = context_stack_pop(context);
+  Type *b_type       = type_of(&b, context);
+  Type *integer_type = context_integer_type(context);
+  if (b_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
+  }
+
+  Value *a     = context_stack_peek(context);
+  Type *a_type = type_of(a, context);
+  if (a_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
+  }
+
+  a->integer /= b.integer;
+  return success();
+}
+
+static MaybeError binop_percent(Context *restrict context) {
+  Value b            = context_stack_pop(context);
+  Type *b_type       = type_of(&b, context);
+  Type *integer_type = context_integer_type(context);
+  if (b_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
+  }
+
+  Value *a     = context_stack_peek(context);
+  Type *a_type = type_of(a, context);
+  if (a_type != integer_type) {
+    return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
+  }
+
+  a->integer %= b.integer;
+  return success();
+}
+
 static MaybeError interpret_impl(Context *restrict context) {
 #define READBYTE() (*ip++)
 #define CURIDX() (size_t)(ip - context->global_bytecode.buffer)
@@ -91,10 +191,49 @@ static MaybeError interpret_impl(Context *restrict context) {
     }
 
     case OP_UNOP_MINUS: {
-      Value *top = context_stack_peek(context);
-      Type *type = type_of(top, context);
-      if (type != context_integer_type(context)) {
-        return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(type));
+      MaybeError maybe = unop_minus(context);
+      if (maybe.has_error) {
+        return maybe;
+      }
+      break;
+    }
+
+    case OP_BINOP_PLUS: {
+      MaybeError maybe = binop_plus(context);
+      if (maybe.has_error) {
+        return maybe;
+      }
+      break;
+    }
+
+    case OP_BINOP_MINUS: {
+      MaybeError maybe = binop_minus(context);
+      if (maybe.has_error) {
+        return maybe;
+      }
+      break;
+    }
+
+    case OP_BINOP_STAR: {
+      MaybeError maybe = binop_star(context);
+      if (maybe.has_error) {
+        return maybe;
+      }
+      break;
+    }
+
+    case OP_BINOP_SLASH: {
+      MaybeError maybe = binop_slash(context);
+      if (maybe.has_error) {
+        return maybe;
+      }
+      break;
+    }
+
+    case OP_BINOP_PERCENT: {
+      MaybeError maybe = binop_percent(context);
+      if (maybe.has_error) {
+        return maybe;
       }
       break;
     }

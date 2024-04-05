@@ -30,9 +30,9 @@
 
 StringInterner string_interner_create() {
   StringInterner string_interner;
-  string_interner.count = 0;
+  string_interner.count    = 0;
   string_interner.capacity = 0;
-  string_interner.buffer = NULL;
+  string_interner.buffer   = NULL;
   return string_interner;
 }
 
@@ -41,7 +41,7 @@ void string_interner_destroy(StringInterner *restrict string_interner) {
 
   if (string_interner->buffer == NULL) {
     string_interner->capacity = 0;
-    string_interner->count = 0;
+    string_interner->count    = 0;
     return;
   }
 
@@ -50,7 +50,7 @@ void string_interner_destroy(StringInterner *restrict string_interner) {
   }
 
   string_interner->capacity = 0;
-  string_interner->count = 0;
+  string_interner->count    = 0;
   free(string_interner->buffer);
   string_interner->buffer = NULL;
 }
@@ -61,7 +61,8 @@ static String *string_interner_find(String *restrict strings, size_t capacity,
   size_t index = string_hash(buffer, length) % capacity;
   while (1) {
     String *element = &(strings[index]);
-    if ((element->buffer == NULL) || (strcmp(buffer, element->buffer) == 0)) {
+    if ((element->buffer == NULL) ||
+        (strncmp(buffer, element->buffer, length) == 0)) {
       return element;
     }
 
@@ -82,22 +83,21 @@ static void string_interner_grow(StringInterner *restrict string_interner,
         continue;
       }
 
-      String *dest = string_interner_find(elements, capacity, element->buffer,
-                                          element->length);
-      dest->buffer = element->buffer;
+      String *dest   = string_interner_find(elements, capacity, element->buffer,
+                                            element->length);
+      dest->buffer   = element->buffer;
       dest->capacity = element->capacity;
-      dest->length = element->length;
+      dest->length   = element->length;
     }
 
     free(string_interner->buffer);
   }
 
   string_interner->capacity = capacity;
-  string_interner->buffer = elements;
+  string_interner->buffer   = elements;
 }
 
-static bool
-string_interner_large_enough(StringInterner *restrict string_interner) {
+static bool string_interner_full(StringInterner *restrict string_interner) {
   size_t new_count;
   if (__builtin_add_overflow(string_interner->count, 1, &new_count)) {
     PANIC("cannot allocate more than SIZE_MAX");
@@ -105,13 +105,13 @@ string_interner_large_enough(StringInterner *restrict string_interner) {
 
   size_t load_limit = (size_t)floor((double)string_interner->capacity *
                                     STRING_INTERNER_MAX_LOAD);
-  return new_count < load_limit;
+  return new_count >= load_limit;
 }
 
 StringView string_interner_insert(StringInterner *restrict string_interner,
                                   char const *data, size_t length) {
   assert(string_interner != NULL);
-  if (!string_interner_large_enough(string_interner)) {
+  if (string_interner_full(string_interner)) {
     size_t capacity = nearest_power_of_two(string_interner->capacity + 1);
     string_interner_grow(string_interner, capacity);
   }
@@ -122,6 +122,7 @@ StringView string_interner_insert(StringInterner *restrict string_interner,
     return string_to_view(element);
   }
 
+  string_interner->count++;
   StringView sv = {data, length};
   string_assign_view(element, sv);
   return string_to_view(element);

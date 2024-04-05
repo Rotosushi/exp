@@ -28,7 +28,7 @@
 SymbolTable symbol_table_create() {
   SymbolTable symbol_table;
   symbol_table.capacity = symbol_table.count = 0;
-  symbol_table.elements = NULL;
+  symbol_table.elements                      = NULL;
   return symbol_table;
 }
 
@@ -48,7 +48,7 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table) {
 static SymbolTableElement *
 symbol_table_find(SymbolTableElement *restrict elements, size_t capacity,
                   StringView name) {
-  size_t index = string_hash(name.ptr, name.length) % capacity;
+  size_t index                  = string_hash(name.ptr, name.length) % capacity;
   SymbolTableElement *tombstone = NULL;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
@@ -85,8 +85,8 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table,
 
       SymbolTableElement *dest =
           symbol_table_find(elements, capacity, element->name);
-      dest->name = element->name;
-      dest->type = element->type;
+      dest->name  = element->name;
+      dest->type  = element->type;
       dest->value = element->value;
       symbol_table->count += 1;
     }
@@ -98,7 +98,7 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table,
   symbol_table->elements = elements;
 }
 
-static bool symbol_table_large_enough(SymbolTable *restrict symbol_table) {
+static bool symbol_table_full(SymbolTable *restrict symbol_table) {
   size_t new_count;
   if (__builtin_add_overflow(symbol_table->count, 1, &new_count)) {
     PANIC("cannot allocate more than SIZE_MAX");
@@ -106,13 +106,13 @@ static bool symbol_table_large_enough(SymbolTable *restrict symbol_table) {
 
   size_t load_limit =
       (size_t)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
-  return new_count < load_limit;
+  return new_count >= load_limit;
 }
 
 bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
                          Type *type, Value value) {
   assert(symbol_table != NULL);
-  if (!symbol_table_large_enough(symbol_table)) {
+  if (symbol_table_full(symbol_table)) {
     size_t capacity = nearest_power_of_two(symbol_table->capacity + 1);
     symbol_table_grow(symbol_table, capacity);
   }
@@ -136,8 +136,8 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
     symbol_table->count += 1;
   }
 
-  element->name = name;
-  element->type = type;
+  element->name  = name;
+  element->type  = type;
   element->value = value;
   return 1;
 }
@@ -165,8 +165,8 @@ bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name) {
     return 0;
   }
 
-  element->name = string_view_create();
-  element->type = NULL;
+  element->name  = string_view_create();
+  element->type  = NULL;
   element->value = value_create();
   return 1;
 }
