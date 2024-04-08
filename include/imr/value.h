@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "imr/function.h"
 #include "imr/type.h"
 #include "utility/string_view.h"
 
@@ -26,9 +27,14 @@ typedef enum ValueKind {
   VALUEKIND_NIL,
   VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
+
+  // #TODO: string literals are better represented
+  // as arrays.
   VALUEKIND_STRING_LITERAL,
 
   VALUEKIND_TYPE,
+
+  VALUEKIND_FUNCTION,
 } ValueKind;
 
 /**
@@ -41,9 +47,12 @@ typedef struct Value {
     bool nil;
     bool boolean;
     long integer;
+
     StringView string_literal;
 
     Type *type;
+
+    Function function;
   };
 } Value;
 
@@ -94,6 +103,14 @@ Value value_create_string_literal(StringView sv);
  * @return Value
  */
 Value value_create_type(Type *t);
+
+/**
+ * @brief create a new (empty) function object
+ *
+ * @param name the name of the function
+ * @return Value
+ */
+Value value_create_function(StringView name);
 
 /**
  * @brief assign dest the value of source

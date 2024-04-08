@@ -21,23 +21,30 @@
 #include "frontend/lexer.h"
 
 /*
-  #NOTE: I am going to implement a subset of the total grammar to begin.
-  to wit:
 
-  top = declaration ";"
 
-  declaration = "const" identifier = affix
+  expression = "const" identifier = affix ";"
+             | "fn" identifier formal-args "->" type body
 
-  affix = basic // (binop precedece-parser)?
+  formal-args = "(" formal-arg-list? ")"
+
+  formal-arg-list = formal-arg ("," formal-arg)*
+
+  formal-arg = identifier ":" type
+
+  body = "{" expression* "}"
+
+  affix = basic (binop precedece-parser)*
 
   basic = literal
+        | unop basic
+        | "(" affix ")"
         //| identifier
-        //| unop basic
-        //| "(" affix ")"
 
   literal = integer
           | "true"
           | "false"
+          | "nil"
 */
 
 /**

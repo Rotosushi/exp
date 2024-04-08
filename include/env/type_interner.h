@@ -20,6 +20,17 @@
 
 #include "imr/type.h"
 
+typedef struct FunctionTypes {
+  size_t size;
+  size_t capacity;
+  Type *types;
+} FunctionTypes;
+
+FunctionTypes function_types_create();
+void function_types_destroy(FunctionTypes *restrict f);
+Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
+                            ArgumentTypes argument_types);
+
 /**
  * @brief The TypeInterner holds unique instances of
  * every type used.
@@ -33,6 +44,7 @@ typedef struct TypeInterner {
   Type boolean_type;
   Type integer_type;
   Type string_literal_type;
+  FunctionTypes function_types;
 } TypeInterner;
 
 /**
@@ -81,10 +93,18 @@ Type *type_interner_integer_type(TypeInterner *restrict type_interner);
  */
 Type *type_interner_string_literal_type(TypeInterner *restrict type_interner);
 
-size_t type_interner_type_to_index(TypeInterner *restrict type_interner,
-                                   Type *type);
-
-Type *type_interner_index_to_type(TypeInterner *restrict type_interner,
-                                  size_t index);
+/**
+ * @brief get the interned FunctionType
+ *
+ * @note takes ownership of the passed in argument_types
+ *
+ * @param type_interner
+ * @param return_type
+ * @param argument_types
+ * @return Type*
+ */
+Type *type_interner_function_type(TypeInterner *restrict type_interner,
+                                  Type *return_type,
+                                  ArgumentTypes argument_types);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

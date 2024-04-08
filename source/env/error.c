@@ -36,6 +36,8 @@ char const *error_code_cstring(ErrorCode code) {
     return "Expected: [)]. Found: ";
   case ERROR_PARSER_EXPECTED_SEMICOLON:
     return "Expected: [;]. Found: ";
+  case ERROR_PARSER_EXPECTED_COLON:
+    return "Expected: [:]. Found: ";
   case ERROR_PARSER_EXPECTED_EQUAL:
     return "Expected: [=]. Found: ";
   case ERROR_PARSER_EXPECTED_KEYWORD_CONST:

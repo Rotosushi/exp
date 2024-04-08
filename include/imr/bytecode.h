@@ -42,6 +42,10 @@ Bytecode bytecode_create();
  */
 void bytecode_destroy(Bytecode *restrict bytecode);
 
+void bytecode_clone(Bytecode *target, Bytecode *source);
+
+bool bytecode_equality(Bytecode *b1, Bytecode *b2);
+
 /**
  * @brief read the immediate value at the given index within
  * the given bytecode
@@ -64,6 +68,13 @@ size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
  * @param bytecode
  */
 void bytecode_emit_stop(Bytecode *restrict bytecode);
+
+/**
+ * @brief emit a return instruction
+ *
+ * @param bytecode
+ */
+void bytecode_emit_return(Bytecode *restrict bytecode);
 
 /**
  * @brief push a constant onto the stack

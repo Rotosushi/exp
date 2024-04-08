@@ -32,6 +32,7 @@ typedef struct Context {
   TypeInterner type_interner;
   SymbolTable global_symbols;
   Bytecode global_bytecode;
+  Bytecode *current_bytecode;
   Constants constants;
   Stack stack;
   // Registers registers;
@@ -71,6 +72,9 @@ Type *context_integer_type(Context *restrict context);
 
 Type *context_string_literal_type(Context *restrict context);
 
+Type *context_function_type(Context *restrict context, Type *return_type,
+                            ArgumentTypes argument_types);
+
 // symbol table functions
 bool context_insert_global_symbol(Context *restrict context, StringView name,
                                   Type *type, Value value);
@@ -92,11 +96,15 @@ Value context_stack_pop(Context *restrict context);
 
 Value *context_stack_peek(Context *restrict context);
 
-// global Bytecode functions
+// Bytecode functions
+Bytecode *context_current_bytecode(Context *restrict context);
+
 size_t context_read_immediate(Context *restrict context, size_t offset,
                               size_t bytes);
 
 void context_emit_stop(Context *restrict context);
+
+void context_emit_return(Context *restrict context);
 
 void context_emit_push_constant(Context *restrict context, size_t index);
 

@@ -16,8 +16,101 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+#include <stdlib.h>
+
 #include "imr/type.h"
+#include "utility/nearest_power.h"
 #include "utility/panic.h"
+
+ArgumentTypes argument_types_create() {
+  ArgumentTypes args;
+  args.capacity = 0;
+  args.size     = 0;
+  args.types    = NULL;
+  return args;
+}
+
+void argument_types_destroy(ArgumentTypes *restrict a) {
+  assert(a != NULL);
+  a->capacity = 0;
+  a->size     = 0;
+  free(a->types);
+  a->types = NULL;
+}
+
+bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2) {
+  assert(a1 != NULL);
+  assert(a2 != NULL);
+  if (a1 == a2) {
+    return 1;
+  }
+
+  if (a1->size != a2->size) {
+    return 0;
+  }
+
+  for (size_t i = 0; i < a1->size; ++i) {
+    Type *t1 = a1->types[i];
+    Type *t2 = a2->types[i];
+
+    if (!type_equality(t1, t2)) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+static bool argument_types_full(ArgumentTypes *restrict a) {
+  size_t new_size;
+  if (__builtin_add_overflow(a->size, 1, &new_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  return new_size >= a->capacity;
+}
+
+static void argument_types_grow(ArgumentTypes *restrict a) {
+  size_t new_capacity = nearest_power_of_two(a->capacity);
+
+  size_t alloc_size;
+  if (__builtin_mul_overflow(new_capacity, sizeof(Type *), &alloc_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  Type **result = realloc(a->types, alloc_size);
+  if (result == NULL) {
+    PANIC_ERRNO("realloc failed");
+  }
+  a->types    = result;
+  a->capacity = new_capacity;
+}
+
+void argument_types_append(ArgumentTypes *restrict a, Type *type) {
+  assert(a != NULL);
+
+  if (argument_types_full(a)) {
+    argument_types_grow(a);
+  }
+
+  a->types[a->size] = type;
+  a->size += 1;
+}
+
+bool function_type_equality(FunctionType const *f1, FunctionType const *f2) {
+  assert(f1 != NULL);
+  assert(f2 != NULL);
+  if (f1 == f2) {
+    return 1;
+  }
+
+  if (!type_equality(f1->return_type, f2->return_type)) {
+    return 0;
+  }
+
+  return argument_types_equality(&f1->argument_types, &f2->argument_types);
+}
 
 Type type_create_nil() {
   Type type;
@@ -47,25 +140,82 @@ Type type_create_string_literal() {
   return type;
 }
 
-bool type_equality(Type const *t1, Type const *t2) {
-  return t1->kind == t2->kind;
+Type type_create_function(Type *result, ArgumentTypes args) {
+  Type type;
+  type.kind          = TYPEKIND_FUNCTION;
+  type.function_type = (FunctionType){result, args};
+  return type;
 }
 
-String type_to_string(Type const *t) {
+void type_destroy(Type *type) {
+  switch (type->kind) {
+  case TYPEKIND_FUNCTION:
+    argument_types_destroy(&type->function_type.argument_types);
+    break;
+
+  // #NOTE: no other types dynamically allocate
+  default:
+    break;
+  }
+}
+
+bool type_equality(Type const *t1, Type const *t2) {
+  if (t1->kind != t2->kind) {
+    return 0;
+  }
+
+  switch (t1->kind) {
+  case TYPEKIND_FUNCTION:
+    return function_type_equality(&t1->function_type, &t2->function_type);
+
+  // #NOTE: scalar types are equal when their kinds are equal
+  default:
+    return 1;
+  }
+}
+
+static void type_to_string_impl(String *str, Type const *t) {
   switch (t->kind) {
   case TYPEKIND_NIL:
-    return string_from_cstring("Nil");
+    string_append(str, "Nil");
+    break;
 
   case TYPEKIND_BOOLEAN:
-    return string_from_cstring("Bool");
+    string_append(str, "Bool");
+    break;
 
   case TYPEKIND_INTEGER:
-    return string_from_cstring("Int");
+    string_append(str, "Int");
+    break;
 
   case TYPEKIND_STRING_LITERAL:
-    return string_from_cstring("StringLiteral");
+    string_append(str, "StringLiteral");
+    break;
+
+  case TYPEKIND_FUNCTION: {
+    FunctionType const *f  = &t->function_type;
+    ArgumentTypes const *a = &f->argument_types;
+
+    string_append(str, "(");
+    for (size_t i = 0; i < a->size; ++i) {
+      type_to_string_impl(str, a->types[i]);
+
+      if (i < (a->size - 1)) {
+        string_append(str, ", ");
+      }
+    }
+    string_append(str, ") -> ");
+    type_to_string_impl(str, f->return_type);
+    break;
+  }
 
   default:
     PANIC("bad TYPEKIND");
   }
+}
+
+String type_to_string(Type const *t) {
+  String result;
+  type_to_string_impl(&result, t);
+  return result;
 }

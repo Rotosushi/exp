@@ -52,6 +52,12 @@ typedef enum Opcode {
   // stop the interpretation of bytecode
   OP_STOP,
 
+  // OP_RETURN
+  // [op]
+  // return from the current function.
+  // the top value of the stack is the return value
+  OP_RETURN,
+
   // OP_PUSH_CONSTANT_U8
   // [op][A]
   // push a constant onto the stack
@@ -60,6 +66,7 @@ typedef enum Opcode {
   // OP_PUSH_CONSTANT_U*
   // [op][A][A][A][A] [A][A][A][A]
   // the same with a larger immediate index.
+  // a u16, u32, or u64
   OP_PUSH_CONSTANT_U16,
   OP_PUSH_CONSTANT_U32,
   OP_PUSH_CONSTANT_U64,

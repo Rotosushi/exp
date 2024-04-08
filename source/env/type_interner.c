@@ -16,67 +16,122 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+#include <stdlib.h>
 
 #include "env/type_interner.h"
+#include "utility/nearest_power.h"
 #include "utility/panic.h"
+
+FunctionTypes function_types_create() {
+  FunctionTypes f;
+  f.capacity = 0;
+  f.size     = 0;
+  f.types    = NULL;
+  return f;
+}
+
+void function_types_destroy(FunctionTypes *restrict f) {
+  assert(f != NULL);
+
+  for (size_t i = 0; i < f->size; ++i) {
+    type_destroy(&f->types[i]);
+  }
+
+  f->capacity = 0;
+  f->size     = 0;
+  free(f->types);
+  f->types = NULL;
+}
+
+static bool function_types_full(FunctionTypes *restrict f) {
+  size_t new_size;
+  if (__builtin_add_overflow(f->size, 1, &new_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  return new_size >= f->capacity;
+}
+
+static void function_types_grow(FunctionTypes *restrict f) {
+  size_t new_capacity = nearest_power_of_two(f->capacity + 1);
+
+  size_t alloc_size;
+  if (__builtin_mul_overflow(new_capacity, sizeof(Type), &alloc_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  Type *result = realloc(f->types, alloc_size);
+  if (result == NULL) {
+    PANIC_ERRNO("realloc failed");
+  }
+  f->types    = result;
+  f->capacity = new_capacity;
+}
+
+Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
+                            ArgumentTypes argument_types) {
+  assert(f != NULL);
+
+  Type function_type = type_create_function(return_type, argument_types);
+
+  for (size_t i = 0; i < f->size; ++i) {
+    Type *t = &f->types[i];
+    if (type_equality(&function_type, t)) {
+      argument_types_destroy(&argument_types);
+      return t;
+    }
+  }
+
+  if (function_types_full(f)) {
+    function_types_grow(f);
+  }
+
+  Type *new_type = &f->types[f->size];
+  *new_type      = function_type;
+  f->size += 1;
+  return new_type;
+}
 
 TypeInterner type_interner_create() {
   TypeInterner type_interner;
-  type_interner.nil_type = type_create_nil();
-  type_interner.boolean_type = type_create_boolean();
-  type_interner.integer_type = type_create_integer();
+  type_interner.nil_type            = type_create_nil();
+  type_interner.boolean_type        = type_create_boolean();
+  type_interner.integer_type        = type_create_integer();
   type_interner.string_literal_type = type_create_string_literal();
+  type_interner.function_types      = function_types_create();
   return type_interner;
 }
 
-void type_interner_destroy(
-    [[maybe_unused]] TypeInterner *restrict type_interner) {
+void type_interner_destroy(TypeInterner *restrict type_interner) {
+  assert(type_interner != NULL);
   return;
 }
 
 Type *type_interner_nil_type(TypeInterner *restrict type_interner) {
+  assert(type_interner != NULL);
   return &(type_interner->nil_type);
 }
 
 Type *type_interner_boolean_type(TypeInterner *restrict type_interner) {
+  assert(type_interner != NULL);
   return &(type_interner->boolean_type);
 }
 
 Type *type_interner_integer_type(TypeInterner *restrict type_interner) {
+  assert(type_interner != NULL);
   return &(type_interner->integer_type);
 }
 
 Type *type_interner_string_literal_type(TypeInterner *restrict type_interner) {
+  assert(type_interner != NULL);
   return &(type_interner->string_literal_type);
 }
 
-size_t type_interner_type_to_index(TypeInterner *restrict type_interner,
-                                   Type *type) {
-  if (type == &type_interner->nil_type) {
-    return 0;
-  } else if (type == &type_interner->boolean_type) {
-    return 1;
-  } else if (type == &type_interner->integer_type) {
-    return 2;
-  } else if (type == &type_interner->string_literal_type) {
-    return 3;
-  } else {
-    PANIC("unknown type");
-  }
-}
-
-Type *type_interner_index_to_type(TypeInterner *restrict type_interner,
-                                  size_t index) {
-  switch (index) {
-  case 0:
-    return &type_interner->nil_type;
-  case 1:
-    return &type_interner->boolean_type;
-  case 2:
-    return &type_interner->integer_type;
-  case 3:
-    return &type_interner->string_literal_type;
-  default:
-    PANIC("unkown index");
-  }
+Type *type_interner_function_type(TypeInterner *restrict type_interner,
+                                  Type *return_type,
+                                  ArgumentTypes argument_types) {
+  assert(type_interner != NULL);
+  return function_types_append(&type_interner->function_types, return_type,
+                               argument_types);
 }

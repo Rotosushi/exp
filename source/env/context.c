@@ -24,13 +24,14 @@
 
 Context context_create(ContextOptions *restrict options) {
   Context context;
-  context.options         = *options;
-  context.string_interner = string_interner_create();
-  context.type_interner   = type_interner_create();
-  context.global_symbols  = symbol_table_create();
-  context.global_bytecode = bytecode_create();
-  context.constants       = constants_create();
-  context.stack           = stack_create();
+  context.options          = *options;
+  context.string_interner  = string_interner_create();
+  context.type_interner    = type_interner_create();
+  context.global_symbols   = symbol_table_create();
+  context.global_bytecode  = bytecode_create();
+  context.current_bytecode = &context.global_bytecode;
+  context.constants        = constants_create();
+  context.stack            = stack_create();
   return context;
 }
 
@@ -41,6 +42,7 @@ void context_destroy(Context *restrict context) {
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));
   bytecode_destroy(&(context->global_bytecode));
+  context->current_bytecode = NULL;
   constants_destroy(&(context->constants));
   stack_destroy(&(context->stack));
 }
@@ -104,6 +106,13 @@ Type *context_string_literal_type(Context *restrict context) {
   return type_interner_string_literal_type(&(context->type_interner));
 }
 
+Type *context_function_type(Context *restrict context, Type *return_type,
+                            ArgumentTypes argument_types) {
+  assert(context != NULL);
+  return type_interner_function_type(&context->type_interner, return_type,
+                                     argument_types);
+}
+
 bool context_insert_global_symbol(Context *restrict context, StringView name,
                                   Type *type, Value value) {
   assert(context != NULL);
@@ -146,53 +155,63 @@ Value *context_stack_peek(Context *restrict context) {
   return stack_peek(&context->stack);
 }
 
+Bytecode *context_current_bytecode(Context *restrict context) {
+  return context->current_bytecode;
+}
+
 size_t context_read_immediate(Context *restrict context, size_t offset,
                               size_t bytes) {
   assert(context != NULL);
-  return bytecode_read_immediate(&context->global_bytecode, offset, bytes);
+  return bytecode_read_immediate(context_current_bytecode(context), offset,
+                                 bytes);
 }
 
 void context_emit_stop(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_stop(&context->global_bytecode);
+  bytecode_emit_stop(context_current_bytecode(context));
+}
+
+void context_emit_return(Context *restrict context) {
+  assert(context != NULL);
+  bytecode_emit_return(context_current_bytecode(context));
 }
 
 void context_emit_push_constant(Context *restrict context, size_t index) {
   assert(context != NULL);
-  bytecode_emit_push_constant(&context->global_bytecode, index);
+  bytecode_emit_push_constant(context_current_bytecode(context), index);
 }
 
 void context_emit_define_global_constant(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_define_global_constant(&context->global_bytecode);
+  bytecode_emit_define_global_constant(context_current_bytecode(context));
 }
 
 void context_emit_unop_minus(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_unop_minus(&context->global_bytecode);
+  bytecode_emit_unop_minus(context_current_bytecode(context));
 }
 
 void context_emit_binop_plus(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_binop_plus(&context->global_bytecode);
+  bytecode_emit_binop_plus(context_current_bytecode(context));
 }
 
 void context_emit_binop_minus(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_binop_minus(&context->global_bytecode);
+  bytecode_emit_binop_minus(context_current_bytecode(context));
 }
 
 void context_emit_binop_star(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_binop_star(&context->global_bytecode);
+  bytecode_emit_binop_star(context_current_bytecode(context));
 }
 
 void context_emit_binop_slash(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_binop_slash(&context->global_bytecode);
+  bytecode_emit_binop_slash(context_current_bytecode(context));
 }
 
 void context_emit_binop_percent(Context *restrict context) {
   assert(context != NULL);
-  bytecode_emit_binop_percent(&context->global_bytecode);
+  bytecode_emit_binop_percent(context_current_bytecode(context));
 }

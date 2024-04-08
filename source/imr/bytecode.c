@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "imr/bytecode.h"
 #include "imr/opcode.h"
@@ -35,16 +36,39 @@ Bytecode bytecode_create() {
 
 void bytecode_destroy(Bytecode *restrict bytecode) {
   assert(bytecode != NULL);
-
-  if ((bytecode->buffer == NULL)) {
-    bytecode->length   = 0;
-    bytecode->capacity = 0;
-    return;
-  }
-
   bytecode->length   = 0;
   bytecode->capacity = 0;
   free(bytecode->buffer);
+}
+
+void bytecode_clone(Bytecode *target, Bytecode *source) {
+  assert(target != NULL);
+  assert(source != NULL);
+  if (target == source) {
+    return;
+  }
+
+  bytecode_destroy(target);
+  target->length   = source->length;
+  target->capacity = source->capacity;
+
+  uint8_t *result = realloc(target->buffer, target->capacity);
+  if (result == NULL) {
+    PANIC_ERRNO("realloc failed");
+  }
+  target->buffer = result;
+
+  memcpy(target->buffer, source->buffer, target->length);
+}
+
+bool bytecode_equality(Bytecode *b1, Bytecode *b2) {
+  assert(b1 != NULL);
+  assert(b2 != NULL);
+  if (b1 == b2) {
+    return 1;
+  }
+
+  return memcmp(b1->buffer, b2->buffer, b1->length) == 0;
 }
 
 static bool bytecode_full(Bytecode *restrict bytecode) {
@@ -105,6 +129,10 @@ size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
 
 void bytecode_emit_stop(Bytecode *restrict bytecode) {
   bytecode_emit_byte(bytecode, (uint8_t)OP_STOP);
+}
+
+void bytecode_emit_return(Bytecode *restrict bytecode) {
+  bytecode_emit_byte(bytecode, (uint8_t)OP_RETURN);
 }
 
 void bytecode_emit_push_constant(Bytecode *restrict bytecode, size_t index) {

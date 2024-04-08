@@ -136,41 +136,149 @@ static MaybeError parse_precedence(Parser *restrict parser,
                                    Context *restrict context,
                                    Precedence precedence);
 
-static MaybeError declaration(Parser *restrict parser,
-                              Context *restrict context) {
+static MaybeError constant(Parser *restrict parser, Context *restrict context) {
+  nexttok(parser); // eat 'const'
+
+  if (!peek(parser, TOK_IDENTIFIER)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
+  }
+  StringView name = context_intern(context, curtxt(parser));
+  size_t index =
+      context_constants_append(context, value_create_string_literal(name));
+  context_emit_push_constant(context, index);
+
+  nexttok(parser);
+
+  if (!expect(parser, TOK_EQUAL)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_EQUAL);
+  }
+
+  MaybeError maybe = expression(parser, context);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  if (!expect(parser, TOK_SEMICOLON)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
+  }
+
+  context_emit_define_global_constant(context);
+
+  return success();
+}
+
+typedef struct ErrorOrType {
+  bool has_error;
+  union {
+    Error error;
+    Type *type;
+  };
+} ErrorOrType;
+
+static ErrorOrType parse_scalar_type(Parser *restrict parser,
+                                     Context *restrict context) {
+  ErrorOrType result;
   switch (parser->curtok) {
-  case TOK_CONST:
-    nexttok(parser);
+  case TOK_NIL_TYPE:
+    result.has_error = 0;
+    result.type      = context_nil_type(context);
+    break;
 
-    if (!peek(parser, TOK_IDENTIFIER)) {
-      return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
-    }
-    StringView name = context_intern(context, curtxt(parser));
-    size_t index =
-        context_constants_append(context, value_create_string_literal(name));
-    context_emit_push_constant(context, index);
+  case TOK_BOOL_TYPE:
+    result.has_error = 0;
+    result.type      = context_boolean_type(context);
+    break;
 
-    nexttok(parser);
-
-    if (!expect(parser, TOK_EQUAL)) {
-      return parser_error(parser, ERROR_PARSER_EXPECTED_EQUAL);
-    }
-
-    MaybeError maybe = expression(parser, context);
-    if (maybe.has_error) {
-      return maybe;
-    }
-
-    if (!expect(parser, TOK_SEMICOLON)) {
-      return parser_error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
-    }
-
-    context_emit_define_global_constant(context);
+  case TOK_INT_TYPE:
+    result.has_error = 0;
+    result.type      = context_integer_type(context);
     break;
 
   default:
-    unreachable();
+    result.has_error  = 1;
+    result.error.code = ERROR_PARSER_EXPECTED_TYPE;
+    string_append_view(&result.error.message, curtxt(parser));
+    break;
   }
+
+  nexttok(parser); // eat scalar type
+
+  return result;
+}
+
+static ErrorOrType parse_type(Parser *restrict parser,
+                              Context *restrict context) {}
+
+typedef struct ErrorOrFormalArgument {
+  bool has_error;
+  union {
+    Error error;
+    FormalArgument formal_argument;
+  };
+} ErrorOrFormalArgument;
+
+static ErrorOrFormalArgument parse_formal_argument(Parser *restrict parser,
+                                                   Context *restrict context) {
+  ErrorOrFormalArgument result;
+  FormalArgument formal_argument;
+
+  if (!peek(parser, TOK_IDENTIFIER)) {
+    result.has_error  = 1;
+    result.error.code = ERROR_PARSER_EXPECTED_IDENTIFIER;
+    string_append_view(&result.error.message, curtxt(parser));
+    return result;
+  }
+
+  StringView name = context_intern(context, curtxt(parser));
+
+  if (!expect(parser, TOK_COLON)) {
+    result.has_error  = 1;
+    result.error.code = ERROR_PARSER_EXPECTED_COLON;
+    string_append_view(&result.error.message, curtxt(parser));
+    return result;
+  }
+
+  ErrorOrType maybe = parse_type(parser, context);
+  if (maybe.has_error) {
+    result.has_error = 1;
+    result.error     = maybe.error;
+    return result;
+  }
+
+  result.has_error            = 0;
+  result.formal_argument.name = name;
+  result.formal_argument.type = maybe.type;
+  return result;
+}
+
+typedef struct ErrorOrFormalArgumentList {
+  bool has_error;
+  union {
+    Error error;
+    FormalArgumentList formal_argument_list;
+  };
+} ErrorOrFormalArgumentList;
+
+static ErrorOrFormalArgumentList
+parse_formal_argument_list(Parser *restrict parser, Context *restrict context) {
+  FormalArgumentList fal = formal_argument_list_create();
+}
+
+static MaybeError function(Parser *restrict parser, Context *restrict context) {
+  nexttok(parser); // eat 'fn'
+
+  // parse function arguments
+  //  -> function arguments are represented with an array of
+  //      identifier, type pairs
+  // parse return type
+  // parse function body
+  //  -> the body is represented with a new chunk of Bytecode
+  //      this means that the parser needs to emit bytecode
+  //      into this new chunk when parsing the body.
+  // create a new function constant
+  // add bytecode to add function to
+  //  the symbol table
+
   return success();
 }
 
@@ -184,9 +292,9 @@ static MaybeError parens(Parser *restrict parser, Context *restrict context) {
 
   if (!expect(parser, TOK_END_PAREN)) {
     return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
-  } else {
-    return success();
   }
+
+  return success();
 }
 
 static MaybeError unop(Parser *restrict parser, Context *restrict context) {
@@ -238,6 +346,23 @@ static MaybeError binop(Parser *restrict parser, Context *restrict context) {
   default:
     unreachable();
   }
+
+  return success();
+}
+
+static MaybeError return_(Parser *restrict parser, Context *restrict context) {
+  nexttok(parser); // eat "return"
+
+  MaybeError maybe = expression(parser, context);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  if (!expect(parser, TOK_SEMICOLON)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
+  }
+
+  context_emit_return(context);
 
   return success();
 }
@@ -362,10 +487,10 @@ static ParseRule *get_rule(Token token) {
       [TOK_OR]            = {          NULL,  NULL,   PREC_NONE},
       [TOK_XOR]           = {          NULL,  NULL,   PREC_NONE},
 
-      [TOK_FN]     = {          NULL,  NULL,   PREC_NONE},
+      [TOK_FN]     = {      function,  NULL,   PREC_NONE},
       [TOK_VAR]    = {          NULL,  NULL,   PREC_NONE},
-      [TOK_CONST]  = {   declaration,  NULL,   PREC_NONE},
-      [TOK_RETURN] = {          NULL,  NULL,   PREC_NONE},
+      [TOK_CONST]  = {      constant,  NULL,   PREC_NONE},
+      [TOK_RETURN] = {       return_,  NULL,   PREC_NONE},
 
       [TOK_NIL]            = {           nil,  NULL,   PREC_NONE},
       [TOK_TRUE]           = {  boolean_true,  NULL,   PREC_NONE},

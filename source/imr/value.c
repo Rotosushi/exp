@@ -23,34 +23,34 @@
 Value value_create() {
   Value value;
   value.kind = VALUEKIND_UNINITIALIZED;
-  value.nil = 0;
+  value.nil  = 0;
   return value;
 }
 
 Value value_create_nil() {
   Value value;
   value.kind = VALUEKIND_NIL;
-  value.nil = 0;
+  value.nil  = 0;
   return value;
 }
 
 Value value_create_boolean(bool b) {
   Value value;
-  value.kind = VALUEKIND_BOOLEAN;
+  value.kind    = VALUEKIND_BOOLEAN;
   value.boolean = b;
   return value;
 }
 
 Value value_create_integer(long i) {
   Value value;
-  value.kind = VALUEKIND_INTEGER;
+  value.kind    = VALUEKIND_INTEGER;
   value.integer = i;
   return value;
 }
 
 Value value_create_string_literal(StringView sv) {
   Value value;
-  value.kind = VALUEKIND_STRING_LITERAL;
+  value.kind           = VALUEKIND_STRING_LITERAL;
   value.string_literal = sv;
   return value;
 }
@@ -62,6 +62,14 @@ Value value_create_type(Type *type) {
   return value;
 }
 
+Value value_create_function(StringView name) {
+  Value value;
+  value.kind          = VALUEKIND_FUNCTION;
+  value.function      = function_create();
+  value.function.name = name;
+  return value;
+}
+
 void value_assign(Value *dest, Value *source) {
   if (dest == source) {
     return;
@@ -70,32 +78,37 @@ void value_assign(Value *dest, Value *source) {
   switch (source->kind) {
   case VALUEKIND_UNINITIALIZED:
     dest->kind = VALUEKIND_UNINITIALIZED;
-    dest->nil = 0;
+    dest->nil  = 0;
     break;
 
   case VALUEKIND_NIL:
     dest->kind = VALUEKIND_NIL;
-    dest->nil = 0;
+    dest->nil  = 0;
     break;
 
   case VALUEKIND_BOOLEAN:
-    dest->kind = VALUEKIND_BOOLEAN;
+    dest->kind    = VALUEKIND_BOOLEAN;
     dest->boolean = source->boolean;
     break;
 
   case VALUEKIND_INTEGER:
-    dest->kind = VALUEKIND_INTEGER;
+    dest->kind    = VALUEKIND_INTEGER;
     dest->integer = source->integer;
     break;
 
   case VALUEKIND_STRING_LITERAL:
-    dest->kind = VALUEKIND_STRING_LITERAL;
+    dest->kind           = VALUEKIND_STRING_LITERAL;
     dest->string_literal = source->string_literal;
     break;
 
   case VALUEKIND_TYPE:
     dest->kind = VALUEKIND_TYPE;
     dest->type = source->type;
+    break;
+
+  case VALUEKIND_FUNCTION:
+    dest->kind = VALUEKIND_FUNCTION;
+    function_clone(&dest->function, &source->function);
     break;
 
   default:
@@ -144,6 +157,13 @@ bool value_equality(Value *v1, Value *v2) {
 
     return type_equality(v1->type, v2->type);
 
+  case VALUEKIND_FUNCTION:
+    if (v2->kind != VALUEKIND_FUNCTION) {
+      return 0;
+    }
+
+    return function_equality(&v1->function, &v2->function);
+
   default:
     PANIC("bad VALUEKIND");
   }
@@ -168,6 +188,9 @@ Type *type_of(Value *restrict value, Context *restrict context) {
 
   case VALUEKIND_TYPE:
     return value->type;
+
+  case VALUEKIND_FUNCTION:
+    return function_type_of(&value->function, context);
 
   default:
     PANIC("bad VALUEKIND");

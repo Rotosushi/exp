@@ -24,7 +24,7 @@ typedef enum TypeKind {
   TYPEKIND_BOOLEAN,
   TYPEKIND_INTEGER,
   TYPEKIND_STRING_LITERAL,
-  // TYPEKIND_FUNCTION,
+  TYPEKIND_FUNCTION,
 } TypeKind;
 
 typedef struct NilType {
@@ -43,12 +43,24 @@ typedef struct StringLiteralType {
   char empty;
 } StringLiteralType;
 
-// struct Type;
-// typedef struct FunctionType {
-//   Type *return_type;
-//   size_t argument_count;
-//   Type *argument_types;
-// };
+struct Type;
+typedef struct ArgumentTypes {
+  size_t size;
+  size_t capacity;
+  struct Type **types;
+} ArgumentTypes;
+
+ArgumentTypes argument_types_create();
+void argument_types_destroy(ArgumentTypes *restrict a);
+bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2);
+void argument_types_append(ArgumentTypes *restrict a, struct Type *type);
+
+typedef struct FunctionType {
+  struct Type *return_type;
+  ArgumentTypes argument_types;
+} FunctionType;
+
+bool function_type_equality(FunctionType const *f1, FunctionType const *f2);
 
 /**
  * @brief represents Types in the compiler
@@ -61,7 +73,7 @@ typedef struct Type {
     BooleanType boolean_type;
     IntegerType integer_type;
     StringLiteralType string_literal_type;
-    // FunctionType function_type;
+    FunctionType function_type;
   };
 } Type;
 
@@ -93,6 +105,9 @@ Type type_create_integer();
  */
 Type type_create_string_literal();
 
+Type type_create_function(Type *result, ArgumentTypes args);
+
+void type_destroy(Type *type);
 /**
  * @brief equality compares types
  *

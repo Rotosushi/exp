@@ -18,6 +18,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/constants.c
+  ${EXP_SOURCE_DIR}/imr/function.c
   ${EXP_SOURCE_DIR}/imr/registers.c
   ${EXP_SOURCE_DIR}/imr/stack.c
   ${EXP_SOURCE_DIR}/imr/type.c
