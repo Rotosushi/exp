@@ -36,8 +36,8 @@ static MaybeError unop_minus(Context *restrict context) {
 }
 
 static MaybeError binop_plus(Context *restrict context) {
-  Value b            = context_stack_pop(context);
-  Type *b_type       = type_of(&b, context);
+  Value *b           = context_stack_pop(context);
+  Type *b_type       = type_of(b, context);
   Type *integer_type = context_integer_type(context);
   if (b_type != integer_type) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
@@ -49,13 +49,13 @@ static MaybeError binop_plus(Context *restrict context) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
   }
 
-  a->integer += b.integer;
+  a->integer += b->integer;
   return success();
 }
 
 static MaybeError binop_minus(Context *restrict context) {
-  Value b            = context_stack_pop(context);
-  Type *b_type       = type_of(&b, context);
+  Value *b           = context_stack_pop(context);
+  Type *b_type       = type_of(b, context);
   Type *integer_type = context_integer_type(context);
   if (b_type != integer_type) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
@@ -67,13 +67,13 @@ static MaybeError binop_minus(Context *restrict context) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
   }
 
-  a->integer -= b.integer;
+  a->integer -= b->integer;
   return success();
 }
 
 static MaybeError binop_star(Context *restrict context) {
-  Value b            = context_stack_pop(context);
-  Type *b_type       = type_of(&b, context);
+  Value *b           = context_stack_pop(context);
+  Type *b_type       = type_of(b, context);
   Type *integer_type = context_integer_type(context);
   if (b_type != integer_type) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
@@ -85,13 +85,13 @@ static MaybeError binop_star(Context *restrict context) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
   }
 
-  a->integer *= b.integer;
+  a->integer *= b->integer;
   return success();
 }
 
 static MaybeError binop_slash(Context *restrict context) {
-  Value b            = context_stack_pop(context);
-  Type *b_type       = type_of(&b, context);
+  Value *b           = context_stack_pop(context);
+  Type *b_type       = type_of(b, context);
   Type *integer_type = context_integer_type(context);
   if (b_type != integer_type) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
@@ -103,13 +103,13 @@ static MaybeError binop_slash(Context *restrict context) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
   }
 
-  a->integer /= b.integer;
+  a->integer /= b->integer;
   return success();
 }
 
 static MaybeError binop_percent(Context *restrict context) {
-  Value b            = context_stack_pop(context);
-  Type *b_type       = type_of(&b, context);
+  Value *b           = context_stack_pop(context);
+  Type *b_type       = type_of(b, context);
   Type *integer_type = context_integer_type(context);
   if (b_type != integer_type) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(b_type));
@@ -121,7 +121,7 @@ static MaybeError binop_percent(Context *restrict context) {
     return error(ERROR_INTERPRET_EXPECTED_TYPE_INT, type_to_string(a_type));
   }
 
-  a->integer %= b.integer;
+  a->integer %= b->integer;
   return success();
 }
 
@@ -146,7 +146,7 @@ static MaybeError interpret_impl(Context *restrict context) {
       ip += sizeof(uint8_t);
 
       Value *constant = context_constants_at(context, index);
-      context_stack_push(context, *constant);
+      context_stack_push(context, constant);
       break;
     }
 
@@ -156,7 +156,7 @@ static MaybeError interpret_impl(Context *restrict context) {
       ip += sizeof(uint16_t);
 
       Value *constant = context_constants_at(context, index);
-      context_stack_push(context, *constant);
+      context_stack_push(context, constant);
       break;
     }
 
@@ -166,7 +166,7 @@ static MaybeError interpret_impl(Context *restrict context) {
       ip += sizeof(uint32_t);
 
       Value *constant = context_constants_at(context, index);
-      context_stack_push(context, *constant);
+      context_stack_push(context, constant);
       break;
     }
 
@@ -176,17 +176,22 @@ static MaybeError interpret_impl(Context *restrict context) {
       ip += sizeof(uint64_t);
 
       Value *constant = context_constants_at(context, index);
-      context_stack_push(context, *constant);
+      context_stack_push(context, constant);
       break;
     }
 
     case OP_DEFINE_GLOBAL_CONSTANT: {
-      Value constant = context_stack_pop(context);
-      Type *type     = type_of(&constant, context);
-      Value name     = context_stack_pop(context);
-      assert(VALUE_IS(name, VALUEKIND_STRING_LITERAL));
-      context_insert_global_symbol(context, name.string_literal, type,
+      Value *constant = context_stack_pop(context);
+      Type *type      = type_of(constant, context);
+      Value *name     = context_stack_pop(context);
+      assert(name->kind == VALUEKIND_STRING_LITERAL);
+      context_insert_global_symbol(context, name->string_literal, type,
                                    constant);
+      break;
+    }
+
+    // #TODO:
+    case OP_RETURN: {
       break;
     }
 

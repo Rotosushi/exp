@@ -25,9 +25,9 @@
 
 Constants constants_create() {
   Constants constants;
-  constants.length = 0;
+  constants.length   = 0;
   constants.capacity = 0;
-  constants.buffer = NULL;
+  constants.buffer   = NULL;
   return constants;
 }
 
@@ -38,7 +38,12 @@ void constants_destroy(Constants *restrict constants) {
     return;
   }
 
-  constants->length = 0;
+  for (size_t i = 0; i < constants->length; ++i) {
+    Value *value = constants->buffer + i;
+    value_destroy(value);
+  }
+
+  constants->length   = 0;
   constants->capacity = 0;
   free(constants->buffer);
   constants->buffer = NULL;
@@ -60,7 +65,7 @@ static void constants_grow(Constants *restrict constants) {
   if (result == NULL) {
     PANIC_ERRNO("realloc failed");
   }
-  constants->buffer = result;
+  constants->buffer   = result;
   constants->capacity = new_capacity;
 }
 
@@ -71,7 +76,7 @@ size_t constants_append(Constants *restrict constants, Value value) {
     constants_grow(constants);
   }
 
-  size_t index = constants->length;
+  size_t index                         = constants->length;
   constants->buffer[constants->length] = value;
   constants->length += 1;
   return index;

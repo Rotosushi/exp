@@ -196,7 +196,7 @@ static void type_to_string_impl(String *str, Type const *t) {
     FunctionType const *f  = &t->function_type;
     ArgumentTypes const *a = &f->argument_types;
 
-    string_append(str, "(");
+    string_append(str, "fn (");
     for (size_t i = 0; i < a->size; ++i) {
       type_to_string_impl(str, a->types[i]);
 

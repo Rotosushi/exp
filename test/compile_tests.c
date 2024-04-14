@@ -57,6 +57,12 @@ static bool compile_test(char const *restrict body) {
   file_remove(assembly);
   file_remove(source);
   context_destroy(&context);
+
+  if (failed) {
+    fputs(body, stderr);
+    fputs(" failed to compile.", stderr);
+  }
+
   return failed;
 }
 

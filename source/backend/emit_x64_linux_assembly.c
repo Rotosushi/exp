@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "backend/emit_x64_linux_assembly.h"
+#include "imr/opcode.h"
 #include "intrinsics/alignment.h"
 #include "intrinsics/size.h"
 #include "utility/config.h"
@@ -103,15 +104,8 @@ static void directive_bss(FILE *file) { file_write("  .bss\n", file); }
 
 static void directive_align(Type *type, FILE *file) {
   size_t align = align_of(type);
-  size_t len = uintmax_safe_strlen(align, RADIX_DECIMAL);
-  char str[len + 1];
-  if (uintmax_to_str(align, str, RADIX_DECIMAL) == NULL) {
-    PANIC("conversion failed");
-  }
-  str[len] = '\0';
-
   file_write("  .align ", file);
-  file_write(str, file);
+  print_uintmax(align, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 
@@ -123,17 +117,35 @@ static void directive_align(Type *type, FILE *file) {
  * @param file
  */
 static void directive_size(StringView name, size_t size, FILE *file) {
-  size_t len = uintmax_safe_strlen(size, RADIX_DECIMAL);
-  char str[len + 1];
-  if (uintmax_to_str(size, str, RADIX_DECIMAL) == NULL) {
-    PANIC("conversion failed");
-  }
-  str[len] = '\0';
-
   file_write("  .size ", file);
   file_write(name.ptr, file);
   file_write(", ", file);
-  file_write(str, file);
+  print_uintmax(size, RADIX_DECIMAL, file);
+  file_write("\n", file);
+}
+
+/**
+ * @brief emits a .size directive with a value equal to the
+ * difference between the address of th directive and the
+ * address of the given label.
+ *
+ * @warning assumes the label is emitted before the .size directive,
+ * and that the label appears immediately before the addresses allocated
+ * for the data the label refers to.
+ *
+ * @param name
+ * @param file
+ */
+static void directive_size_label_relative(StringView name, FILE *file) {
+  file_write("  .size ", file);
+  file_write(name.ptr, file);
+  // the '.' symbol refers to the current address, the '-' is
+  // arithmetic subtraction, and the label refers to the address
+  // of the label. thus, label relative size computes to the
+  // numeric difference between the current address and the address
+  // of the .size directive
+  file_write(", .-", file);
+  file_write(name.ptr, file);
   file_write("\n", file);
 }
 
@@ -156,6 +168,10 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   case TYPEKIND_INTEGER:
   case TYPEKIND_STRING_LITERAL:
     file_write("@object", file);
+    break;
+
+  case TYPEKIND_FUNCTION:
+    file_write("@function", file);
     break;
 
   default:
@@ -215,6 +231,19 @@ static void directive_label(StringView name, FILE *file) {
   file_write(":\n", file);
 }
 
+static void instruction_ret(FILE *file) { file_write("  ret\n", file); }
+
+static void emit_x86_linux_start(FILE *file) {
+  file_write("  .globl _start\n", file);
+  file_wrtie("  .type _start, @function\n", file);
+  file_write("_start:\n", file);
+  file_write("  call main\n", file);
+  file_write("  mov %rax, %rdi\n", file);
+  file_write("  mov $60, %rax\n", file);
+  file_write("  syscall\n", file);
+  file_write("  .size _start, .-_start\n", file);
+}
+
 /**
  * @brief emit the header of the assembly file representing the
  * given context.
@@ -249,6 +278,111 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
   directive_noexecstack(file);
 }
 
+static void emit_x86_linux_function(Context *restrict context,
+                                    Function *function, FILE *file) {
+#define READBYTE() (*ip++)
+#define CURIDX() (size_t)(ip - body->buffer)
+  Bytecode *body = &function->body;
+  uint8_t *ip    = body->buffer;
+
+  while (1) {
+    switch ((Opcode)READBYTE()) {
+    case OP_STOP: {
+      return;
+    }
+
+    case OP_POP: {
+      context_stack_pop(context);
+    }
+
+    case OP_PUSH_CONSTANT_U8: {
+      size_t index = context_read_immediate(context, CURIDX(), sizeof(uint8_t));
+      ip += sizeof(uint8_t);
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U16: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint16_t));
+      ip += sizeof(uint16_t);
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U32: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint32_t));
+      ip += sizeof(uint32_t);
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, constant);
+      break;
+    }
+
+    case OP_PUSH_CONSTANT_U64: {
+      size_t index =
+          context_read_immediate(context, CURIDX(), sizeof(uint64_t));
+      ip += sizeof(uint64_t);
+
+      Value *constant = context_constants_at(context, index);
+      context_stack_push(context, constant);
+      break;
+    }
+
+    case OP_DEFINE_GLOBAL_CONSTANT: {
+      // #NOTE: this opcode only makes sense if we add semantics
+      // equivalent to c's static locals
+      PANIC("cannot define global within a function body");
+    }
+
+    case OP_RETURN: {
+    }
+
+    // #TODO:
+    case OP_UNOP_MINUS: {
+      break;
+    }
+
+    // #TODO:
+    case OP_BINOP_PLUS: {
+      break;
+    }
+
+    // #TODO:
+    case OP_BINOP_MINUS: {
+      break;
+    }
+
+    // #TODO:
+    case OP_BINOP_STAR: {
+      break;
+    }
+
+    // #TODO:
+    case OP_BINOP_SLASH: {
+      break;
+    }
+
+    // #TODO:
+    case OP_BINOP_PERCENT: {
+      break;
+    }
+
+    default: {
+      PANIC("bad Opcode");
+    }
+    }
+  }
+
+#undef READBYTE
+#undef CURIDX
+}
+
 /**
  * @brief emit the assembly for the given global constant symbol
  * into the assembly file representing the given context.
@@ -257,9 +391,9 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
  * @param element
  * @param file
  */
-static void
-emit_x64_linux_global_const([[maybe_unused]] Context *restrict context,
-                            SymbolTableElement *global, FILE *file) {
+static void emit_x64_linux_global_const(Context *restrict context,
+                                        SymbolTableElement *global,
+                                        FILE *file) {
   /*
 a global object declaration in assembly looks like:
   .globl <name>
@@ -277,8 +411,8 @@ compiler to prevent writes to constants.
 
 */
   StringView name = global->name;
-  Type *type = global->type;
-  Value *value = &(global->value);
+  Type *type      = global->type;
+  Value *value    = global->value;
   switch (type->kind) {
   case TYPEKIND_NIL:
     directive_globl(name, file);
@@ -327,6 +461,7 @@ compiler to prevent writes to constants.
     }
     break;
 
+  // #TODO: string literals are better represented as arrays,
   case TYPEKIND_STRING_LITERAL:
     directive_globl(name, file);
     if (value->kind == VALUEKIND_STRING_LITERAL) {
@@ -350,6 +485,18 @@ compiler to prevent writes to constants.
     }
     break;
 
+  case TYPEKIND_FUNCTION: {
+    directive_globl(name, file);
+    if (value->kind != VALUEKIND_FUNCTION) {
+      PANIC("cannot emit an uninitialized function.");
+    }
+    directive_text(file);
+    directive_type(name, type, file);
+    directive_label(name, file);
+    emit_x86_linux_function(context, &value->function, file);
+    directive_size_label_relative(name, file);
+  }
+
   default:
     PANIC("bad VALUEKIND");
   }
@@ -360,7 +507,7 @@ compiler to prevent writes to constants.
 
 void emit_x64_linux_assembly(Context *restrict context) {
   StringView path = context_output_path(context);
-  FILE *file = fopen(path.ptr, "w");
+  FILE *file      = fopen(path.ptr, "w");
   if (file == NULL) {
     PANIC_ERRNO("fopen failed");
   }

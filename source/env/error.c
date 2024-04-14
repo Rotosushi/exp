@@ -32,8 +32,16 @@ char const *error_code_cstring(ErrorCode code) {
   case ERROR_PARSER_INTEGER_TO_LARGE:
     return "Integer literal too large.";
 
+  case ERROR_PARSER_EXPECTED_BEGIN_BRACE:
+    return "Expected: [{]. Found: ";
+  case ERROR_PARSER_EXPECTED_END_BRACE:
+    return "Expected: [}]. Found: ";
+  case ERROR_PARSER_EXPECTED_BEGIN_PAREN:
+    return "Expected: [(]. Found: ";
   case ERROR_PARSER_EXPECTED_END_PAREN:
     return "Expected: [)]. Found: ";
+  case ERROR_PARSER_EXPECTED_RIGHT_ARROW:
+    return "Expected: [->]. Found: ";
   case ERROR_PARSER_EXPECTED_SEMICOLON:
     return "Expected: [;]. Found: ";
   case ERROR_PARSER_EXPECTED_COLON:

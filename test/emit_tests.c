@@ -31,9 +31,9 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
   srand((unsigned)time(NULL));
   bool failed = 0;
 
-  static char const source[] = EXP_TEST_DIR "/asm.exp";
+  static char const source[]   = EXP_TEST_DIR "/asm.exp";
   static char const assembly[] = EXP_TEST_DIR "/asm.s";
-  static char const object[] = EXP_TEST_DIR "/asm.o";
+  static char const object[]   = EXP_TEST_DIR "/asm.o";
 
   ContextOptions options = context_options_create();
   path_assign(&options.output, assembly);
@@ -42,16 +42,16 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
 
   Type *integer_type = context_integer_type(&context);
   Type *boolean_type = context_boolean_type(&context);
-  StringView g0 = context_intern(&context, string_view_from_cstring("g0"));
-  StringView g1 = context_intern(&context, string_view_from_cstring("g1"));
-  StringView g2 = context_intern(&context, string_view_from_cstring("g2"));
+  StringView g0      = context_intern(&context, string_view_from_cstring("g0"));
+  StringView g1      = context_intern(&context, string_view_from_cstring("g1"));
+  StringView g2      = context_intern(&context, string_view_from_cstring("g2"));
+  Value v0           = value_create_integer(rand());
+  Value v1           = value_create_integer(rand());
+  Value v2           = value_create_boolean((bool)(rand() % 2));
 
-  context_insert_global_symbol(&context, g0, integer_type,
-                               value_create_integer(rand()));
-  context_insert_global_symbol(&context, g1, integer_type,
-                               value_create_integer(rand()));
-  context_insert_global_symbol(&context, g2, boolean_type,
-                               value_create_boolean((bool)(rand() % 2)));
+  context_insert_global_symbol(&context, g0, integer_type, &v0);
+  context_insert_global_symbol(&context, g1, integer_type, &v1);
+  context_insert_global_symbol(&context, g2, boolean_type, &v2);
 
   emit_x64_linux_assembly(&context);
 

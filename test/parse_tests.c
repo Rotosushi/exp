@@ -34,6 +34,11 @@ bool test_parse(char const *body) {
 
   context_destroy(&context);
 
+  if (failure) {
+    fputs(body, stderr);
+    fputs(" failed to parse.", stderr);
+  }
+
   return failure;
 }
 

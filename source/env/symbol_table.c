@@ -55,8 +55,8 @@ symbol_table_find(SymbolTableElement *restrict elements, size_t capacity,
     // if the name is empty the element can be either
     // an empty element or a tombstone.
     if (element->name.ptr == NULL) {
-      // UNINITIALIZED value -> tombstone
-      if (element->value.kind == VALUEKIND_UNINITIALIZED) {
+      // NULL value -> tombstone
+      if (element->value == NULL) {
         return tombstone != NULL ? tombstone : element;
       } else { // otherwise -> tombstone element
         if (tombstone == NULL) {
@@ -110,7 +110,7 @@ static bool symbol_table_full(SymbolTable *restrict symbol_table) {
 }
 
 bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
-                         Type *type, Value value) {
+                         Type *type, Value *value) {
   assert(symbol_table != NULL);
   if (symbol_table_full(symbol_table)) {
     size_t capacity = nearest_power_of_two(symbol_table->capacity + 1);
@@ -132,7 +132,7 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
   // if we are replacing an empty element, we increment
   // the count (+1 element). otherwise we are replacing a tombstone
   // so we don't increment the count (-1 tombstone +1 element == +0).
-  if (element->value.kind == VALUEKIND_UNINITIALIZED) {
+  if (element->value == NULL) {
     symbol_table->count += 1;
   }
 
@@ -167,7 +167,7 @@ bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name) {
 
   element->name  = string_view_create();
   element->type  = NULL;
-  element->value = value_create();
+  element->value = NULL;
   return 1;
 }
 

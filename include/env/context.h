@@ -32,7 +32,7 @@ typedef struct Context {
   TypeInterner type_interner;
   SymbolTable global_symbols;
   Bytecode global_bytecode;
-  Bytecode *current_bytecode;
+  Bytecode *current_function_body;
   Constants constants;
   Stack stack;
   // Registers registers;
@@ -77,7 +77,7 @@ Type *context_function_type(Context *restrict context, Type *return_type,
 
 // symbol table functions
 bool context_insert_global_symbol(Context *restrict context, StringView name,
-                                  Type *type, Value value);
+                                  Type *type, Value *value);
 
 SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
                                                  StringView name);
@@ -90,15 +90,39 @@ Value *context_constants_at(Context *restrict context, size_t index);
 // Stack functions
 bool context_stack_empty(Context *restrict context);
 
-void context_stack_push(Context *restrict context, Value value);
+void context_stack_push(Context *restrict context, Value *value);
 
-Value context_stack_pop(Context *restrict context);
+Value *context_stack_pop(Context *restrict context);
 
 Value *context_stack_peek(Context *restrict context);
 
 // Bytecode functions
+
+/**
+ * @brief sets the current function body to emit bytecode into to <body>
+ * and returns the previous function body.
+ *
+ * @note the current function starts as NULL and this means
+ * bytecode will be emitted into the global bytecode. So this
+ * function may return NULL, and <body> is allowed to be NULL.
+ *
+ * @param context
+ * @param body
+ * @return Bytecode*
+ */
+Bytecode *context_current_function_body(Context *restrict context,
+                                        Bytecode *restrict body);
+
 Bytecode *context_current_bytecode(Context *restrict context);
 
+/**
+ * @brief reads an immediate from the current bytecode
+ *
+ * @param context
+ * @param offset
+ * @param bytes
+ * @return size_t
+ */
 size_t context_read_immediate(Context *restrict context, size_t offset,
                               size_t bytes);
 

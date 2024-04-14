@@ -17,21 +17,23 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
+#include <stdlib.h>
 
 #include "env/context.h"
 #include "utility/io.h"
+#include "utility/nearest_power.h"
 #include "utility/panic.h"
 
 Context context_create(ContextOptions *restrict options) {
   Context context;
-  context.options          = *options;
-  context.string_interner  = string_interner_create();
-  context.type_interner    = type_interner_create();
-  context.global_symbols   = symbol_table_create();
-  context.global_bytecode  = bytecode_create();
-  context.current_bytecode = &context.global_bytecode;
-  context.constants        = constants_create();
-  context.stack            = stack_create();
+  context.options               = *options;
+  context.string_interner       = string_interner_create();
+  context.type_interner         = type_interner_create();
+  context.global_symbols        = symbol_table_create();
+  context.global_bytecode       = bytecode_create();
+  context.current_function_body = NULL;
+  context.constants             = constants_create();
+  context.stack                 = stack_create();
   return context;
 }
 
@@ -42,7 +44,7 @@ void context_destroy(Context *restrict context) {
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));
   bytecode_destroy(&(context->global_bytecode));
-  context->current_bytecode = NULL;
+  context->current_function_body = NULL;
   constants_destroy(&(context->constants));
   stack_destroy(&(context->stack));
 }
@@ -114,7 +116,7 @@ Type *context_function_type(Context *restrict context, Type *return_type,
 }
 
 bool context_insert_global_symbol(Context *restrict context, StringView name,
-                                  Type *type, Value value) {
+                                  Type *type, Value *value) {
   assert(context != NULL);
   return symbol_table_insert(&(context->global_symbols), name, type, value);
 }
@@ -125,6 +127,15 @@ SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
   return symbol_table_lookup(&(context->global_symbols), name);
 }
 
+/**
+ * @brief append the given value to the constants array.
+ *
+ * @note takes ownership of the given value.
+ *
+ * @param context
+ * @param value
+ * @return size_t
+ */
 size_t context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
   return constants_append(&(context->constants), value);
@@ -140,12 +151,12 @@ bool context_stack_empty(Context *restrict context) {
   return stack_empty(&(context->stack));
 }
 
-void context_stack_push(Context *restrict context, Value value) {
+void context_stack_push(Context *restrict context, Value *value) {
   assert(context != NULL);
   stack_push(&context->stack, value);
 }
 
-Value context_stack_pop(Context *restrict context) {
+Value *context_stack_pop(Context *restrict context) {
   assert(context != NULL);
   return stack_pop(&context->stack);
 }
@@ -155,8 +166,26 @@ Value *context_stack_peek(Context *restrict context) {
   return stack_peek(&context->stack);
 }
 
+// this works for parsing, because parsing functions does so
+// by creating a new parsing function on the call stack,
+// so we don't need to maintain another stack.
+// however, interpretation occurs within a single frame.
+// so we will need a stack of Bytecode pointers to properly
+// handle calling functions.
+Bytecode *context_current_function_body(Context *restrict context,
+                                        Bytecode *restrict body) {
+  assert(context != NULL);
+  Bytecode *previous             = context->current_function_body;
+  context->current_function_body = body;
+  return previous;
+}
+
 Bytecode *context_current_bytecode(Context *restrict context) {
-  return context->current_bytecode;
+  if (context->current_function_body == NULL) {
+    return &context->global_bytecode;
+  } else {
+    return context->current_function_body;
+  }
 }
 
 size_t context_read_immediate(Context *restrict context, size_t offset,

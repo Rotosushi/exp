@@ -65,6 +65,8 @@ typedef struct Value {
  */
 Value value_create();
 
+void value_destroy(Value *restrict value);
+
 /**
  * @brief create a nil value
  *

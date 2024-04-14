@@ -22,13 +22,13 @@
 #include "env/symbol_table.h"
 
 bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
-  bool failure = 0;
-  Type integer_type = type_create_integer();
+  bool failure        = 0;
+  Type integer_type   = type_create_integer();
   Value integer_value = value_create_integer(rand());
-  StringView n0 = string_view_from_cstring(name);
+  StringView n0       = string_view_from_cstring(name);
 
   failure |=
-      !symbol_table_insert(symbol_table, n0, &integer_type, integer_value);
+      !symbol_table_insert(symbol_table, n0, &integer_type, &integer_value);
 
   SymbolTableElement *element = symbol_table_lookup(symbol_table, n0);
 
@@ -36,14 +36,14 @@ bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
 
   failure |= !(string_view_equality(n0, element->name));
   failure |= !(element->type == &integer_type);
-  failure |= !(value_equality(&element->value, &integer_value));
+  failure |= !(value_equality(element->value, &integer_value));
   return failure;
 }
 
 int symbol_table_tests([[maybe_unused]] int argc,
                        [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
-  bool failure = 0;
+  bool failure             = 0;
   SymbolTable symbol_table = symbol_table_create();
 
   failure |= test_symbol_table(&symbol_table, "foo");

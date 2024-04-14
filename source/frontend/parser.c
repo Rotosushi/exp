@@ -167,118 +167,191 @@ static MaybeError constant(Parser *restrict parser, Context *restrict context) {
   return success();
 }
 
-typedef struct ErrorOrType {
-  bool has_error;
-  union {
-    Error error;
-    Type *type;
-  };
-} ErrorOrType;
-
-static ErrorOrType parse_scalar_type(Parser *restrict parser,
-                                     Context *restrict context) {
-  ErrorOrType result;
+static MaybeError parse_scalar_type(Parser *restrict parser,
+                                    Context *restrict context, Type **type) {
   switch (parser->curtok) {
   case TOK_NIL_TYPE:
-    result.has_error = 0;
-    result.type      = context_nil_type(context);
+    *type = context_nil_type(context);
     break;
 
   case TOK_BOOL_TYPE:
-    result.has_error = 0;
-    result.type      = context_boolean_type(context);
+    *type = context_boolean_type(context);
     break;
 
   case TOK_INT_TYPE:
-    result.has_error = 0;
-    result.type      = context_integer_type(context);
+    *type = context_integer_type(context);
     break;
 
   default:
-    result.has_error  = 1;
-    result.error.code = ERROR_PARSER_EXPECTED_TYPE;
-    string_append_view(&result.error.message, curtxt(parser));
-    break;
+    return parser_error(parser, ERROR_PARSER_EXPECTED_TYPE);
   }
 
   nexttok(parser); // eat scalar type
-
-  return result;
+  return success();
 }
 
-static ErrorOrType parse_type(Parser *restrict parser,
-                              Context *restrict context) {}
+static MaybeError parse_type(Parser *restrict parser, Context *restrict context,
+                             Type **type) {
+  if (expect(parser, TOK_FN)) {
+    ArgumentTypes argument_types = argument_types_create();
+    // #TODO: parens could be used to predict a tuple-type
+    // which could be parsed as a scalar type, which could
+    // then make parens optional for an argument list of
+    // length one
+    if (!expect(parser, TOK_BEGIN_PAREN)) {
+      return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
+    }
 
-typedef struct ErrorOrFormalArgument {
-  bool has_error;
-  union {
-    Error error;
-    FormalArgument formal_argument;
-  };
-} ErrorOrFormalArgument;
+    do {
+      Type *arg        = NULL;
+      MaybeError maybe = parse_scalar_type(parser, context, &arg);
+      if (maybe.has_error) {
+        argument_types_destroy(&argument_types);
+        return maybe;
+      }
+      assert(arg != NULL);
 
-static ErrorOrFormalArgument parse_formal_argument(Parser *restrict parser,
-                                                   Context *restrict context) {
-  ErrorOrFormalArgument result;
-  FormalArgument formal_argument;
+      argument_types_append(&argument_types, arg);
+    } while (expect(parser, TOK_COMMA));
 
+    if (!expect(parser, TOK_END_PAREN)) {
+      argument_types_destroy(&argument_types);
+      return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
+    }
+
+    if (!expect(parser, TOK_RIGHT_ARROW)) {
+      argument_types_destroy(&argument_types);
+      return parser_error(parser, ERROR_PARSER_EXPECTED_RIGHT_ARROW);
+    }
+    Type *return_type = NULL;
+    MaybeError maybe  = parse_scalar_type(parser, context, &return_type);
+    if (maybe.has_error) {
+      argument_types_destroy(&argument_types);
+
+      return maybe;
+    }
+    assert(return_type != NULL);
+
+    *type = context_function_type(context, return_type, argument_types);
+    return success();
+  } else {
+    return parse_scalar_type(parser, context, type);
+  }
+}
+
+static MaybeError parse_formal_argument(Parser *restrict parser,
+                                        Context *restrict context,
+                                        FormalArgument *formal_argument) {
   if (!peek(parser, TOK_IDENTIFIER)) {
-    result.has_error  = 1;
-    result.error.code = ERROR_PARSER_EXPECTED_IDENTIFIER;
-    string_append_view(&result.error.message, curtxt(parser));
-    return result;
+    return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
   }
 
   StringView name = context_intern(context, curtxt(parser));
 
   if (!expect(parser, TOK_COLON)) {
-    result.has_error  = 1;
-    result.error.code = ERROR_PARSER_EXPECTED_COLON;
-    string_append_view(&result.error.message, curtxt(parser));
-    return result;
+    return parser_error(parser, ERROR_PARSER_EXPECTED_COLON);
   }
 
-  ErrorOrType maybe = parse_type(parser, context);
+  Type *type       = NULL;
+  MaybeError maybe = parse_type(parser, context, &type);
   if (maybe.has_error) {
-    result.has_error = 1;
-    result.error     = maybe.error;
-    return result;
+    return maybe;
   }
+  assert(type != NULL);
 
-  result.has_error            = 0;
-  result.formal_argument.name = name;
-  result.formal_argument.type = maybe.type;
-  return result;
+  *formal_argument = (FormalArgument){name, type};
+  return success();
 }
 
-typedef struct ErrorOrFormalArgumentList {
-  bool has_error;
-  union {
-    Error error;
-    FormalArgumentList formal_argument_list;
-  };
-} ErrorOrFormalArgumentList;
+static MaybeError parse_formal_argument_list(Parser *restrict parser,
+                                             Context *restrict context,
+                                             FormalArgumentList *fal) {
+  if (!expect(parser, TOK_BEGIN_PAREN)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
+  }
 
-static ErrorOrFormalArgumentList
-parse_formal_argument_list(Parser *restrict parser, Context *restrict context) {
-  FormalArgumentList fal = formal_argument_list_create();
+  if (!expect(parser, TOK_END_PAREN)) {
+    do {
+      FormalArgument arg;
+      MaybeError maybe = parse_formal_argument(parser, context, &arg);
+      if (maybe.has_error) {
+        return maybe;
+      }
+
+      formal_argument_list_append(fal, arg.name, arg.type);
+    } while (expect(parser, TOK_COMMA));
+
+    if (!expect(parser, TOK_END_PAREN)) {
+      return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
+    }
+  }
+
+  return success();
 }
 
 static MaybeError function(Parser *restrict parser, Context *restrict context) {
   nexttok(parser); // eat 'fn'
 
-  // parse function arguments
-  //  -> function arguments are represented with an array of
-  //      identifier, type pairs
-  // parse return type
-  // parse function body
-  //  -> the body is represented with a new chunk of Bytecode
-  //      this means that the parser needs to emit bytecode
-  //      into this new chunk when parsing the body.
-  // create a new function constant
-  // add bytecode to add function to
-  //  the symbol table
+  if (!peek(parser, TOK_IDENTIFIER)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
+  }
 
+  StringView name = context_intern(context, curtxt(parser));
+
+  nexttok(parser);
+
+  Value value        = value_create_function(name);
+  Function *function = &value.function;
+  Bytecode *previous_bytecode =
+      context_current_function_body(context, &function->body);
+
+  // parse function arguments
+  {
+    MaybeError maybe =
+        parse_formal_argument_list(parser, context, &function->arguments);
+    if (maybe.has_error) {
+      value_destroy(&value);
+      return maybe;
+    }
+  }
+
+  // parse return type
+  if (!expect(parser, TOK_RIGHT_ARROW)) {
+    return parser_error(parser, ERROR_PARSER_EXPECTED_RIGHT_ARROW);
+  }
+
+  {
+    MaybeError maybe = parse_type(parser, context, &function->return_type);
+    if (maybe.has_error) {
+      value_destroy(&value);
+
+      return maybe;
+    }
+  }
+
+  // parse function body
+  if (!expect(parser, TOK_BEGIN_BRACE)) {
+    value_destroy(&value);
+    return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_BRACE);
+  }
+
+  // #NOTE: due to the above call of "context_current_function_body"
+  // these calls to "expression" will emit bytecode into the
+  // body of the current function.
+  while (!expect(parser, TOK_END_BRACE)) {
+    MaybeError maybe = expression(parser, context);
+    if (maybe.has_error) {
+      value_destroy(&value);
+      context_current_function_body(context, previous_bytecode);
+      return maybe;
+    }
+  }
+
+  context_current_function_body(context, previous_bytecode);
+
+  size_t index = context_constants_append(context, value);
+  context_emit_push_constant(context, index);
+  context_emit_define_global_constant(context);
   return success();
 }
 

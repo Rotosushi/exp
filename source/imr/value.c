@@ -27,6 +27,21 @@ Value value_create() {
   return value;
 }
 
+void value_destroy(Value *value) {
+  switch (value->kind) {
+  case VALUEKIND_FUNCTION: {
+    Function *f = &value->function;
+    formal_argument_list_destroy(&f->arguments);
+    bytecode_destroy(&f->body);
+    break;
+  }
+
+  // #NOTE: all other valuekinds do no dynamic allocation.
+  default:
+    break;
+  }
+}
+
 Value value_create_nil() {
   Value value;
   value.kind = VALUEKIND_NIL;
