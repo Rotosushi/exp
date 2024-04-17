@@ -20,10 +20,10 @@
 
 #include "env/string_interner.h"
 
-int string_interner_tests([[maybe_unused]] int argc,
+i32 string_interner_tests([[maybe_unused]] i32 argc,
                           [[maybe_unused]] char *argv[]) {
   StringInterner si = string_interner_create();
-  bool failure = 0;
+  bool failure      = 0;
 
   StringView sv0 = string_interner_insert(&si, "hello", sizeof("hello"));
   StringView sv1 = string_interner_insert(&si, "world", sizeof("world"));

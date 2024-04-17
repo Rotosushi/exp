@@ -90,7 +90,7 @@ bool string_empty(String const *restrict string) {
   return string->length == 0;
 }
 
-int string_compare(String const *restrict s1, String const *restrict s2) {
+i32 string_compare(String const *restrict s1, String const *restrict s2) {
   assert(s1 != NULL);
   assert(s2 != NULL);
   // '\0' < any char

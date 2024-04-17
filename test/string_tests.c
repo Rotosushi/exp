@@ -162,7 +162,7 @@ bool test_string_insert(char const *d1, u64 offset, char const *d2,
   return failure;
 }
 
-int string_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
+i32 string_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   bool failure = 0;
   failure |= test_string_assign("", strlen(""));
   failure |= test_string_assign("hello", strlen("hello"));

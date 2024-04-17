@@ -22,21 +22,18 @@
  */
 #ifndef EXP_UTILITY_MINMAX_H
 #define EXP_UTILITY_MINMAX_H
+#include "utility/int_types.h"
 
-int imin(int a, int b);
-long lmin(long a, long b);
-long long llmin(long long a, long long b);
+i32 imin(i32 x, i32 y);
+i64 lmin(i64 x, i64 y);
 
-unsigned umin(unsigned a, unsigned b);
-unsigned long ulmin(unsigned long a, unsigned long b);
-unsigned long long ullmin(unsigned long long a, unsigned long long b);
+u32 umin(u32 x, u32 y);
+u64 ulmin(u64 x, u64 y);
 
-int imax(int a, int b);
-long lmax(long a, long b);
-long long llmax(long long a, long long b);
+i32 imax(i32 x, i32 y);
+i64 lmax(i64 x, i64 y);
 
-unsigned umax(unsigned a, unsigned b);
-unsigned long ulmax(unsigned long a, unsigned long b);
-unsigned long long ullmax(unsigned long long a, unsigned long long b);
+u32 umax(u32 x, u32 y);
+u64 ulmax(u64 x, u64 y);
 
 #endif // !EXP_UTILITY_MINMAX_H

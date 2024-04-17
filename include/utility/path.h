@@ -81,9 +81,9 @@ Path path_clone(Path *restrict path);
  *
  * @param p1
  * @param p2
- * @return int
+ * @return i32
  */
-int path_compare(Path const *restrict p1, Path const *restrict p2);
+i32 path_compare(Path const *restrict p1, Path const *restrict p2);
 
 /**
  * @brief appends the given path, placing a

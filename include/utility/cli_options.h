@@ -27,6 +27,6 @@ typedef struct CLIOptions {
 CLIOptions cli_options_create();
 void cli_options_destroy(CLIOptions *restrict cli_options);
 
-[[nodiscard]] CLIOptions parse_cli_options(int argc, char const *argv[]);
+[[nodiscard]] CLIOptions parse_cli_options(i32 argc, char const *argv[]);
 
 #endif // !EXP_UTILITY_CLI_OPTIONS_H

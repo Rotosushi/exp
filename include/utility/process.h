@@ -16,7 +16,7 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_PROCESS_H
 #define EXP_UTILITY_PROCESS_H
-#include <stddef.h>
+#include "utility/int_types.h"
 
 /**
  * @brief fork/execvp the given file, passing args
@@ -25,8 +25,8 @@
  *
  * @param file
  * @param args
- * @return int
+ * @return i32
  */
-int process(char const *file, char const *args[]);
+i32 process(char const *file, char const *args[]);
 
 #endif // !EXP_UTILITY_PROCESS_H

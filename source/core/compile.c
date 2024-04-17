@@ -24,7 +24,7 @@
 #include "core/interpret.h"
 #include "frontend/parser.h"
 
-int compile(Context *restrict context) {
+i32 compile(Context *restrict context) {
   if (parse_source(context) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }

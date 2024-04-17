@@ -30,7 +30,7 @@ static bool test_base10_uintmax_to_str(uintmax_t value) {
   uintmax_to_str(value, buffer, RADIX_DECIMAL);
 
   uintmax_t number;
-  int result = sscanf(buffer, "%ju", &number);
+  i32 result = sscanf(buffer, "%ju", &number);
   if (result == EOF) {
     PANIC_ERRNO("sscanf failed");
   }
@@ -42,7 +42,7 @@ static bool test_base10_uintmax_to_string(uintmax_t value) {
   String number = uintmax_to_string(value, RADIX_DECIMAL);
 
   uintmax_t scanned;
-  int result = sscanf(number.buffer, "%ju", &scanned);
+  i32 result = sscanf(number.buffer, "%ju", &scanned);
   if (result == EOF) {
     PANIC_ERRNO("sscanf failed");
   }
@@ -57,7 +57,7 @@ static bool test_base16_uintmax_to_str(uintmax_t value) {
   uintmax_to_str(value, buffer, RADIX_HEXADECIMAL);
 
   uintmax_t number;
-  int result = sscanf(buffer, "%jx", &number);
+  i32 result = sscanf(buffer, "%jx", &number);
   if (result == EOF) {
     PANIC_ERRNO("sscanf failed");
   }
@@ -71,7 +71,7 @@ static bool test_base8_uintmax_to_str(uintmax_t value) {
   uintmax_to_str(value, buffer, RADIX_OCTAL);
 
   uintmax_t number;
-  int result = sscanf(buffer, "%jo", &number);
+  i32 result = sscanf(buffer, "%jo", &number);
   if (result == EOF) {
     PANIC_ERRNO("sscanf failed");
   }
@@ -85,7 +85,7 @@ static bool test_base10_intmax_to_str(intmax_t value) {
   intmax_to_str(value, buffer, RADIX_DECIMAL);
 
   intmax_t number;
-  int result = sscanf(buffer, "%jd", &number);
+  i32 result = sscanf(buffer, "%jd", &number);
   if (result == EOF) {
     PANIC_ERRNO("sscanf failed");
   }
@@ -93,7 +93,7 @@ static bool test_base10_intmax_to_str(intmax_t value) {
   return value != number;
 }
 
-int number_conversion_tests([[maybe_unused]] int argc,
+i32 number_conversion_tests([[maybe_unused]] i32 argc,
                             [[maybe_unused]] char *argv[]) {
   bool failed = 0;
   srand((unsigned)time(NULL));

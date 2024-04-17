@@ -113,9 +113,9 @@ bool string_empty(String const *restrict string);
  *
  * @param s1
  * @param s2
- * @return int
+ * @return i32
  */
-int string_compare(String const *restrict s1, String const *restrict s2);
+i32 string_compare(String const *restrict s1, String const *restrict s2);
 
 /**
  * @brief resize the string to be able to hold at least

@@ -42,7 +42,7 @@ bool test_parse(char const *body) {
   return failure;
 }
 
-int parse_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
   failure |= test_parse("const x = 3;");

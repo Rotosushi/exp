@@ -47,14 +47,14 @@ void file_remove(char const *restrict path) {
 }
 
 void file_write(const char *restrict buffer, FILE *restrict stream) {
-  int code = fputs(buffer, stream);
+  i32 code = fputs(buffer, stream);
   if ((code == EOF) && (ferror(stream))) {
     PANIC_ERRNO("fputs failed");
   }
 }
 
 u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
-  char *result = fgets(buffer, (int)length, stream);
+  char *result = fgets(buffer, (i32)length, stream);
   if (result == NULL) {
     PANIC_ERRNO("fgets failed");
   }
@@ -68,7 +68,7 @@ u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
 #include <unistd.h>
 
 u64 file_length(FILE *restrict file) {
-  int fd = fileno(file);
+  i32 fd = fileno(file);
 
   struct stat info;
   if (fstat(fd, &info) != 0) {
@@ -84,7 +84,7 @@ u64 file_length(FILE *restrict file) {
     PANIC_ERRNO("fseek failed");
   }
 
-  long size = ftell(file);
+  i64 size = ftell(file);
   if (size == -1L) {
     PANIC_ERRNO("ftell failed");
   }

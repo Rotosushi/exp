@@ -465,7 +465,7 @@ static MaybeError boolean_false(Parser *restrict parser,
 
 static MaybeError integer(Parser *restrict parser, Context *restrict context) {
   StringView sv = curtxt(parser);
-  long integer  = strtol(sv.ptr, NULL, 10);
+  i64 integer   = strtol(sv.ptr, NULL, 10);
   if (errno == ERANGE) {
     return parser_error(parser, ERROR_PARSER_INTEGER_TO_LARGE);
   }
@@ -580,7 +580,7 @@ static ParseRule *get_rule(Token token) {
   return &rules[token];
 }
 
-int parse(char const *restrict buffer, Context *restrict context) {
+i32 parse(char const *restrict buffer, Context *restrict context) {
   assert(buffer != NULL);
   assert(context != NULL);
 
@@ -604,10 +604,10 @@ int parse(char const *restrict buffer, Context *restrict context) {
   return EXIT_SUCCESS;
 }
 
-int parse_source(Context *restrict context) {
+i32 parse_source(Context *restrict context) {
   assert(context != NULL);
   String buffer = context_buffer_source(context);
-  int result    = parse(buffer.buffer, context);
+  i32 result    = parse(buffer.buffer, context);
   string_destroy(&buffer);
   return result;
 }

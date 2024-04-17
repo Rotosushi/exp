@@ -66,7 +66,7 @@ static bool compile_test(char const *restrict body) {
   return failed;
 }
 
-int compile_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+i32 compile_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failed = 0;
 
   failed |= compile_test("const x = 3;\nconst y = 7;");

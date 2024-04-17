@@ -27,7 +27,7 @@
 #include "utility/io.h"
 #include "utility/process.h"
 
-int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
+i32 emit_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char const *argv[]) {
   srand((unsigned)time(NULL));
   bool failed = 0;
 
@@ -57,7 +57,7 @@ int emit_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
 
   char const *args[] = {assembly, "-o", object, NULL};
 
-  int code = process("as", args);
+  i32 code = process("as", args);
   if (code != 0) {
     failed = 1;
   } else {

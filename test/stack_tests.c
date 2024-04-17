@@ -21,7 +21,7 @@
 
 #include "imr/stack.h"
 
-int stack_tests([[maybe_unused]] int argc,
+i32 stack_tests([[maybe_unused]] i32 argc,
                 [[maybe_unused]] char const *argv[]) {
   srand((unsigned)time(NULL));
   Stack stack = stack_create();

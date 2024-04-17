@@ -32,7 +32,7 @@ bool test_constants(Constants *restrict constants, Value value) {
   }
 }
 
-int constants_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
+i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
   Constants constants = constants_create();
   bool failure        = 0;

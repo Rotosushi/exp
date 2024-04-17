@@ -250,7 +250,7 @@ static MaybeError interpret_impl(Context *restrict context) {
 #undef CURIDX
 }
 
-int interpret(Context *restrict context) {
+i32 interpret(Context *restrict context) {
   MaybeError maybe = interpret_impl(context);
   if (maybe.has_error) {
     error_print(&maybe.error, __FILE__, __LINE__);

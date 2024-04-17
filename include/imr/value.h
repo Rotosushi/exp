@@ -46,7 +46,7 @@ typedef struct Value {
   union {
     bool nil;
     bool boolean;
-    long integer;
+    i64 integer;
 
     StringView string_literal;
 
@@ -91,7 +91,7 @@ Value value_create_boolean(bool b);
  * @param i
  * @return Value
  */
-Value value_create_integer(long i);
+Value value_create_integer(i64 i);
 
 /**
  * @brief create a StringLiteral value

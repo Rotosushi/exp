@@ -127,7 +127,7 @@ bool test_path_replace_extension(char const *d1, char const *d2, char const *d3,
   return failure;
 }
 
-int path_tests([[maybe_unused]] int argc, [[maybe_unused]] char const *argv[]) {
+i32 path_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char const *argv[]) {
 
   bool failure = 0;
 

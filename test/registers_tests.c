@@ -21,13 +21,13 @@
 
 #include "imr/registers.h"
 
-int registers_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
+i32 registers_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
   Registers registers;
   bool failure = 0;
 
-  Value *r0 = registers_at(&registers, 0);
-  *r0 = value_create_integer(rand());
+  Value *r0   = registers_at(&registers, 0);
+  *r0         = value_create_integer(rand());
   Value *r0_1 = registers_at(&registers, 0);
   failure |= !value_equality(r0, r0_1);
 

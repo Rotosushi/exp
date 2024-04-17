@@ -56,7 +56,7 @@ Value value_create_boolean(bool b) {
   return value;
 }
 
-Value value_create_integer(long i) {
+Value value_create_integer(i64 i) {
   Value value;
   value.kind    = VALUEKIND_INTEGER;
   value.integer = i;

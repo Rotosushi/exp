@@ -34,7 +34,7 @@ static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
   return 0;
 }
 
-bool test_options(int argc, char const *argv[], char const *d1, u64 d1_len) {
+bool test_options(i32 argc, char const *argv[], char const *d1, u64 d1_len) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
@@ -49,10 +49,10 @@ bool test_options(int argc, char const *argv[], char const *d1, u64 d1_len) {
   return failure;
 }
 
-int options_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+i32 options_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
-  int test_argc           = 2;
+  i32 test_argc           = 2;
   char const *test_argv[] = {"options_tests", "hello.txt", NULL};
 
   failure |=

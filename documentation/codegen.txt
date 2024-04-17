@@ -15,40 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
-okay. so the parser generates IR of some form, 
-and the backend needs to use that IR to produce assembly.
-we currently use bytecode tailored for a stack based VM.
-however that does not meet 
-the requirements of use as it currently stands. 
-as such the IR needs to be reworked. 
-
-the major concern is that we need to implement a 
-register allocation strategy.
- (looks like graph-coloring or 
-linear scan are the widely accepted strategies. som variant of 
-one of those two is what I am aiming for.)
-and we need an IR that can be manipulated such that 
-optimization can be performed. this is of interest for moving beyond 
-the current issue.
-
-optimizations are often adding/replacing/transforming/removing
-single instructions blocks of instructions, or entire functions.
-
-in order to allocate registers for variable useage, we need to 
-model the usage of a variable in some data-structure, to the 
-extent required for the register allocation strategy. 
-graph coloring requires a graph data structure, 
-whereas linear scan requires a set of liveness-ranges. 
-
-any register allocation strategy, or optimization is going to 
-need to use various metadata related to a given piece or segment 
-of IR. and the current bytecode based approach does not easily 
-allow for metadata to be produced which is associated on the level 
-of single instructions. basic blocks do not exist, which complicates 
-creating an SSA form.
-
 some basic questions:
-1 - what is the in memory representation (IMR) of the intermediate representation (IR)?
+1 - what is the in memory representation (IMR) of 
+    the intermediate representation (IR)?
 2 - how does the parser create the IR from the source code?
 
 3 - what is the IMR of the control flow graph (CFG)?
@@ -211,6 +180,36 @@ represent something which can be used to synthesize the value of the symbol.
 
 
 
+TODO:
+  1 - we need a structure which can represent the local variables of a function 
+      which can be accessed by instructions using an integer index; such that
+      bytecode instructions can be encoded which reference these variables.
 
+      currently we use a constants array to "map" indexes to values, the value 
+      is the name, and that name is used as a key in a symbol table lookup, 
+      where the symbol table maps the name to the actual value of the variable.
+
+      this is slow and indirect, albeit semi-necessary because name-value maps 
+      are the basis of variable assignment. 
+
+      what I am proposing is to take a page from both clox local variables, and 
+      LLVM local variables. (clox takes a page from lua for locals, so it's
+      transitively taking a page from lua. but I digress.)
+      the numbered locals approach of LLVM, local names can 
+      be easily generated in a new local scope by taking the names %0, %1, %2, ...,
+      and how locals are stored on the stack in clox, that is, the value of the 
+      local is stored in some stack slot, and instructions which reference that 
+      local simply encode an offset from a "frame pointer" in order to access the 
+      value of the local. 
+
+      so when we generate an instruction which uses a local variable (%n),
+      we encode an index (n) which when added to a frame pointer (f) computes a pointer to the 
+      value of the local. (locals + n + f -> Value *) 
+      (and this approach works for parameters/arguments as well, they can simply take 
+      up the first slots within a functions frame.)
+      and when we want to allocate a new local we can simply use the next available 
+      slot (%n+1)
+      and in order to mimic SSA form, we generate new locals as the result of each 
+      bytecode instruction, (add %n+1, %n, %n-1).
 
 

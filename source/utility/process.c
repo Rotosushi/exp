@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int process(char const *cmd, char const *args[]) {
+i32 process(char const *cmd, char const *args[]) {
   pid_t pid = fork();
   if (pid < 0) {
     PANIC_ERRNO("fork failed");

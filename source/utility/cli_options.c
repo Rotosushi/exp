@@ -53,11 +53,11 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
 #if defined(EXP_HOST_OS_LINUX)
 #include <getopt.h>
 
-CLIOptions parse_cli_options(int argc, char const *argv[]) {
-  CLIOptions options = cli_options_create();
+CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
+  CLIOptions options               = cli_options_create();
   static char const *short_options = "hvo:";
 
-  int option = 0;
+  i32 option = 0;
   while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
     switch (option) {
     case 'h': {

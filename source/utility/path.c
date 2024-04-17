@@ -53,7 +53,7 @@ Path path_clone(Path *restrict path) {
   return result;
 }
 
-int path_compare(Path const *restrict p1, Path const *restrict p2) {
+i32 path_compare(Path const *restrict p1, Path const *restrict p2) {
   assert(p1 != NULL);
   assert(p2 != NULL);
   return string_compare(&p1->string, &p2->string);

@@ -18,34 +18,18 @@
  */
 #include "utility/minmax.h"
 
-int imin(int a, int b) { return (a > b) ? b : a; }
+i32 imin(i32 x, i32 y) { return (x > y) ? y : x; }
 
-long lmin(long a, long b) { return (a > b) ? b : a; }
+i64 lmin(i64 x, i64 y) { return (x > y) ? y : x; }
 
-long long llmin(long long a, long long b) { return (a > b) ? b : a; }
+u32 umin(u32 x, u32 y) { return (x > y) ? y : x; }
 
-unsigned umin(unsigned a, unsigned b) { return (a > b) ? b : a; }
+u64 ulmin(u64 x, u64 y) { return (x > y) ? y : x; }
 
-unsigned long ulmin(unsigned long a, unsigned long b) {
-  return (a > b) ? b : a;
-}
+i32 imax(i32 x, i32 y) { return (x > y) ? x : y; }
 
-unsigned long long ullmin(unsigned long long a, unsigned long long b) {
-  return (a > b) ? b : a;
-}
+i64 lmax(i64 x, i64 y) { return (x > y) ? x : y; }
 
-int imax(int a, int b) { return (a > b) ? a : b; }
+u32 umax(u32 x, u32 y) { return (x > y) ? x : y; }
 
-long lmax(long a, long b) { return (a > b) ? a : b; }
-
-long long llmax(long long a, long long b) { return (a > b) ? a : b; }
-
-unsigned umax(unsigned a, unsigned b) { return (a > b) ? a : b; }
-
-unsigned long ulmax(unsigned long a, unsigned long b) {
-  return (a > b) ? a : b;
-}
-
-unsigned long long ullmax(unsigned long long a, unsigned long long b) {
-  return (a > b) ? a : b;
-}
+u64 ulmax(u64 x, u64 y) { return (x > y) ? x : y; }

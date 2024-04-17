@@ -22,16 +22,16 @@
 #include "env/context.h"
 #include "utility/cli_options.h"
 
-int main(int argc, char const *argv[], [[maybe_unused]] char *envv[]) {
+i32 main(i32 argc, char const *argv[], [[maybe_unused]] char *envv[]) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   ContextOptions options = context_options_create();
-  options.source = path_clone(&cli_options.source);
-  options.output = path_clone(&cli_options.output);
+  options.source         = path_clone(&cli_options.source);
+  options.output         = path_clone(&cli_options.output);
 
   Context context = context_create(&options);
 
-  int result = compile(&context);
+  i32 result = compile(&context);
 
   context_destroy(&context);
   cli_options_destroy(&cli_options);

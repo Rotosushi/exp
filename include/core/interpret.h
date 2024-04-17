@@ -33,8 +33,8 @@
  * interpretation, and so that's what I went with.
  *
  * @param context
- * @return int
+ * @return i32
  */
-int interpret(Context *restrict context);
+i32 interpret(Context *restrict context);
 
 #endif // !EXP_CORE_INTERPRET_H

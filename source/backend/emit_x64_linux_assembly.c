@@ -281,7 +281,7 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   }
 }
 
-static void directive_quad(long value, FILE *file) {
+static void directive_quad(i64 value, FILE *file) {
   u64 len = intmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (intmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
@@ -351,7 +351,7 @@ static void register_name(RegisterName name, FILE *file) {
   }
 }
 
-static void immediate(long value, FILE *file) {
+static void immediate(i64 value, FILE *file) {
   file_write("$", file);
   print_intmax(value, RADIX_DECIMAL, file);
 }
@@ -392,8 +392,7 @@ static void instruction_call(StringView name, FILE *file) {
   file_write("\n", file);
 }
 
-static void instruction_mov_immediate(long value, RegisterName reg,
-                                      FILE *file) {
+static void instruction_mov_immediate(i64 value, RegisterName reg, FILE *file) {
   file_write("  mov ", file);
   immediate(value, file);
   file_write(" ", file);
@@ -404,7 +403,7 @@ static void instruction_mov_immediate(long value, RegisterName reg,
 /**
  * @brief emit the function which performs the exit
  * x64 linux syscall. the C function signature:
- * [[noreturn]] void exit(int status);
+ * [[noreturn]] void exit(i32 status);
  *
  * @note the parameter is passed in rdi
  *
@@ -562,7 +561,7 @@ a global object declaration in assembly looks like:
   .type <name>, @object
   .size <name>, <sizeof>
 <name>:
-  .byte <init> | .zero <sizeof> | .quad <init> | .int <init> | ...
+  .byte <init> | .zero <sizeof> | .quad <init> | .i32 <init> | ...
 
 -- all global symbols can go into the .data section. unless they
 are uninitialized, then they are default initialized to zero, and can go into

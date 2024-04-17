@@ -24,8 +24,8 @@
  * into the assembly output file given by ContextOptions.
  *
  * @param context
- * @return int
+ * @return i32
  */
-int compile(Context *restrict context);
+i32 compile(Context *restrict context);
 
 #endif // !EXP_CORE_COMPILE_H

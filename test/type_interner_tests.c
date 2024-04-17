@@ -20,10 +20,10 @@
 
 #include "env/type_interner.h"
 
-int type_interner_tests([[maybe_unused]] int argc,
+i32 type_interner_tests([[maybe_unused]] i32 argc,
                         [[maybe_unused]] char *argv[]) {
   TypeInterner ti = type_interner_create();
-  bool failure = 0;
+  bool failure    = 0;
 
   Type *t0 = type_interner_integer_type(&ti);
   Type *t1 = type_interner_integer_type(&ti);

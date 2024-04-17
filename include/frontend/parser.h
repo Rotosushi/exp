@@ -50,10 +50,10 @@
  *
  * @param buffer the buffer to parse
  * @param context the context to parse within
- * @return int EXIT_FAILURE or EXIT_SUCCESS
+ * @return i32 EXIT_FAILURE or EXIT_SUCCESS
  */
-int parse(char const *restrict buffer, Context *restrict context);
+i32 parse(char const *restrict buffer, Context *restrict context);
 
-int parse_source(Context *restrict context);
+i32 parse_source(Context *restrict context);
 
 #endif // !EXP_FRONTEND_PARSER_H

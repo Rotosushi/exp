@@ -40,7 +40,7 @@ bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
   return failure;
 }
 
-int symbol_table_tests([[maybe_unused]] int argc,
+i32 symbol_table_tests([[maybe_unused]] i32 argc,
                        [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
   bool failure             = 0;
