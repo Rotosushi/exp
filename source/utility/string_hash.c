@@ -21,13 +21,13 @@
 // hash algorithm based on djb2
 // https://stackoverflow.com/questions/7666509/hash-function-for-string
 // specifically this answer https://stackoverflow.com/a/69812981
-size_t string_hash(char const *restrict string, size_t length) {
+u64 string_hash(char const *restrict string, u64 length) {
   // generated randomly using: https://asecuritysite.com/encryption/nprimes?y=64
   // no testing has been done to check if this prime is "good"
 #define LARGE_PRIME 11931085111904720063ul
 
-  size_t hash = 5381;
-  for (size_t i = 0; i < length; ++i)
+  u64 hash = 5381;
+  for (u64 i = 0; i < length; ++i)
     hash = (LARGE_PRIME * hash) + (unsigned char)(string[i]);
   return hash;
 

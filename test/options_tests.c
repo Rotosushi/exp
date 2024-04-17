@@ -21,8 +21,8 @@
 
 #include "utility/cli_options.h"
 
-static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
-                          const char *restrict s2, size_t s2_len) {
+static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
+                          const char *restrict s2, u64 s2_len) {
   if (s1_len != s2_len) {
     return 1;
   }
@@ -34,7 +34,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
   return 0;
 }
 
-bool test_options(int argc, char const *argv[], char const *d1, size_t d1_len) {
+bool test_options(int argc, char const *argv[], char const *d1, u64 d1_len) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
@@ -52,7 +52,7 @@ bool test_options(int argc, char const *argv[], char const *d1, size_t d1_len) {
 int options_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
-  int test_argc = 2;
+  int test_argc           = 2;
   char const *test_argv[] = {"options_tests", "hello.txt", NULL};
 
   failure |=

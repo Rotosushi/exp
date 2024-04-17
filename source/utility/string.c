@@ -48,7 +48,7 @@ void string_destroy(String *restrict str) {
 }
 
 static void string_assign_impl(String *restrict str, char const *restrict data,
-                               size_t length) {
+                               u64 length) {
   string_resize(str, length);
   memcpy(str->buffer, data, length);
   str->buffer[length] = '\0';
@@ -61,8 +61,8 @@ StringView string_to_view(String const *restrict str) {
   return sv;
 }
 
-StringView string_to_view_at(String const *restrict str, size_t offset,
-                             size_t length) {
+StringView string_to_view_at(String const *restrict str, u64 offset,
+                             u64 length) {
   assert(str != NULL);
   assert(offset <= str->length);
   assert((offset + length) <= str->length);
@@ -104,7 +104,7 @@ int string_compare(String const *restrict s1, String const *restrict s2) {
   }
 }
 
-void string_resize(String *restrict str, size_t capacity) {
+void string_resize(String *restrict str, u64 capacity) {
   assert(str != NULL);
   assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
@@ -128,16 +128,16 @@ void string_resize(String *restrict str, size_t capacity) {
   str->buffer[str->length] = '\0';
 }
 
-void string_reserve_more(String *restrict str, size_t more_capacity) {
+void string_reserve_more(String *restrict str, u64 more_capacity) {
   assert(str != NULL);
   assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
-  size_t sum_capacity;
+  u64 sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
   assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  size_t new_capacity = nearest_power_of_two(sum_capacity);
+  u64 new_capacity = nearest_power_of_two(sum_capacity);
 
   char *new_buffer = realloc(str->buffer, new_capacity * sizeof(char));
   if (new_buffer == NULL) {
@@ -151,7 +151,7 @@ void string_reserve_more(String *restrict str, size_t more_capacity) {
 void string_assign(String *restrict str, const char *restrict data) {
   assert(str != NULL);
 
-  size_t data_length = strlen(data);
+  u64 data_length = strlen(data);
 
   string_assign_impl(str, data, data_length);
 }
@@ -172,7 +172,7 @@ void string_move(String *restrict s1, String *restrict s2) {
 }
 
 static void string_append_impl(String *restrict str, char const *restrict data,
-                               size_t size) {
+                               u64 size) {
   if (size == 0) {
     return;
   }
@@ -222,7 +222,7 @@ void string_append_char(String *restrict str, const char c) {
 
   4 offset > 0, (offset + length) < str->length
 */
-void string_erase(String *restrict str, size_t offset, size_t length) {
+void string_erase(String *restrict str, u64 offset, u64 length) {
   assert(str != NULL);
   assert(offset <= str->length);
   assert((offset + length) <= str->length);
@@ -235,11 +235,11 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
   }
 
   // erase <length> characters starting from <str->buffer + offset>
-  char *pos          = str->buffer + offset;
-  char *rest         = pos + length;
-  size_t rest_length = (size_t)((str->buffer + str->length) - rest);
+  char *pos       = str->buffer + offset;
+  char *rest      = pos + length;
+  u64 rest_length = (u64)((str->buffer + str->length) - rest);
   memmove(pos, rest, rest_length);
-  size_t new_length       = offset + rest_length;
+  u64 new_length          = offset + rest_length;
   str->buffer[new_length] = '\0';
   str->length             = new_length;
   return;
@@ -265,15 +265,15 @@ void string_erase(String *restrict str, size_t offset, size_t length) {
 
   case 4, we have to resize the existing buffer, then we can write
 */
-void string_insert(String *restrict str, size_t offset,
+void string_insert(String *restrict str, u64 offset,
                    char const *restrict data) {
   assert(str != NULL);
   assert(offset <= str->length);
-  size_t length = strlen(data);
+  u64 length = strlen(data);
 
   if ((offset + length) >= str->capacity) {
     string_resize(str, (offset + length));
-    size_t added_length = (offset + length) - str->length;
+    u64 added_length = (offset + length) - str->length;
     str->length += added_length;
   }
 

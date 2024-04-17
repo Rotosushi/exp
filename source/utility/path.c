@@ -82,8 +82,8 @@ void path_replace_extension(Path *restrict p1, const Path *restrict p2) {
   // /some/kind/of/.file
 
   // search for the last '/' in the string
-  size_t length = p1->string.length;
-  size_t cursor = length;
+  u64 length   = p1->string.length;
+  u64 cursor   = length;
   char *buffer = p1->string.buffer;
   while ((cursor != 0) && (buffer[cursor] != '/')) {
     --cursor;
@@ -108,9 +108,9 @@ void path_replace_extension(Path *restrict p1, const Path *restrict p2) {
   if (p2 == NULL) {
     // remove the extension
     String const *str = &p1->string;
-    char *pos = str->buffer + cursor;
-    char *rest = pos + str->length;
-    size_t rest_length = (size_t)((str->buffer + str->length) - rest);
+    char *pos         = str->buffer + cursor;
+    char *rest        = pos + str->length;
+    u64 rest_length   = (u64)((str->buffer + str->length) - rest);
     string_erase(&(p1->string), cursor, rest_length);
   } else {
     if (p2->string.buffer[0] != '.') {

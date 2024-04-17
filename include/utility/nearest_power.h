@@ -17,15 +17,15 @@
 #ifndef EXP_UTILITY_NEAREST_POWER_H
 #define EXP_UTILITY_NEAREST_POWER_H
 
-#include <stddef.h>
+#include "utility/int_types.h"
 
 /**
  * @brief return the nearest power of 2 that
  * is greater than or equal to <value>
  *
  * @param value
- * @return size_t
+ * @return u64
  */
-size_t nearest_power_of_two(size_t value);
+u64 nearest_power_of_two(u64 value);
 
 #endif // !EXP_UTILITY_NEAREST_POWER_H

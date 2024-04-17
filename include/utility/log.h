@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 
+#include "utility/int_types.h"
+
 typedef enum LogLevel {
   LOG_FATAL,
   LOG_ERROR,
@@ -38,7 +40,7 @@ typedef enum LogLevel {
  * @param message the message to print
  * @param stream the stream to write to
  */
-void log_message(LogLevel level, const char *restrict file, size_t line,
+void log_message(LogLevel level, const char *restrict file, u64 line,
                  const char *restrict message, FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

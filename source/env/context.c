@@ -134,14 +134,14 @@ SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
  *
  * @param context
  * @param value
- * @return size_t
+ * @return u64
  */
-size_t context_constants_append(Context *restrict context, Value value) {
+u64 context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
   return constants_append(&(context->constants), value);
 }
 
-Value *context_constants_at(Context *restrict context, size_t index) {
+Value *context_constants_at(Context *restrict context, u64 index) {
   assert(context != NULL);
   return constants_at(&(context->constants), index);
 }
@@ -188,8 +188,7 @@ Bytecode *context_current_bytecode(Context *restrict context) {
   }
 }
 
-size_t context_read_immediate(Context *restrict context, size_t offset,
-                              size_t bytes) {
+u64 context_read_immediate(Context *restrict context, u64 offset, u64 bytes) {
   assert(context != NULL);
   return bytecode_read_immediate(context_current_bytecode(context), offset,
                                  bytes);
@@ -205,7 +204,7 @@ void context_emit_return(Context *restrict context) {
   bytecode_emit_return(context_current_bytecode(context));
 }
 
-void context_emit_push_constant(Context *restrict context, size_t index) {
+void context_emit_push_constant(Context *restrict context, u64 index) {
   assert(context != NULL);
   bytecode_emit_push_constant(context_current_bytecode(context), index);
 }

@@ -129,12 +129,85 @@ with no overhead to the nodes or the BC instructions.
 
 
 
-2 - if BC is the IR, then we already know how to generate variable length BC.
+5 - maybe IR can be generated in SSA form or close to it? 
+SSA essentially means each variable is assigned only once. 
+When I recall what LLVM does with it's IR there is a set 
+of local variables %0, %1, %2, etc..., which are generated within the IR. 
+when an instruction produces a resulting value, that value is placed into a new 
+local. according to LLVM docs, this not only simplifies the code generated, 
+it makes it easier to translate into SSA form, because each symbol is already only 
+assigned once. each function gets to start it's local's by starting the count over.
+if we mimic that behavior in the IR we generate, by maintaining a growing set of 
+virtual registers, does this get us closer to a true SSA form? 
+a classic opcode like [add <r0>, <r1>] would perform addition and then 
+assignment of r0, but llvm would state that like [%2 = add <type> %0, %1]
+where %2 is never assigned again after creation. This is SSA form, except for 
+phi nodes. which only occur when branching is introduced.
+
+in this scenario %0, %1, %2, ..., are all virtual register indexes, in our IR.
+and we can simply have a 3 argument opcode, [add, %2, %0, %1], which keeps SSA,
+and keeps a minimal encoding. the only restriction is the size of our indices 
+into the register set.
+
+one thing to note is that even considering interpretation, a functions call frame could 
+include an offset into the actual array of virtual registers (a register frame pointer if 
+you would allow the analogy) allowing each function call to use low numbered register 
+indexes in the instruction encodings and yet still index into a "infinite" set of 
+virtual registers. 
+
+a few things come to mind:
+A - we have to decide on a static length for our encoding. 64 is natural, 32 could 
+be slightly more efficient from a data perspective (64 bit word size means more instructions 
+will be loaded into cache when reading BC, allowing faster processing of BC),
+and portable to 32 bit machines. 64 bit encoding seems very difficult to encode into a 32 
+bit architecture. whereas the other way around "just works."
+
+B - we have to separate functions and values.
+this is going to simplify the treatment of values considerably, though we now have 
+to build up some extra data-structures to manage functions. 
+(they can't be stored in the constants array, in fact I think this means we switch 
+to a register based VM instead of a stack based VM.)
+and on this point, more fundamentally, we need to separate defintion of symbols from 
+the instructions entirely. That is the parser needs to build symbols, and insert them
+into the global symbol table. AND there is no more global bytecode, there is only 
+local bytecode. AND local bytecode needs to be split up into a set of basic blocks.
+though, to be completely fair, this only needs to happen to support local control flow.
+interprocedural control flow can very well occur with each function only having a 
+single basic block.
+
+C - do we avoid register allocation entirely with this approach?
+or do we put the cart before the horse with this?
+such as do we need to worry about "spilling" registers to the stack?
+
+D - how do we handle Algebraic Data Types (ADT)? that is Structs and Unions?
+do these always live on the stack?
+and can we handle functions as values via closures written on top of an ADT?
+
+
+2 - if BC is the IR, then we already generate variable length BC.
 I think it would be advantageous to switch to a static length BC.
 because static length instructions make it possible to start indexing 
 into an array of BC without first scanning the entire BC up to that point.
 This simplifies the implementation of replacing/removing/injecting instructions 
-into the middle of BC.
+in BC.
+it is mostly identical to have the parser generate any form of IR, we just need 
+to set up the correct functions for the parser to call. The main difference could 
+be that since the parser has to define symbols, this means that the parser has to 
+pass around more data than it does currently. currently it is a side effect that 
+the top of the stack gets populated with the result of an affix expression, such 
+that the parser of constant definitions only needs to emit the opcode for "define 
+a constant" after it parses the affix expression, the bytecode is then in the 
+correct order for interpretation. however, if the parser needs to generate the 
+symbol defintion, then it has to have either the value of the symbol or something 
+that can be used to synthesize the value of the symbol. this something must be 
+returned from the parser of affix expressions to the parser of constant definitions
+such that a global symbol can be generated. 
+
+given that it is an affix expression we are talking about, the same thing that a 
+functions body is composed of, it makes sense to use a basic block here. It can 
+represent something which can be used to synthesize the value of the symbol.
+
+
 
 
 

@@ -27,8 +27,8 @@ typedef struct FormalArgument {
 
 typedef struct FormalArgumentList {
   FormalArgument *list;
-  size_t size;
-  size_t capacity;
+  u64 size;
+  u64 capacity;
 } FormalArgumentList;
 
 FormalArgumentList formal_argument_list_create();

@@ -104,11 +104,11 @@ static StringView curtxt(Parser *restrict parser) {
   return lexer_current_text(&parser->lexer);
 }
 
-static size_t curline(Parser *restrict parser) {
+static u64 curline(Parser *restrict parser) {
   return lexer_current_line(&parser->lexer);
 }
 
-// static size_t curcol(Parser *restrict parser) {
+// static u64 curcol(Parser *restrict parser) {
 //   return lexer_current_column(&parser->lexer);
 // }
 
@@ -143,7 +143,7 @@ static MaybeError constant(Parser *restrict parser, Context *restrict context) {
     return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
   }
   StringView name = context_intern(context, curtxt(parser));
-  size_t index =
+  u64 index =
       context_constants_append(context, value_create_string_literal(name));
   context_emit_push_constant(context, index);
 
@@ -349,7 +349,7 @@ static MaybeError function(Parser *restrict parser, Context *restrict context) {
 
   context_current_function_body(context, previous_bytecode);
 
-  size_t index = context_constants_append(context, value);
+  u64 index = context_constants_append(context, value);
   context_emit_push_constant(context, index);
   context_emit_define_global_constant(context);
   return success();
@@ -441,7 +441,7 @@ static MaybeError return_(Parser *restrict parser, Context *restrict context) {
 }
 
 static MaybeError nil(Parser *restrict parser, Context *restrict context) {
-  size_t index = context_constants_append(context, value_create_nil());
+  u64 index = context_constants_append(context, value_create_nil());
   context_emit_push_constant(context, index);
   nexttok(parser);
   return success();
@@ -449,7 +449,7 @@ static MaybeError nil(Parser *restrict parser, Context *restrict context) {
 
 static MaybeError boolean_true(Parser *restrict parser,
                                Context *restrict context) {
-  size_t index = context_constants_append(context, value_create_boolean(1));
+  u64 index = context_constants_append(context, value_create_boolean(1));
   context_emit_push_constant(context, index);
   nexttok(parser);
   return success();
@@ -457,7 +457,7 @@ static MaybeError boolean_true(Parser *restrict parser,
 
 static MaybeError boolean_false(Parser *restrict parser,
                                 Context *restrict context) {
-  size_t index = context_constants_append(context, value_create_boolean(0));
+  u64 index = context_constants_append(context, value_create_boolean(0));
   context_emit_push_constant(context, index);
   nexttok(parser);
   return success();
@@ -470,8 +470,7 @@ static MaybeError integer(Parser *restrict parser, Context *restrict context) {
     return parser_error(parser, ERROR_PARSER_INTEGER_TO_LARGE);
   }
 
-  size_t index =
-      context_constants_append(context, value_create_integer(integer));
+  u64 index = context_constants_append(context, value_create_integer(integer));
   context_emit_push_constant(context, index);
   nexttok(parser);
   return success();
@@ -486,7 +485,7 @@ static MaybeError string_literal(Parser *restrict parser,
   StringView sv = curtxt(parser);
   sv.length -= 1;
   StringView sl = context_intern(context, sv);
-  size_t index =
+  u64 index =
       context_constants_append(context, value_create_string_literal(sl));
   context_emit_push_constant(context, index);
   nexttok(parser);

@@ -47,8 +47,8 @@ struct Type;
 // #TODO: strictly speaking, ArgumentTypes is equivalent
 // to a TupleType. Maybe it would be useful to unify them?
 typedef struct ArgumentTypes {
-  size_t size;
-  size_t capacity;
+  u64 size;
+  u64 capacity;
   struct Type **types;
 } ArgumentTypes;
 

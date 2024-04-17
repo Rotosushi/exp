@@ -14,12 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_COMMON_H
-#define EXP_UTILITY_COMMON_H
-#include <stddef.h>
+#ifndef EXP_UTILITY_INT_TYPES_H
+#define EXP_UTILITY_INT_TYPES_H
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -30,7 +27,7 @@ typedef int64_t i64;
 #define i8_MIN INT8_MIN
 
 #define i16_MAX INT16_MAX
-#define i16_MAX INT16_MIN
+#define i16_MIN INT16_MIN
 
 #define i32_MAX INT32_MAX
 #define i32_MIN INT32_MIN
@@ -48,4 +45,4 @@ typedef uint64_t u64;
 #define u32_MAX UINT32_MAX
 #define u64_MAX UINT64_MAX
 
-#endif // !EXP_UTILITY_COMMON_H
+#endif // !EXP_UTILITY_INT_TYPES_H

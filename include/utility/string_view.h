@@ -16,16 +16,15 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_STRING_VIEW_H
 #define EXP_UTILITY_STRING_VIEW_H
-
-#include <stddef.h>
+#include "utility/int_types.h"
 
 typedef struct StringView {
   char const *ptr;
-  size_t length;
+  u64 length;
 } StringView;
 
 StringView string_view_create();
-StringView string_view_from_string(char const *string, size_t length);
+StringView string_view_from_string(char const *string, u64 length);
 StringView string_view_from_cstring(char const *cstring);
 bool string_view_equality(StringView sv1, StringView sv2);
 

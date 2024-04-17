@@ -24,8 +24,8 @@
  * @brief returns the size in bytes of the given type.
  *
  * @param type
- * @return size_t
+ * @return u64
  */
-size_t size_of(Type *restrict type);
+u64 size_of(Type *restrict type);
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

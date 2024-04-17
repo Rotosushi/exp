@@ -170,7 +170,7 @@ static void directive_text(FILE *file) { file_write("  .text\n", file); }
  * @param file
  */
 static void directive_balign(Type *type, FILE *file) {
-  size_t align = align_of(type);
+  u64 align = align_of(type);
   file_write("  .balign ", file);
   print_uintmax(align, RADIX_DECIMAL, file);
   file_write("\n", file);
@@ -183,7 +183,7 @@ static void directive_balign(Type *type, FILE *file) {
  * @param size the size to place in <expression>
  * @param file
  */
-static void directive_size(StringView name, size_t size, FILE *file) {
+static void directive_size(StringView name, u64 size, FILE *file) {
   file_write("  .size ", file);
   file_write(name.ptr, file);
   file_write(", ", file);
@@ -282,7 +282,7 @@ static void directive_type(StringView name, Type *type, FILE *file) {
 }
 
 static void directive_quad(long value, FILE *file) {
-  size_t len = intmax_safe_strlen(value, RADIX_DECIMAL);
+  u64 len = intmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (intmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
     PANIC("conversion failed");
@@ -295,7 +295,7 @@ static void directive_quad(long value, FILE *file) {
 }
 
 static void directive_byte(unsigned char value, FILE *file) {
-  size_t len = uintmax_safe_strlen(value, RADIX_DECIMAL);
+  u64 len = uintmax_safe_strlen(value, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
     PANIC("conversion failed");
@@ -307,8 +307,8 @@ static void directive_byte(unsigned char value, FILE *file) {
   file_write("\n", file);
 }
 
-static void directive_zero(size_t bytes, FILE *file) {
-  size_t len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
+static void directive_zero(u64 bytes, FILE *file) {
+  u64 len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
   char str[len + 1];
   if (uintmax_to_str(bytes, str, RADIX_DECIMAL) == NULL) {
     PANIC("conversion failed");
@@ -482,15 +482,15 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
 static void emit_x86_linux_function(Context *restrict context,
                                     Function *function, FILE *file) {
 #define READBYTE() (*ip++)
-#define CURIDX() (size_t)(ip - body->buffer)
+#define CURIDX() (u64)(ip - body->buffer)
   Bytecode *body = &function->body;
-  uint8_t *ip    = body->buffer;
+  u8 *ip         = body->buffer;
 
   while (1) {
     switch ((Opcode)READBYTE()) {
     case OP_PUSH_CONSTANT_U8: {
-      size_t index = context_read_immediate(context, CURIDX(), sizeof(uint8_t));
-      ip += sizeof(uint8_t);
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(u8));
+      ip += sizeof(u8);
 
       Value *constant = context_constants_at(context, index);
       context_stack_push(context, constant);
@@ -498,8 +498,7 @@ static void emit_x86_linux_function(Context *restrict context,
     }
 
     case OP_PUSH_CONSTANT_U16: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint16_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint16_t));
       ip += sizeof(uint16_t);
 
       Value *constant = context_constants_at(context, index);
@@ -508,8 +507,7 @@ static void emit_x86_linux_function(Context *restrict context,
     }
 
     case OP_PUSH_CONSTANT_U32: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint32_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint32_t));
       ip += sizeof(uint32_t);
 
       Value *constant = context_constants_at(context, index);
@@ -518,8 +516,7 @@ static void emit_x86_linux_function(Context *restrict context,
     }
 
     case OP_PUSH_CONSTANT_U64: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint64_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint64_t));
       ip += sizeof(uint64_t);
 
       Value *constant = context_constants_at(context, index);

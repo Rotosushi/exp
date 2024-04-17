@@ -21,8 +21,8 @@
 #include "imr/type.h"
 
 typedef struct FunctionTypes {
-  size_t size;
-  size_t capacity;
+  u64 size;
+  u64 capacity;
   Type *types;
 } FunctionTypes;
 

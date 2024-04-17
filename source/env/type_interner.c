@@ -34,7 +34,7 @@ FunctionTypes function_types_create() {
 void function_types_destroy(FunctionTypes *restrict f) {
   assert(f != NULL);
 
-  for (size_t i = 0; i < f->size; ++i) {
+  for (u64 i = 0; i < f->size; ++i) {
     type_destroy(&f->types[i]);
   }
 
@@ -45,7 +45,7 @@ void function_types_destroy(FunctionTypes *restrict f) {
 }
 
 static bool function_types_full(FunctionTypes *restrict f) {
-  size_t new_size;
+  u64 new_size;
   if (__builtin_add_overflow(f->size, 1, &new_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -54,9 +54,9 @@ static bool function_types_full(FunctionTypes *restrict f) {
 }
 
 static void function_types_grow(FunctionTypes *restrict f) {
-  size_t new_capacity = nearest_power_of_two(f->capacity + 1);
+  u64 new_capacity = nearest_power_of_two(f->capacity + 1);
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Type), &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -75,7 +75,7 @@ Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
 
   Type function_type = type_create_function(return_type, argument_types);
 
-  for (size_t i = 0; i < f->size; ++i) {
+  for (u64 i = 0; i < f->size; ++i) {
     Type *t = &f->types[i];
     if (type_equality(&function_type, t)) {
       argument_types_destroy(&argument_types);

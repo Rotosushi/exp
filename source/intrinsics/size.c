@@ -21,7 +21,7 @@
 #include "intrinsics/size.h"
 #include "utility/panic.h"
 
-size_t size_of(Type *restrict type) {
+u64 size_of(Type *restrict type) {
   assert(type != NULL);
 
   switch (type->kind) {

@@ -46,9 +46,9 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table) {
 }
 
 static SymbolTableElement *
-symbol_table_find(SymbolTableElement *restrict elements, size_t capacity,
+symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
                   StringView name) {
-  size_t index                  = string_hash(name.ptr, name.length) % capacity;
+  u64 index                     = string_hash(name.ptr, name.length) % capacity;
   SymbolTableElement *tombstone = NULL;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
@@ -72,12 +72,12 @@ symbol_table_find(SymbolTableElement *restrict elements, size_t capacity,
 }
 
 static void symbol_table_grow(SymbolTable *restrict symbol_table,
-                              size_t capacity) {
+                              u64 capacity) {
   SymbolTableElement *elements = calloc(capacity, sizeof(SymbolTableElement));
 
   if (symbol_table->elements != NULL) {
     symbol_table->count = 0;
-    for (size_t i = 0; i < symbol_table->capacity; ++i) {
+    for (u64 i = 0; i < symbol_table->capacity; ++i) {
       SymbolTableElement *element = &(symbol_table->elements[i]);
       if (element->name.ptr == NULL) {
         continue;
@@ -99,13 +99,13 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table,
 }
 
 static bool symbol_table_full(SymbolTable *restrict symbol_table) {
-  size_t new_count;
+  u64 new_count;
   if (__builtin_add_overflow(symbol_table->count, 1, &new_count)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
-  size_t load_limit =
-      (size_t)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
+  u64 load_limit =
+      (u64)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
   return new_count >= load_limit;
 }
 
@@ -113,7 +113,7 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
                          Type *type, Value *value) {
   assert(symbol_table != NULL);
   if (symbol_table_full(symbol_table)) {
-    size_t capacity = nearest_power_of_two(symbol_table->capacity + 1);
+    u64 capacity = nearest_power_of_two(symbol_table->capacity + 1);
     symbol_table_grow(symbol_table, capacity);
   }
 

@@ -26,8 +26,8 @@
  * @note this is the number of bytes to align a <value> with <type> to.
  *
  * @param type
- * @return size_t
+ * @return u64
  */
-size_t align_of(Type *restrict type);
+u64 align_of(Type *restrict type);
 
 #endif // !EXP_INTRINSICS_ALIGNOF_H

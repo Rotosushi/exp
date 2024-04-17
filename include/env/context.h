@@ -89,9 +89,9 @@ SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
                                                  StringView name);
 
 // Constants functions
-size_t context_constants_append(Context *restrict context, Value value);
+u64 context_constants_append(Context *restrict context, Value value);
 
-Value *context_constants_at(Context *restrict context, size_t index);
+Value *context_constants_at(Context *restrict context, u64 index);
 
 // Stack functions
 bool context_stack_empty(Context *restrict context);
@@ -127,16 +127,15 @@ Bytecode *context_current_bytecode(Context *restrict context);
  * @param context
  * @param offset
  * @param bytes
- * @return size_t
+ * @return u64
  */
-size_t context_read_immediate(Context *restrict context, size_t offset,
-                              size_t bytes);
+u64 context_read_immediate(Context *restrict context, u64 offset, u64 bytes);
 
 void context_emit_stop(Context *restrict context);
 
 void context_emit_return(Context *restrict context);
 
-void context_emit_push_constant(Context *restrict context, size_t index);
+void context_emit_push_constant(Context *restrict context, u64 index);
 
 void context_emit_define_global_constant(Context *restrict context);
 

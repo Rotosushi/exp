@@ -53,16 +53,16 @@ static bool stack_full(Stack *restrict stack) {
 static void stack_grow(Stack *restrict stack) {
   assert(stack != NULL);
   assert(stack->capacity != SIZE_MAX && "cannot allocate more than SIZE_MAX");
-  size_t new_capacity = nearest_power_of_two(stack->capacity + 1);
+  u64 new_capacity = nearest_power_of_two(stack->capacity + 1);
 
-  size_t new_size;
+  u64 new_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Value *), &new_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
   // since stack->top >= stack->buffer, this subtraction
   // is always positive, making the cast lossless.
-  size_t top_offset = (size_t)(stack->top - stack->buffer);
+  u64 top_offset = (u64)(stack->top - stack->buffer);
 
   Value **buffer = realloc(stack->buffer, new_size);
   if (buffer == NULL) {

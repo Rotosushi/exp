@@ -25,7 +25,7 @@
 #include "utility/panic.h"
 
 static bool test_base10_uintmax_to_str(uintmax_t value) {
-  size_t buffer_length = uintmax_safe_strlen(value, RADIX_DECIMAL);
+  u64 buffer_length = uintmax_safe_strlen(value, RADIX_DECIMAL);
   char buffer[buffer_length + 1];
   uintmax_to_str(value, buffer, RADIX_DECIMAL);
 
@@ -52,7 +52,7 @@ static bool test_base10_uintmax_to_string(uintmax_t value) {
 }
 
 static bool test_base16_uintmax_to_str(uintmax_t value) {
-  size_t buffer_length = uintmax_safe_strlen(value, RADIX_HEXADECIMAL);
+  u64 buffer_length = uintmax_safe_strlen(value, RADIX_HEXADECIMAL);
   char buffer[buffer_length + 1];
   uintmax_to_str(value, buffer, RADIX_HEXADECIMAL);
 
@@ -66,7 +66,7 @@ static bool test_base16_uintmax_to_str(uintmax_t value) {
 }
 
 static bool test_base8_uintmax_to_str(uintmax_t value) {
-  size_t buffer_length = uintmax_safe_strlen(value, RADIX_OCTAL);
+  u64 buffer_length = uintmax_safe_strlen(value, RADIX_OCTAL);
   char buffer[buffer_length + 1];
   uintmax_to_str(value, buffer, RADIX_OCTAL);
 
@@ -80,7 +80,7 @@ static bool test_base8_uintmax_to_str(uintmax_t value) {
 }
 
 static bool test_base10_intmax_to_str(intmax_t value) {
-  size_t buffer_length = intmax_safe_strlen(value, RADIX_DECIMAL);
+  u64 buffer_length = intmax_safe_strlen(value, RADIX_DECIMAL);
   char buffer[buffer_length + 1];
   intmax_to_str(value, buffer, RADIX_DECIMAL);
 

@@ -53,7 +53,7 @@ void formal_argument_list_clone(FormalArgumentList *target,
   target->capacity = source->capacity;
   target->size     = source->size;
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(target->capacity, sizeof(FormalArgument),
                              &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
@@ -80,7 +80,7 @@ bool formal_argument_list_equality(FormalArgumentList *a1,
     return 0;
   }
 
-  for (size_t i = 0; i < a1->size; ++i) {
+  for (u64 i = 0; i < a1->size; ++i) {
     FormalArgument *arg1 = &a1->list[i];
     FormalArgument *arg2 = &a2->list[i];
 
@@ -97,7 +97,7 @@ bool formal_argument_list_equality(FormalArgumentList *a1,
 }
 
 static bool formal_argument_list_full(FormalArgumentList *restrict fal) {
-  size_t new_size;
+  u64 new_size;
   if (__builtin_add_overflow(fal->size, 1, &new_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -110,9 +110,9 @@ static bool formal_argument_list_full(FormalArgumentList *restrict fal) {
 }
 
 static void formal_argument_list_grow(FormalArgumentList *restrict fal) {
-  size_t new_capacity = nearest_power_of_two(fal->capacity + 1);
+  u64 new_capacity = nearest_power_of_two(fal->capacity + 1);
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(FormalArgument),
                              &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
@@ -185,7 +185,7 @@ Type *function_type_of(Function const *restrict f, Context *restrict context) {
   assert(f->return_type != NULL);
 
   ArgumentTypes argument_types = argument_types_create();
-  for (size_t i = 0; i < f->arguments.size; ++i) {
+  for (u64 i = 0; i < f->arguments.size; ++i) {
     FormalArgument *formal_argument = &f->arguments.list[i];
     Type *argument_type             = formal_argument->type;
     argument_types_append(&argument_types, argument_type);

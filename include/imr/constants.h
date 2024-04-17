@@ -21,8 +21,8 @@
 #include "imr/value.h"
 
 typedef struct Constants {
-  size_t length;
-  size_t capacity;
+  u64 length;
+  u64 capacity;
   Value *buffer;
 } Constants;
 
@@ -47,7 +47,7 @@ void constants_destroy(Constants *restrict constants);
  * @param value
  * @return Value*
  */
-size_t constants_append(Constants *restrict constants, Value value);
+u64 constants_append(Constants *restrict constants, Value value);
 
 /**
  * @brief return the constant at the given index in the buffer
@@ -56,6 +56,6 @@ size_t constants_append(Constants *restrict constants, Value value);
  * @param index
  * @return Value*
  */
-Value *constants_at(Constants *restrict constants, size_t index);
+Value *constants_at(Constants *restrict constants, u64 index);
 
 #endif // !EXP_IMR_CONSTANTS_H

@@ -28,8 +28,8 @@ typedef struct SymbolTableElement {
 } SymbolTableElement;
 
 typedef struct SymbolTable {
-  size_t count;
-  size_t capacity;
+  u64 count;
+  u64 capacity;
   SymbolTableElement *elements;
 } SymbolTable;
 

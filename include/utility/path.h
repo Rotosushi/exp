@@ -33,7 +33,7 @@ Path path_create();
 // #TODO:
 // Path path_create_from_string(String *string);
 // Path path_create_from_string_view(StringView *string_view);
-// Path path_create_from_string_literal(const char *literal, size_t length);
+// Path path_create_from_string_literal(const char *literal, u64 length);
 
 /**
  * @brief Free a given path

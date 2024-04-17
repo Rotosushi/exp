@@ -53,13 +53,13 @@ void file_write(const char *restrict buffer, FILE *restrict stream) {
   }
 }
 
-size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
+u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
   char *result = fgets(buffer, (int)length, stream);
   if (result == NULL) {
     PANIC_ERRNO("fgets failed");
   }
 
-  return (size_t)(result - buffer);
+  return (u64)(result - buffer);
 }
 
 #if defined(EXP_HOST_OS_LINUX)
@@ -67,7 +67,7 @@ size_t file_read(char *buffer, size_t length, FILE *restrict stream) {
 #include <sys/types.h>
 #include <unistd.h>
 
-size_t file_length(FILE *restrict file) {
+u64 file_length(FILE *restrict file) {
   int fd = fileno(file);
 
   struct stat info;
@@ -75,11 +75,11 @@ size_t file_length(FILE *restrict file) {
     PANIC_ERRNO("fstat failed");
   }
 
-  return (size_t)info.st_size;
+  return (u64)info.st_size;
 }
 
 #else
-size_t file_length(FILE *restrict file) {
+u64 file_length(FILE *restrict file) {
   if (fseek(file, 0L, SEEK_END) != 0) {
     PANIC_ERRNO("fseek failed");
   }
@@ -90,7 +90,7 @@ size_t file_length(FILE *restrict file) {
   }
 
   rewind(file);
-  return (size_t)size;
+  return (u64)size;
 }
 #endif
 

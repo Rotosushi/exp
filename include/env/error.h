@@ -72,7 +72,7 @@ void error_destroy(Error *restrict error);
 void error_assign(Error *restrict error, ErrorCode code,
                   char const *restrict data);
 
-void error_print(Error *restrict error, char const *restrict file, size_t line);
+void error_print(Error *restrict error, char const *restrict file, u64 line);
 
 typedef struct MaybeError {
   bool has_error;

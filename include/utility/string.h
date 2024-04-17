@@ -27,8 +27,8 @@
  *
  */
 typedef struct String {
-  size_t length;
-  size_t capacity;
+  u64 length;
+  u64 capacity;
   char *buffer;
 } String;
 
@@ -36,8 +36,8 @@ typedef struct String {
   the so called "small string optimization" is
   a string structure which looks something like:
   struct string {
-    size_t length;
-    size_t capacity;
+    u64 length;
+    u64 capacity;
     bool is_small;
     union {
       char *buffer;
@@ -60,7 +60,7 @@ String string_create();
 
 // #TODO:
 // String string_create_from_string_view(StringView *string_view);
-// String string_create_from_string_literal(const char *literal, size_t length);
+// String string_create_from_string_literal(const char *literal, u64 length);
 /**
  * @brief free the given string
  *
@@ -90,8 +90,8 @@ StringView string_to_view(String const *restrict str);
  * @param length
  * @return StringView
  */
-StringView string_to_view_at(String const *restrict string, size_t offset,
-                             size_t length);
+StringView string_to_view_at(String const *restrict string, u64 offset,
+                             u64 length);
 
 String string_from_view(StringView sv);
 
@@ -124,7 +124,7 @@ int string_compare(String const *restrict s1, String const *restrict s2);
  * @param str the string to resize
  * @param capacity the new capacity of the string
  */
-void string_resize(String *restrict str, size_t capacity);
+void string_resize(String *restrict str, u64 capacity);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -133,7 +133,7 @@ void string_resize(String *restrict str, size_t capacity);
  * @param str
  * @param capacity
  */
-void string_reserve_more(String *restrict str, size_t capacity);
+void string_reserve_more(String *restrict str, u64 capacity);
 
 /**
  * @brief assigns the string to hold exactly the contents of <data>
@@ -186,7 +186,7 @@ void string_append_char(String *restrict str, const char c);
  * @param offset
  * @param length
  */
-void string_erase(String *restrict str, size_t offset, size_t length);
+void string_erase(String *restrict str, u64 offset, u64 length);
 
 /**
  * @brief insert data into <str>; growing <str> as necessary
@@ -194,7 +194,6 @@ void string_erase(String *restrict str, size_t offset, size_t length);
  * @param offset
  * @param data
  */
-void string_insert(String *restrict str, size_t offset,
-                   char const *restrict data);
+void string_insert(String *restrict str, u64 offset, char const *restrict data);
 
 #endif // !EXP_UTILITY_STRING_H

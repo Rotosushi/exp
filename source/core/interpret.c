@@ -127,8 +127,8 @@ static MaybeError binop_percent(Context *restrict context) {
 
 static MaybeError interpret_impl(Context *restrict context) {
 #define READBYTE() (*ip++)
-#define CURIDX() (size_t)(ip - context->global_bytecode.buffer)
-  uint8_t *ip = context->global_bytecode.buffer;
+#define CURIDX() (u64)(ip - context->global_bytecode.buffer)
+  u8 *ip = context->global_bytecode.buffer;
 
   while (1) {
     switch ((Opcode)READBYTE()) {
@@ -142,8 +142,8 @@ static MaybeError interpret_impl(Context *restrict context) {
     }
 
     case OP_PUSH_CONSTANT_U8: {
-      size_t index = context_read_immediate(context, CURIDX(), sizeof(uint8_t));
-      ip += sizeof(uint8_t);
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(u8));
+      ip += sizeof(u8);
 
       Value *constant = context_constants_at(context, index);
       context_stack_push(context, constant);
@@ -151,8 +151,7 @@ static MaybeError interpret_impl(Context *restrict context) {
     }
 
     case OP_PUSH_CONSTANT_U16: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint16_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint16_t));
       ip += sizeof(uint16_t);
 
       Value *constant = context_constants_at(context, index);
@@ -161,8 +160,7 @@ static MaybeError interpret_impl(Context *restrict context) {
     }
 
     case OP_PUSH_CONSTANT_U32: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint32_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint32_t));
       ip += sizeof(uint32_t);
 
       Value *constant = context_constants_at(context, index);
@@ -171,8 +169,7 @@ static MaybeError interpret_impl(Context *restrict context) {
     }
 
     case OP_PUSH_CONSTANT_U64: {
-      size_t index =
-          context_read_immediate(context, CURIDX(), sizeof(uint64_t));
+      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint64_t));
       ip += sizeof(uint64_t);
 
       Value *constant = context_constants_at(context, index);

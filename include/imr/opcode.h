@@ -19,26 +19,12 @@
 
 /*
   These codes need to allow instructions to represent
-
-  definitions
-    - variables
-    - constants
-    - functions
-
   expressions
-    - constants
-    - references
+    - loads
+    - stores
+    - unops
+    - binops
     - calls
-    - unary operators
-    - binary operators
-
-  if we assume that instructions are an opcode
-  followed by their arguments, layed out according
-  to the opcode.
-  and we have a array of constants C[N]
-  and we have a array of types T[N]
-  and we have a array of registers R[N]
-  and we have a stack of values S[N]
 */
 
 /**

@@ -52,8 +52,8 @@ bool lexer_at_end(Lexer *restrict lexer) {
   return *(lexer->cursor) == '\0';
 }
 
-static size_t lexer_current_text_length(Lexer const *restrict lexer) {
-  return (size_t)(lexer->cursor - lexer->token);
+static u64 lexer_current_text_length(Lexer const *restrict lexer) {
+  return (u64)(lexer->cursor - lexer->token);
 }
 
 StringView lexer_current_text(Lexer const *restrict lexer) {
@@ -62,12 +62,12 @@ StringView lexer_current_text(Lexer const *restrict lexer) {
   return result;
 }
 
-size_t lexer_current_line(Lexer const *restrict lexer) {
+u64 lexer_current_line(Lexer const *restrict lexer) {
   assert(lexer != NULL);
   return lexer->line;
 }
 
-size_t lexer_current_column(Lexer const *restrict lexer) {
+u64 lexer_current_column(Lexer const *restrict lexer) {
   assert(lexer != NULL);
   return lexer->column;
 }
@@ -140,9 +140,8 @@ static Token lexer_integer(Lexer *restrict lexer) {
   return TOK_INTEGER;
 }
 
-static Token lexer_check_keyword(Lexer *restrict lexer, size_t begin,
-                                 size_t length, const char *rest,
-                                 Token keyword) {
+static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
+                                 const char *rest, Token keyword) {
   if ((lexer_current_text_length(lexer) == (begin + length)) &&
       (memcmp(lexer->token + begin, rest, length) == 0)) {
     return keyword;

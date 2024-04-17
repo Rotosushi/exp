@@ -28,8 +28,8 @@
  *
  */
 typedef struct StringInterner {
-  size_t capacity;
-  size_t count;
+  u64 capacity;
+  u64 count;
   String *buffer;
 } StringInterner;
 
@@ -38,6 +38,6 @@ StringInterner string_interner_create();
 void string_interner_destroy(StringInterner *restrict string_interner);
 
 StringView string_interner_insert(StringInterner *restrict string_interner,
-                                  char const *string, size_t length);
+                                  char const *string, u64 length);
 
 #endif // !EXP_ENV_STRING_INTERNER_H

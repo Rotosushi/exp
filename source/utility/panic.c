@@ -30,7 +30,7 @@
 [[noreturn]] void panic(const char *msg, const char *file, int line) {
   EXP_BREAK();
 
-  log_message(LOG_FATAL, file, (size_t)line, msg, stderr);
+  log_message(LOG_FATAL, file, (u64)line, msg, stderr);
   exit(EXIT_FAILURE);
 }
 
@@ -38,15 +38,15 @@
   EXP_BREAK();
 
   static char const *text = " errno: ";
-  char const *errmsg = strerror(errno);
-  size_t msglen = strlen(msg), errmsglen = strlen(errmsg),
-         textlen = strlen(text), buflen = msglen + errmsglen + textlen;
+  char const *errmsg      = strerror(errno);
+  u64 msglen = strlen(msg), errmsglen = strlen(errmsg), textlen = strlen(text),
+      buflen = msglen + errmsglen + textlen;
   char buf[buflen + 1];
   memcpy(buf, msg, msglen);
   memcpy(buf + msglen, text, textlen);
   memcpy(buf + msglen + textlen, errmsg, errmsglen);
   buf[buflen] = '\0';
 
-  log_message(LOG_FATAL, file, (size_t)line, buf, stderr);
+  log_message(LOG_FATAL, file, (u64)line, buf, stderr);
   exit(EXIT_FAILURE);
 }

@@ -22,7 +22,7 @@
 #include "imr/constants.h"
 
 bool test_constants(Constants *restrict constants, Value value) {
-  size_t index = constants_append(constants, value);
+  u64 index       = constants_append(constants, value);
   Value *constant = constants_at(constants, index);
 
   if (value_equality(constant, &value)) {
@@ -35,7 +35,7 @@ bool test_constants(Constants *restrict constants, Value value) {
 int constants_tests([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
   Constants constants = constants_create();
-  bool failure = 0;
+  bool failure        = 0;
 
   failure |= test_constants(&constants, value_create_integer(rand()));
   failure |= test_constants(&constants, value_create_integer(rand()));

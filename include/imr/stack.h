@@ -21,7 +21,7 @@
 #include "imr/value.h"
 
 typedef struct Stack {
-  size_t capacity;
+  u64 capacity;
   Value **buffer;
   Value **top;
 } Stack;

@@ -21,8 +21,8 @@
 
 #include "utility/path.h"
 
-static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
-                          const char *restrict s2, size_t s2_len) {
+static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
+                          const char *restrict s2, u64 s2_len) {
   if (s1_len != s2_len) {
     return 1;
   }
@@ -34,12 +34,12 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
   return 0;
 }
 
-// static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
-//                                     const char *restrict s2, size_t s2_len,
-//                                     const char *restrict s3, size_t s3_len) {
-//   size_t total_length;
+// static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, u64 s1_len,
+//                                     const char *restrict s2, u64 s2_len,
+//                                     const char *restrict s3, u64 s3_len) {
+//   u64 total_length;
 //   if (__builtin_add_overflow(s2_len, s3_len, &total_length)) {
-//     panic("size_t overflow");
+//     panic("u64 overflow");
 //   }
 
 //   if (s1_len != total_length) {
@@ -57,7 +57,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 //   return 0;
 // }
 
-bool test_path_assign(char const *data, size_t length) {
+bool test_path_assign(char const *data, u64 length) {
   Path path = path_create();
   path_assign(&path, data);
 
@@ -71,7 +71,7 @@ bool test_path_assign(char const *data, size_t length) {
 }
 
 bool test_path_append(char const *d1, char const *d2, char const *d3,
-                      size_t d3_len) {
+                      u64 d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 
@@ -91,7 +91,7 @@ bool test_path_append(char const *d1, char const *d2, char const *d3,
 }
 
 bool test_path_concat(char const *d1, char const *d2, char const *d3,
-                      size_t d3_len) {
+                      u64 d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 
@@ -111,7 +111,7 @@ bool test_path_concat(char const *d1, char const *d2, char const *d3,
 }
 
 bool test_path_replace_extension(char const *d1, char const *d2, char const *d3,
-                                 size_t d3_len) {
+                                 u64 d3_len) {
   Path p1 = path_create();
   Path p2 = path_create();
 

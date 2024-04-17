@@ -52,7 +52,7 @@ void bytecode_clone(Bytecode *target, Bytecode *source) {
   target->length   = source->length;
   target->capacity = source->capacity;
 
-  uint8_t *result = realloc(target->buffer, target->capacity);
+  u8 *result = realloc(target->buffer, target->capacity);
   if (result == NULL) {
     PANIC_ERRNO("realloc failed");
   }
@@ -72,7 +72,7 @@ bool bytecode_equality(Bytecode *b1, Bytecode *b2) {
 }
 
 static bool bytecode_full(Bytecode *restrict bytecode) {
-  size_t sum_capacity;
+  u64 sum_capacity;
   if (__builtin_add_overflow(bytecode->length, 1, &sum_capacity)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -81,9 +81,9 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {
-  size_t new_capacity = nearest_power_of_two(bytecode->capacity + 1);
+  u64 new_capacity = nearest_power_of_two(bytecode->capacity + 1);
 
-  uint8_t *result = realloc(bytecode->buffer, new_capacity);
+  u8 *result = realloc(bytecode->buffer, new_capacity);
   if (result == NULL) {
     PANIC_ERRNO("realloc failed");
   }
@@ -91,7 +91,7 @@ static void bytecode_grow(Bytecode *restrict bytecode) {
   bytecode->capacity = new_capacity;
 }
 
-static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
+static void bytecode_emit_byte(Bytecode *restrict bytecode, u8 byte) {
   assert(bytecode != NULL);
 
   if (bytecode_full(bytecode)) {
@@ -102,108 +102,108 @@ static void bytecode_emit_byte(Bytecode *restrict bytecode, uint8_t byte) {
   bytecode->length += 1;
 }
 
-static void bytecode_emit_immediate(Bytecode *restrict bytecode,
-                                    size_t immediate, size_t bytes) {
-  assert((bytes == sizeof(uint8_t)) || (bytes == sizeof(uint16_t)) ||
+static void bytecode_emit_immediate(Bytecode *restrict bytecode, u64 immediate,
+                                    u64 bytes) {
+  assert((bytes == sizeof(u8)) || (bytes == sizeof(uint16_t)) ||
          (bytes == sizeof(uint32_t)) || (bytes == sizeof(uint64_t)));
-  for (size_t i = 0, j = bytes; i < bytes; ++i, --j) {
-    size_t shift = (j * 8) - 8;
-    uint8_t byte = (immediate >> shift) & 0xFF;
+  for (u64 i = 0, j = bytes; i < bytes; ++i, --j) {
+    u64 shift = (j * 8) - 8;
+    u8 byte   = (immediate >> shift) & 0xFF;
     bytecode_emit_byte(bytecode, byte);
   }
 }
 
-size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
-                               size_t bytes) {
-  assert((bytes == sizeof(uint8_t)) || (bytes == sizeof(uint16_t)) ||
+u64 bytecode_read_immediate(Bytecode *restrict bytecode, u64 offset,
+                            u64 bytes) {
+  assert((bytes == sizeof(u8)) || (bytes == sizeof(uint16_t)) ||
          (bytes == sizeof(uint32_t)) || (bytes == sizeof(uint64_t)));
   assert((offset + bytes) <= bytecode->length);
-  size_t result = 0;
-  for (size_t i = 0, j = bytes; i < bytes; ++i, --j) {
-    size_t shift = (j * 8) - 8;
-    uint8_t byte = bytecode->buffer[offset + i];
-    result |= (((size_t)byte) << shift);
+  u64 result = 0;
+  for (u64 i = 0, j = bytes; i < bytes; ++i, --j) {
+    u64 shift = (j * 8) - 8;
+    u8 byte   = bytecode->buffer[offset + i];
+    result |= (((u64)byte) << shift);
   }
   return result;
 }
 
 void bytecode_emit_stop(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_STOP);
+  bytecode_emit_byte(bytecode, (u8)OP_STOP);
 }
 
 void bytecode_emit_return(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_RETURN);
+  bytecode_emit_byte(bytecode, (u8)OP_RETURN);
 }
 
-void bytecode_emit_push_constant(Bytecode *restrict bytecode, size_t index) {
+void bytecode_emit_push_constant(Bytecode *restrict bytecode, u64 index) {
   if (index <= UINT8_MAX) {
-    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U8);
-    bytecode_emit_immediate(bytecode, index, sizeof(uint8_t));
+    bytecode_emit_byte(bytecode, (u8)OP_PUSH_CONSTANT_U8);
+    bytecode_emit_immediate(bytecode, index, sizeof(u8));
   } else if (index <= UINT16_MAX) {
-    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U16);
+    bytecode_emit_byte(bytecode, (u8)OP_PUSH_CONSTANT_U16);
     bytecode_emit_immediate(bytecode, index, sizeof(uint16_t));
   } else if (index <= UINT32_MAX) {
-    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U32);
+    bytecode_emit_byte(bytecode, (u8)OP_PUSH_CONSTANT_U32);
     bytecode_emit_immediate(bytecode, index, sizeof(uint32_t));
   } else {
-    bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_CONSTANT_U64);
+    bytecode_emit_byte(bytecode, (u8)OP_PUSH_CONSTANT_U64);
     bytecode_emit_immediate(bytecode, index, sizeof(uint64_t));
   }
   // #NOTE:
   // iff the index to the constant somehow is >= UINT64_MAX then
-  // it is going to overflow the size_t it is being passed in as.
+  // it is going to overflow the u64 it is being passed in as.
   // this is clearly a defect. but cannot be caught at this point
   // in execution because we are downstream of the overflow.
 }
 
 // void bytecode_emit_push_register(Bytecode *restrict bytecode,
-//                                  uint8_t register_index) {
-//   bytecode_emit_byte(bytecode, (uint8_t)OP_PUSH_REGISTER);
+//                                  u8 register_index) {
+//   bytecode_emit_byte(bytecode, (u8)OP_PUSH_REGISTER);
 //   bytecode_emit_byte(bytecode, register_index);
 // }
 
 void bytecode_emit_pop(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_POP);
+  bytecode_emit_byte(bytecode, (u8)OP_POP);
 }
 
 // void bytecode_emit_pop_register(Bytecode *restrict bytecode,
-//                                 uint8_t register_index) {
-//   bytecode_emit_byte(bytecode, (uint8_t)OP_POP_REGISTER);
+//                                 u8 register_index) {
+//   bytecode_emit_byte(bytecode, (u8)OP_POP_REGISTER);
 //   bytecode_emit_byte(bytecode, register_index);
 // }
 
 // void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
-//                                              uint8_t register_index,
-//                                              size_t constant_index) {
-//   bytecode_emit_byte(bytecode, (uint8_t)OP_MOVE_CONSTANT_TO_REGISTER);
+//                                              u8 register_index,
+//                                              u64 constant_index) {
+//   bytecode_emit_byte(bytecode, (u8)OP_MOVE_CONSTANT_TO_REGISTER);
 //   bytecode_emit_byte(bytecode, register_index);
-//   bytecode_emit_byte(bytecode, (uint8_t)constant_index);
+//   bytecode_emit_byte(bytecode, (u8)constant_index);
 // }
 
 void bytecode_emit_define_global_constant(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_DEFINE_GLOBAL_CONSTANT);
+  bytecode_emit_byte(bytecode, (u8)OP_DEFINE_GLOBAL_CONSTANT);
 }
 
 void bytecode_emit_unop_minus(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_UNOP_MINUS);
+  bytecode_emit_byte(bytecode, (u8)OP_UNOP_MINUS);
 }
 
 void bytecode_emit_binop_plus(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_PLUS);
+  bytecode_emit_byte(bytecode, (u8)OP_BINOP_PLUS);
 }
 
 void bytecode_emit_binop_minus(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_MINUS);
+  bytecode_emit_byte(bytecode, (u8)OP_BINOP_MINUS);
 }
 
 void bytecode_emit_binop_star(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_STAR);
+  bytecode_emit_byte(bytecode, (u8)OP_BINOP_STAR);
 }
 
 void bytecode_emit_binop_slash(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_SLASH);
+  bytecode_emit_byte(bytecode, (u8)OP_BINOP_SLASH);
 }
 
 void bytecode_emit_binop_percent(Bytecode *restrict bytecode) {
-  bytecode_emit_byte(bytecode, (uint8_t)OP_BINOP_PERCENT);
+  bytecode_emit_byte(bytecode, (u8)OP_BINOP_PERCENT);
 }

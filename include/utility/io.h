@@ -36,7 +36,7 @@ void file_remove(char const *restrict path);
  * @param buffer the buffer to write
  * @param length the length of the buffer
  * @param stream the stream to write to
- * @return size_t the number of chars written
+ * @return u64 the number of chars written
  */
 void file_write(const char *restrict buffer, FILE *restrict stream);
 
@@ -46,11 +46,11 @@ void file_write(const char *restrict buffer, FILE *restrict stream);
  * @param buffer the buffer to store chars into
  * @param length the number of chars to read
  * @param stream the stream to read from.
- * @return size_t the number of chars actually read.
+ * @return u64 the number of chars actually read.
  */
-size_t file_read(char *buffer, size_t length, FILE *restrict stream);
+u64 file_read(char *buffer, u64 length, FILE *restrict stream);
 
-size_t file_length(FILE *restrict file);
+u64 file_length(FILE *restrict file);
 
 String file_readall(FILE *restrict file);
 

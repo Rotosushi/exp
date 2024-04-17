@@ -32,7 +32,7 @@
 #define LOG_STATUS_MSG "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
 
-void log_message(LogLevel level, const char *restrict file, size_t line,
+void log_message(LogLevel level, const char *restrict file, u64 line,
                  const char *restrict message, FILE *restrict stream) {
   file_write("[", stream);
 

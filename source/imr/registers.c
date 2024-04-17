@@ -36,11 +36,11 @@ void registers_destroy(Registers *restrict registers) {
   registers->buffer = NULL;
 }
 
-static void registers_grow(Registers *restrict registers, size_t capacity) {
+static void registers_grow(Registers *restrict registers, u64 capacity) {
   assert(registers != NULL);
-  size_t new_capacity = nearest_power_of_two(capacity);
+  u64 new_capacity = nearest_power_of_two(capacity);
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Value), &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -53,7 +53,7 @@ static void registers_grow(Registers *restrict registers, size_t capacity) {
   registers->capacity = new_capacity;
 }
 
-Value *registers_at(Registers *restrict registers, size_t index) {
+Value *registers_at(Registers *restrict registers, u64 index) {
   assert(registers != NULL);
   if (registers->capacity <= index) {
     registers_grow(registers, index);

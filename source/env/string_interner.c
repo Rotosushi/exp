@@ -45,7 +45,7 @@ void string_interner_destroy(StringInterner *restrict string_interner) {
     return;
   }
 
-  for (size_t i = 0; i < string_interner->count; ++i) {
+  for (u64 i = 0; i < string_interner->count; ++i) {
     string_destroy(string_interner->buffer + i);
   }
 
@@ -55,10 +55,9 @@ void string_interner_destroy(StringInterner *restrict string_interner) {
   string_interner->buffer = NULL;
 }
 
-static String *string_interner_find(String *restrict strings, size_t capacity,
-                                    char const *restrict buffer,
-                                    size_t length) {
-  size_t index = string_hash(buffer, length) % capacity;
+static String *string_interner_find(String *restrict strings, u64 capacity,
+                                    char const *restrict buffer, u64 length) {
+  u64 index = string_hash(buffer, length) % capacity;
   while (1) {
     String *element = &(strings[index]);
     if ((element->buffer == NULL) ||
@@ -71,13 +70,13 @@ static String *string_interner_find(String *restrict strings, size_t capacity,
 }
 
 static void string_interner_grow(StringInterner *restrict string_interner,
-                                 size_t capacity) {
+                                 u64 capacity) {
   String *elements = calloc(capacity, sizeof(String));
 
   // if the buffer isn't empty, we need to reinsert
   // all existing elements into the new buffer.
   if (string_interner->buffer != NULL) {
-    for (size_t i = 0; i < string_interner->capacity; ++i) {
+    for (u64 i = 0; i < string_interner->capacity; ++i) {
       String *element = &(string_interner->buffer[i]);
       if (element->buffer == NULL) {
         continue;
@@ -98,21 +97,21 @@ static void string_interner_grow(StringInterner *restrict string_interner,
 }
 
 static bool string_interner_full(StringInterner *restrict string_interner) {
-  size_t new_count;
+  u64 new_count;
   if (__builtin_add_overflow(string_interner->count, 1, &new_count)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
-  size_t load_limit = (size_t)floor((double)string_interner->capacity *
-                                    STRING_INTERNER_MAX_LOAD);
+  u64 load_limit =
+      (u64)floor((double)string_interner->capacity * STRING_INTERNER_MAX_LOAD);
   return new_count >= load_limit;
 }
 
 StringView string_interner_insert(StringInterner *restrict string_interner,
-                                  char const *data, size_t length) {
+                                  char const *data, u64 length) {
   assert(string_interner != NULL);
   if (string_interner_full(string_interner)) {
-    size_t capacity = nearest_power_of_two(string_interner->capacity + 1);
+    u64 capacity = nearest_power_of_two(string_interner->capacity + 1);
     string_interner_grow(string_interner, capacity);
   }
 

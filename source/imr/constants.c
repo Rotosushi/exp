@@ -38,7 +38,7 @@ void constants_destroy(Constants *restrict constants) {
     return;
   }
 
-  for (size_t i = 0; i < constants->length; ++i) {
+  for (u64 i = 0; i < constants->length; ++i) {
     Value *value = constants->buffer + i;
     value_destroy(value);
   }
@@ -54,9 +54,9 @@ static bool constants_full(Constants *restrict constants) {
 }
 
 static void constants_grow(Constants *restrict constants) {
-  size_t new_capacity = nearest_power_of_two(constants->capacity + 1);
+  u64 new_capacity = nearest_power_of_two(constants->capacity + 1);
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Value), &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -72,20 +72,20 @@ static void constants_grow(Constants *restrict constants) {
 // #TODO: this is the "greedy" approach, and it would be more
 // space efficient if we only performed an insert when the
 // new constant was unique. This trades time for space.
-size_t constants_append(Constants *restrict constants, Value value) {
+u64 constants_append(Constants *restrict constants, Value value) {
   assert(constants != NULL);
 
   if (constants_full(constants)) {
     constants_grow(constants);
   }
 
-  size_t index                         = constants->length;
+  u64 index                            = constants->length;
   constants->buffer[constants->length] = value;
   constants->length += 1;
   return index;
 }
 
-Value *constants_at(Constants *restrict constants, size_t index) {
+Value *constants_at(Constants *restrict constants, u64 index) {
   assert(constants != NULL);
 
   if (index >= constants->length) {

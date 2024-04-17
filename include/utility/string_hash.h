@@ -16,14 +16,14 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_STRING_HASH_H
 #define EXP_UTILITY_STRING_HASH_H
-#include <stddef.h>
+#include "utility/int_types.h"
 
 /**
  * @brief computes the hash of the given string.
  *
  * @param string
- * @return size_t
+ * @return u64
  */
-size_t string_hash(char const *restrict string, size_t length);
+u64 string_hash(char const *restrict string, u64 length);
 
 #endif // !EXP_UTILITY_STRING_HASH_H

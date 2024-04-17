@@ -16,17 +16,16 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_BYTECODE_H
 #define EXP_IMR_BYTECODE_H
-#include <stddef.h>
-#include <stdint.h>
+#include "utility/int_types.h"
 
 /**
  * @brief represents a section of instructions.
  *
  */
 typedef struct Bytecode {
-  size_t length;
-  size_t capacity;
-  uint8_t *buffer;
+  u64 length;
+  u64 capacity;
+  u8 *buffer;
 } Bytecode;
 
 /**
@@ -57,10 +56,9 @@ bool bytecode_equality(Bytecode *b1, Bytecode *b2);
  * @param bytecode
  * @param offset
  * @param bytes
- * @return size_t
+ * @return u64
  */
-size_t bytecode_read_immediate(Bytecode *restrict bytecode, size_t offset,
-                               size_t bytes);
+u64 bytecode_read_immediate(Bytecode *restrict bytecode, u64 offset, u64 bytes);
 
 /**
  * @brief emit a stop instruction
@@ -82,20 +80,19 @@ void bytecode_emit_return(Bytecode *restrict bytecode);
  * @param bytecode the bytecode to emit into
  * @param name_index the index of the constant to push
  */
-void bytecode_emit_push_constant(Bytecode *restrict bytecode,
-                                 size_t name_index);
+void bytecode_emit_push_constant(Bytecode *restrict bytecode, u64 name_index);
 
 // void bytecode_emit_push_register(Bytecode *restrict bytecode,
-//                                  uint8_t register_index);
+//                                  u8 register_index);
 
 void bytecode_emit_pop(Bytecode *restrict bytecode);
 
 // void bytecode_emit_pop_register(Bytecode *restrict bytecode,
-//                                 uint8_t register_index);
+//                                 u8 register_index);
 
 // void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
-//                                              uint8_t register_index,
-//                                              size_t constant_index);
+//                                              u8 register_index,
+//                                              u64 constant_index);
 
 /**
  * @brief define a global constant

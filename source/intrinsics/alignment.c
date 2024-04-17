@@ -21,7 +21,7 @@
 #include "intrinsics/alignment.h"
 #include "utility/panic.h"
 
-size_t align_of(Type *restrict type) {
+u64 align_of(Type *restrict type) {
   assert(type != NULL);
 
   switch (type->kind) {

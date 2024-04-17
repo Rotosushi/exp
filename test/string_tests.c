@@ -21,8 +21,8 @@
 #include "utility/panic.h"
 #include "utility/string.h"
 
-static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
-                          const char *restrict s2, size_t s2_len) {
+static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
+                          const char *restrict s2, u64 s2_len) {
   if (s1_len != s2_len) {
     return 1;
   }
@@ -35,7 +35,7 @@ static bool s1_same_as_s2(const char *restrict s1, size_t s1_len,
 }
 
 // returns true on failure
-bool test_string_assign(const char *data, size_t data_length) {
+bool test_string_assign(const char *data, u64 data_length) {
   String str = string_create();
 
   string_assign(&str, data);
@@ -52,7 +52,7 @@ bool test_string_assign(const char *data, size_t data_length) {
   return failed;
 }
 
-bool test_string_to_view(const char *data, size_t data_length) {
+bool test_string_to_view(const char *data, u64 data_length) {
   String str = string_create();
 
   string_assign(&str, data);
@@ -78,12 +78,12 @@ bool test_string_to_view(const char *data, size_t data_length) {
   return failed;
 }
 
-static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
-                                    const char *restrict s2, size_t s2_len,
-                                    const char *restrict s3, size_t s3_len) {
-  size_t total_length;
+static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, u64 s1_len,
+                                    const char *restrict s2, u64 s2_len,
+                                    const char *restrict s3, u64 s3_len) {
+  u64 total_length;
   if (__builtin_add_overflow(s2_len, s3_len, &total_length)) {
-    PANIC("size_t overflow");
+    PANIC("u64 overflow");
   }
 
   if (s1_len != total_length) {
@@ -101,8 +101,8 @@ static bool s1_same_as_sum_of_s2_s3(const char *restrict s1, size_t s1_len,
   return 0;
 }
 
-bool test_string_append(const char *d1, size_t d1_len, const char *d2,
-                        size_t d2_len) {
+bool test_string_append(const char *d1, u64 d1_len, const char *d2,
+                        u64 d2_len) {
   String str = string_create();
 
   string_append(&str, d1);
@@ -120,8 +120,8 @@ bool test_string_append(const char *d1, size_t d1_len, const char *d2,
   return failure;
 }
 
-bool test_string_erase(char const *d1, size_t offset, size_t length,
-                       char const *d2, size_t d2_length) {
+bool test_string_erase(char const *d1, u64 offset, u64 length, char const *d2,
+                       u64 d2_length) {
   String str = string_create();
 
   string_assign(&str, d1);
@@ -142,8 +142,8 @@ bool test_string_erase(char const *d1, size_t offset, size_t length,
   return failure;
 }
 
-bool test_string_insert(char const *d1, size_t offset, char const *d2,
-                        char const *d3, size_t d3_length) {
+bool test_string_insert(char const *d1, u64 offset, char const *d2,
+                        char const *d3, u64 d3_length) {
   String str = string_create();
 
   string_assign(&str, d1);

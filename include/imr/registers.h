@@ -26,7 +26,7 @@
  *
  */
 typedef struct Registers {
-  size_t capacity;
+  u64 capacity;
   Value *buffer;
 } Registers;
 
@@ -41,6 +41,6 @@ void registers_destroy(Registers *restrict registers);
  * @param index
  * @return Value*
  */
-Value *registers_at(Registers *restrict registers, size_t index);
+Value *registers_at(Registers *restrict registers, u64 index);
 
 #endif // !EXP_IMR_REGISTERS_H

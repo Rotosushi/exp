@@ -23,11 +23,11 @@
 StringView string_view_create() {
   StringView sv;
   sv.length = 0;
-  sv.ptr = NULL;
+  sv.ptr    = NULL;
   return sv;
 }
 
-StringView string_view_from_string(char const *string, size_t length) {
+StringView string_view_from_string(char const *string, u64 length) {
   StringView sv = {string, length};
   return sv;
 }

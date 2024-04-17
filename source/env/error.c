@@ -99,8 +99,7 @@ void error_assign(Error *restrict error, ErrorCode code,
   string_assign(&error->message, data);
 }
 
-void error_print(Error *restrict error, char const *restrict file,
-                 size_t line) {
+void error_print(Error *restrict error, char const *restrict file, u64 line) {
   String msg = string_create();
   string_append(&msg, "\nError: ");
   string_append(&msg, error_code_cstring(error->code));

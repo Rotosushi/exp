@@ -22,8 +22,8 @@
 #include "utility/numbers_to_string.h"
 #include "utility/panic.h"
 
-size_t intmax_safe_strlen(intmax_t value, Radix radix) {
-  size_t result = 0;
+u64 intmax_safe_strlen(intmax_t value, Radix radix) {
+  u64 result = 0;
 
   if ((value == 0) || (value == 1)) {
     // "0" or "1"
@@ -40,24 +40,23 @@ size_t intmax_safe_strlen(intmax_t value, Radix radix) {
       return result;
     }
 
-    double absolute = fabs((double)value);
-    size_t number_length = (size_t)(ceil(log(absolute) / log((double)radix)));
+    double absolute   = fabs((double)value);
+    u64 number_length = (u64)(ceil(log(absolute) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      PANIC("value exceeds size_t");
+      PANIC("value exceeds u64");
     }
     return result;
   } else {
-    size_t number_length =
-        (size_t)(ceil(log((double)value) / log((double)radix)));
+    u64 number_length = (u64)(ceil(log((double)value) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
-      PANIC("value exceeds size_t");
+      PANIC("value exceeds u64");
     }
     return result;
   }
 }
 
-size_t uintmax_safe_strlen(uintmax_t value, Radix radix) {
-  size_t result = 0;
+u64 uintmax_safe_strlen(uintmax_t value, Radix radix) {
+  u64 result = 0;
 
   if ((value == 0) || (value == 1)) {
     // "0" or "1"
@@ -65,10 +64,9 @@ size_t uintmax_safe_strlen(uintmax_t value, Radix radix) {
     return result;
   }
 
-  size_t number_length =
-      (size_t)(ceil(log((double)value) / log((double)radix)));
+  u64 number_length = (u64)(ceil(log((double)value) / log((double)radix)));
   if (__builtin_add_overflow(result, number_length, &result)) {
-    PANIC("value exceeds size_t");
+    PANIC("value exceeds u64");
   }
   return result;
 }
@@ -95,15 +93,15 @@ char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix) {
     *ptr1++ = '-';
   }
   // null terminate
-  ptr2 = buffer;
-  buffer = ptr1;
+  ptr2    = buffer;
+  buffer  = ptr1;
   *ptr1-- = '\0';
 
   // reverse the string
   while (ptr2 < ptr1) {
     char tmp = *ptr1;
-    *ptr1-- = *ptr2;
-    *ptr2++ = tmp;
+    *ptr1--  = *ptr2;
+    *ptr2++  = tmp;
   }
 
   return buffer;
@@ -119,7 +117,7 @@ String intmax_to_string(intmax_t value, Radix radix) {
     PANIC("conversion failed");
   }
 
-  str.length = (size_t)(end - str.buffer);
+  str.length = (u64)(end - str.buffer);
 
   return str;
 }
@@ -149,15 +147,15 @@ char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
   } while (value);
 
   // append the null terminator
-  ptr2 = buffer;
-  buffer = ptr1;
+  ptr2    = buffer;
+  buffer  = ptr1;
   *ptr1-- = '\0';
 
   // reverse the string
   while (ptr2 < ptr1) {
     char tmp = *ptr1;
-    *ptr1-- = *ptr2;
-    *ptr2++ = tmp;
+    *ptr1--  = *ptr2;
+    *ptr2++  = tmp;
   }
 
   return buffer;
@@ -173,7 +171,7 @@ String uintmax_to_string(uintmax_t value, Radix radix) {
     PANIC("conversion failed");
   }
 
-  str.length = (size_t)(end - str.buffer);
+  str.length = (u64)(end - str.buffer);
 
   return str;
 }

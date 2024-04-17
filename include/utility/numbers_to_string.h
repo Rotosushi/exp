@@ -22,15 +22,15 @@
 
 #include "utility/string.h"
 
-// #TODO: size_t float_safe_strlen(float value);
-// #TODO: size_t double_safe_strlen(double value);
-// #TODO  char * float_to_string(float value, char *buffer, size_t buf_len);
-// #TODO: char * double_to_string(double value, char *buffer, size_t buf_len);
+// #TODO: u64 float_safe_strlen(float value);
+// #TODO: u64 double_safe_strlen(double value);
+// #TODO  char * float_to_string(float value, char *buffer, u64 buf_len);
+// #TODO: char * double_to_string(double value, char *buffer, u64 buf_len);
 
 typedef enum Radix {
-  RADIX_BINARY = 2,
-  RADIX_OCTAL = 8,
-  RADIX_DECIMAL = 10,
+  RADIX_BINARY      = 2,
+  RADIX_OCTAL       = 8,
+  RADIX_DECIMAL     = 10,
   RADIX_HEXADECIMAL = 16,
 } Radix;
 
@@ -45,9 +45,9 @@ typedef enum Radix {
  *
  * @param value the value whose digits are to be stored
  * @param radix the radix to convert the number into
- * @return size_t the length of the string
+ * @return u64 the length of the string
  */
-size_t intmax_safe_strlen(intmax_t value, Radix radix);
+u64 intmax_safe_strlen(intmax_t value, Radix radix);
 
 /**
  * @brief return the length of the string which can hold
@@ -60,9 +60,9 @@ size_t intmax_safe_strlen(intmax_t value, Radix radix);
  *
  * @param value the value whose digits are to be stored
  * @param radix the radix to convert the number into
- * @return size_t the length of the string
+ * @return u64 the length of the string
  */
-size_t uintmax_safe_strlen(uintmax_t value, Radix radix);
+u64 uintmax_safe_strlen(uintmax_t value, Radix radix);
 
 /**
  * @brief write the digits of <value> into <buffer>

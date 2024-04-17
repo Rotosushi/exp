@@ -50,7 +50,7 @@ bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2) {
     return 0;
   }
 
-  for (size_t i = 0; i < a1->size; ++i) {
+  for (u64 i = 0; i < a1->size; ++i) {
     Type *t1 = a1->types[i];
     Type *t2 = a2->types[i];
 
@@ -63,7 +63,7 @@ bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2) {
 }
 
 static bool argument_types_full(ArgumentTypes *restrict a) {
-  size_t new_size;
+  u64 new_size;
   if (__builtin_add_overflow(a->size, 1, &new_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -72,9 +72,9 @@ static bool argument_types_full(ArgumentTypes *restrict a) {
 }
 
 static void argument_types_grow(ArgumentTypes *restrict a) {
-  size_t new_capacity = nearest_power_of_two(a->capacity);
+  u64 new_capacity = nearest_power_of_two(a->capacity);
 
-  size_t alloc_size;
+  u64 alloc_size;
   if (__builtin_mul_overflow(new_capacity, sizeof(Type *), &alloc_size)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
@@ -197,7 +197,7 @@ static void type_to_string_impl(String *str, Type const *t) {
     ArgumentTypes const *a = &f->argument_types;
 
     string_append(str, "fn (");
-    for (size_t i = 0; i < a->size; ++i) {
+    for (u64 i = 0; i < a->size; ++i) {
       type_to_string_impl(str, a->types[i]);
 
       if (i < (a->size - 1)) {
