@@ -21,8 +21,6 @@
 #include "frontend/lexer.h"
 
 /*
-
-
   expression = "const" identifier = affix ";"
              | "fn" identifier formal-args "->" type body
 

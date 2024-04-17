@@ -19,34 +19,24 @@
 
 #include "utility/string.h"
 
+/**
+ * @brief holds a set of strings, such that the memory
+ * allocated for these strings is all managed in one location,
+ * this has the additional benefiet of allowing string
+ * comparison outside the string interner to require a single
+ * pointer comparison instead of a memcmp.
+ *
+ */
 typedef struct StringInterner {
   size_t capacity;
   size_t count;
   String *buffer;
 } StringInterner;
 
-/**
- * @brief create a StringInterner
- *
- * @return StringInterner
- */
 StringInterner string_interner_create();
 
-/**
- * @brief destroy a StringInterner
- *
- * @param string_interner
- */
 void string_interner_destroy(StringInterner *restrict string_interner);
 
-/**
- * @brief Intern a string
- *
- * @param string_interner
- * @param string
- * @param length
- * @return StringView
- */
 StringView string_interner_insert(StringInterner *restrict string_interner,
                                   char const *string, size_t length);
 

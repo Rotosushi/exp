@@ -53,25 +53,55 @@
  * it is also important to note here that these subfeatures
  * are also listed within "/proc/cpuinfo")
  *
+ * addendum: some x64 processors have a specific "CPUID" instruction
+ * which reports the capabilitys of the current processor itself.
+ * see: AMD64 Architecture Programmer's Manual Volume 3 Appendix E
+ * or equivalent section of the Intel x64 Programmers Manual.
+ *
  * @todo #TODO storing this string as a static string literal
  * only works when it is acceptable to have the value hardcoded.
  * This data needs to be associated with some dynamic structure
  * which builds up it's content at runtime.
  */
-static StringView cpu_type = {"znver3", sizeof("znver3")};
+static StringView cpu_type = {"znver3", sizeof("znver3") - 1};
 
+/**
+ * @brief this directive is used to tell as about the
+ * start of a new logical file.
+ *
+ * @param path
+ * @param file
+ */
 static void directive_file(StringView path, FILE *file) {
   file_write("  .file \"", file);
   file_write(path.ptr, file);
   file_write("\"\n", file);
 }
 
+/**
+ * @brief This directive exists to specify the specific
+ * architecture of the x86 chip to be assembled for,
+ * letting as produce more efficient bytecode for the given
+ * assembly.
+ * and lets as produce diagnostics about the usage of
+ * features which are not available on the chip.
+ *
+ * @param cpu_type
+ * @param file
+ */
 static void directive_arch(StringView cpu_type, FILE *file) {
   file_write("  .arch ", file);
   file_write(cpu_type.ptr, file);
   file_write("\n", file);
 }
 
+/**
+ * @brief this directive is used to place comments/tags into the
+ * produced object files. since we are targeting ELF.
+ *
+ * @param comment
+ * @param file
+ */
 static void directive_ident(StringView comment, FILE *file) {
   file_write("  .ident \"", file);
   file_write(comment.ptr, file);
@@ -81,30 +111,67 @@ static void directive_ident(StringView comment, FILE *file) {
 static void directive_noexecstack(FILE *file) {
   /**
    * @brief the assembly directive which marks the stack as unexecutable.
-   * (as far as I can tell)
+   * (as far as I can tell, I cannot find documentation which explicitly
+   * states that ".note.GNU-stack" marks the stack as noexec, only that
+   * "... and the .note.GNU-stack section may have the executable (x)
+   *  flag added". which implies to me that the .note... has something
+   * to do with marking the stack as exec or noexec.)
    */
   static char const noexecstack[] =
       "  .section .note.GNU-stack,\"\",@progbits\n";
   file_write(noexecstack, file);
 }
 
+/**
+ * @brief defines a new symbol visible to ld for linking,
+ * where the definition comes from a label (as far as I can tell.)
+ * this means that .global is used for both forward declarations
+ * and definitions.
+ *
+ * @param name
+ * @param file
+ */
 static void directive_globl(StringView name, FILE *file) {
   file_write("  .globl ", file);
   file_write(name.ptr, file);
   file_write("\n", file);
 }
 
+/**
+ * @brief tells as to assemble the following statements into
+ * the data section.
+ *
+ * @param file
+ */
 static void directive_data(FILE *file) { file_write("  .data\n", file); }
 
+/**
+ * @brief tells as to assemble the following statements into
+ * the bss section.
+ *
+ * @param file
+ */
 static void directive_bss(FILE *file) { file_write("  .bss\n", file); }
 
-[[maybe_unused]] static void directive_text(FILE *file) {
-  file_write("  .text\n", file);
-}
+/**
+ * @brief tells as to assemble the following statements into
+ * the text section.
+ *
+ * @param file
+ */
+static void directive_text(FILE *file) { file_write("  .text\n", file); }
 
-static void directive_align(Type *type, FILE *file) {
+/**
+ * @brief pads the location counter to a particular storage boundary.
+ * this causes an allocation which follows the align directive to be
+ * emitted at that particular storage boundary.
+ *
+ * @param type
+ * @param file
+ */
+static void directive_balign(Type *type, FILE *file) {
   size_t align = align_of(type);
-  file_write("  .align ", file);
+  file_write("  .balign ", file);
   print_uintmax(align, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
@@ -149,36 +216,69 @@ static void directive_size_label_relative(StringView name, FILE *file) {
   file_write("\n", file);
 }
 
-static void directive_type(StringView name, Type *type, FILE *file) {
+typedef enum STT_Type {
+  STT_FUNC,
+  STT_OBJECT,
+  STT_TLS,
+  STT_COMMON,
+} STT_Type;
+
+static void directive_type_explicit(StringView name, STT_Type kind,
+                                    FILE *file) {
   file_write("  .type ", file);
   file_write(name.ptr, file);
   file_write(", ", file);
 
+  switch (kind) {
+  case STT_OBJECT:
+    file_write("@object", file);
+    break;
+
+  case STT_FUNC:
+    file_write("@function", file);
+    break;
+
+  case STT_TLS:
+    file_write("@tls_object", file);
+    break;
+
+  case STT_COMMON:
+    file_write("@common", file);
+    break;
+
+  default:
+    PANIC("bad STT_Type");
+    break;
+  }
+
+  file_write("\n", file);
+}
+
+static void directive_type(StringView name, Type *type, FILE *file) {
   switch (type->kind) {
   // essentially everything is an @object unless it's an @function.
   // with the edgecases of thread-locals @tls_object,
   // common symbols @common (linker merges these symbols across translation
-  // units), and indirect-functions @gnu_indirect_function.
+  // units), indirect-functions @gnu_indirect_function.
   // (the actual function to be called can be resolved at runtime;
   // it's complex. https://maskray.me/blog/2021-01-18-gnu-indirect-function
   // and mainly used so programmers can override malloc/free in the
-  // c stdlib. or so I've read.)
+  // c stdlib. or so I've read.), and notype which does not mark the
+  // symbol with any type.
   case TYPEKIND_NIL:
   case TYPEKIND_BOOLEAN:
   case TYPEKIND_INTEGER:
   case TYPEKIND_STRING_LITERAL:
-    file_write("@object", file);
+    directive_type_explicit(name, STT_OBJECT, file);
     break;
 
   case TYPEKIND_FUNCTION:
-    file_write("@function", file);
+    directive_type_explicit(name, STT_FUNC, file);
     break;
 
   default:
     PANIC("bad TYPEKIND");
   }
-
-  file_write("\n", file);
 }
 
 static void directive_quad(long value, FILE *file) {
@@ -231,17 +331,114 @@ static void directive_label(StringView name, FILE *file) {
   file_write(":\n", file);
 }
 
+typedef enum RegisterName {
+  REG_RAX,
+  REG_RDI,
+} RegisterName;
+
+static void register_name(RegisterName name, FILE *file) {
+  switch (name) {
+  case REG_RAX:
+    file_write("%rax", file);
+    break;
+
+  case REG_RDI:
+    file_write("%rdi", file);
+    break;
+
+  default:
+    PANIC("unknown RegisterName");
+  }
+}
+
+static void immediate(long value, FILE *file) {
+  file_write("$", file);
+  print_intmax(value, RADIX_DECIMAL, file);
+}
+
+/**
+ * @brief emit a return (near) instruction.
+ *
+ * @note Returns from a procedure previously entered by a CALL near
+instruction. This form of the RET instruction returns to a calling procedure
+within the current code segment. This instruction pops the rIP from the stack,
+with the size of the pop determined by the operand size. The new rIP is then
+zero-extended to 64 bits. The RET instruction can accept an immediate value
+operand that it adds to the rSP after it pops the target rIP. This action skips
+over any parameters previously passed back to the subroutine that are no longer
+needed. In 64-bit mode, the operand size defaults to 64 bits (eight bytes)
+without the need for a REX prefix. No prefix is available to encode a 32-bit
+operand size in 64-bit mode
+ *
+ * @param file
+ */
 static void instruction_ret(FILE *file) { file_write("  ret\n", file); }
 
-static void emit_x86_linux_start(FILE *file) {
-  file_write("  .globl _start\n", file);
-  file_wrtie("  .type _start, @function\n", file);
-  file_write("_start:\n", file);
-  file_write("  call main\n", file);
-  file_write("  mov %rax, %rdi\n", file);
+/**
+ * @brief emit a call (near) instruction
+ *
+ * @note Pushes the offset of the next instruction onto the stack and branches
+to the target address, which contains the first instruction of the called
+procedure. The target operand can specify a register, a memory location, or a
+label. A procedure accessed by a near CALL is located in the same code segment
+as the CALL instruction.
+ *
+ * @param name
+ * @param file
+ */
+static void instruction_call(StringView name, FILE *file) {
+  file_write("  call ", file);
+  file_write(name.ptr, file);
+  file_write("\n", file);
+}
+
+static void instruction_mov_immediate(long value, RegisterName reg,
+                                      FILE *file) {
+  file_write("  mov ", file);
+  immediate(value, file);
+  file_write(" ", file);
+  register_name(reg, file);
+  file_write("\n", file);
+}
+
+/**
+ * @brief emit the function which performs the exit
+ * x64 linux syscall. the C function signature:
+ * [[noreturn]] void exit(int status);
+ *
+ * @note the parameter is passed in rdi
+ *
+ * @param file
+ */
+static void emit_x86_linux_sysexit(FILE *file) {
+  StringView sysexit = string_view_from_cstring("sysexit");
+  directive_globl(sysexit, file);
+  directive_type_explicit(sysexit, STT_FUNC, file);
   file_write("  mov $60, %rax\n", file);
   file_write("  syscall\n", file);
-  file_write("  .size _start, .-_start\n", file);
+  directive_size_label_relative(sysexit, file);
+  file_write("\n", file);
+}
+
+/**
+ * @brief emit the _start function which the linker will set
+ * as the program startup location.
+ *
+ * @param main the name of the user programs main subroutine which
+ * _start will call.
+ * @param file the file to write into
+ */
+static void emit_x86_linux_start(StringView main, FILE *file) {
+  StringView start = string_view_from_cstring("_start");
+  directive_globl(start, file);
+  directive_type_explicit(start, STT_FUNC, file);
+  directive_label(start, file);
+  instruction_call(main, file);
+  file_write("  mov %rax, %rdi\n", file);
+  StringView sysexit = string_view_from_cstring("sysexit");
+  instruction_call(sysexit, file);
+  directive_size_label_relative(start, file);
+  file_write("\n", file);
 }
 
 /**
@@ -249,7 +446,8 @@ static void emit_x86_linux_start(FILE *file) {
  * given context.
  *
  * @note this information includes the directives:
- *  ".file", ".arch", anything else??
+ *  ".file <filename>"
+ *  ".arch <cpu-name>"
  *
  * @param file the FILE to write to.
  */
@@ -257,6 +455,9 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
   StringView path = context_source_path(context);
   directive_file(path, file);
   directive_arch(cpu_type, file);
+  file_write("\n", file);
+  emit_x86_linux_sysexit(file);
+  emit_x86_linux_start(string_view_from_cstring("main"), file);
   file_write("\n", file);
 }
 
@@ -287,14 +488,6 @@ static void emit_x86_linux_function(Context *restrict context,
 
   while (1) {
     switch ((Opcode)READBYTE()) {
-    case OP_STOP: {
-      return;
-    }
-
-    case OP_POP: {
-      context_stack_pop(context);
-    }
-
     case OP_PUSH_CONSTANT_U8: {
       size_t index = context_read_immediate(context, CURIDX(), sizeof(uint8_t));
       ip += sizeof(uint8_t);
@@ -334,47 +527,17 @@ static void emit_x86_linux_function(Context *restrict context,
       break;
     }
 
-    case OP_DEFINE_GLOBAL_CONSTANT: {
-      // #NOTE: this opcode only makes sense if we add semantics
-      // equivalent to c's static locals
-      PANIC("cannot define global within a function body");
-    }
-
     case OP_RETURN: {
-    }
-
-    // #TODO:
-    case OP_UNOP_MINUS: {
-      break;
-    }
-
-    // #TODO:
-    case OP_BINOP_PLUS: {
-      break;
-    }
-
-    // #TODO:
-    case OP_BINOP_MINUS: {
-      break;
-    }
-
-    // #TODO:
-    case OP_BINOP_STAR: {
-      break;
-    }
-
-    // #TODO:
-    case OP_BINOP_SLASH: {
-      break;
-    }
-
-    // #TODO:
-    case OP_BINOP_PERCENT: {
+      Value *constant = context_stack_peek(context);
+      // #TODO: support more than Int return types.
+      assert(constant->kind == VALUEKIND_INTEGER);
+      instruction_mov_immediate(constant->integer, REG_RAX, file);
+      instruction_ret(file);
       break;
     }
 
     default: {
-      PANIC("bad Opcode");
+      PANIC("unsupported Opcode");
     }
     }
   }
@@ -449,7 +612,7 @@ compiler to prevent writes to constants.
     } else {
       directive_bss(file);
     }
-    directive_align(type, file);
+    directive_balign(type, file);
     directive_type(name, type, file);
     directive_size(name, size_of(type), file);
 
@@ -469,7 +632,7 @@ compiler to prevent writes to constants.
     } else {
       directive_bss(file);
     }
-    directive_align(type, file);
+    directive_balign(type, file);
     directive_type(name, type, file);
     if (value->kind == VALUEKIND_STRING_LITERAL) {
       directive_size(name, value->string_literal.length, file);
@@ -495,6 +658,7 @@ compiler to prevent writes to constants.
     directive_label(name, file);
     emit_x86_linux_function(context, &value->function, file);
     directive_size_label_relative(name, file);
+    break;
   }
 
   default:

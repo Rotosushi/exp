@@ -49,6 +49,16 @@ typedef enum ErrorCode {
 
 char const *error_code_cstring(ErrorCode code);
 
+/**
+ * @brief models errors which are produced during compilation.
+ * designed to allow the creation of informative and readable
+ * error messages to users of the compiler.
+ *
+ * @note this is not intended to model errors that are internal
+ * to the compiler, and signal code defects within the compiler.
+ * The general strategy for internal errors is to call panic.
+ *
+ */
 typedef struct Error {
   ErrorCode code;
   String message;

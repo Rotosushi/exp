@@ -20,16 +20,18 @@
 
 #include "imr/value.h"
 
-#define REGISTERS_CAPACITY 32
-
 /**
  * @brief represents the working registers of
  * the virtual machine
  *
  */
 typedef struct Registers {
-  Value buffer[REGISTERS_CAPACITY];
+  size_t capacity;
+  Value *buffer;
 } Registers;
+
+void registers_init(Registers *restrict registers);
+void registers_destroy(Registers *restrict registers);
 
 /**
  * @brief return the <Value*> of the register at the
@@ -39,6 +41,6 @@ typedef struct Registers {
  * @param index
  * @return Value*
  */
-Value *registers_at(Registers *restrict registers, uint8_t index);
+Value *registers_at(Registers *restrict registers, size_t index);
 
 #endif // !EXP_IMR_REGISTERS_H

@@ -19,6 +19,22 @@
 #include "env/context.h"
 #include "env/error.h"
 
+/**
+ * @brief interpret the given context.
+ *
+ * @note this is -the- intermediate step, which does all
+ * typechecking and compile time evaluation.
+ * crucially it creates the symbol table entries
+ * which the backend uses to direct emission
+ * of global symbols into the output assembly file.
+ * it may be that "interpret" isn't the best name
+ * given that this isn't an "interpreted" language.
+ * However compile time evaluation looks a lot like
+ * interpretation, and so that's what I went with.
+ *
+ * @param context
+ * @return int
+ */
 int interpret(Context *restrict context);
 
 #endif // !EXP_CORE_INTERPRET_H

@@ -15,147 +15,128 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
-so, when considering emitting assembly code which can map to 
-all of the constructions available within the langauge (that is,
-implement the semantics of the language in assembly). 
-I notice that there are a few major language elements that are 
-necessary to represent.
+okay. so the parser generates IR of some form, 
+and the backend needs to use that IR to produce assembly.
+we currently use bytecode tailored for a stack based VM.
+however that does not meet 
+the requirements of use as it currently stands. 
+as such the IR needs to be reworked. 
 
--) globals
--) functions 
--) locals
--) expressions
+the major concern is that we need to implement a 
+register allocation strategy.
+ (looks like graph-coloring or 
+linear scan are the widely accepted strategies. som variant of 
+one of those two is what I am aiming for.)
+and we need an IR that can be manipulated such that 
+optimization can be performed. this is of interest for moving beyond 
+the current issue.
 
-obviously the above list is modulo types, and types are integral to 
-how each of those things are expressed. 
-and this discussion is also specific to what the target is,
- linux/windows/mac/etc.. and what the output format is 
- elf/coff/etc.. and what assembler is being targeted 
- gas/nasm/masm/fasm/etc...
+optimizations are often adding/replacing/transforming/removing
+single instructions blocks of instructions, or entire functions.
 
-so, for the sake of moving forward I am picking x86-64 
-(my native arch), Linux (Ubuntu if that ends up mattering,
-but I think what matters is system V abi),
-elf64 object files, using gas (/usr/bin/as)
+in order to allocate registers for variable useage, we need to 
+model the usage of a variable in some data-structure, to the 
+extent required for the register allocation strategy. 
+graph coloring requires a graph data structure, 
+whereas linear scan requires a set of liveness-ranges. 
+
+any register allocation strategy, or optimization is going to 
+need to use various metadata related to a given piece or segment 
+of IR. and the current bytecode based approach does not easily 
+allow for metadata to be produced which is associated on the level 
+of single instructions. basic blocks do not exist, which complicates 
+creating an SSA form.
+
+some basic questions:
+1 - what is the in memory representation (IMR) of the intermediate representation (IR)?
+2 - how does the parser create the IR from the source code?
+
+3 - what is the IMR of the control flow graph (CFG)?
+4 - how does the CFG get created to represent the source code?
+
+5 - how can the IR be converted into SSA form?
+
+6 - how does the register allocator use the IR to allocate variables?
+
+7 - how does the backend work with the register allocator
+    to generate target machine assembly?
+
+considerations of these questions:
+
+1 - So, there are some real advantages to the bytecode (BC) representation of 
+intermediate representation. 
+A - time and space efficiency
+  reading and writing BC is as efficient as it gets when dealing 
+  with large amounts of data. as it can boil down to a memcpy in the best 
+  possible case, a memmove in overlapping cases. and we can index into the 
+  array of BC anywhere and it is as fast as indexing into an array.
+  Now, with a variable length encoding of the BC, we cannot simply 
+  index into the bytecode array at any index and be sure that we are landing
+  on a correct instruction. However if we have a static length encoding, 
+  we can simply index into the array anywhere and start reading and writing
+  instructions. This is in contrast to the classical IR 
+  Abstract Syntax Trees (AST). Which given their tree like structure means 
+  that we must process the entire tree to reach leaf nodes, which can 
+  slow down modifying the structure of the IR itself during optimization.
+  additionally, given that AST's are a node based data structure, they suffer 
+  from "pointer-chasing" or "data-fragmentation", where sections of the AST 
+  have the potential to be allocated far away from eachother. (farther than 
+  a cache line, or cache page), and as such there are more cache misses when 
+  processing the entire AST, or any part of it. when you access BC however, 
+  you are guarateed to cache the next few instructions. meaning processing 
+  the whole BC at once is more efficient in time. additionally, node based 
+  data structures must store some amount of pointers per unit of data. 
+  in this case each AST node. meaning that there is some amount of storage 
+  overhead per node in the AST. whereas BC is a dynamically allocated array,
+  and so there is storage overhead per array of BC. meaning there is 
+  generally speaking less overhead in the IMR of the source code. There are 
+  cases where node based operations happen in a small amount of constant time,
+  and the same operations on a dynamic array take linear time. however, given
+  general use (a mix of constant/linear operations on both structures) 
+  dynamic arrays are generally faster overall than node based data structures.
+  (see: https://www.youtube.com/watch?v=YQs6IC-vgmo&t=0s )
+  (additional note: there is often additional overhead per malloc call, because each 
+  chunk of allocated memory needs a control block or metadata block which is 
+  used by the allocation strategy. (I'm not well versed in malloc implementations,
+  I just know about some of the simpler ones, this note could be more or less 
+  true than I made it out to be.))
+
+There are some challenges with BC as opposed the the AST from a 
+logical perpective. (skill issue tbh) where logically the AST 
+more completely represents the input source code. so I can easily reason 
+about optimization and CFG generation and so on and so forth. whereas there 
+is a translation step in my mind when thinking about applying these concepts 
+to BC. since I consider this a skill issue, I'm not counting it against BC 
+as a real negative. as once I understand how to implement these things with 
+respect to BC the challenge goes away.
+
+If we consider (abstactly) metadata that is used during compilation that is 
+related to specific expressions or sub-expressions, 
+with the AST style, we can easily associate 
+that metadata with any or all or none of any individual node in the AST, 
+we can simply add such metadata to the AST node itself. This is logically 
+simple and easy to implement, it is also wasteful of space if those bits of 
+metadata are not useful for each node in the AST that the AST is composed of,
+and given that the AST represents syntax, and not semantics, there is usually 
+nodes in the AST which are just used to link together the actually useful 
+peices of information. anytime this happens we are allocating space for metadata 
+that isn't used, which is wasted space.
+if we instead allocate metadata in a separate structure, and provide a link which 
+associates the metadata with the particular expression or piece of expression, we 
+can both, allocate only as much metadata as we need, and associate that 
+metadata with instructions held within BC as easily as with AST nodes. 
+with no overhead to the nodes or the BC instructions.
 
 
-so, first we need to think about layout of the assembly file,
-and thus the layout of the object file to be linked.
 
-globals:
-global constants (with or without an initializer) 
-  can be placed into the .text section
-
-global variables can be placed into the .data section 
-global variables without an initializer can be placed into the .bss section 
-global variables with an explicit zero initializer can be placed into 
-  the .bss section as well
-
-functions:
-functions are placed into the .text section
-
-locals:
-locals are allocated into registers, or allocated onto the stack
-
-expressions:
-expressions are translated into code within functions,
-  and thus go into the .text section 
+2 - if BC is the IR, then we already know how to generate variable length BC.
+I think it would be advantageous to switch to a static length BC.
+because static length instructions make it possible to start indexing 
+into an array of BC without first scanning the entire BC up to that point.
+This simplifies the implementation of replacing/removing/injecting instructions 
+into the middle of BC.
 
 
-then we need to consider how we initialize the different types 
-of variables and constants.
-(functions and expressions are not "initialized" per-say,
-given that they are always constant in the assembly file.)
-
-global variables are initialized when they are declared in the file.
-Int types use .long 
-Bool types use .byte 
-Nil types use .byte
-
-so, we need a function which emits global variables and global constants.
-this means we need to keep track of global variables and global constants.
-then we can and loop through our list of all globals and emit each.
-
-local variables are stored in registers and on the stack.
-we need a function which can allocate a variabler or constant into 
-a register if possible or allocates the variable or constant onto the 
-stack. 
-then we can loop through the list of locals, when emitting a function,
-and emit each local variable.
-
-to emit an expression we have to keep track of where local variables and 
-global variables are emitted in order to use their values within 
-instructions in the expression. as well as needing mappings from operations 
-to instructions. (such as '+' mapping to an addx instruction.)
-
-in order to emit a function we simply have to emit the function prefix,
-then emit all of the local variables, then emit each expression in the 
-function, then emit the function postfix.
-
-
-obviously there are a ton of details that this glosses over, 
-but I think the gist is correct.
-essentially define a function which maps each language construct to 
-assembly. then loop over all of the in memory representation of the 
-source code, and call these functions in order to emit the assembly 
-representation of the source code.
-all that is left after that is to invoke /usr/bin/as to produce an elf 
-object file. then /usr/bin/ld to produce an executable.
-
-emitting assembly looks like writing strings into a buffer.
-
-in order to loop over language constructs, we must have an in memory 
-representation of said language constructs. The classical choice is 
-the abstract syntax tree. however that choice leads to performance 
-degradation as the language as a whole grows in complexity.
-
-another classical choice is the virtual machine. this choice has 
-performance considerations as well, though it is far faster than 
-chasing down pointers in an AST, and it is just as flexible.
-as many interpreters are based in virtual machines. To my knowledge 
-the only thing faster is running code directly on the cpu.
-
-however, I am writing a compiler, trying to generate code that runs 
-directly on the cpu. So this is "placing the cart before the horse" 
-as it were. 
-
-one step up from machine code is JIT, that is compile the source code
-to machine code and run that. as opposed to running code within a VM.
-this, again solves the problem of "generating machine code" with the 
-solution of "generate machine code". which is again putting the cart 
-before the horse.
-
-thus, generating machine code directly from virtual machine instructions.
-
-the only thing faster I think, would be to have the parser generate 
-machine code directly. The question arises, how do you typecheck 
-the emitted code? How do you account for types within expressions 
-at all?
-
-The classical approach has the parser create invalid expressions.
-These expressions are then typechecked, and only when both steps 
-have completed do we attempt to emit code for the expression.
-
-This is in some sense, a multi pass compiler design. 
-first we parse the source code, creating some form of
-intermediate representation (IR. could be an AST or a byte array or etc..).
-next we check that the IR is correct. (not adding bools to ints 
-or calling a function with the wrong arguments etc...
-this is what I have been calling Typechecking, though it is 
-fair to check for errors that are not related to types as well.)
-then we translate the IR into assembly. (this is what I have been calling 
-the code generation step.)
-then we assemble and link into the final executable.
-
-The issue with having the parser emit machine code directly is that 
-there is now the requirement that the parser produces correct 
-"intermediate representation" even though there is no IR at all.
-that is, what used to take two passes has been unified into a one pass.
-
-the issue becomes, it is allowed by the grammar recognized by the parser 
-to form operations on types which are not supported by those types.
-such as addition on boolean types. (or in the future, addition on 
-structure types.)
 
 
 

@@ -19,6 +19,13 @@
 
 #include "env/context.h"
 
+/**
+ * @brief compiles the source file given by ContextOptions
+ * into the assembly output file given by ContextOptions.
+ *
+ * @param context
+ * @return int
+ */
 int compile(Context *restrict context);
 
 #endif // !EXP_CORE_COMPILE_H

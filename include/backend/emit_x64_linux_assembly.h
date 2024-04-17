@@ -21,33 +21,30 @@
 #include "utility/string_view.h"
 
 /*
-  #NOTE: as far as I can tell, defining symbols is
+  #NOTE: as far as I can tell, defining symbols is nearly
   the entire job of writing assembly for the assembler
   and linker.
 
   globals are symbols
-  functions are symbols
+  functions are globals
+  constants are globals
+  variables are globals
+
+  then there is information like debug info
+  and what compiler produced the output and
+  the source file, etc...)
 
   program execution in its most primitive form is:
 
-  os -> main() -> ... -> main() -> os
+  os-scheduler -> main() -> ... -> main() -> os-scheduler
 
-  and anything that main can do is done by way of symbols,
-  expressions, and constants.
+  and anything that main can do is done by way of
+  expressions occuring within the body of main.
 
-  expressions are transformed into assembly, that is only
-  accessable by way of calling a function. and constants
-  are transformed into global initializers, and into
-  components of those same assembly instructions.
-
-  thus, defining global constants is like 1/4 or 1/3 or 1/2
-  (depending on how you slice the compiler)
-  of the entire compiler. (modulo types)
-
-  Bytecode, Registers, and the VirtualMachine, are all components
-  of an interpreter, not a compiler.
-  their existence paves a way for compile time execution.
-  but they are not the code that emits assembly instructions.
+  expressions are transformed into assembly instructions,
+  either encoding literal values as immediates, or using
+  globally defined constants/variables, or calling globally
+  defined functions.
 */
 
 /**

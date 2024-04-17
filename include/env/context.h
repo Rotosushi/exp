@@ -26,6 +26,12 @@
 // #include "imr/registers.h"
 #include "imr/stack.h"
 
+/**
+ * @brief A context models a Translation Unit.
+ * it's just that context is a shorter type name than
+ * TranslationUnit
+ *
+ */
 typedef struct Context {
   ContextOptions options;
   StringInterner string_interner;

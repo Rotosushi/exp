@@ -27,7 +27,7 @@ Value value_create() {
   return value;
 }
 
-void value_destroy(Value *value) {
+void value_destroy(Value *restrict value) {
   switch (value->kind) {
   case VALUEKIND_FUNCTION: {
     Function *f = &value->function;

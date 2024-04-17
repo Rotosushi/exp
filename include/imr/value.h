@@ -28,8 +28,8 @@ typedef enum ValueKind {
   VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
 
-  // #TODO: string literals are better represented
-  // as arrays.
+  // #TODO: string literals are more
+  // fundamentally represented as arrays.
   VALUEKIND_STRING_LITERAL,
 
   VALUEKIND_TYPE,
@@ -56,8 +56,6 @@ typedef struct Value {
   };
 } Value;
 
-#define VALUE_IS(value, k) (value.kind == k)
-
 /**
  * @brief create an uninitialized value
  *
@@ -65,6 +63,11 @@ typedef struct Value {
  */
 Value value_create();
 
+/**
+ * @brief destroy the given value
+ *
+ * @param value
+ */
 void value_destroy(Value *restrict value);
 
 /**

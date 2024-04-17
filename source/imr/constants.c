@@ -69,6 +69,9 @@ static void constants_grow(Constants *restrict constants) {
   constants->capacity = new_capacity;
 }
 
+// #TODO: this is the "greedy" approach, and it would be more
+// space efficient if we only performed an insert when the
+// new constant was unique. This trades time for space.
 size_t constants_append(Constants *restrict constants, Value value) {
   assert(constants != NULL);
 

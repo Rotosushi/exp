@@ -20,6 +20,15 @@
 #include "utility/cli_options.h"
 #include "utility/path.h"
 
+/**
+ * @brief holds the options relevant for the given
+ * context. For now it holds the names of both source
+ * and output file. But the intention is to hold other
+ * "translation unit" relevant information, such as
+ * which files have been imported, what the level of
+ * optimization is, and so forth and so on.
+ *
+ */
 typedef struct ContextOptions {
   Path source;
   Path output;

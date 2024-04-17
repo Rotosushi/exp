@@ -23,7 +23,7 @@
 /**
  * @brief returns the native alignment of the <type>
  *
- * @note this is the number of bytes to align to.
+ * @note this is the number of bytes to align a <value> with <type> to.
  *
  * @param type
  * @return size_t
