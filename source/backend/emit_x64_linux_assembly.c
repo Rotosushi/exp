@@ -159,7 +159,7 @@ static void directive_bss(FILE *file) { file_write("  .bss\n", file); }
  *
  * @param file
  */
-static void directive_text(FILE *file) { file_write("  .text\n", file); }
+// static void directive_text(FILE *file) { file_write("  .text\n", file); }
 
 /**
  * @brief pads the location counter to a particular storage boundary.
@@ -203,18 +203,18 @@ static void directive_size(StringView name, u64 size, FILE *file) {
  * @param name
  * @param file
  */
-static void directive_size_label_relative(StringView name, FILE *file) {
-  file_write("  .size ", file);
-  file_write(name.ptr, file);
-  // the '.' symbol refers to the current address, the '-' is
-  // arithmetic subtraction, and the label refers to the address
-  // of the label. thus, label relative size computes to the
-  // numeric difference between the current address and the address
-  // of the .size directive
-  file_write(", .-", file);
-  file_write(name.ptr, file);
-  file_write("\n", file);
-}
+// static void directive_size_label_relative(StringView name, FILE *file) {
+//   file_write("  .size ", file);
+//   file_write(name.ptr, file);
+//   // the '.' symbol refers to the current address, the '-' is
+//   // arithmetic subtraction, and the label refers to the address
+//   // of the label. thus, label relative size computes to the
+//   // numeric difference between the current address and the address
+//   // of the .size directive
+//   file_write(", .-", file);
+//   file_write(name.ptr, file);
+//   file_write("\n", file);
+// }
 
 typedef enum STT_Type {
   STT_FUNC,
@@ -320,41 +320,41 @@ static void directive_zero(u64 bytes, FILE *file) {
   file_write("\n", file);
 }
 
-static void directive_string(StringView sv, FILE *file) {
-  file_write("  .string \"", file);
-  file_write(sv.ptr, file);
-  file_write("\"\n", file);
-}
+// static void directive_string(StringView sv, FILE *file) {
+//   file_write("  .string \"", file);
+//   file_write(sv.ptr, file);
+//   file_write("\"\n", file);
+// }
 
 static void directive_label(StringView name, FILE *file) {
   file_write(name.ptr, file);
   file_write(":\n", file);
 }
 
-typedef enum RegisterName {
-  REG_RAX,
-  REG_RDI,
-} RegisterName;
+// typedef enum RegisterName {
+//   REG_RAX,
+//   REG_RDI,
+// } RegisterName;
 
-static void register_name(RegisterName name, FILE *file) {
-  switch (name) {
-  case REG_RAX:
-    file_write("%rax", file);
-    break;
+// static void register_name(RegisterName name, FILE *file) {
+//   switch (name) {
+//   case REG_RAX:
+//     file_write("%rax", file);
+//     break;
 
-  case REG_RDI:
-    file_write("%rdi", file);
-    break;
+//   case REG_RDI:
+//     file_write("%rdi", file);
+//     break;
 
-  default:
-    PANIC("unknown RegisterName");
-  }
-}
+//   default:
+//     PANIC("unknown RegisterName");
+//   }
+// }
 
-static void immediate(i64 value, FILE *file) {
-  file_write("$", file);
-  print_intmax(value, RADIX_DECIMAL, file);
-}
+// static void immediate(i64 value, FILE *file) {
+//   file_write("$", file);
+//   print_intmax(value, RADIX_DECIMAL, file);
+// }
 
 /**
  * @brief emit a return (near) instruction.
@@ -372,7 +372,7 @@ operand size in 64-bit mode
  *
  * @param file
  */
-static void instruction_ret(FILE *file) { file_write("  ret\n", file); }
+// static void instruction_ret(FILE *file) { file_write("  ret\n", file); }
 
 /**
  * @brief emit a call (near) instruction
@@ -386,19 +386,20 @@ as the CALL instruction.
  * @param name
  * @param file
  */
-static void instruction_call(StringView name, FILE *file) {
-  file_write("  call ", file);
-  file_write(name.ptr, file);
-  file_write("\n", file);
-}
+// static void instruction_call(StringView name, FILE *file) {
+//   file_write("  call ", file);
+//   file_write(name.ptr, file);
+//   file_write("\n", file);
+// }
 
-static void instruction_mov_immediate(i64 value, RegisterName reg, FILE *file) {
-  file_write("  mov ", file);
-  immediate(value, file);
-  file_write(" ", file);
-  register_name(reg, file);
-  file_write("\n", file);
-}
+// static void instruction_mov_immediate(i64 value, RegisterName reg, FILE
+// *file) {
+//   file_write("  mov ", file);
+//   immediate(value, file);
+//   file_write(" ", file);
+//   register_name(reg, file);
+//   file_write("\n", file);
+// }
 
 /**
  * @brief emit the function which performs the exit
@@ -409,15 +410,15 @@ static void instruction_mov_immediate(i64 value, RegisterName reg, FILE *file) {
  *
  * @param file
  */
-static void emit_x86_linux_sysexit(FILE *file) {
-  StringView sysexit = string_view_from_cstring("sysexit");
-  directive_globl(sysexit, file);
-  directive_type_explicit(sysexit, STT_FUNC, file);
-  file_write("  mov $60, %rax\n", file);
-  file_write("  syscall\n", file);
-  directive_size_label_relative(sysexit, file);
-  file_write("\n", file);
-}
+// static void emit_x86_linux_sysexit(FILE *file) {
+//   StringView sysexit = string_view_from_cstring("sysexit");
+//   directive_globl(sysexit, file);
+//   directive_type_explicit(sysexit, STT_FUNC, file);
+//   file_write("  mov $60, %rax\n", file);
+//   file_write("  syscall\n", file);
+//   directive_size_label_relative(sysexit, file);
+//   file_write("\n", file);
+// }
 
 /**
  * @brief emit the _start function which the linker will set
@@ -427,18 +428,18 @@ static void emit_x86_linux_sysexit(FILE *file) {
  * _start will call.
  * @param file the file to write into
  */
-static void emit_x86_linux_start(StringView main, FILE *file) {
-  StringView start = string_view_from_cstring("_start");
-  directive_globl(start, file);
-  directive_type_explicit(start, STT_FUNC, file);
-  directive_label(start, file);
-  instruction_call(main, file);
-  file_write("  mov %rax, %rdi\n", file);
-  StringView sysexit = string_view_from_cstring("sysexit");
-  instruction_call(sysexit, file);
-  directive_size_label_relative(start, file);
-  file_write("\n", file);
-}
+// static void emit_x86_linux_start(StringView main, FILE *file) {
+//   StringView start = string_view_from_cstring("_start");
+//   directive_globl(start, file);
+//   directive_type_explicit(start, STT_FUNC, file);
+//   directive_label(start, file);
+//   instruction_call(main, file);
+//   file_write("  mov %rax, %rdi\n", file);
+//   StringView sysexit = string_view_from_cstring("sysexit");
+//   instruction_call(sysexit, file);
+//   directive_size_label_relative(start, file);
+//   file_write("\n", file);
+// }
 
 /**
  * @brief emit the header of the assembly file representing the
@@ -455,8 +456,8 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
   directive_file(path, file);
   directive_arch(cpu_type, file);
   file_write("\n", file);
-  emit_x86_linux_sysexit(file);
-  emit_x86_linux_start(string_view_from_cstring("main"), file);
+  // emit_x86_linux_sysexit(file);
+  // emit_x86_linux_start(string_view_from_cstring("main"), file);
   file_write("\n", file);
 }
 
@@ -478,70 +479,6 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
   directive_noexecstack(file);
 }
 
-static void emit_x86_linux_function(Context *restrict context,
-                                    Function *function, FILE *file) {
-#define READBYTE() (*ip++)
-#define CURIDX() (u64)(ip - body->buffer)
-  Bytecode *body = &function->body;
-  u8 *ip         = body->buffer;
-
-  while (1) {
-    switch ((Opcode)READBYTE()) {
-    case OP_PUSH_CONSTANT_U8: {
-      u64 index = context_read_immediate(context, CURIDX(), sizeof(u8));
-      ip += sizeof(u8);
-
-      Value *constant = context_constants_at(context, index);
-      context_stack_push(context, constant);
-      break;
-    }
-
-    case OP_PUSH_CONSTANT_U16: {
-      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint16_t));
-      ip += sizeof(uint16_t);
-
-      Value *constant = context_constants_at(context, index);
-      context_stack_push(context, constant);
-      break;
-    }
-
-    case OP_PUSH_CONSTANT_U32: {
-      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint32_t));
-      ip += sizeof(uint32_t);
-
-      Value *constant = context_constants_at(context, index);
-      context_stack_push(context, constant);
-      break;
-    }
-
-    case OP_PUSH_CONSTANT_U64: {
-      u64 index = context_read_immediate(context, CURIDX(), sizeof(uint64_t));
-      ip += sizeof(uint64_t);
-
-      Value *constant = context_constants_at(context, index);
-      context_stack_push(context, constant);
-      break;
-    }
-
-    case OP_RETURN: {
-      Value *constant = context_stack_peek(context);
-      // #TODO: support more than Int return types.
-      assert(constant->kind == VALUEKIND_INTEGER);
-      instruction_mov_immediate(constant->integer, REG_RAX, file);
-      instruction_ret(file);
-      break;
-    }
-
-    default: {
-      PANIC("unsupported Opcode");
-    }
-    }
-  }
-
-#undef READBYTE
-#undef CURIDX
-}
-
 /**
  * @brief emit the assembly for the given global constant symbol
  * into the assembly file representing the given context.
@@ -550,9 +487,9 @@ static void emit_x86_linux_function(Context *restrict context,
  * @param element
  * @param file
  */
-static void emit_x64_linux_global_const(Context *restrict context,
-                                        SymbolTableElement *global,
-                                        FILE *file) {
+static void
+emit_x64_linux_global_const([[maybe_unused]] Context *restrict context,
+                            SymbolTableElement *global, FILE *file) {
   /*
 a global object declaration in assembly looks like:
   .globl <name>
@@ -619,43 +556,6 @@ compiler to prevent writes to constants.
       directive_zero(size_of(type), file);
     }
     break;
-
-  // #TODO: string literals are better represented as arrays,
-  case TYPEKIND_STRING_LITERAL:
-    directive_globl(name, file);
-    if (value->kind == VALUEKIND_STRING_LITERAL) {
-      directive_data(file);
-    } else {
-      directive_bss(file);
-    }
-    directive_balign(type, file);
-    directive_type(name, type, file);
-    if (value->kind == VALUEKIND_STRING_LITERAL) {
-      directive_size(name, value->string_literal.length, file);
-    } else {
-      directive_size(name, 0UL, file);
-    }
-
-    directive_label(name, file);
-    if (value->kind == VALUEKIND_STRING_LITERAL) {
-      directive_string(value->string_literal, file);
-    } else {
-      directive_string(string_view_from_cstring(""), file);
-    }
-    break;
-
-  case TYPEKIND_FUNCTION: {
-    directive_globl(name, file);
-    if (value->kind != VALUEKIND_FUNCTION) {
-      PANIC("cannot emit an uninitialized function.");
-    }
-    directive_text(file);
-    directive_type(name, type, file);
-    directive_label(name, file);
-    emit_x86_linux_function(context, &value->function, file);
-    directive_size_label_relative(name, file);
-    break;
-  }
 
   default:
     PANIC("bad VALUEKIND");

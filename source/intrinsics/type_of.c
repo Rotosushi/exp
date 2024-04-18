@@ -33,15 +33,6 @@ Type *type_of(Value *restrict value, Context *restrict context) {
   case VALUEKIND_INTEGER:
     return context_integer_type(context);
 
-  case VALUEKIND_STRING_LITERAL:
-    return context_string_literal_type(context);
-
-  case VALUEKIND_TYPE:
-    return value->type;
-
-  case VALUEKIND_FUNCTION:
-    return function_type_of(&value->function, context);
-
   default:
     PANIC("bad VALUEKIND");
   }

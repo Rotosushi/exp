@@ -4,7 +4,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
 
   ${EXP_SOURCE_DIR}/core/compile.c
-  ${EXP_SOURCE_DIR}/core/interpret.c
 
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c

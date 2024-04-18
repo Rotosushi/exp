@@ -32,179 +32,94 @@ some basic questions:
 
 considerations of these questions:
 
-1 - So, there are some real advantages to the bytecode (BC) representation of 
-intermediate representation. 
-A - time and space efficiency
-  reading and writing BC is as efficient as it gets when dealing 
-  with large amounts of data. as it can boil down to a memcpy in the best 
-  possible case, a memmove in overlapping cases. and we can index into the 
-  array of BC anywhere and it is as fast as indexing into an array.
-  Now, with a variable length encoding of the BC, we cannot simply 
-  index into the bytecode array at any index and be sure that we are landing
-  on a correct instruction. However if we have a static length encoding, 
-  we can simply index into the array anywhere and start reading and writing
-  instructions. This is in contrast to the classical IR 
-  Abstract Syntax Trees (AST). Which given their tree like structure means 
-  that we must process the entire tree to reach leaf nodes, which can 
-  slow down modifying the structure of the IR itself during optimization.
-  additionally, given that AST's are a node based data structure, they suffer 
-  from "pointer-chasing" or "data-fragmentation", where sections of the AST 
-  have the potential to be allocated far away from eachother. (farther than 
-  a cache line, or cache page), and as such there are more cache misses when 
-  processing the entire AST, or any part of it. when you access BC however, 
-  you are guarateed to cache the next few instructions. meaning processing 
-  the whole BC at once is more efficient in time. additionally, node based 
-  data structures must store some amount of pointers per unit of data. 
-  in this case each AST node. meaning that there is some amount of storage 
-  overhead per node in the AST. whereas BC is a dynamically allocated array,
-  and so there is storage overhead per array of BC. meaning there is 
-  generally speaking less overhead in the IMR of the source code. There are 
-  cases where node based operations happen in a small amount of constant time,
-  and the same operations on a dynamic array take linear time. however, given
-  general use (a mix of constant/linear operations on both structures) 
-  dynamic arrays are generally faster overall than node based data structures.
-  (see: https://www.youtube.com/watch?v=YQs6IC-vgmo&t=0s )
-  (additional note: there is often additional overhead per malloc call, because each 
-  chunk of allocated memory needs a control block or metadata block which is 
-  used by the allocation strategy. (I'm not well versed in malloc implementations,
-  I just know about some of the simpler ones, this note could be more or less 
-  true than I made it out to be.))
-
-There are some challenges with BC as opposed the the AST from a 
-logical perpective. (skill issue tbh) where logically the AST 
-more completely represents the input source code. so I can easily reason 
-about optimization and CFG generation and so on and so forth. whereas there 
-is a translation step in my mind when thinking about applying these concepts 
-to BC. since I consider this a skill issue, I'm not counting it against BC 
-as a real negative. as once I understand how to implement these things with 
-respect to BC the challenge goes away.
-
-If we consider (abstactly) metadata that is used during compilation that is 
-related to specific expressions or sub-expressions, 
-with the AST style, we can easily associate 
-that metadata with any or all or none of any individual node in the AST, 
-we can simply add such metadata to the AST node itself. This is logically 
-simple and easy to implement, it is also wasteful of space if those bits of 
-metadata are not useful for each node in the AST that the AST is composed of,
-and given that the AST represents syntax, and not semantics, there is usually 
-nodes in the AST which are just used to link together the actually useful 
-peices of information. anytime this happens we are allocating space for metadata 
-that isn't used, which is wasted space.
-if we instead allocate metadata in a separate structure, and provide a link which 
-associates the metadata with the particular expression or piece of expression, we 
-can both, allocate only as much metadata as we need, and associate that 
-metadata with instructions held within BC as easily as with AST nodes. 
-with no overhead to the nodes or the BC instructions.
+  1 - "What is the IMR of the IR?"
+      There are two representations of IR that I know of. 
+      one is the Abstract Syntax Tree (AST)
+      and the other is Bytecode (BC)
+      
+      we can use a Tree based approach, even if we created a variant of 
+      the AST that wasted less space, and that would be fairly standard,
+      as far as I can tell.
+      However, there are some real advantages to bytecode
+      A - time and space efficiency
+        reading and writing BC is as efficient as it gets when dealing 
+        with large amounts of data. as it can boil down to a memcpy in the best 
+        possible case, a memmove in overlapping cases. and we can index into the 
+        array of BC anywhere and it is as fast as indexing into an array.
+        Now, with a variable length encoding of the BC, we cannot simply 
+        index into the bytecode array at any index and be sure that we are landing
+        on a correct instruction. However if we have a static length encoding, 
+        we can simply index into the array anywhere and start reading and writing
+        instructions. This is in contrast to the classical IR 
+        Abstract Syntax Trees (AST). Which given their tree like structure means 
+        that we must process the entire tree to reach leaf nodes, which can 
+        slow down modifying the structure of the IR itself during optimization.
+        additionally, given that AST's are a node based data structure, they suffer 
+        from "pointer-chasing" or "data-fragmentation", where sections of the AST 
+        have the potential to be allocated far away from eachother. (farther than 
+        a cache line, or cache page), and as such there are more cache misses when 
+        processing the entire AST, or any part of it. when you access BC however, 
+        you are guarateed to cache the next few instructions. meaning processing 
+        the whole BC at once is more efficient in time. additionally, node based 
+        data structures must store some amount of pointers per unit of data. 
+        in this case each AST node. meaning that there is some amount of storage 
+        overhead per node in the AST. whereas BC is a dynamically allocated array,
+        and so there is storage overhead per array of BC. meaning there is 
+        generally speaking less overhead in the IMR of the source code. There are 
+        cases where node based operations happen in a small amount of constant time,
+        and the same operations on a dynamic array take linear time. however, given
+        general use (a mix of constant/linear operations on both structures) 
+        dynamic arrays are generally faster overall than node based data structures.
+        (see: https://www.youtube.com/watch?v=YQs6IC-vgmo&t=0s )
+        (additional note: there is often additional overhead per malloc call, because each 
+        chunk of allocated memory needs a control block or metadata block which is 
+        used by the allocation strategy. (I'm not well versed in malloc implementations,
+        I just know about some of the simpler ones, this note could be more or less 
+        true than I made it out to be.))
 
 
+      There are some challenges with BC as opposed the the AST from a 
+      logical perpective. (skill issue tbh) where logically the AST 
+      more completely represents the input source code. so I can easily reason 
+      about optimization and CFG generation and so on and so forth. whereas there 
+      is a translation step in my mind when thinking about applying these concepts 
+      to BC. since I consider this a skill issue, I'm not counting it against BC 
+      as a real negative. as once I understand how to implement these things with 
+      respect to BC the challenge goes away.
 
-5 - maybe IR can be generated in SSA form or close to it? 
-SSA essentially means each variable is assigned only once. 
-When I recall what LLVM does with it's IR there is a set 
-of local variables %0, %1, %2, etc..., which are generated within the IR. 
-when an instruction produces a resulting value, that value is placed into a new 
-local. according to LLVM docs, this not only simplifies the code generated, 
-it makes it easier to translate into SSA form, because each symbol is already only 
-assigned once. each function gets to start it's local's by starting the count over.
-if we mimic that behavior in the IR we generate, by maintaining a growing set of 
-virtual registers, does this get us closer to a true SSA form? 
-a classic opcode like [add <r0>, <r1>] would perform addition and then 
-assignment of r0, but llvm would state that like [%2 = add <type> %0, %1]
-where %2 is never assigned again after creation. This is SSA form, except for 
-phi nodes. which only occur when branching is introduced.
+      If we consider (abstactly) metadata that is used during compilation that is 
+      related to specific expressions or sub-expressions, 
+      with the AST style, we can easily associate 
+      that metadata with any or all or none of any individual node in the AST, 
+      we can simply add such metadata to the AST node itself. This is logically 
+      simple and easy to implement, it is also wasteful of space if those bits of 
+      metadata are not useful for each node in the AST that the AST is composed of,
+      and given that the AST represents syntax, and not semantics, there is usually 
+      nodes in the AST which are just used to link together the actually useful 
+      peices of information. anytime this happens we are allocating space for metadata 
+      that isn't used, which is wasted space.
+      if we instead allocate metadata in a separate structure, and provide a link which 
+      associates the metadata with the particular expression or piece of expression, we 
+      can both, allocate only as much metadata as we need, and associate that 
+      metadata with instructions held within BC as easily as with AST nodes. 
+      with no overhead to the nodes or the BC instructions.
 
-in this scenario %0, %1, %2, ..., are all virtual register indexes, in our IR.
-and we can simply have a 3 argument opcode, [add, %2, %0, %1], which keeps SSA,
-and keeps a minimal encoding. the only restriction is the size of our indices 
-into the register set.
-
-one thing to note is that even considering interpretation, a functions call frame could 
-include an offset into the actual array of virtual registers (a register frame pointer if 
-you would allow the analogy) allowing each function call to use low numbered register 
-indexes in the instruction encodings and yet still index into a "infinite" set of 
-virtual registers. 
-
-a few things come to mind:
-A - we have to decide on a static length for our encoding. 64 is natural, 32 could 
-be slightly more efficient from a data perspective (64 bit word size means more instructions 
-will be loaded into cache when reading BC, allowing faster processing of BC),
-and portable to 32 bit machines. 64 bit encoding seems very difficult to encode into a 32 
-bit architecture. whereas the other way around "just works."
-
-B - we have to separate functions and values.
-this is going to simplify the treatment of values considerably, though we now have 
-to build up some extra data-structures to manage functions. 
-(they can't be stored in the constants array, in fact I think this means we switch 
-to a register based VM instead of a stack based VM.)
-and on this point, more fundamentally, we need to separate defintion of symbols from 
-the instructions entirely. That is the parser needs to build symbols, and insert them
-into the global symbol table. AND there is no more global bytecode, there is only 
-local bytecode. AND local bytecode needs to be split up into a set of basic blocks.
-though, to be completely fair, this only needs to happen to support local control flow.
-interprocedural control flow can very well occur with each function only having a 
-single basic block.
-
-C - do we avoid register allocation entirely with this approach?
-or do we put the cart before the horse with this?
-such as do we need to worry about "spilling" registers to the stack?
-
-D - how do we handle Algebraic Data Types (ADT)? that is Structs and Unions?
-do these always live on the stack?
-and can we handle functions as values via closures written on top of an ADT?
-
-
-2 - if BC is the IR, then we already generate variable length BC.
-I think it would be advantageous to switch to a static length BC.
-because static length instructions make it possible to start indexing 
-into an array of BC without first scanning the entire BC up to that point.
-This simplifies the implementation of replacing/removing/injecting instructions 
-in BC.
-it is mostly identical to have the parser generate any form of IR, we just need 
-to set up the correct functions for the parser to call. The main difference could 
-be that since the parser has to define symbols, this means that the parser has to 
-pass around more data than it does currently. currently it is a side effect that 
-the top of the stack gets populated with the result of an affix expression, such 
-that the parser of constant definitions only needs to emit the opcode for "define 
-a constant" after it parses the affix expression, the bytecode is then in the 
-correct order for interpretation. however, if the parser needs to generate the 
-symbol defintion, then it has to have either the value of the symbol or something 
-that can be used to synthesize the value of the symbol. this something must be 
-returned from the parser of affix expressions to the parser of constant definitions
-such that a global symbol can be generated. 
-
-given that it is an affix expression we are talking about, the same thing that a 
-functions body is composed of, it makes sense to use a basic block here. It can 
-represent something which can be used to synthesize the value of the symbol.
-
-
-
-(numbers are arbitrary and relative, they only exist to artifically 
-       delineate thoughts.)
-TODO: 
- -1 - we are removing most of the existing code in order to refactor it.
-      as most of the existing code is not built up with the following 
-      considerations in mind, and as such must be remade completely. 
-
-  0 - globals are kept in a separate kind of symbol table, which has the ability to 
-      map names to globally valid data. specifically named constants, named types,
-      and functions.
-
-  1 - we need a structure which can represent the local variables of a function 
-      which can be accessed by instructions using an integer index; such that
-      bytecode instructions can be encoded which reference these variables.
-
-      currently we use a constants array to "map" indexes to values, the value 
-      is the name, and that name is used as a key in a symbol table lookup, 
-      where the symbol table maps the name to the actual value of the variable.
-
-      this is slow and indirect, albeit semi-necessary because name-value maps 
-      are the basis of variable assignment. 
+  2 - "how does the parser create the IR from the source code?"
+      The parser can generally create bytecode the same way it creates 
+      any IR, it simply uses the information it parses to decide what 
+      to create and what to associate it with. However there are some 
+      practical questions that need to be answered. such as how does 
+      the parser create bytecode instructions which reference local 
+      variables, when the bytecode instructions themselves cannot encode 
+      a pointer to the variable name, or anything that simple. (as would 
+      be done with a tree like structure, where the parser would create 
+      nodes that would simply hold the variable name directly.)
 
       what I am proposing is to take a page from both clox local variables, and 
       LLVM local variables. (clox takes a page from lua for locals, so it's
       transitively taking a page from lua. but I digress.)
       the numbered locals approach of LLVM, local names can 
-      be easily generated in a new local scope by taking the names %0, %1, %2, ...,
+      be easily generated in a new local scope by taking the names %0, %1, %2, ...
       and how locals are stored on the stack in clox, that is, the value of the 
       local is stored in some stack slot, and instructions which reference that 
       local simply encode an offset from a "frame pointer" in order to access the 
@@ -246,6 +161,131 @@ TODO:
       if the index is overwritten? say we need to emit an error during analysis 
       that wants to use the name of the variable. or, we want to optimize some usage 
       of "x", how can we "know" what the chain of "x"s is?
+
+
+  3 - "What is the IMR of the Control Flow Graph?"
+      I know of two ways to store graphs in memory. 
+      as a vector of linked lists (adjacency list)
+      or a dynamic array treated as a matrix (adjacency matrix)
+      now, normally I am all for not using linked lists, 
+      when a dynamic array is available (for all the usual reasons). 
+      However this is one situation where there might be a good argument.
+      given that most vertecies in the graph are going to have < 10 outgoing 
+      edges. That is, most functions are going to call out to < 10 other functions.
+      so this means that even though a given program is going to have a lot of 
+      vertecies, (one per function), each vertex is going to have very few edges.
+      (approx < 10). This means that most of the storage allocated for an adjacency
+      matrix will be wasted space. the hueristic is that since an adjacency matrix 
+      will always use n^2 space (where n is the number of vertecies), if the number 
+      of edges is significantly smaller than n^2, then most of the graphs storage 
+      will remain unused. (the actual calculation should take into account that 
+      the list approach has storage overhead per edge, so for some number of 
+      vertecies (k) even if your graph is sparse a matrix will be less memory overall
+      than an adjacency list. my bet is that k is on the order of 100.
+      However given that this is a compiler, and real world programs routinely have
+      hundreds if not thousands of functions, I's say the hueristic holds for the 
+      current use-case.)
+      so an adjacency list is going to be the choice.
+
+  4 - "How does the CFG get created to represent the source code?"
+      It would be nice if the parser could build the control flow graph as 
+      it built the IR.
+
+  5 - "how can the IR be converted into SSA form?"
+      maybe IR can be generated in SSA form or close to it? 
+      SSA essentially means each variable is assigned only once. 
+      When I recall what LLVM does with it's IR there is a set 
+      of local variables %0, %1, %2, etc..., which are generated within the IR. 
+      when an instruction produces a resulting value, that value is placed into a new 
+      local. according to LLVM docs, this not only simplifies the code generated, 
+      it makes it easier to translate into SSA form, because each symbol is already only 
+      assigned once. each function gets to start it's local's by starting the count over.
+      if we mimic that behavior in the IR we generate, by maintaining a growing set of 
+      virtual registers, does this get us closer to a true SSA form? 
+      a classic opcode like [add <r0>, <r1>] would perform addition and then 
+      assignment of r0, but llvm would state that like [%2 = add <type> %0, %1]
+      where %2 is never assigned again after creation. This is SSA form, except for 
+      phi nodes. which only occur when branching is introduced.
+
+      in this scenario %0, %1, %2, ..., are all virtual register indexes, in our IR.
+      and we can simply have a 3 argument opcode, [add, %2, %0, %1], which keeps SSA,
+      and keeps a minimal encoding. the only restriction is the size of our indices 
+      into the register set.
+
+      one thing to note is that even considering interpretation, a functions call frame could 
+      include an offset into the actual array of virtual registers (a register frame pointer if 
+      you would allow the analogy) allowing each function call to use low numbered register 
+      indexes in the instruction encodings and yet still index into a "infinite" set of 
+      virtual registers. 
+
+      a few things come to mind:
+      A - we have to decide on a static length for our encoding. 64 is natural, 32 could 
+      be slightly more efficient from a data perspective (64 bit word size means more instructions 
+      will be loaded into cache when reading BC, allowing faster processing of BC),
+      and portable to 32 bit machines. 64 bit encoding seems very difficult to encode into a 32 
+      bit architecture. whereas the other way around "just works."
+
+      B - we have to separate functions and values.
+      this is going to simplify the treatment of values considerably, though we now have 
+      to build up some extra data-structures to manage functions. 
+      (they can't be stored in the constants array, in fact I think this means we switch 
+      to a register based VM instead of a stack based VM.)
+      and on this point, more fundamentally, we need to separate defintion of symbols from 
+      the instructions entirely. That is the parser needs to build symbols, and insert them
+      into the global symbol table. AND there is no more global bytecode, there is only 
+      local bytecode. AND local bytecode needs to be split up into a set of basic blocks.
+      though, to be completely fair, this only needs to happen to support local control flow.
+      interprocedural control flow can very well occur with each function only having a 
+      single basic block.
+
+      C - do we avoid register allocation entirely with this approach?
+      or do we put the cart before the horse with this?
+      such as do we need to worry about "spilling" registers to the stack?
+
+      D - how do we handle Algebraic Data Types (ADT)? that is Structs and Unions?
+      do these always live on the stack?
+      and can we handle functions as values via closures written on top of an ADT?
+
+
+      2 - if BC is the IR, then we already generate variable length BC.
+      I think it would be advantageous to switch to a static length BC.
+      because static length instructions make it possible to start indexing 
+      into an array of BC without first scanning the entire BC up to that point.
+      This simplifies the implementation of replacing/removing/injecting instructions 
+      in BC.
+      it is mostly identical to have the parser generate any form of IR, we just need 
+      to set up the correct functions for the parser to call. The main difference could 
+      be that since the parser has to define symbols, this means that the parser has to 
+      pass around more data than it does currently. currently it is a side effect that 
+      the top of the stack gets populated with the result of an affix expression, such 
+      that the parser of constant definitions only needs to emit the opcode for "define 
+      a constant" after it parses the affix expression, the bytecode is then in the 
+      correct order for interpretation. however, if the parser needs to generate the 
+      symbol defintion, then it has to have either the value of the symbol or something 
+      that can be used to synthesize the value of the symbol. this something must be 
+      returned from the parser of affix expressions to the parser of constant definitions
+      such that a global symbol can be generated. 
+
+      given that it is an affix expression we are talking about, the same thing that a 
+      functions body is composed of, it makes sense to use a basic block here. It can 
+      represent something which can be used to synthesize the value of the symbol.
+
+
+
+(numbers are arbitrary and relative, they only exist to artifically 
+       delineate thoughts.)
+TODO: 
+ -1 - we are removing most of the existing code in order to refactor it.
+      as most of the existing code is not built up with the following 
+      considerations in mind, and as such must be remade completely. 
+
+  0 - globals are kept in a separate kind of symbol table, which has the ability to 
+      map names to globally valid data. specifically named constants, named types,
+      and functions.
+
+  1 - we need a structure which can represent the local variables of a function 
+      which can be accessed by instructions using an integer index; such that
+      bytecode instructions can be encoded which reference these variables.
 
       the parser also has to handle the difference between a local and a global constant.
 
@@ -350,5 +390,8 @@ TODO:
       or registers, or something else. This both simplifies the opcodes themselves,
       because there doesn't need to be variant opcodes, and it allows for variant 
       opcode semantics to be expressed. (as a bonus the operands are equal lengths!)
+
+
+
 
 

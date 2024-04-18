@@ -33,16 +33,6 @@ Constants constants_create() {
 
 void constants_destroy(Constants *restrict constants) {
   assert(constants != NULL);
-
-  if (constants->buffer == NULL) {
-    return;
-  }
-
-  for (u64 i = 0; i < constants->length; ++i) {
-    Value *value = constants->buffer + i;
-    value_destroy(value);
-  }
-
   constants->length   = 0;
   constants->capacity = 0;
   free(constants->buffer);

@@ -27,21 +27,6 @@ Value value_create() {
   return value;
 }
 
-void value_destroy(Value *restrict value) {
-  switch (value->kind) {
-  case VALUEKIND_FUNCTION: {
-    Function *f = &value->function;
-    formal_argument_list_destroy(&f->arguments);
-    bytecode_destroy(&f->body);
-    break;
-  }
-
-  // #NOTE: all other valuekinds do no dynamic allocation.
-  default:
-    break;
-  }
-}
-
 Value value_create_nil() {
   Value value;
   value.kind = VALUEKIND_NIL;
@@ -63,73 +48,17 @@ Value value_create_integer(i64 i) {
   return value;
 }
 
-Value value_create_string_literal(StringView sv) {
-  Value value;
-  value.kind           = VALUEKIND_STRING_LITERAL;
-  value.string_literal = sv;
-  return value;
-}
-
-Value value_create_type(Type *type) {
-  Value value;
-  value.kind = VALUEKIND_TYPE;
-  value.type = type;
-  return value;
-}
-
-Value value_create_function(StringView name) {
-  Value value;
-  value.kind          = VALUEKIND_FUNCTION;
-  value.function      = function_create();
-  value.function.name = name;
-  return value;
-}
-
 void value_assign(Value *dest, Value *source) {
   if (dest == source) {
     return;
   }
 
-  switch (source->kind) {
-  case VALUEKIND_UNINITIALIZED:
-    dest->kind = VALUEKIND_UNINITIALIZED;
-    dest->nil  = 0;
-    break;
-
-  case VALUEKIND_NIL:
-    dest->kind = VALUEKIND_NIL;
-    dest->nil  = 0;
-    break;
-
-  case VALUEKIND_BOOLEAN:
-    dest->kind    = VALUEKIND_BOOLEAN;
-    dest->boolean = source->boolean;
-    break;
-
-  case VALUEKIND_INTEGER:
-    dest->kind    = VALUEKIND_INTEGER;
-    dest->integer = source->integer;
-    break;
-
-  case VALUEKIND_STRING_LITERAL:
-    dest->kind           = VALUEKIND_STRING_LITERAL;
-    dest->string_literal = source->string_literal;
-    break;
-
-  case VALUEKIND_TYPE:
-    dest->kind = VALUEKIND_TYPE;
-    dest->type = source->type;
-    break;
-
-  case VALUEKIND_FUNCTION:
-    dest->kind = VALUEKIND_FUNCTION;
-    function_clone(&dest->function, &source->function);
-    break;
-
-  default:
-    PANIC("bad VALUEKIND");
-    break;
-  }
+  /*
+    since values are "POD" it is valid to use
+    struct assignment on them. This function
+    is here really to ease the refactoring.
+  */
+  *dest = *source;
 }
 
 bool value_equality(Value *v1, Value *v2) {
@@ -157,27 +86,6 @@ bool value_equality(Value *v1, Value *v2) {
     }
 
     return v1->integer == v2->integer;
-
-  case VALUEKIND_STRING_LITERAL:
-    if (v2->kind != VALUEKIND_STRING_LITERAL) {
-      return 0;
-    }
-
-    return string_view_equality(v1->string_literal, v2->string_literal);
-
-  case VALUEKIND_TYPE:
-    if (v2->kind != VALUEKIND_TYPE) {
-      return 0;
-    }
-
-    return type_equality(v1->type, v2->type);
-
-  case VALUEKIND_FUNCTION:
-    if (v2->kind != VALUEKIND_FUNCTION) {
-      return 0;
-    }
-
-    return function_equality(&v1->function, &v2->function);
 
   default:
     PANIC("bad VALUEKIND");

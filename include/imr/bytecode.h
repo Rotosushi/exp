@@ -16,7 +16,7 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_BYTECODE_H
 #define EXP_IMR_BYTECODE_H
-#include "utility/int_types.h"
+#include "imr/instruction.h"
 
 /**
  * @brief represents a section of instructions.

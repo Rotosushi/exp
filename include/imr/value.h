@@ -27,14 +27,6 @@ typedef enum ValueKind {
   VALUEKIND_NIL,
   VALUEKIND_BOOLEAN,
   VALUEKIND_INTEGER,
-
-  // #TODO: string literals are more
-  // fundamentally represented as arrays.
-  VALUEKIND_STRING_LITERAL,
-
-  VALUEKIND_TYPE,
-
-  VALUEKIND_FUNCTION,
 } ValueKind;
 
 /**
@@ -47,12 +39,6 @@ typedef struct Value {
     bool nil;
     bool boolean;
     i64 integer;
-
-    StringView string_literal;
-
-    Type *type;
-
-    Function function;
   };
 } Value;
 
@@ -62,13 +48,6 @@ typedef struct Value {
  * @return Value
  */
 Value value_create();
-
-/**
- * @brief destroy the given value
- *
- * @param value
- */
-void value_destroy(Value *restrict value);
 
 /**
  * @brief create a nil value
@@ -92,30 +71,6 @@ Value value_create_boolean(bool b);
  * @return Value
  */
 Value value_create_integer(i64 i);
-
-/**
- * @brief create a StringLiteral value
- *
- * @param sv
- * @return Value
- */
-Value value_create_string_literal(StringView sv);
-
-/**
- * @brief create a Type value
- *
- * @param t
- * @return Value
- */
-Value value_create_type(Type *t);
-
-/**
- * @brief create a new (empty) function object
- *
- * @param name the name of the function
- * @return Value
- */
-Value value_create_function(StringView name);
 
 /**
  * @brief assign dest the value of source
