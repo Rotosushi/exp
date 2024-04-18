@@ -63,7 +63,7 @@
  * This data needs to be associated with some dynamic structure
  * which builds up it's content at runtime.
  */
-static StringView cpu_type = {"znver3", sizeof("znver3") - 1};
+static StringView cpu_type = {sizeof("znver3") - 1, "znver3"};
 
 /**
  * @brief this directive is used to tell as about the
@@ -473,7 +473,7 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
  */
 static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
                                   FILE *file) {
-  StringView exp_version = {EXP_VERSION_STRING, sizeof(EXP_VERSION_STRING)};
+  StringView exp_version = string_view_from_cstring(EXP_VERSION_STRING);
   directive_ident(exp_version, file);
   directive_noexecstack(file);
 }

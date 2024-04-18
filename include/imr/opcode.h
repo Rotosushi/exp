@@ -17,6 +17,8 @@
 #ifndef EXP_IMR_OPCODE_H
 #define EXP_IMR_OPCODE_H
 
+#include "utility/int_types.h"
+
 /*
   These codes need to allow instructions to represent
   expressions
@@ -117,6 +119,10 @@ typedef enum Opcode {
   // #TODO:
   // OP_CALL,
   // OP_RETURN,
+
+  OP_FINAL
 } Opcode;
+
+#define NUM_OPCODES ((i32)OP_FINAL)
 
 #endif // !EXP_IMR_OPCODE_H

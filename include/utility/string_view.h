@@ -19,8 +19,8 @@
 #include "utility/int_types.h"
 
 typedef struct StringView {
-  char const *ptr;
   u64 length;
+  char const *ptr;
 } StringView;
 
 StringView string_view_create();

@@ -183,31 +183,3 @@ bool value_equality(Value *v1, Value *v2) {
     PANIC("bad VALUEKIND");
   }
 }
-
-Type *type_of(Value *restrict value, Context *restrict context) {
-  switch (value->kind) {
-  case VALUEKIND_UNINITIALIZED:
-    return context_nil_type(context);
-
-  case VALUEKIND_NIL:
-    return context_nil_type(context);
-
-  case VALUEKIND_BOOLEAN:
-    return context_boolean_type(context);
-
-  case VALUEKIND_INTEGER:
-    return context_integer_type(context);
-
-  case VALUEKIND_STRING_LITERAL:
-    return context_string_literal_type(context);
-
-  case VALUEKIND_TYPE:
-    return value->type;
-
-  case VALUEKIND_FUNCTION:
-    return function_type_of(&value->function, context);
-
-  default:
-    PANIC("bad VALUEKIND");
-  }
-}

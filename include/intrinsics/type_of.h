@@ -13,34 +13,21 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_REGISTERS_H
-#define EXP_IMR_REGISTERS_H
-#include <stdint.h>
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_INTRINSICS_TYPE_OF_H
+#define EXP_INTRINSICS_TYPE_OF_H
 
+#include "env/context.h"
+#include "imr/type.h"
 #include "imr/value.h"
 
 /**
- * @brief represents the working registers of
- * the virtual machine
+ * @brief return the type of the given value
  *
+ * @param value
+ * @param context
+ * @return Type*
  */
-typedef struct Registers {
-  u64 capacity;
-  Value *buffer;
-} Registers;
+Type *type_of(Value *restrict value, struct Context *restrict context);
 
-void registers_init(Registers *restrict registers);
-void registers_destroy(Registers *restrict registers);
-
-/**
- * @brief return the <Value*> of the register at the
- * given <index>
- *
- * @param registers
- * @param index
- * @return Value*
- */
-Value *registers_at(Registers *restrict registers, u64 index);
-
-#endif // !EXP_IMR_REGISTERS_H
+#endif // !EXP_INTRINSICS_TYPE_OF_H

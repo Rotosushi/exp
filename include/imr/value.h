@@ -135,14 +135,4 @@ void value_assign(Value *dest, Value *source);
  */
 bool value_equality(Value *v1, Value *v2);
 
-struct Context;
-/**
- * @brief return the type of the given value
- *
- * @param value
- * @param context
- * @return Type*
- */
-Type *type_of(Value *restrict value, struct Context *restrict context);
-
 #endif // !EXP_IMR_VALUE_H

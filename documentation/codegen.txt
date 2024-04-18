@@ -178,9 +178,17 @@ represent something which can be used to synthesize the value of the symbol.
 
 
 
+(numbers are arbitrary and relative, they only exist to artifically 
+       delineate thoughts.)
+TODO: 
+ -1 - we are removing most of the existing code in order to refactor it.
+      as most of the existing code is not built up with the following 
+      considerations in mind, and as such must be remade completely. 
 
+  0 - globals are kept in a separate kind of symbol table, which has the ability to 
+      map names to globally valid data. specifically named constants, named types,
+      and functions.
 
-TODO:
   1 - we need a structure which can represent the local variables of a function 
       which can be accessed by instructions using an integer index; such that
       bytecode instructions can be encoded which reference these variables.
@@ -210,6 +218,137 @@ TODO:
       and when we want to allocate a new local we can simply use the next available 
       slot (%n+1)
       and in order to mimic SSA form, we generate new locals as the result of each 
-      bytecode instruction, (add %n+1, %n, %n-1).
+      bytecode instruction, (add %n+1, %n, %n-1) %n+1 is a new slot, %n and %n-1 are 
+      both existing locals.
+
+      the parser should be able to easily generate instructions which create these 
+      indices, say [store %n, 12]
+      but how will the parser know when to use a previous variable?
+      like in [add %n+2, %n+1, %n]. that is, this is where we would normally 
+      rely on the existence of a mapping of name to value, the parser just needs 
+      to emit bytecode which pushes the name on the stack, and because the VM 
+      is stack based, the other instructions implicitly use the values from 
+      the top of the stack as their arguments. this is why the add instruction 
+      currently has zero operands. all of its operands are currently stack slots.
+
+      I want to say, lets create a map from variable-name to index, so when the 
+      user types "x" the parser can use that to look up which index the local "x"
+      is stored in. But how does that work when we assign x multiple times, 
+      and "x" becomes stored in multiple locations? we could update the mapped index of 
+      "x" to refer to the most recent SSA version of "x", I think that might work.
+      when the parser sees something like "const x = 5;" we can emit an instruction like
+      "load %n, 5" and record in the "map" ("x", n). when the parser later encounters 
+      "x += 1;" we can emit an instruction like "add %n+k, %n, 1" and update the map 
+      ("x", n+k).
+      
+      well, lets say that works for the parser, and now we can generate BC from source 
+      code directly. How does a later analysis "know" that "x" was at (n, n+k, ...)
+      if the index is overwritten? say we need to emit an error during analysis 
+      that wants to use the name of the variable. or, we want to optimize some usage 
+      of "x", how can we "know" what the chain of "x"s is?
+
+      the parser also has to handle the difference between a local and a global constant.
+
+
+
+  3 - the static length instruction encoding needs to be decided. I am leaning towards 
+      a u64 as the basis. so there is 64 bits or 8 bytes to work with per instruction.
+      we have to have the opcode on any given instruction.
+      if we say the opcode is a [u8], then we have 7 bytes left for operands,
+      7 operands -> [u8][u8][u8][u8][u8][u8][u8]
+
+      6 operands -> [u16][u8][u8][u8][u8][u8]
+
+      5 operands -> [u16][u16][u8][u8][u8]
+
+      4 operands -> [u16][u16][u16][u8]
+                 -> [u32][u8][u8][u8]
+
+      3 operands -> [u32][u16][u8]
+                 -> [u24][u24][u8]
+                 -> [u24][u16][u16]
+
+      2 operands -> [u32][u24]
+                 -> [u40][u16]
+                 -> [u48][u8]
+
+      1 operand  -> [u56]
+
+      if we say the opcode is a [u16], then we have 6 bytes left for operands.
+      some possible encodings:
+      6 operands -> [u8][u8][u8][u8][u8][u8]
+
+      5 operands -> [u16][u8][u8][u8][u8]
+
+      4 operands -> [u16][u16][u8][u8]
+                 -> [u24][u8][u8][u8]
+
+      3 operands -> [u16][u16][u16]
+                 -> [u32][u8][u8]
+
+      2 operands -> [u24][u24]
+                 -> [u32][u16]
+                 -> [u40][u8]
+
+      1 operand  -> [u48]
+
+      now, the jump between a u8 and a u16 is significant, as we go from 
+      2^8 -> 256 to 2^16 -> 65536.
+      from my naieve perspective it seems like in SSA form 255 locals might 
+      easily be reached by reasonable length functions, they would be long 
+      yes, but perhaps not excessively so? this is intuition again however.
+      whereas 65536 locals seems like you would have to have a pathalogically 
+      long function in order to reach that many intermediate local variables. 
+      (or maybe machine generated code)
+      note that lua (the VM) has a hard limit of 200 locals for a function, due to 
+      their 32 bit instruction encoding. but I dont think that lua bytecode is 
+      in SSA form so that might not be a fair comparison.
+
+      I think the instruction layouts I like from above are:
+      u8  opcode -> [u8][u24][u16][u16]
+                 -> [u8][u32][u24]
+                 -> [u8][u56]
+
+      u16 opcode -> [u16][u16][u16][u16]
+                 -> [u16][u24][u24]
+                 -> [u16][u48]
+
+      the u16 opcode leaving us with 6 bytes left over allows for each 
+      operand to be the same length, which I like, but this is nearly 
+      completely arbitrary.
+
+      the u8 opcode allows for all opcodes we could want (probably? I think?)
+      but one operand is arbitrarily bigger than the others, which doesn't 
+      matter all that much.
+
+      this is also a consideration for the opcode itself, one thing I have noticed 
+      is that when we are considering opcodes for a semantic act, such as add two numbers,
+      we don't just need a form of the instruction for adding two immediate numbers, 
+      but also a form for adding an immediate to a existing variable, and a form for adding 
+      an two existing variables. And this observation holds for all of the other binary 
+      operations that we want to encode. [+ - * / % & | ~ and or] which is 30 opcodes 
+      just for "arithmetic" binary operators. this has me concerned that as we add more opcodes,
+      such as unary operations [~ not], load/store, call/return, plus the opcodes 
+      for working with structs/unions, jumps, conditions, and all their variants, 
+      that 255 could also be reached rather easily, even under "normal"
+      circumstances. This raises the concern that the number of operations may exceed 
+      the number of available opcodes, but I am unsure how well founded that is.
+      RISC-V's static 32 bit encoding only uses ~8 bits to encode "opcodes" 
+      however RISC-V also has a fixed number of registers to encode, so there is more 
+      flexibility there.
+      Lua only has ~80 opcodes, and that is a full fledged register based VM.
+      LLVM only has ~60 instructions, however the complexity of "variants" to standard 
+      instructions like ADD, SUB, etc, is handled by polymorphism at a higher level 
+      of abstraction than bytecode.
+
+      so maybe 255 is plenty? 
+
+      coming back to this after thinking more about the RISC-V encoding, how about 
+      we "reserve" the second byte in the u16 opcode for another use.
+      for instance, the first byte could store that the instruction is an add instruction,
+      whereas the second byte could be used to say that the operands were immediates
+      or registers, or something else. This both simplifies the opcodes themselves,
+      because there doesn't need to be variant opcodes, and it allows for variant 
+      opcode semantics to be expressed. (as a bonus the operands are equal lengths!)
 
 

@@ -49,6 +49,12 @@ typedef struct String {
   a fancy implementation could store the
   bool within the allocation of another
   data member, or so I have heard.
+
+  addendum, isn't it true that whenever (length < sizeof(char *))
+  the string will be stored in the small string buffer?
+  thus, the bool is completely equivalent to the above check
+  and is actually unnecessary.
+  well, why not make this a #TODO just for fun. (and experience)
 */
 
 /**

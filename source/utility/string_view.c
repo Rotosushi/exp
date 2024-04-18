@@ -28,12 +28,12 @@ StringView string_view_create() {
 }
 
 StringView string_view_from_string(char const *string, u64 length) {
-  StringView sv = {string, length};
+  StringView sv = {length, string};
   return sv;
 }
 
 StringView string_view_from_cstring(char const *cstring) {
-  StringView sv = {cstring, strlen(cstring)};
+  StringView sv = {strlen(cstring), cstring};
   return sv;
 }
 

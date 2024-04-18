@@ -23,6 +23,7 @@
 #include "env/error.h"
 #include "imr/opcode.h"
 #include "imr/value.h"
+#include "intrinsics/type_of.h"
 #include "utility/panic.h"
 
 static MaybeError unop_minus(Context *restrict context) {

@@ -57,7 +57,7 @@ static void string_assign_impl(String *restrict str, char const *restrict data,
 
 StringView string_to_view(String const *restrict str) {
   assert(str != NULL);
-  StringView sv = {str->buffer, str->length};
+  StringView sv = string_view_from_string(str->buffer, str->length);
   return sv;
 }
 
@@ -67,7 +67,7 @@ StringView string_to_view_at(String const *restrict str, u64 offset,
   assert(offset <= str->length);
   assert((offset + length) <= str->length);
 
-  StringView sv = {str->buffer + offset, length};
+  StringView sv = string_view_from_string(str->buffer + offset, length);
   return sv;
 }
 

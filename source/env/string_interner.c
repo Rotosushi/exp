@@ -122,7 +122,7 @@ StringView string_interner_insert(StringInterner *restrict string_interner,
   }
 
   string_interner->count++;
-  StringView sv = {data, length};
+  StringView sv = string_view_from_string(data, length);
   string_assign_view(element, sv);
   return string_to_view(element);
 }

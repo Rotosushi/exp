@@ -23,7 +23,6 @@
 #include "env/type_interner.h"
 #include "imr/bytecode.h"
 #include "imr/constants.h"
-// #include "imr/registers.h"
 #include "imr/stack.h"
 
 /**
@@ -41,7 +40,6 @@ typedef struct Context {
   Bytecode *current_function_body;
   Constants constants;
   Stack stack;
-  // Registers registers;
 } Context;
 
 /**
