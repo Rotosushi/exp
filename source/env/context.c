@@ -26,14 +26,12 @@
 
 Context context_create(ContextOptions *restrict options) {
   Context context;
-  context.options               = *options;
-  context.string_interner       = string_interner_create();
-  context.type_interner         = type_interner_create();
-  context.global_symbols        = symbol_table_create();
-  context.global_bytecode       = bytecode_create();
-  context.current_function_body = NULL;
-  context.constants             = constants_create();
-  context.stack                 = stack_create();
+  context.options         = *options;
+  context.string_interner = string_interner_create();
+  context.type_interner   = type_interner_create();
+  context.global_symbols  = symbol_table_create();
+  context.constants       = constants_create();
+  context.stack           = stack_create();
   return context;
 }
 
@@ -43,8 +41,6 @@ void context_destroy(Context *restrict context) {
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));
-  bytecode_destroy(&(context->global_bytecode));
-  context->current_function_body = NULL;
   constants_destroy(&(context->constants));
   stack_destroy(&(context->stack));
 }
@@ -90,7 +86,7 @@ StringView context_intern(Context *restrict context, StringView sv) {
 
 Type *context_nil_type(Context *restrict context) {
   assert(context != NULL);
-  return type_interner_nil_type(&(context->type_interner));
+  return type_interner_void_type(&(context->type_interner));
 }
 
 Type *context_boolean_type(Context *restrict context) {
@@ -103,11 +99,6 @@ Type *context_integer_type(Context *restrict context) {
   return type_interner_integer_type(&(context->type_interner));
 }
 
-Type *context_string_literal_type(Context *restrict context) {
-  assert(context != NULL);
-  return type_interner_string_literal_type(&(context->type_interner));
-}
-
 Type *context_function_type(Context *restrict context, Type *return_type,
                             ArgumentTypes argument_types) {
   assert(context != NULL);
@@ -116,9 +107,9 @@ Type *context_function_type(Context *restrict context, Type *return_type,
 }
 
 bool context_insert_global_symbol(Context *restrict context, StringView name,
-                                  Type *type, Value *value) {
+                                  Value *value) {
   assert(context != NULL);
-  return symbol_table_insert(&(context->global_symbols), name, type, value);
+  return symbol_table_insert(&(context->global_symbols), name, value);
 }
 
 SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
@@ -151,12 +142,12 @@ bool context_stack_empty(Context *restrict context) {
   return stack_empty(&(context->stack));
 }
 
-void context_stack_push(Context *restrict context, Value *value) {
+void context_stack_push(Context *restrict context, Value value) {
   assert(context != NULL);
   stack_push(&context->stack, value);
 }
 
-Value *context_stack_pop(Context *restrict context) {
+Value context_stack_pop(Context *restrict context) {
   assert(context != NULL);
   return stack_pop(&context->stack);
 }
@@ -164,82 +155,4 @@ Value *context_stack_pop(Context *restrict context) {
 Value *context_stack_peek(Context *restrict context) {
   assert(context != NULL);
   return stack_peek(&context->stack);
-}
-
-// this works for parsing, because parsing functions does so
-// by creating a new parsing function on the call stack,
-// so we don't need to maintain another stack.
-// however, interpretation occurs within a single frame.
-// so we will need a stack of Bytecode pointers to properly
-// handle calling functions.
-Bytecode *context_current_function_body(Context *restrict context,
-                                        Bytecode *restrict body) {
-  assert(context != NULL);
-  Bytecode *previous             = context->current_function_body;
-  context->current_function_body = body;
-  return previous;
-}
-
-Bytecode *context_current_bytecode(Context *restrict context) {
-  if (context->current_function_body == NULL) {
-    return &context->global_bytecode;
-  } else {
-    return context->current_function_body;
-  }
-}
-
-u64 context_read_immediate(Context *restrict context, u64 offset, u64 bytes) {
-  assert(context != NULL);
-  return bytecode_read_immediate(context_current_bytecode(context), offset,
-                                 bytes);
-}
-
-void context_emit_stop(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_stop(context_current_bytecode(context));
-}
-
-void context_emit_return(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_return(context_current_bytecode(context));
-}
-
-void context_emit_push_constant(Context *restrict context, u64 index) {
-  assert(context != NULL);
-  bytecode_emit_push_constant(context_current_bytecode(context), index);
-}
-
-void context_emit_define_global_constant(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_define_global_constant(context_current_bytecode(context));
-}
-
-void context_emit_unop_minus(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_unop_minus(context_current_bytecode(context));
-}
-
-void context_emit_binop_plus(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_binop_plus(context_current_bytecode(context));
-}
-
-void context_emit_binop_minus(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_binop_minus(context_current_bytecode(context));
-}
-
-void context_emit_binop_star(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_binop_star(context_current_bytecode(context));
-}
-
-void context_emit_binop_slash(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_binop_slash(context_current_bytecode(context));
-}
-
-void context_emit_binop_percent(Context *restrict context) {
-  assert(context != NULL);
-  bytecode_emit_binop_percent(context_current_bytecode(context));
 }

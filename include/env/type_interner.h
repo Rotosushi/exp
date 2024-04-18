@@ -43,7 +43,6 @@ typedef struct TypeInterner {
   Type nil_type;
   Type boolean_type;
   Type integer_type;
-  Type string_literal_type;
   FunctionTypes function_types;
 } TypeInterner;
 
@@ -67,7 +66,7 @@ void type_interner_destroy(TypeInterner *restrict type_interner);
  * @param type_interner
  * @return Type*
  */
-Type *type_interner_nil_type(TypeInterner *restrict type_interner);
+Type *type_interner_void_type(TypeInterner *restrict type_interner);
 
 /**
  * @brief get the BooleanType
@@ -84,14 +83,6 @@ Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
  * @return Type*
  */
 Type *type_interner_integer_type(TypeInterner *restrict type_interner);
-
-/**
- * @brief get the StringLiteralType
- *
- * @param type_interner
- * @return Type*
- */
-Type *type_interner_string_literal_type(TypeInterner *restrict type_interner);
 
 /**
  * @brief get the interned FunctionType

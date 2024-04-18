@@ -70,7 +70,7 @@ typedef struct ParseRule {
   basic = integer
         | "true"
         | "false"
-        | "nil"
+        | "void_"
         | string-literal
       //| identifier
       //| unop basic
@@ -166,15 +166,15 @@ static MaybeError constant(Parser *restrict parser, Context *restrict context) {
 // static MaybeError parse_scalar_type(Parser *restrict parser,
 //                                     Context *restrict context, Type **type) {
 //   switch (parser->curtok) {
-//   case TOK_NIL_TYPE:
+//   case TOK_TYPE_VOID:
 //     *type = context_nil_type(context);
 //     break;
 
-//   case TOK_BOOL_TYPE:
+//   case TOK_TYPE_BOOL:
 //     *type = context_boolean_type(context);
 //     break;
 
-//   case TOK_INT_TYPE:
+//   case TOK_TYPE_I64:
 //     *type = context_integer_type(context);
 //     break;
 
@@ -376,7 +376,7 @@ static MaybeError unop(Parser *restrict parser, Context *restrict context) {
 
   switch (op) {
   case TOK_MINUS:
-    context_emit_unop_minus(context);
+    // #TODO:
     break;
 
   default:
@@ -440,38 +440,36 @@ static MaybeError binop(Parser *restrict parser, Context *restrict context) {
 //   return success();
 // }
 
-static MaybeError nil(Parser *restrict parser, Context *restrict context) {
-  u64 index = context_constants_append(context, value_create_nil());
-  context_emit_push_constant(context, index);
+static MaybeError void_(Parser *restrict parser,
+                        [[maybe_unused]] Context *restrict context) {
+  // #TODO:
   nexttok(parser);
   return success();
 }
 
 static MaybeError boolean_true(Parser *restrict parser,
-                               Context *restrict context) {
-  u64 index = context_constants_append(context, value_create_boolean(1));
-  context_emit_push_constant(context, index);
+                               [[maybe_unused]] Context *restrict context) {
+  // #TODO:
   nexttok(parser);
   return success();
 }
 
 static MaybeError boolean_false(Parser *restrict parser,
-                                Context *restrict context) {
-  u64 index = context_constants_append(context, value_create_boolean(0));
-  context_emit_push_constant(context, index);
+                                [[maybe_unused]] Context *restrict context) {
+  // #TODO:
   nexttok(parser);
   return success();
 }
 
-static MaybeError integer(Parser *restrict parser, Context *restrict context) {
-  StringView sv = curtxt(parser);
-  i64 integer   = strtol(sv.ptr, NULL, 10);
+static MaybeError integer(Parser *restrict parser,
+                          [[maybe_unused]] Context *restrict context) {
+  StringView sv                = curtxt(parser);
+  [[maybe_unused]] i64 integer = strtol(sv.ptr, NULL, 10);
   if (errno == ERANGE) {
     return parser_error(parser, ERROR_PARSER_INTEGER_TO_LARGE);
   }
 
-  u64 index = context_constants_append(context, value_create_integer(integer));
-  context_emit_push_constant(context, index);
+  // #TODO:
   nexttok(parser);
   return success();
 }
@@ -564,17 +562,16 @@ static ParseRule *get_rule(Token token) {
       [TOK_CONST]  = {     constant,  NULL,   PREC_NONE},
       [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_NIL]            = {          nil,  NULL,   PREC_NONE},
+      [TOK_VOID]           = {        void_,  NULL,   PREC_NONE},
       [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
       [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
       [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},
       [TOK_STRING_LITERAL] = {         NULL,  NULL,   PREC_NONE},
       [TOK_IDENTIFIER]     = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_NIL_TYPE]            = {         NULL,  NULL,   PREC_NONE},
-      [TOK_BOOL_TYPE]           = {         NULL,  NULL,   PREC_NONE},
-      [TOK_INT_TYPE]            = {         NULL,  NULL,   PREC_NONE},
-      [TOK_STRING_LITERAL_TYPE] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_TYPE_VOID] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_TYPE_BOOL] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_TYPE_I64]  = {         NULL,  NULL,   PREC_NONE},
   };
 
   return &rules[token];
@@ -598,8 +595,6 @@ i32 parse(char const *restrict buffer, Context *restrict context) {
     }
     maybe_error_destroy(&maybe);
   }
-
-  context_emit_stop(context);
 
   return EXIT_SUCCESS;
 }

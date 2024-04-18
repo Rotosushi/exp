@@ -20,10 +20,9 @@
 #include "utility/string.h"
 
 typedef enum TypeKind {
-  TYPEKIND_NIL,
+  TYPEKIND_VOID,
   TYPEKIND_BOOLEAN,
   TYPEKIND_INTEGER,
-  TYPEKIND_STRING_LITERAL,
   TYPEKIND_FUNCTION,
 } TypeKind;
 
@@ -38,10 +37,6 @@ typedef struct BooleanType {
 typedef struct IntegerType {
   char empty;
 } IntegerType;
-
-typedef struct StringLiteralType {
-  char empty;
-} StringLiteralType;
 
 struct Type;
 // #TODO: strictly speaking, ArgumentTypes is equivalent
@@ -74,7 +69,6 @@ typedef struct Type {
     NilType nil_type;
     BooleanType boolean_type;
     IntegerType integer_type;
-    StringLiteralType string_literal_type;
     FunctionType function_type;
   };
 } Type;
@@ -84,7 +78,7 @@ typedef struct Type {
  *
  * @return Type
  */
-Type type_create_nil();
+Type type_create_void();
 
 /**
  * @brief create a new BooleanType
@@ -101,12 +95,12 @@ Type type_create_boolean();
 Type type_create_integer();
 
 /**
- * @brief create a new StringLiteralType
+ * @brief create a new FunctionType
  *
+ * @param result
+ * @param args
  * @return Type
  */
-Type type_create_string_literal();
-
 Type type_create_function(Type *result, ArgumentTypes args);
 
 void type_destroy(Type *type);

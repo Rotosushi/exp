@@ -40,18 +40,16 @@ i32 emit_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char const *argv[]) {
   path_assign(&options.source, source);
   Context context = context_create(&options);
 
-  Type *integer_type = context_integer_type(&context);
-  Type *boolean_type = context_boolean_type(&context);
-  StringView g0      = context_intern(&context, string_view_from_cstring("g0"));
-  StringView g1      = context_intern(&context, string_view_from_cstring("g1"));
-  StringView g2      = context_intern(&context, string_view_from_cstring("g2"));
-  Value v0           = value_create_integer(rand());
-  Value v1           = value_create_integer(rand());
-  Value v2           = value_create_boolean((bool)(rand() % 2));
+  StringView g0 = context_intern(&context, string_view_from_cstring("g0"));
+  StringView g1 = context_intern(&context, string_view_from_cstring("g1"));
+  StringView g2 = context_intern(&context, string_view_from_cstring("g2"));
+  Value v0      = value_create_integer(rand());
+  Value v1      = value_create_integer(rand());
+  Value v2      = value_create_boolean((bool)(rand() % 2));
 
-  context_insert_global_symbol(&context, g0, integer_type, &v0);
-  context_insert_global_symbol(&context, g1, integer_type, &v1);
-  context_insert_global_symbol(&context, g2, boolean_type, &v2);
+  context_insert_global_symbol(&context, g0, &v0);
+  context_insert_global_symbol(&context, g1, &v1);
+  context_insert_global_symbol(&context, g2, &v2);
 
   emit_x64_linux_assembly(&context);
 

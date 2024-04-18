@@ -20,8 +20,9 @@
 
 #include "backend/emit_x64_linux_assembly.h"
 #include "imr/opcode.h"
-#include "intrinsics/alignment.h"
-#include "intrinsics/size.h"
+#include "intrinsics/align_of.h"
+#include "intrinsics/size_of.h"
+#include "intrinsics/type_of.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/numbers_to_string.h"
@@ -265,10 +266,9 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   // and mainly used so programmers can override malloc/free in the
   // c stdlib. or so I've read.), and notype which does not mark the
   // symbol with any type.
-  case TYPEKIND_NIL:
+  case TYPEKIND_VOID:
   case TYPEKIND_BOOLEAN:
   case TYPEKIND_INTEGER:
-  case TYPEKIND_STRING_LITERAL:
     directive_type_explicit(name, STT_OBJECT, file);
     break;
 
@@ -487,9 +487,9 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
  * @param element
  * @param file
  */
-static void
-emit_x64_linux_global_const([[maybe_unused]] Context *restrict context,
-                            SymbolTableElement *global, FILE *file) {
+static void emit_x64_linux_global_const(Context *restrict context,
+                                        SymbolTableElement *global,
+                                        FILE *file) {
   /*
 a global object declaration in assembly looks like:
   .globl <name>
@@ -507,10 +507,10 @@ compiler to prevent writes to constants.
 
 */
   StringView name = global->name;
-  Type *type      = global->type;
   Value *value    = global->value;
+  Type *type      = type_of(value, context);
   switch (type->kind) {
-  case TYPEKIND_NIL:
+  case TYPEKIND_VOID:
     directive_globl(name, file);
     directive_bss(file);
     directive_type(name, type, file);

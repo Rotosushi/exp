@@ -48,7 +48,6 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   failure |= test_parse("const x = 3;");
   failure |= test_parse("const x = true;");
   failure |= test_parse("const x = false;");
-  failure |= test_parse("const x = nil;");
   // failure |= test_parse("const x = \"Hello, World\";");
 
   failure |= test_parse("const x = -42;");

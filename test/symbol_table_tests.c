@@ -23,19 +23,15 @@
 
 bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
   bool failure        = 0;
-  Type integer_type   = type_create_integer();
   Value integer_value = value_create_integer(rand());
   StringView n0       = string_view_from_cstring(name);
 
-  failure |=
-      !symbol_table_insert(symbol_table, n0, &integer_type, &integer_value);
+  failure |= !symbol_table_insert(symbol_table, n0, &integer_value);
 
   SymbolTableElement *element = symbol_table_lookup(symbol_table, n0);
 
   failure |= (element == NULL);
-
   failure |= !(string_view_equality(n0, element->name));
-  failure |= !(element->type == &integer_type);
   failure |= !(value_equality(element->value, &integer_value));
   return failure;
 }

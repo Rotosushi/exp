@@ -112,9 +112,9 @@ bool function_type_equality(FunctionType const *f1, FunctionType const *f2) {
   return argument_types_equality(&f1->argument_types, &f2->argument_types);
 }
 
-Type type_create_nil() {
+Type type_create_void() {
   Type type;
-  type.kind           = TYPEKIND_NIL;
+  type.kind           = TYPEKIND_VOID;
   type.nil_type.empty = 0;
   return type;
 }
@@ -130,13 +130,6 @@ Type type_create_integer() {
   Type type;
   type.kind               = TYPEKIND_INTEGER;
   type.integer_type.empty = 0;
-  return type;
-}
-
-Type type_create_string_literal() {
-  Type type;
-  type.kind                      = TYPEKIND_STRING_LITERAL;
-  type.string_literal_type.empty = 0;
   return type;
 }
 
@@ -176,20 +169,16 @@ bool type_equality(Type const *t1, Type const *t2) {
 
 static void type_to_string_impl(String *str, Type const *t) {
   switch (t->kind) {
-  case TYPEKIND_NIL:
-    string_append(str, "Nil");
+  case TYPEKIND_VOID:
+    string_append(str, "void");
     break;
 
   case TYPEKIND_BOOLEAN:
-    string_append(str, "Bool");
+    string_append(str, "bool");
     break;
 
   case TYPEKIND_INTEGER:
-    string_append(str, "Int");
-    break;
-
-  case TYPEKIND_STRING_LITERAL:
-    string_append(str, "StringLiteral");
+    string_append(str, "i64");
     break;
 
   case TYPEKIND_FUNCTION: {

@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "imr/stack.h"
+#include "env/stack.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
@@ -64,7 +64,7 @@ static void stack_grow(Stack *restrict stack) {
   // is always positive, making the cast lossless.
   u64 top_offset = (u64)(stack->top - stack->buffer);
 
-  Value **buffer = realloc(stack->buffer, new_size);
+  Value *buffer = realloc(stack->buffer, new_size);
   if (buffer == NULL) {
     PANIC_ERRNO("realloc failed");
   }
@@ -74,7 +74,7 @@ static void stack_grow(Stack *restrict stack) {
   stack->capacity = new_capacity;
 }
 
-void stack_push(Stack *restrict stack, Value *value) {
+void stack_push(Stack *restrict stack, Value value) {
   assert(stack != NULL);
   if (stack_full(stack)) {
     stack_grow(stack);
@@ -84,14 +84,14 @@ void stack_push(Stack *restrict stack, Value *value) {
   stack->top += 1;
 }
 
-Value *stack_pop(Stack *restrict stack) {
+Value stack_pop(Stack *restrict stack) {
   assert(stack != NULL);
   Value *result = stack_peek(stack);
   stack->top -= 1;
-  return result;
+  return *result;
 }
 
 Value *stack_peek(Stack *restrict stack) {
   assert(stack != NULL);
-  return stack->top[-1];
+  return stack->top - 1;
 }

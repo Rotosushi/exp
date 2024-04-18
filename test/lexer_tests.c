@@ -76,13 +76,9 @@ i32 lexer_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   failed |= test_lexer_scans_token("relurn", TOK_IDENTIFIER);
   failed |= test_lexer_scans_token("returnl", TOK_IDENTIFIER);
 
-  failed |= test_lexer_scans_token("nil", TOK_NIL);
-  failed |= test_lexer_scans_token("ni", TOK_IDENTIFIER);
-  failed |= test_lexer_scans_token("nill", TOK_IDENTIFIER);
-
-  failed |= test_lexer_scans_token("Nil", TOK_NIL_TYPE);
-  failed |= test_lexer_scans_token("Ni", TOK_IDENTIFIER);
-  failed |= test_lexer_scans_token("Nill", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("void", TOK_TYPE_VOID);
+  failed |= test_lexer_scans_token("vo", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("voidd", TOK_IDENTIFIER);
 
   failed |= test_lexer_scans_token("true", TOK_TRUE);
   failed |= test_lexer_scans_token("tru", TOK_IDENTIFIER);
@@ -92,13 +88,13 @@ i32 lexer_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   failed |= test_lexer_scans_token("fals", TOK_IDENTIFIER);
   failed |= test_lexer_scans_token("falsel", TOK_IDENTIFIER);
 
-  failed |= test_lexer_scans_token("Bool", TOK_BOOL_TYPE);
-  failed |= test_lexer_scans_token("Boo", TOK_IDENTIFIER);
-  failed |= test_lexer_scans_token("Booll", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("bool", TOK_TYPE_BOOL);
+  failed |= test_lexer_scans_token("boo", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("booll", TOK_IDENTIFIER);
 
-  failed |= test_lexer_scans_token("Int", TOK_INT_TYPE);
-  failed |= test_lexer_scans_token("In", TOK_IDENTIFIER);
-  failed |= test_lexer_scans_token("Intl", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("i64", TOK_TYPE_I64);
+  failed |= test_lexer_scans_token("i63", TOK_IDENTIFIER);
+  failed |= test_lexer_scans_token("i", TOK_IDENTIFIER);
 
   failed |= test_lexer_scans_token("hello", TOK_IDENTIFIER);
   failed |= test_lexer_scans_token("hello1232", TOK_IDENTIFIER);

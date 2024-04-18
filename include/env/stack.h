@@ -22,8 +22,8 @@
 
 typedef struct Stack {
   u64 capacity;
-  Value **buffer;
-  Value **top;
+  Value *buffer;
+  Value *top;
 } Stack;
 
 /**
@@ -55,7 +55,7 @@ bool stack_empty(Stack const *restrict stack);
  * @param stack
  * @param value
  */
-void stack_push(Stack *restrict stack, Value *value);
+void stack_push(Stack *restrict stack, Value value);
 
 /**
  * @brief pop the top value off the stack
@@ -63,7 +63,7 @@ void stack_push(Stack *restrict stack, Value *value);
  * @param stack
  * @return Value
  */
-Value *stack_pop(Stack *restrict stack);
+Value stack_pop(Stack *restrict stack);
 
 /**
  * @brief peek at the top value of the stack

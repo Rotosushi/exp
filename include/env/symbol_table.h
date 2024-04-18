@@ -23,7 +23,7 @@
 
 typedef struct SymbolTableElement {
   StringView name;
-  Type *type;
+  // Type *type;
   Value *value;
 } SymbolTableElement;
 
@@ -49,7 +49,7 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  * @return false if the entry already exists.
  */
 bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
-                         Type *type, Value *value);
+                         Value *value);
 
 /**
  * @brief lookup an existing entry in the symbol_table.

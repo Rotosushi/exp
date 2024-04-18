@@ -86,7 +86,6 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table,
       SymbolTableElement *dest =
           symbol_table_find(elements, capacity, element->name);
       dest->name  = element->name;
-      dest->type  = element->type;
       dest->value = element->value;
       symbol_table->count += 1;
     }
@@ -110,7 +109,7 @@ static bool symbol_table_full(SymbolTable *restrict symbol_table) {
 }
 
 bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
-                         Type *type, Value *value) {
+                         Value *value) {
   assert(symbol_table != NULL);
   if (symbol_table_full(symbol_table)) {
     u64 capacity = nearest_power_of_two(symbol_table->capacity + 1);
@@ -137,7 +136,6 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
   }
 
   element->name  = name;
-  element->type  = type;
   element->value = value;
   return 1;
 }
@@ -166,7 +164,6 @@ bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name) {
   }
 
   element->name  = string_view_create();
-  element->type  = NULL;
   element->value = NULL;
   return 1;
 }

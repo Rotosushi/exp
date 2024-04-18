@@ -42,7 +42,7 @@
   literal = integer
           | "true"
           | "false"
-          | "nil"
+          | "void_"
 */
 
 /**

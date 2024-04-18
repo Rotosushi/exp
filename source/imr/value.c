@@ -23,14 +23,14 @@
 Value value_create() {
   Value value;
   value.kind = VALUEKIND_UNINITIALIZED;
-  value.nil  = 0;
+  value.void_  = 0;
   return value;
 }
 
 Value value_create_nil() {
   Value value;
   value.kind = VALUEKIND_NIL;
-  value.nil  = 0;
+  value.void_  = 0;
   return value;
 }
 

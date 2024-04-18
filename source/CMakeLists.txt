@@ -5,9 +5,11 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/core/compile.c
 
+  ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
+  ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
@@ -16,14 +18,11 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/imr/constants.c
-  ${EXP_SOURCE_DIR}/imr/function.c
-  ${EXP_SOURCE_DIR}/imr/stack.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
-  ${EXP_SOURCE_DIR}/intrinsics/alignment.c
-  ${EXP_SOURCE_DIR}/intrinsics/size.c
+  ${EXP_SOURCE_DIR}/intrinsics/align_of.c
+  ${EXP_SOURCE_DIR}/intrinsics/size_of.c
   ${EXP_SOURCE_DIR}/intrinsics/type_of.c
 
   ${EXP_SOURCE_DIR}/utility/cli_options.c

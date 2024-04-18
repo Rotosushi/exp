@@ -25,7 +25,7 @@
 typedef struct Bytecode {
   u64 length;
   u64 capacity;
-  u8 *buffer;
+  Instruction *buffer;
 } Bytecode;
 
 /**
@@ -39,111 +39,19 @@ Bytecode bytecode_create();
  *
  * @param bytecode
  */
-void bytecode_destroy(Bytecode *restrict bytecode);
+void bytecode_destroy(Bytecode *restrict bc);
 
-void bytecode_clone(Bytecode *target, Bytecode *source);
+void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 I);
 
-bool bytecode_equality(Bytecode *b1, Bytecode *b2);
+void bytecode_emit_neg(Bytecode *restrict bc, u16 A, u16 B);
 
-/**
- * @brief read the immediate value at the given index within
- * the given bytecode
- *
- * @warning does not understand where instructions start/end
- * all this function does is read the next few bytes starting
- * from the given offset.
- *
- * @param bytecode
- * @param offset
- * @param bytes
- * @return u64
- */
-u64 bytecode_read_immediate(Bytecode *restrict bytecode, u64 offset, u64 bytes);
+void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, u16 C);
 
-/**
- * @brief emit a stop instruction
- *
- * @param bytecode
- */
-void bytecode_emit_stop(Bytecode *restrict bytecode);
+void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, u16 C);
 
-/**
- * @brief emit a return instruction
- *
- * @param bytecode
- */
-void bytecode_emit_return(Bytecode *restrict bytecode);
+void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, u16 C);
 
-/**
- * @brief push a constant onto the stack
- *
- * @param bytecode the bytecode to emit into
- * @param name_index the index of the constant to push
- */
-void bytecode_emit_push_constant(Bytecode *restrict bytecode, u64 name_index);
+void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, u16 C);
 
-// void bytecode_emit_push_register(Bytecode *restrict bytecode,
-//                                  u8 register_index);
-
-void bytecode_emit_pop(Bytecode *restrict bytecode);
-
-// void bytecode_emit_pop_register(Bytecode *restrict bytecode,
-//                                 u8 register_index);
-
-// void bytecode_emit_move_constant_to_register(Bytecode *restrict bytecode,
-//                                              u8 register_index,
-//                                              u64 constant_index);
-
-/**
- * @brief define a global constant
- *
- * @param bytecode
- * @param name_index
- * @param type_index
- * @param value_index
- */
-void bytecode_emit_define_global_constant(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a unop negate '-'
- *
- * @param bytecode
- */
-void bytecode_emit_unop_minus(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a binop '+'
- *
- * @param bytecode
- */
-void bytecode_emit_binop_plus(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a binop '-'
- *
- * @param bytecode
- */
-void bytecode_emit_binop_minus(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a binop '*'
- *
- * @param bytecode
- */
-void bytecode_emit_binop_star(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a binop '/'
- *
- * @param bytecode
- */
-void bytecode_emit_binop_slash(Bytecode *restrict bytecode);
-
-/**
- * @brief emit a binop '%'
- *
- * @param bytecode
- */
-void bytecode_emit_binop_percent(Bytecode *restrict bytecode);
-
+void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, u16 C);
 #endif // !EXP_IMR_BYTECODE_H

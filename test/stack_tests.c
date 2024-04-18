@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "imr/stack.h"
+#include "env/stack.h"
 
 i32 stack_tests([[maybe_unused]] i32 argc,
                 [[maybe_unused]] char const *argv[]) {
@@ -30,18 +30,18 @@ i32 stack_tests([[maybe_unused]] i32 argc,
   failed |= !stack_empty(&stack);
 
   Value i0 = value_create_integer(rand());
-  stack_push(&stack, &i0);
+  stack_push(&stack, i0);
   Value *s0 = stack_peek(&stack);
   failed |= !value_equality(&i0, s0);
 
   Value i1 = value_create_integer(rand());
-  stack_push(&stack, &i1);
+  stack_push(&stack, i1);
 
-  Value *s1 = stack_pop(&stack);
-  failed |= !value_equality(&i1, s1);
+  Value s1 = stack_pop(&stack);
+  failed |= !value_equality(&i1, &s1);
 
-  Value *s2 = stack_pop(&stack);
-  failed |= !value_equality(&i0, s2);
+  Value s2 = stack_pop(&stack);
+  failed |= !value_equality(&i0, &s2);
 
   stack_destroy(&stack);
   if (failed)

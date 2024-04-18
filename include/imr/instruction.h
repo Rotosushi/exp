@@ -28,14 +28,13 @@ typedef u64 Instruction;
   all instructions are defined to have one of the
   following formats:
 
-  1 -> [opcode(u8)][M(u8)][Ax(u32)][reserved(u16)]
-  2 -> [opcode(u8)][M(u8)][A(u16)][Bx(u32)]
-  3 -> [opcode(u8)][M(u8)][A(u16)][B(u16)][reserved(u16)]
-  4 -> [opcode(u8)][M(u8)][A(u16)][B(u16)][C(u16)]
+  Ax  -> [opcode(u8)][reserved(u8)][Ax(u32)][reserved(u16)]
+  ABx -> [opcode(u8)][reserved(u8)][A(u16)][Bx(u32)]
+  AB  -> [opcode(u8)][reserved(u8)][A(u16)][B(u16)][reserved(u16)]
+  ABC -> [opcode(u8)][reserved(u8)][A(u16)][B(u16)][C(u16)]
 
   opcode selects which operation the instruction represents.
     each operation is defined to be one of the above formats.
-  M (for [M]etadata) says which operands are immediate or register.
   A is operand 1, usually this will be the destination operand.
   B is operand 2, usually this will be a source operand.
   C is operand 3, usually this will be a source operand.
@@ -44,11 +43,11 @@ typedef u64 Instruction;
 */
 
 #define INST_OP(I) ((u8)((I) & u8_MAX))
-#define INST_M(I)  ((u8)(((I) >> 8) & u8_MAX))
+// #define INST_M(I)  ((u8)(((I) >> 8) & u8_MAX))
 
-#define INST_A_IS_IMMEDIATE(I) (INST_M(I) & (u8)1)
-#define INST_B_IS_IMMEDIATE(I) ((INST_M(I) >> 1) & (u8)1)
-#define INST_C_IS_IMMEDIATE(I) ((INST_M(I) >> 2) & (u8)1)
+// #define INST_A_IS_IMMEDIATE(I) (INST_M(I) & (u8)1)
+// #define INST_B_IS_IMMEDIATE(I) ((INST_M(I) >> 1) & (u8)1)
+// #define INST_C_IS_IMMEDIATE(I) ((INST_M(I) >> 2) & (u8)1)
 
 #define INST_A(I)  ((u16)(((I) >> 16) & u16_MAX))
 #define INST_B(I)  ((u16)(((I) >> 32) & u16_MAX))
@@ -67,9 +66,14 @@ typedef u64 Instruction;
 #define INST_SET_OP(I, op)                                                     \
   ((I) = (((I) & ~((u64)(u8_MAX))) | (((u64)(op)) & ((u64)(u8_MAX)))))
 
-#define INST_SET_A_IS_IMMEDIATE(I) ((I) = ((I) | ((u64)1 << 9)))
-#define INST_SET_B_IS_IMMEDIATE(I) ((I) = ((I) | ((u64)1 << 10)))
-#define INST_SET_C_IS_IMMEDIATE(I) ((I) = ((I) | ((u64)1 << 11)))
+// #define INST_SET_A_IMMEDIATE(I, b)
+//   ((I) = (((I) & ~((u64)1 << 9)) | ((u64)b << 9)))
+
+// #define INST_SET_B_IMMEDIATE(I, b)
+//   ((I) = (((I) & ~((u64)1 << 10)) | ((u64)b << 10)))
+
+// #define INST_SET_C_IMMEDIATE(I, b)
+//   ((I) = (((I) & ~((u64)1 << 11)) | ((u64)b << 11)))
 
 #define INST_SET_A(I, n)                                                       \
   ((I) = (((I) & ~(((u64)(u16_MAX)) << 16)) |                                  \

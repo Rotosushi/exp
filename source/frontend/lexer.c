@@ -153,6 +153,8 @@ static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
 
 static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
   switch (lexer->token[0]) {
+  case 'b':
+    return lexer_check_keyword(lexer, 1, 3, "ool", TOK_TYPE_BOOL);
   case 'c':
     return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
   case 'f':
@@ -162,25 +164,31 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
         return lexer_check_keyword(lexer, 2, 3, "lse", TOK_FALSE);
       case 'n':
         return lexer_check_keyword(lexer, 2, 0, "", TOK_FN);
+      default:
+        break;
       }
     }
     break;
 
-  case 'n':
-    return lexer_check_keyword(lexer, 1, 2, "il", TOK_NIL);
+  case 'i':
+    return lexer_check_keyword(lexer, 1, 2, "64", TOK_TYPE_I64);
   case 'r':
     return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
   case 't':
     return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
   case 'v':
-    return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
+    if (lexer_current_text_length(lexer) > 1) {
+      switch (lexer->token[1]) {
+      case 'a':
+        return lexer_check_keyword(lexer, 2, 1, "r", TOK_VAR);
+      case 'o':
+        return lexer_check_keyword(lexer, 2, 2, "id", TOK_TYPE_VOID);
+      default:
+        break;
+      }
+    }
+    break;
 
-  case 'B':
-    return lexer_check_keyword(lexer, 1, 3, "ool", TOK_BOOL_TYPE);
-  case 'I':
-    return lexer_check_keyword(lexer, 1, 2, "nt", TOK_INT_TYPE);
-  case 'N':
-    return lexer_check_keyword(lexer, 1, 2, "il", TOK_NIL_TYPE);
   default:
     break;
   }

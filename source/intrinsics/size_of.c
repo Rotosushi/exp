@@ -18,32 +18,18 @@
  */
 #include <assert.h>
 
-#include "intrinsics/alignment.h"
+#include "intrinsics/size_of.h"
 #include "utility/panic.h"
 
-u64 align_of(Type *restrict type) {
+u64 size_of(Type *restrict type) {
   assert(type != NULL);
 
   switch (type->kind) {
-  // #NOTE: single byte objects do not
-  // have an alignment specified by gcc or
-  // clang. I believe this is
-  // because we are aligning all other
-  // objects, so when we allocate the byte
-  // we are guaranteed to be at a location counter
-  // that is valid for a single byte.
-  // for other objects, the alignment is often equal
-  // to their size. quads are 8 bytes, and their
-  // alignment is 8. ints are 4 bytes, and their
-  // alignment is 4.
-  // string literals are align 8 as well.
-  case TYPEKIND_NIL:
-    return 0;
+  case TYPEKIND_VOID:
+    return 1;
   case TYPEKIND_BOOLEAN:
-    return 0;
+    return 1;
   case TYPEKIND_INTEGER:
-    return 8;
-  case TYPEKIND_STRING_LITERAL:
     return 8;
 
   default:
