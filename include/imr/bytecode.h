@@ -20,7 +20,6 @@
 
 /**
  * @brief represents a section of instructions.
- *
  */
 typedef struct Bytecode {
   u64 length;
@@ -28,17 +27,8 @@ typedef struct Bytecode {
   Instruction *buffer;
 } Bytecode;
 
-/**
- * @brief create a new Bytecode
- *
- * @return Bytecode
- */
 Bytecode bytecode_create();
-/**
- * @brief destroy a Bytecode
- *
- * @param bytecode
- */
+
 void bytecode_destroy(Bytecode *restrict bc);
 
 void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 I);

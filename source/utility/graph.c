@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "imr/graph.h"
+#include "utility/graph.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
@@ -62,7 +62,9 @@ void graph_destroy(Graph *restrict g) {
 
   for (u64 i = 0; i < g->length; ++i) {
     Edge *edge = g->list[i];
-    edge_destroy(edge);
+    if (edge != NULL) {
+      edge_destroy(edge);
+    }
   }
 
   g->length   = 0;
@@ -72,7 +74,7 @@ void graph_destroy(Graph *restrict g) {
 }
 
 static bool graph_full(Graph *restrict graph) {
-  return graph->capacity <= graph->length;
+  return graph->capacity <= (graph->length + 1);
 }
 
 static void graph_grow(Graph *restrict graph) {
@@ -110,11 +112,11 @@ void graph_add_edge(Graph *restrict graph, u64 source, u64 target) {
   assert((source < graph->length) && "source vertex does not exist.");
   assert((target < graph->length) && "target vertex does not exist.");
 
-  Edge *edge = graph->list[source];
-  if (edge == NULL) {
-    edge = edge_create(target, NULL);
+  Edge **edge = graph->list + source;
+  if (*edge == NULL) {
+    *edge = edge_create(target, NULL);
   } else {
-    edge_prepend(edge, target);
+    edge_prepend(*edge, target);
   }
 }
 
@@ -134,7 +136,7 @@ static VertexList vertex_list_create() {
 }
 
 static bool vertex_list_full(VertexList *restrict vl) {
-  return vl->capacity <= vl->count;
+  return vl->capacity <= (vl->count + 1);
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
@@ -164,7 +166,7 @@ static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
 
 VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex) {
   assert(graph != NULL);
-  assert((vertex > graph->length) && "vertex does not exist.");
+  assert((vertex < graph->length) && "vertex does not exist.");
 
   VertexList vl = vertex_list_create();
   Edge *edge    = graph->list[vertex];

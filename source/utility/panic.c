@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#define __STDC_WANT_LIB_EXT1__ 1
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

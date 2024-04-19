@@ -18,7 +18,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/imr/graph.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
@@ -27,6 +26,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/intrinsics/type_of.c
 
   ${EXP_SOURCE_DIR}/utility/cli_options.c
+  ${EXP_SOURCE_DIR}/utility/graph.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
   ${EXP_SOURCE_DIR}/utility/minmax.c

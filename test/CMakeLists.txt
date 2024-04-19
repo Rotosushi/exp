@@ -7,6 +7,8 @@ create_test_sourcelist(Tests
   compile_tests.c
   constants_tests.c
   emit_tests.c
+  graph_tests.c
+  instruction_tests.c
   lexer_tests.c
   number_conversion_tests.c
   options_tests.c

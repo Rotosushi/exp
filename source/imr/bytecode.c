@@ -43,12 +43,7 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
 }
 
 static bool bytecode_full(Bytecode *restrict bytecode) {
-  u64 sum_capacity;
-  if (__builtin_add_overflow(bytecode->length, 1, &sum_capacity)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-  assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
-  return bytecode->capacity < sum_capacity;
+  return bytecode->capacity <= (bytecode->length + 1);
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {

@@ -18,7 +18,7 @@
  */
 #include "utility/string_hash.h"
 
-// hash algorithm based on djb2
+// non-crypto hash algorithm based on djb2
 // https://stackoverflow.com/questions/7666509/hash-function-for-string
 // specifically this answer https://stackoverflow.com/a/69812981
 u64 string_hash(char const *restrict string, u64 length) {

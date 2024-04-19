@@ -64,9 +64,6 @@ typedef struct String {
  */
 String string_create();
 
-// #TODO:
-// String string_create_from_string_view(StringView *string_view);
-// String string_create_from_string_literal(const char *literal, u64 length);
 /**
  * @brief free the given string
  *
