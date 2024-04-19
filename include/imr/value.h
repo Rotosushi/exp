@@ -36,7 +36,7 @@ typedef enum ValueKind {
 typedef struct Value {
   ValueKind kind;
   union {
-    bool void_;
+    bool nil;
     bool boolean;
     i64 integer;
   };
@@ -50,7 +50,7 @@ typedef struct Value {
 Value value_create();
 
 /**
- * @brief create a void_ value
+ * @brief create a nil value
  *
  * @return Value
  */

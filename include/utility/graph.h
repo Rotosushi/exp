@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_GRAPH_H
-#define EXP_IMR_GRAPH_H
+#ifndef EXP_UTILITY_GRAPH_H
+#define EXP_UTILITY_GRAPH_H
 #include "utility/int_types.h"
 
 typedef struct Edge {
@@ -63,4 +63,4 @@ VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex);
  */
 VertexList graph_vertex_fanin(Graph *restrict graph, u64 vertex);
 
-#endif // !EXP_IMR_GRAPH_H
+#endif // !EXP_UTILITY_GRAPH_H

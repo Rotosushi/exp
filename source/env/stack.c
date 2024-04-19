@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 #include "env/stack.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
+#include "utility/alloc.h"
+#include "utility/array_growth.h"
 
 Stack stack_create() {
   Stack stack;
@@ -51,27 +51,14 @@ static bool stack_full(Stack *restrict stack) {
 }
 
 static void stack_grow(Stack *restrict stack) {
-  assert(stack != NULL);
-  assert(stack->capacity != SIZE_MAX && "cannot allocate more than SIZE_MAX");
-  u64 new_capacity = nearest_power_of_two(stack->capacity + 1);
-
-  u64 new_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Value *), &new_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
+  Growth g = array_growth(stack->capacity, sizeof(Value *));
   // since stack->top >= stack->buffer, this subtraction
   // is always positive, making the cast lossless.
   u64 top_offset = (u64)(stack->top - stack->buffer);
 
-  Value *buffer = realloc(stack->buffer, new_size);
-  if (buffer == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-
-  stack->buffer   = buffer;
+  stack->buffer   = reallocate(stack->buffer, g.alloc_size);
   stack->top      = stack->buffer + top_offset;
-  stack->capacity = new_capacity;
+  stack->capacity = g.new_capacity;
 }
 
 void stack_push(Stack *restrict stack, Value value) {

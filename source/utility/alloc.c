@@ -14,25 +14,23 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-
-#include "intrinsics/size_of.h"
+#include "utility/alloc.h"
 #include "utility/panic.h"
 
-u64 size_of(Type *restrict type) {
-  assert(type != NULL);
-
-  switch (type->kind) {
-  case TYPEKIND_NIL:
-    return 1;
-  case TYPEKIND_BOOLEAN:
-    return 1;
-  case TYPEKIND_INTEGER:
-    return 8;
-
-  default:
-    PANIC("bad TYPEKIND");
+void *allocate(u64 size) {
+  void *result = malloc(size);
+  if (result == NULL) {
+    PANIC_ERRNO("malloc failed");
   }
+  return result;
+}
+
+void *reallocate(void *ptr, u64 size) {
+  void *result = realloc(ptr, size);
+  if (result == NULL) {
+    PANIC_ERRNO("reallocate failed.");
+  }
+  return result;
 }

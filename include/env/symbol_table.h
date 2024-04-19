@@ -17,7 +17,6 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/type.h"
 #include "imr/value.h"
 #include "utility/string_view.h"
 

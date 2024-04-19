@@ -23,6 +23,7 @@
 
 #include "env/error.h"
 #include "frontend/parser.h"
+#include "imr/ast.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -31,8 +32,34 @@ typedef struct Parser {
   Token curtok;
 } Parser;
 
-static MaybeError parser_error(Parser *restrict parser, ErrorCode code) {
-  return error(code, string_from_view(lexer_current_text(&parser->lexer)));
+typedef struct ParserResult {
+  bool has_error;
+  union {
+    Ast *ast;
+    Error error;
+  };
+} ParserResult;
+
+static void parser_result_destroy(ParserResult *restrict pr) {
+  if (pr->has_error) {
+    error_destroy(&pr->error);
+  } else {
+    ast_destroy(pr->ast);
+  }
+}
+
+static ParserResult error(Parser *restrict parser, ErrorCode code) {
+  ParserResult result;
+  result.has_error = 1;
+  result.error     = error_from_view(code, lexer_current_text(&parser->lexer));
+  return result;
+}
+
+static ParserResult success(Ast *restrict ast) {
+  ParserResult result;
+  result.has_error = 0;
+  result.ast       = ast;
+  return result;
 }
 
 typedef enum Precedence {
@@ -49,33 +76,15 @@ typedef enum Precedence {
   PREC_PRIMARY,
 } Precedence;
 
-typedef MaybeError (*ParseFunction)(Parser *restrict p, Context *restrict c);
+typedef ParserResult (*PrefixFunction)(Parser *restrict p, Context *restrict c);
+typedef ParserResult (*InfixFunction)(Parser *restrict p, Context *restrict c,
+                                      Ast *restrict left);
 
 typedef struct ParseRule {
-  ParseFunction prefix;
-  ParseFunction infix;
+  PrefixFunction prefix;
+  InfixFunction infix;
   Precedence precedence;
 } ParseRule;
-
-/*
-  #NOTE: I am going to implement a subset of the total grammar to begin.
-  to wit:
-
-  top = declaration ";"
-
-  declaration = "const" identifier = affix
-
-  affix = basic // (binop precedece-parser)?
-
-  basic = integer
-        | "true"
-        | "false"
-        | "void_"
-        | string-literal
-      //| identifier
-      //| unop basic
-      //| "(" affix ")"
-*/
 
 static Parser parser_create() {
   Parser parser;
@@ -83,12 +92,6 @@ static Parser parser_create() {
   parser.curtok = TOK_END;
   return parser;
 }
-
-// static void parser_reset(Parser *restrict parser) {
-//   assert(parser != NULL);
-//   lexer_reset(&(parser->lexer));
-//   parser->curtok = TOK_ERROR;
-// }
 
 static void parser_set_view(Parser *restrict parser, char const *buffer) {
   assert(parser != NULL);
@@ -130,382 +133,161 @@ static bool expect(Parser *restrict parser, Token token) {
 }
 
 static ParseRule *get_rule(Token token);
-static MaybeError expression(Parser *restrict parser,
-                             Context *restrict context);
-static MaybeError parse_precedence(Parser *restrict parser,
-                                   Context *restrict context,
-                                   Precedence precedence);
+static ParserResult expression(Parser *restrict parser,
+                               Context *restrict context);
+static ParserResult parse_precedence(Parser *restrict parser,
+                                     Context *restrict context,
+                                     Precedence precedence);
 
-static MaybeError constant(Parser *restrict parser, Context *restrict context) {
+static ParserResult constant(Parser *restrict parser,
+                             Context *restrict context) {
   nexttok(parser); // eat 'const'
 
   if (!peek(parser, TOK_IDENTIFIER)) {
-    return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
+    return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
   }
-  [[maybe_unused]] StringView name = context_intern(context, curtxt(parser));
+  StringView name = context_intern(context, curtxt(parser));
   nexttok(parser);
 
   if (!expect(parser, TOK_EQUAL)) {
-    return parser_error(parser, ERROR_PARSER_EXPECTED_EQUAL);
+    return error(parser, ERROR_PARSER_EXPECTED_EQUAL);
   }
 
-  MaybeError maybe = expression(parser, context);
+  ParserResult maybe = expression(parser, context);
   if (maybe.has_error) {
     return maybe;
   }
 
   if (!expect(parser, TOK_SEMICOLON)) {
-    return parser_error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
+    return error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
   }
 
-  // #TODO:
-
-  return success();
+  return success(ast_create_constant(name, maybe.ast));
 }
 
-// static MaybeError parse_scalar_type(Parser *restrict parser,
-//                                     Context *restrict context, Type **type) {
-//   switch (parser->curtok) {
-//   case TOK_TYPE_VOID:
-//     *type = context_nil_type(context);
-//     break;
+static ParserResult definition(Parser *restrict parser,
+                               Context *restrict context) {
+  switch (parser->curtok) {
+  case TOK_CONST:
+    return constant(parser, context);
 
-//   case TOK_TYPE_BOOL:
-//     *type = context_boolean_type(context);
-//     break;
+  default:
+    return error(parser, ERROR_PARSER_EXPECTED_KEYWORD_CONST);
+  }
+}
 
-//   case TOK_TYPE_I64:
-//     *type = context_integer_type(context);
-//     break;
-
-//   default:
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_TYPE);
-//   }
-
-//   nexttok(parser); // eat scalar type
-//   return success();
-// }
-
-// static MaybeError parse_type(Parser *restrict parser, Context *restrict
-// context,
-//                              Type **type) {
-//   if (expect(parser, TOK_FN)) {
-//     ArgumentTypes argument_types = argument_types_create();
-//     // #TODO: parens could be used to predict a tuple-type
-//     // which could be parsed as a scalar type, which could
-//     // then make parens optional for an argument list of
-//     // length one
-//     if (!expect(parser, TOK_BEGIN_PAREN)) {
-//       return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
-//     }
-
-//     do {
-//       Type *arg        = NULL;
-//       MaybeError maybe = parse_scalar_type(parser, context, &arg);
-//       if (maybe.has_error) {
-//         argument_types_destroy(&argument_types);
-//         return maybe;
-//       }
-//       assert(arg != NULL);
-
-//       argument_types_append(&argument_types, arg);
-//     } while (expect(parser, TOK_COMMA));
-
-//     if (!expect(parser, TOK_END_PAREN)) {
-//       argument_types_destroy(&argument_types);
-//       return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
-//     }
-
-//     if (!expect(parser, TOK_RIGHT_ARROW)) {
-//       argument_types_destroy(&argument_types);
-//       return parser_error(parser, ERROR_PARSER_EXPECTED_RIGHT_ARROW);
-//     }
-//     Type *return_type = NULL;
-//     MaybeError maybe  = parse_scalar_type(parser, context, &return_type);
-//     if (maybe.has_error) {
-//       argument_types_destroy(&argument_types);
-
-//       return maybe;
-//     }
-//     assert(return_type != NULL);
-
-//     *type = context_function_type(context, return_type, argument_types);
-//     return success();
-//   } else {
-//     return parse_scalar_type(parser, context, type);
-//   }
-// }
-
-// static MaybeError parse_formal_argument(Parser *restrict parser,
-//                                         Context *restrict context,
-//                                         FormalArgument *formal_argument) {
-//   if (!peek(parser, TOK_IDENTIFIER)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
-//   }
-
-//   StringView name = context_intern(context, curtxt(parser));
-
-//   if (!expect(parser, TOK_COLON)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_COLON);
-//   }
-
-//   Type *type       = NULL;
-//   MaybeError maybe = parse_type(parser, context, &type);
-//   if (maybe.has_error) {
-//     return maybe;
-//   }
-//   assert(type != NULL);
-
-//   *formal_argument = (FormalArgument){name, type};
-//   return success();
-// }
-
-// static MaybeError parse_formal_argument_list(Parser *restrict parser,
-//                                              Context *restrict context,
-//                                              FormalArgumentList *fal) {
-//   if (!expect(parser, TOK_BEGIN_PAREN)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
-//   }
-
-//   if (!expect(parser, TOK_END_PAREN)) {
-//     do {
-//       FormalArgument arg;
-//       MaybeError maybe = parse_formal_argument(parser, context, &arg);
-//       if (maybe.has_error) {
-//         return maybe;
-//       }
-
-//       formal_argument_list_append(fal, arg.name, arg.type);
-//     } while (expect(parser, TOK_COMMA));
-
-//     if (!expect(parser, TOK_END_PAREN)) {
-//       return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
-//     }
-//   }
-
-//   return success();
-// }
-
-// static MaybeError function(Parser *restrict parser, Context *restrict
-// context) {
-//   nexttok(parser); // eat 'fn'
-
-//   if (!peek(parser, TOK_IDENTIFIER)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
-//   }
-
-//   StringView name = context_intern(context, curtxt(parser));
-
-//   nexttok(parser);
-
-//   Value value        = value_create_function(name);
-//   Function *function = &value.function;
-//   Bytecode *previous_bytecode =
-//       context_current_function_body(context, &function->body);
-
-//   // parse function arguments
-//   {
-//     MaybeError maybe =
-//         parse_formal_argument_list(parser, context, &function->arguments);
-//     if (maybe.has_error) {
-//       value_destroy(&value);
-//       return maybe;
-//     }
-//   }
-
-//   // parse return type
-//   if (!expect(parser, TOK_RIGHT_ARROW)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_RIGHT_ARROW);
-//   }
-
-//   {
-//     MaybeError maybe = parse_type(parser, context, &function->return_type);
-//     if (maybe.has_error) {
-//       value_destroy(&value);
-
-//       return maybe;
-//     }
-//   }
-
-//   // parse function body
-//   if (!expect(parser, TOK_BEGIN_BRACE)) {
-//     value_destroy(&value);
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_BEGIN_BRACE);
-//   }
-
-//   // #NOTE: due to the above call of "context_current_function_body"
-//   // these calls to "expression" will emit bytecode into the
-//   // body of the current function.
-//   while (!expect(parser, TOK_END_BRACE)) {
-//     MaybeError maybe = expression(parser, context);
-//     if (maybe.has_error) {
-//       value_destroy(&value);
-//       context_current_function_body(context, previous_bytecode);
-//       return maybe;
-//     }
-//   }
-
-//   context_current_function_body(context, previous_bytecode);
-
-//   u64 index = context_constants_append(context, value);
-//   context_emit_push_constant(context, index);
-//   context_emit_define_global_constant(context);
-//   return success();
-// }
-
-static MaybeError parens(Parser *restrict parser, Context *restrict context) {
+static ParserResult parens(Parser *restrict parser, Context *restrict context) {
   nexttok(parser); // eat '('
 
-  MaybeError maybe = expression(parser, context);
+  ParserResult maybe = expression(parser, context);
   if (maybe.has_error) {
     return maybe;
   }
 
   if (!expect(parser, TOK_END_PAREN)) {
-    return parser_error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
+    return error(parser, ERROR_PARSER_EXPECTED_END_PAREN);
   }
 
-  return success();
+  return success(maybe.ast);
 }
 
-static MaybeError unop(Parser *restrict parser, Context *restrict context) {
+static ParserResult unop(Parser *restrict parser, Context *restrict context) {
   Token op = parser->curtok;
   nexttok(parser);
 
-  parse_precedence(parser, context, PREC_UNARY);
+  ParserResult maybe = parse_precedence(parser, context, PREC_UNARY);
+  if (maybe.has_error) {
+    return maybe;
+  }
 
   switch (op) {
   case TOK_MINUS:
-    // #TODO:
-    break;
+    return success(ast_create_unop(OPR_SUB, maybe.ast));
 
   default:
     unreachable();
   }
-
-  return success();
 }
 
-static MaybeError binop(Parser *restrict parser, Context *restrict context) {
+static ParserResult binop(Parser *restrict parser, Context *restrict context,
+                          Ast *restrict left) {
   Token op        = parser->curtok;
   ParseRule *rule = get_rule(op);
   nexttok(parser); // eat the operator
 
-  parse_precedence(parser, context, (Precedence)(rule->precedence + 1));
-
-  // #TODO
-  // switch (op) {
-  // case TOK_PLUS:
-  //   context_emit_binop_plus(context);
-  //   break;
-
-  // case TOK_MINUS:
-  //   context_emit_binop_minus(context);
-  //   break;
-
-  // case TOK_STAR:
-  //   context_emit_binop_star(context);
-  //   break;
-
-  // case TOK_SLASH:
-  //   context_emit_binop_slash(context);
-  //   break;
-
-  // case TOK_PERCENT:
-  //   context_emit_binop_percent(context);
-  //   break;
-
-  // default:
-  //   unreachable();
-  // }
-
-  return success();
-}
-
-// static MaybeError return_(Parser *restrict parser, Context *restrict context)
-// {
-//   nexttok(parser); // eat "return"
-
-//   MaybeError maybe = expression(parser, context);
-//   if (maybe.has_error) {
-//     return maybe;
-//   }
-
-//   if (!expect(parser, TOK_SEMICOLON)) {
-//     return parser_error(parser, ERROR_PARSER_EXPECTED_SEMICOLON);
-//   }
-
-//   context_emit_return(context);
-
-//   return success();
-// }
-
-static MaybeError void_(Parser *restrict parser,
-                        [[maybe_unused]] Context *restrict context) {
-  // #TODO:
-  nexttok(parser);
-  return success();
-}
-
-static MaybeError boolean_true(Parser *restrict parser,
-                               [[maybe_unused]] Context *restrict context) {
-  // #TODO:
-  nexttok(parser);
-  return success();
-}
-
-static MaybeError boolean_false(Parser *restrict parser,
-                                [[maybe_unused]] Context *restrict context) {
-  // #TODO:
-  nexttok(parser);
-  return success();
-}
-
-static MaybeError integer(Parser *restrict parser,
-                          [[maybe_unused]] Context *restrict context) {
-  StringView sv                = curtxt(parser);
-  [[maybe_unused]] i64 integer = strtol(sv.ptr, NULL, 10);
-  if (errno == ERANGE) {
-    return parser_error(parser, ERROR_PARSER_INTEGER_TO_LARGE);
+  ParserResult maybe =
+      parse_precedence(parser, context, (Precedence)(rule->precedence + 1));
+  if (maybe.has_error) {
+    return maybe;
   }
 
-  // #TODO:
-  nexttok(parser);
-  return success();
+  switch (op) {
+  case TOK_PLUS:
+    return success(ast_create_binop(OPR_ADD, left, maybe.ast));
+
+  case TOK_MINUS:
+    return success(ast_create_binop(OPR_SUB, left, maybe.ast));
+
+  case TOK_STAR:
+    return success(ast_create_binop(OPR_MUL, left, maybe.ast));
+
+  case TOK_SLASH:
+    return success(ast_create_binop(OPR_DIV, left, maybe.ast));
+
+  case TOK_PERCENT:
+    return success(ast_create_binop(OPR_MOD, left, maybe.ast));
+
+  default:
+    unreachable();
+  }
 }
 
-// static MaybeError string_literal(Parser *restrict parser,
-//                                  Context *restrict context) {
-//   // #NOTE: when the lexer scans a string literal, the trailing '"'
-//   // is left in the curtxt. so we 'consume' that here.
-//   // this feels hacky, because the lexer isn't passing back
-//   // the 'correct' text associated with the token.
-//   StringView sv = curtxt(parser);
-//   sv.length -= 1;
-//   StringView sl = context_intern(context, sv);
-//   u64 index =
-//       context_constants_append(context, value_create_string_literal(sl));
-//   context_emit_push_constant(context, index);
-//   nexttok(parser);
-//   return success();
-// }
+static ParserResult nil(Parser *restrict parser,
+                        [[maybe_unused]] Context *restrict context) {
+  nexttok(parser);
+  return success(ast_create_value(value_create_nil()));
+}
 
-static MaybeError expression(Parser *restrict parser,
-                             Context *restrict context) {
+static ParserResult boolean_true(Parser *restrict parser,
+                                 [[maybe_unused]] Context *restrict context) {
+  nexttok(parser);
+  return success(ast_create_value(value_create_boolean(1)));
+}
+
+static ParserResult boolean_false(Parser *restrict parser,
+                                  [[maybe_unused]] Context *restrict context) {
+  nexttok(parser);
+  return success(ast_create_value(value_create_boolean(0)));
+}
+
+static ParserResult integer(Parser *restrict parser,
+                            [[maybe_unused]] Context *restrict context) {
+  StringView sv = curtxt(parser);
+  i64 integer   = strtol(sv.ptr, NULL, 10);
+  if (errno == ERANGE) {
+    return error(parser, ERROR_PARSER_INTEGER_TO_LARGE);
+  }
+
+  nexttok(parser);
+  return success(ast_create_value(value_create_integer(integer)));
+}
+
+static ParserResult expression(Parser *restrict parser,
+                               Context *restrict context) {
   return parse_precedence(parser, context, PREC_ASSIGNMENT);
 }
 
-static MaybeError parse_precedence(Parser *restrict parser,
-                                   Context *restrict context,
-                                   Precedence precedence) {
-  ParseFunction prefix = get_rule(parser->curtok)->prefix;
-  if (prefix == NULL) {
-    return parser_error(parser, ERROR_PARSER_EXPECTED_EXPRESSION);
+static ParserResult parse_precedence(Parser *restrict parser,
+                                     Context *restrict context,
+                                     Precedence precedence) {
+  ParseRule *rule = get_rule(parser->curtok);
+  if (rule->prefix == NULL) {
+    return error(parser, ERROR_PARSER_EXPECTED_EXPRESSION);
   }
 
-  MaybeError maybe = prefix(parser, context);
-  if (maybe.has_error) {
-    return maybe;
+  ParserResult result = rule->prefix(parser, context);
+  if (result.has_error) {
+    return result;
   }
 
   while (1) {
@@ -515,13 +297,17 @@ static MaybeError parse_precedence(Parser *restrict parser,
       break;
     }
 
-    MaybeError maybe = rule->infix(parser, context);
+    ParserResult maybe = rule->infix(parser, context, result.ast);
     if (maybe.has_error) {
       return maybe;
     }
+
+    // when we loop again, the current result becomes the next
+    // infix expressions left hand side.
+    result = maybe;
   }
 
-  return success();
+  return result;
 }
 
 static ParseRule *get_rule(Token token) {
@@ -559,17 +345,17 @@ static ParseRule *get_rule(Token token) {
 
       [TOK_FN]     = {         NULL,  NULL,   PREC_NONE},
       [TOK_VAR]    = {         NULL,  NULL,   PREC_NONE},
-      [TOK_CONST]  = {     constant,  NULL,   PREC_NONE},
+      [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
       [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_VOID]           = {        void_,  NULL,   PREC_NONE},
+      [TOK_NIL]            = {          nil,  NULL,   PREC_NONE},
       [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
       [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
       [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},
       [TOK_STRING_LITERAL] = {         NULL,  NULL,   PREC_NONE},
       [TOK_IDENTIFIER]     = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_TYPE_VOID] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_TYPE_NIL]  = {         NULL,  NULL,   PREC_NONE},
       [TOK_TYPE_BOOL] = {         NULL,  NULL,   PREC_NONE},
       [TOK_TYPE_I64]  = {         NULL,  NULL,   PREC_NONE},
   };
@@ -587,13 +373,14 @@ i32 parse(char const *restrict buffer, Context *restrict context) {
   nexttok(&parser);
 
   while (!finished(&parser)) {
-    MaybeError maybe = expression(&parser, context);
+    ParserResult maybe = definition(&parser, context);
     if (maybe.has_error) {
       StringView source = context_source_path(context);
       error_print(&maybe.error, source.ptr, curline(&parser));
+      parser_result_destroy(&maybe);
       return EXIT_FAILURE;
     }
-    maybe_error_destroy(&maybe);
+    
   }
 
   return EXIT_SUCCESS;

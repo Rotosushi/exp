@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 #include "env/constants.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
+#include "utility/alloc.h"
+#include "utility/array_growth.h"
 
 Constants constants_create() {
   Constants constants;
@@ -44,19 +44,9 @@ static bool constants_full(Constants *restrict constants) {
 }
 
 static void constants_grow(Constants *restrict constants) {
-  u64 new_capacity = nearest_power_of_two(constants->capacity + 1);
-
-  u64 alloc_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Value), &alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  Value *result = realloc(constants->buffer, alloc_size);
-  if (result == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-  constants->buffer   = result;
-  constants->capacity = new_capacity;
+  Growth g            = array_growth(constants->capacity, sizeof(Value));
+  constants->buffer   = reallocate(constants->buffer, g.alloc_size);
+  constants->capacity = g.new_capacity;
 }
 
 // #TODO: this is the "greedy" approach, and it would be more
@@ -77,10 +67,6 @@ u64 constants_append(Constants *restrict constants, Value value) {
 
 Value *constants_at(Constants *restrict constants, u64 index) {
   assert(constants != NULL);
-
-  if (index >= constants->length) {
-    PANIC("index out of bounds");
-  }
-
+  assert((index >= constants->length) && "index out of bounds");
   return constants->buffer + index;
 }

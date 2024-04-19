@@ -9,6 +9,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
+  ${EXP_SOURCE_DIR}/env/module.c
   ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
@@ -17,6 +18,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
+  ${EXP_SOURCE_DIR}/imr/ast.c
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
@@ -25,6 +27,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/intrinsics/size_of.c
   ${EXP_SOURCE_DIR}/intrinsics/type_of.c
 
+  ${EXP_SOURCE_DIR}/utility/alloc.c
+  ${EXP_SOURCE_DIR}/utility/array_growth.c
   ${EXP_SOURCE_DIR}/utility/cli_options.c
   ${EXP_SOURCE_DIR}/utility/graph.c
   ${EXP_SOURCE_DIR}/utility/io.c

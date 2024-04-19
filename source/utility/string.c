@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utility/alloc.h"
 #include "utility/minmax.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
@@ -104,27 +105,22 @@ i32 string_compare(String const *restrict s1, String const *restrict s2) {
   }
 }
 
-void string_resize(String *restrict str, u64 capacity) {
+void string_resize(String *restrict str, u64 new_capacity) {
   assert(str != NULL);
-  assert((capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
+  assert((new_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
   // "resize" to the same size means we can exit early.
-  if ((str->capacity > 0) && (capacity == (str->capacity - 1))) {
+  if ((str->capacity > 0) && (new_capacity == (str->capacity - 1))) {
     return;
   }
 
-  char *new_buffer = realloc(str->buffer, (capacity + 1) * sizeof(char));
-  if (new_buffer == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-
   // the new buffer is smaller than it once was
-  if (str->length > capacity) {
-    str->length = capacity;
+  if (str->length > new_capacity) {
+    str->length = new_capacity;
   }
 
-  str->buffer              = new_buffer;
-  str->capacity            = capacity + 1;
+  str->buffer   = reallocate(str->buffer, (new_capacity + 1) * sizeof(char));
+  str->capacity = new_capacity + 1;
   str->buffer[str->length] = '\0';
 }
 
@@ -139,13 +135,7 @@ void string_reserve_more(String *restrict str, u64 more_capacity) {
 
   u64 new_capacity = nearest_power_of_two(sum_capacity);
 
-  char *new_buffer = realloc(str->buffer, new_capacity * sizeof(char));
-  if (new_buffer == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-
-  str->buffer   = new_buffer;
-  str->capacity = new_capacity;
+  string_resize(str, new_capacity);
 }
 
 void string_assign(String *restrict str, const char *restrict data) {

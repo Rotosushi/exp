@@ -266,7 +266,7 @@ static void directive_type(StringView name, Type *type, FILE *file) {
   // and mainly used so programmers can override malloc/free in the
   // c stdlib. or so I've read.), and notype which does not mark the
   // symbol with any type.
-  case TYPEKIND_VOID:
+  case TYPEKIND_NIL:
   case TYPEKIND_BOOLEAN:
   case TYPEKIND_INTEGER:
     directive_type_explicit(name, STT_OBJECT, file);
@@ -510,7 +510,7 @@ compiler to prevent writes to constants.
   Value *value    = global->value;
   Type *type      = type_of(value, context);
   switch (type->kind) {
-  case TYPEKIND_VOID:
+  case TYPEKIND_NIL:
     directive_globl(name, file);
     directive_bss(file);
     directive_type(name, type, file);

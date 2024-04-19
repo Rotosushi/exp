@@ -109,23 +109,3 @@ void error_print(Error *restrict error, char const *restrict file, u64 line) {
   log_message(LOG_ERROR, file, line, msg.buffer, stderr);
   string_destroy(&msg);
 }
-
-MaybeError success() {
-  MaybeError me;
-  me.has_error = 0;
-  me.error     = error_create();
-  return me;
-}
-
-MaybeError error(ErrorCode code, String data) {
-  MaybeError me;
-  me.has_error  = 1;
-  me.error.code = code;
-  string_move(&me.error.message, &data);
-  return me;
-}
-
-void maybe_error_destroy(MaybeError *restrict m) {
-  m->has_error = 0;
-  error_destroy(&m->error);
-}

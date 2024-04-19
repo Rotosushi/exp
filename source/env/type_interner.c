@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 #include "env/type_interner.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
+#include "utility/alloc.h"
+#include "utility/array_growth.h"
 
 FunctionTypes function_types_create() {
   FunctionTypes f;
@@ -45,28 +45,13 @@ void function_types_destroy(FunctionTypes *restrict f) {
 }
 
 static bool function_types_full(FunctionTypes *restrict f) {
-  u64 new_size;
-  if (__builtin_add_overflow(f->size, 1, &new_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  return new_size >= f->capacity;
+  return (f->size + 1) >= f->capacity;
 }
 
 static void function_types_grow(FunctionTypes *restrict f) {
-  u64 new_capacity = nearest_power_of_two(f->capacity + 1);
-
-  u64 alloc_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Type), &alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  Type *result = realloc(f->types, alloc_size);
-  if (result == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-  f->types    = result;
-  f->capacity = new_capacity;
+  Growth g    = array_growth(f->capacity, sizeof(Type *));
+  f->types    = reallocate(f->types, g.alloc_size);
+  f->capacity = g.new_capacity;
 }
 
 Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
@@ -95,7 +80,7 @@ Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
 
 TypeInterner type_interner_create() {
   TypeInterner type_interner;
-  type_interner.nil_type       = type_create_void();
+  type_interner.nil_type       = type_create_nil();
   type_interner.boolean_type   = type_create_boolean();
   type_interner.integer_type   = type_create_integer();
   type_interner.function_types = function_types_create();
@@ -107,7 +92,7 @@ void type_interner_destroy(TypeInterner *restrict type_interner) {
   return;
 }
 
-Type *type_interner_void_type(TypeInterner *restrict type_interner) {
+Type *type_interner_nil_type(TypeInterner *restrict type_interner) {
   assert(type_interner != NULL);
   return &(type_interner->nil_type);
 }

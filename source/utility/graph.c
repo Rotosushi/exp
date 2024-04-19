@@ -19,15 +19,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "utility/alloc.h"
 #include "utility/graph.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {
-  Edge *edge = malloc(sizeof(Edge));
-  if (edge == NULL) {
-    PANIC_ERRNO("malloc failed");
-  }
+  Edge *edge   = allocate(sizeof(Edge));
   edge->target = target;
   edge->next   = next;
   return edge;
@@ -85,13 +83,8 @@ static void graph_grow(Graph *restrict graph) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
-  Edge **list = realloc(graph->list, alloc_size);
-  if (list == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-
+  graph->list     = reallocate(graph->list, alloc_size);
   graph->capacity = new_capacity;
-  graph->list     = list;
 }
 
 u64 graph_add_vertex(Graph *restrict graph) {
@@ -147,9 +140,9 @@ static void vertex_list_grow(VertexList *restrict vl) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
-  u64 *list = realloc(vl->list, alloc);
+  u64 *list = reallocate(vl->list, alloc);
   if (list == NULL) {
-    PANIC_ERRNO("realloc failed");
+    PANIC_ERRNO("reallocate failed");
   }
   vl->capacity = new_capacity;
   vl->list     = list;

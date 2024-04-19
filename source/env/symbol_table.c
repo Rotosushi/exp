@@ -19,30 +19,29 @@
 #include <stdlib.h>
 
 #include "env/symbol_table.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
+#include "utility/array_growth.h"
 #include "utility/string_hash.h"
 
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
 SymbolTable symbol_table_create() {
-  SymbolTable symbol_table;
-  symbol_table.capacity = symbol_table.count = 0;
-  symbol_table.elements                      = NULL;
-  return symbol_table;
+  SymbolTable st;
+  st.capacity = st.count = 0;
+  st.elements            = NULL;
+  return st;
 }
 
-void symbol_table_destroy(SymbolTable *restrict symbol_table) {
-  assert(symbol_table != NULL);
+void symbol_table_destroy(SymbolTable *restrict st) {
+  assert(st != NULL);
 
-  if (symbol_table->elements == NULL) {
-    symbol_table->count = symbol_table->capacity = 0;
+  if (st->elements == NULL) {
+    st->count = st->capacity = 0;
     return;
   }
 
-  symbol_table->count = symbol_table->capacity = 0;
-  free(symbol_table->elements);
-  symbol_table->elements = NULL;
+  st->count = st->capacity = 0;
+  free(st->elements);
+  st->elements = NULL;
 }
 
 static SymbolTableElement *
@@ -71,53 +70,49 @@ symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
   }
 }
 
-static void symbol_table_grow(SymbolTable *restrict symbol_table,
-                              u64 capacity) {
-  SymbolTableElement *elements = calloc(capacity, sizeof(SymbolTableElement));
+static void symbol_table_grow(SymbolTable *restrict st) {
+  Growth g = array_growth(st->capacity, sizeof(SymbolTableElement));
+  SymbolTableElement *elements =
+      calloc(g.new_capacity, sizeof(SymbolTableElement));
 
-  if (symbol_table->elements != NULL) {
-    symbol_table->count = 0;
-    for (u64 i = 0; i < symbol_table->capacity; ++i) {
-      SymbolTableElement *element = &(symbol_table->elements[i]);
+  if (st->elements != NULL) {
+    st->count = 0;
+    for (u64 i = 0; i < st->capacity; ++i) {
+      SymbolTableElement *element = &(st->elements[i]);
       if (element->name.ptr == NULL) {
         continue;
       }
 
       SymbolTableElement *dest =
-          symbol_table_find(elements, capacity, element->name);
+          symbol_table_find(elements, g.new_capacity, element->name);
       dest->name  = element->name;
       dest->value = element->value;
-      symbol_table->count += 1;
+      st->count += 1;
     }
 
-    free(symbol_table->elements);
+    // we can avoid freeing each element because we
+    // move the data to the new allocation.
+    free(st->elements);
   }
 
-  symbol_table->capacity = capacity;
-  symbol_table->elements = elements;
+  st->capacity = g.new_capacity;
+  st->elements = elements;
 }
 
-static bool symbol_table_full(SymbolTable *restrict symbol_table) {
-  u64 new_count;
-  if (__builtin_add_overflow(symbol_table->count, 1, &new_count)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  u64 load_limit =
-      (u64)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
-  return new_count >= load_limit;
+static bool symbol_table_full(SymbolTable *restrict st) {
+  u64 load_limit = (u64)floor((double)st->capacity * SYMBOL_TABLE_MAX_LOAD);
+  return (st->count + 1) >= load_limit;
 }
 
-bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
+bool symbol_table_insert(SymbolTable *restrict st, StringView name,
                          Value *value) {
-  assert(symbol_table != NULL);
-  if (symbol_table_full(symbol_table)) {
-    u64 capacity = nearest_power_of_two(symbol_table->capacity + 1);
-    symbol_table_grow(symbol_table, capacity);
+  assert(st != NULL);
+  if (symbol_table_full(st)) {
+    symbol_table_grow(st);
   }
 
   SymbolTableElement *element =
-      symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
+      symbol_table_find(st->elements, st->capacity, name);
 
   // if the element already exists,
   // we return false. we don't want
@@ -132,7 +127,7 @@ bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
   // the count (+1 element). otherwise we are replacing a tombstone
   // so we don't increment the count (-1 tombstone +1 element == +0).
   if (element->value == NULL) {
-    symbol_table->count += 1;
+    st->count += 1;
   }
 
   element->name  = name;

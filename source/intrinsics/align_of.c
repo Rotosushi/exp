@@ -37,7 +37,7 @@ u64 align_of(Type *restrict type) {
   // alignment is 8. ints are 4 bytes, and their
   // alignment is 4.
   // string literals are align 8 as well.
-  case TYPEKIND_VOID:
+  case TYPEKIND_NIL:
     return 0;
   case TYPEKIND_BOOLEAN:
     return 0;

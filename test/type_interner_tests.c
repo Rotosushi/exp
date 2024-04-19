@@ -30,7 +30,7 @@ i32 type_interner_tests([[maybe_unused]] i32 argc,
   failure |= !type_equality(t0, t1);
   failure |= t0 != t1;
 
-  Type *t2 = type_interner_void_type(&ti);
+  Type *t2 = type_interner_nil_type(&ti);
   failure |= type_equality(t2, t0);
   failure |= t0 == t2;
 

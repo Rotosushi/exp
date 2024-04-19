@@ -32,14 +32,13 @@
  *
  */
 typedef enum Opcode {
-  OP_LOADI, // A Bx -- L[A] = Bx
-
-  OP_NEG, // A B -- L[A] = -L[B]
-  OP_ADD, // A B C -- L[A] = L[B] + L[C]
-  OP_SUB, // A B C -- L[A] = L[B] - L[C]
-  OP_MUL, // A B C -- L[A] = L[B] * L[C]
-  OP_DIV, // A B C -- L[A] = L[B] / L[C]
-  OP_MOD, // A B C -- L[A] = L[B] % L[C]
+  OPC_LOADI, // A Bx -- L[A] = Bx
+  OPC_NEG,   // A B   -- L[A] = -L[B]
+  OPC_ADD,   // A B C -- L[A] = L[B] + L[C]
+  OPC_SUB,   // A B C -- L[A] = L[B] - L[C]
+  OPC_MUL,   // A B C -- L[A] = L[B] * L[C]
+  OPC_DIV,   // A B C -- L[A] = L[B] / L[C]
+  OPC_MOD,   // A B C -- L[A] = L[B] % L[C]
 } Opcode;
 
 #endif // !EXP_IMR_OPCODE_H

@@ -59,9 +59,9 @@
 //     PANIC("cannot allocate more than SIZE_MAX");
 //   }
 
-//   FormalArgument *result = realloc(target->list, alloc_size);
+//   FormalArgument *result = reallocate(target->list, alloc_size);
 //   if (result == NULL) {
-//     PANIC_ERRNO("realloc failed");
+//     PANIC_ERRNO("reallocate failed");
 //   }
 //   target->list = result;
 
@@ -118,9 +118,9 @@
 //     PANIC("cannot allocate more than SIZE_MAX");
 //   }
 
-//   FormalArgument *result = realloc(fal->list, alloc_size);
+//   FormalArgument *result = reallocate(fal->list, alloc_size);
 //   if (result == NULL) {
-//     PANIC_ERRNO("realloc failed");
+//     PANIC_ERRNO("reallocate failed");
 //   }
 
 //   fal->capacity = new_capacity;

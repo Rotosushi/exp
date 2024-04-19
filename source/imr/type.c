@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "imr/type.h"
+#include "utility/alloc.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
@@ -79,11 +80,7 @@ static void argument_types_grow(ArgumentTypes *restrict a) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
 
-  Type **result = realloc(a->types, alloc_size);
-  if (result == NULL) {
-    PANIC_ERRNO("realloc failed");
-  }
-  a->types    = result;
+  a->types    = reallocate(a->types, alloc_size);
   a->capacity = new_capacity;
 }
 
@@ -112,9 +109,9 @@ bool function_type_equality(FunctionType const *f1, FunctionType const *f2) {
   return argument_types_equality(&f1->argument_types, &f2->argument_types);
 }
 
-Type type_create_void() {
+Type type_create_nil() {
   Type type;
-  type.kind           = TYPEKIND_VOID;
+  type.kind           = TYPEKIND_NIL;
   type.nil_type.empty = 0;
   return type;
 }
@@ -169,8 +166,8 @@ bool type_equality(Type const *t1, Type const *t2) {
 
 static void type_to_string_impl(String *str, Type const *t) {
   switch (t->kind) {
-  case TYPEKIND_VOID:
-    string_append(str, "void");
+  case TYPEKIND_NIL:
+    string_append(str, "nil");
     break;
 
   case TYPEKIND_BOOLEAN:

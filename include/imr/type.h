@@ -20,7 +20,7 @@
 #include "utility/string.h"
 
 typedef enum TypeKind {
-  TYPEKIND_VOID,
+  TYPEKIND_NIL,
   TYPEKIND_BOOLEAN,
   TYPEKIND_INTEGER,
   TYPEKIND_FUNCTION,
@@ -78,7 +78,7 @@ typedef struct Type {
  *
  * @return Type
  */
-Type type_create_void();
+Type type_create_nil();
 
 /**
  * @brief create a new BooleanType

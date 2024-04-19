@@ -66,7 +66,7 @@ void type_interner_destroy(TypeInterner *restrict type_interner);
  * @param type_interner
  * @return Type*
  */
-Type *type_interner_void_type(TypeInterner *restrict type_interner);
+Type *type_interner_nil_type(TypeInterner *restrict type_interner);
 
 /**
  * @brief get the BooleanType

@@ -21,8 +21,8 @@
 #include "frontend/lexer.h"
 
 /*
-  expression = "const" identifier = affix ";"
-             | "fn" identifier formal-args "->" type body
+#TODO:
+  "fn" identifier formal-args "->" type body
 
   formal-args = "(" formal-arg-list? ")"
 
@@ -31,18 +31,22 @@
   formal-arg = identifier ":" type
 
   body = "{" expression* "}"
+*/
 
-  affix = basic (binop precedece-parser)*
+/*
+  definition = "const" identifier = expression ";"
+
+  expression = basic (binop precedece-parser)*
 
   basic = literal
         | unop basic
-        | "(" affix ")"
+        | "(" expression ")"
         //| identifier
 
   literal = integer
           | "true"
           | "false"
-          | "void_"
+          | "()"
 */
 
 /**

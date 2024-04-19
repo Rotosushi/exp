@@ -86,7 +86,7 @@ StringView context_intern(Context *restrict context, StringView sv) {
 
 Type *context_nil_type(Context *restrict context) {
   assert(context != NULL);
-  return type_interner_void_type(&(context->type_interner));
+  return type_interner_nil_type(&(context->type_interner));
 }
 
 Type *context_boolean_type(Context *restrict context) {

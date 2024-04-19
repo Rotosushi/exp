@@ -172,22 +172,14 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
 
   case 'i':
     return lexer_check_keyword(lexer, 1, 2, "64", TOK_TYPE_I64);
+  case 'n':
+    return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
   case 'r':
     return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
   case 't':
     return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
   case 'v':
-    if (lexer_current_text_length(lexer) > 1) {
-      switch (lexer->token[1]) {
-      case 'a':
-        return lexer_check_keyword(lexer, 2, 1, "r", TOK_VAR);
-      case 'o':
-        return lexer_check_keyword(lexer, 2, 2, "id", TOK_TYPE_VOID);
-      default:
-        break;
-      }
-    }
-    break;
+    return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
 
   default:
     break;
@@ -235,7 +227,7 @@ Token lexer_scan(Lexer *restrict lexer) {
   char c = lexer_next(lexer);
   switch (c) {
   case '(':
-    return TOK_BEGIN_PAREN;
+    return lexer_match(lexer, ')') ? TOK_NIL : TOK_BEGIN_PAREN;
   case ')':
     return TOK_END_PAREN;
   case '{':

@@ -27,8 +27,6 @@
 
 /**
  * @brief A context models a Translation Unit.
- * it's just that context is a shorter type name than
- * TranslationUnit
  *
  */
 typedef struct Context {

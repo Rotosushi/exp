@@ -74,14 +74,4 @@ void error_assign(Error *restrict error, ErrorCode code,
 
 void error_print(Error *restrict error, char const *restrict file, u64 line);
 
-typedef struct MaybeError {
-  bool has_error;
-  Error error;
-} MaybeError;
-
-MaybeError success();
-MaybeError error(ErrorCode code, String data);
-
-void maybe_error_destroy(MaybeError *restrict m);
-
 #endif // !EXP_ENV_ERROR_H

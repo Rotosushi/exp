@@ -23,6 +23,7 @@
 
 #include "imr/bytecode.h"
 #include "imr/opcode.h"
+#include "utility/alloc.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
@@ -49,11 +50,12 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 static void bytecode_grow(Bytecode *restrict bytecode) {
   u64 new_capacity = nearest_power_of_two(bytecode->capacity + 1);
 
-  Instruction *result = realloc(bytecode->buffer, new_capacity);
-  if (result == NULL) {
-    PANIC_ERRNO("realloc failed");
+  u64 alloc_size;
+  if (__builtin_mul_overflow(new_capacity, sizeof(Instruction), &alloc_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
   }
-  bytecode->buffer   = result;
+
+  bytecode->buffer   = reallocate(bytecode->buffer, new_capacity);
   bytecode->capacity = new_capacity;
 }
 
@@ -69,7 +71,7 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 
 void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 imm) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_LOADI);
+  INST_SET_OP(I, OPC_LOADI);
   INST_SET_A(I, A);
   INST_SET_Bx(I, imm);
   bytecode_emit_instruction(bc, I);
@@ -77,7 +79,7 @@ void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 imm) {
 
 void bytecode_emit_neg(Bytecode *restrict bc, u16 A, u16 B) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_NEG);
+  INST_SET_OP(I, OPC_NEG);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   bytecode_emit_instruction(bc, I);
@@ -85,7 +87,7 @@ void bytecode_emit_neg(Bytecode *restrict bc, u16 A, u16 B) {
 
 void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_ADD);
+  INST_SET_OP(I, OPC_ADD);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
@@ -94,7 +96,7 @@ void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
 
 void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_SUB);
+  INST_SET_OP(I, OPC_SUB);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
@@ -103,7 +105,7 @@ void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
 
 void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_MUL);
+  INST_SET_OP(I, OPC_MUL);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
@@ -112,7 +114,7 @@ void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
 
 void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_DIV);
+  INST_SET_OP(I, OPC_DIV);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
@@ -121,7 +123,7 @@ void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
 
 void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
   Instruction I = 0;
-  INST_SET_OP(I, OP_MOD);
+  INST_SET_OP(I, OPC_MOD);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);

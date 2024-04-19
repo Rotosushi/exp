@@ -14,25 +14,18 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-
-#include "intrinsics/size_of.h"
+#include "utility/array_growth.h"
+#include "utility/nearest_power.h"
 #include "utility/panic.h"
 
-u64 size_of(Type *restrict type) {
-  assert(type != NULL);
+Growth array_growth(u64 current_capacity, u64 element_size) {
+  Growth g;
+  g.new_capacity = nearest_power_of_two(current_capacity + 1);
 
-  switch (type->kind) {
-  case TYPEKIND_NIL:
-    return 1;
-  case TYPEKIND_BOOLEAN:
-    return 1;
-  case TYPEKIND_INTEGER:
-    return 8;
-
-  default:
-    PANIC("bad TYPEKIND");
+  if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
   }
+  return g;
 }
