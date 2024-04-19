@@ -1,0 +1,200 @@
+/**
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ */
+#include <assert.h>
+#include <stdlib.h>
+
+#include "imr/graph.h"
+#include "utility/nearest_power.h"
+#include "utility/panic.h"
+
+static Edge *edge_create(u64 target, Edge *next) {
+  Edge *edge = malloc(sizeof(Edge));
+  if (edge == NULL) {
+    PANIC_ERRNO("malloc failed");
+  }
+  edge->target = target;
+  edge->next   = next;
+  return edge;
+}
+
+static void edge_destroy(Edge *restrict edge) {
+  assert(edge != NULL);
+  Edge *tmp = NULL;
+  while (edge->next != NULL) {
+    tmp        = edge->next;
+    edge->next = tmp->next;
+    free(tmp);
+  }
+  free(edge);
+}
+
+static void edge_prepend(Edge *restrict edge, u64 target) {
+  Edge *new  = edge_create(target, edge->next);
+  edge->next = new;
+}
+
+Graph graph_create() {
+  Graph g;
+  g.length   = 0;
+  g.capacity = 0;
+  g.list     = NULL;
+  return g;
+}
+
+void graph_destroy(Graph *restrict g) {
+  assert(g != NULL);
+
+  for (u64 i = 0; i < g->length; ++i) {
+    Edge *edge = g->list[i];
+    edge_destroy(edge);
+  }
+
+  g->length   = 0;
+  g->capacity = 0;
+  free(g->list);
+  g->list = NULL;
+}
+
+static bool graph_full(Graph *restrict graph) {
+  return graph->capacity <= graph->length;
+}
+
+static void graph_grow(Graph *restrict graph) {
+  u64 new_capacity = nearest_power_of_two(graph->capacity + 1);
+
+  u64 alloc_size;
+  if (__builtin_mul_overflow(new_capacity, sizeof(Edge *), &alloc_size)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  Edge **list = realloc(graph->list, alloc_size);
+  if (list == NULL) {
+    PANIC_ERRNO("realloc failed");
+  }
+
+  graph->capacity = new_capacity;
+  graph->list     = list;
+}
+
+u64 graph_add_vertex(Graph *restrict graph) {
+  assert(graph != NULL);
+
+  if (graph_full(graph)) {
+    graph_grow(graph);
+  }
+
+  u64 vertex          = graph->length;
+  graph->list[vertex] = NULL;
+  graph->length += 1;
+  return vertex;
+}
+
+void graph_add_edge(Graph *restrict graph, u64 source, u64 target) {
+  assert(graph != NULL);
+  assert((source < graph->length) && "source vertex does not exist.");
+  assert((target < graph->length) && "target vertex does not exist.");
+
+  Edge *edge = graph->list[source];
+  if (edge == NULL) {
+    edge = edge_create(target, NULL);
+  } else {
+    edge_prepend(edge, target);
+  }
+}
+
+void vertex_list_destroy(VertexList *restrict vl) {
+  vl->capacity = 0;
+  vl->count    = 0;
+  free(vl->list);
+  vl->list = NULL;
+}
+
+static VertexList vertex_list_create() {
+  VertexList vl;
+  vl.capacity = 0;
+  vl.count    = 0;
+  vl.list     = NULL;
+  return vl;
+}
+
+static bool vertex_list_full(VertexList *restrict vl) {
+  return vl->capacity <= vl->count;
+}
+
+static void vertex_list_grow(VertexList *restrict vl) {
+  u64 new_capacity = nearest_power_of_two(vl->capacity + 1);
+
+  u64 alloc;
+  if (__builtin_mul_overflow(new_capacity, sizeof(u64), &alloc)) {
+    PANIC("cannot allocate more than SIZE_MAX");
+  }
+
+  u64 *list = realloc(vl->list, alloc);
+  if (list == NULL) {
+    PANIC_ERRNO("realloc failed");
+  }
+  vl->capacity = new_capacity;
+  vl->list     = list;
+}
+
+static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
+  if (vertex_list_full(vl)) {
+    vertex_list_grow(vl);
+  }
+
+  vl->list[vl->count] = vertex;
+  vl->count += 1;
+}
+
+VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex) {
+  assert(graph != NULL);
+  assert((vertex > graph->length) && "vertex does not exist.");
+
+  VertexList vl = vertex_list_create();
+  Edge *edge    = graph->list[vertex];
+  while (edge != NULL) {
+    vertext_list_append(&vl, edge->target);
+    edge = edge->next;
+  }
+  return vl;
+}
+
+static bool list_contains_vertex(Edge *edge, u64 vertex) {
+  while (edge != NULL) {
+    if (edge->target == vertex) {
+      return 1;
+    }
+    edge = edge->next;
+  }
+  return 0;
+}
+
+VertexList graph_vertex_fanin(Graph *restrict graph, u64 vertex) {
+  assert(graph != NULL);
+
+  VertexList vl = vertex_list_create();
+  for (u64 i = 0; i < graph->length; ++i) {
+    Edge *edge = graph->list[i];
+    if ((i != vertex) && (edge != NULL) && list_contains_vertex(edge, vertex)) {
+      vertext_list_append(&vl, i);
+    }
+  }
+
+  return vl;
+}

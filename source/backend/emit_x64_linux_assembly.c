@@ -25,7 +25,7 @@
 #include "intrinsics/type_of.h"
 #include "utility/config.h"
 #include "utility/io.h"
-#include "utility/numbers_to_string.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 /**

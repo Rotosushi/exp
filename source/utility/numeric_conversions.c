@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "utility/numbers_to_string.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 u64 intmax_safe_strlen(intmax_t value, Radix radix) {

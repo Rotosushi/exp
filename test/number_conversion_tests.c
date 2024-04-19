@@ -16,12 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "utility/numbers_to_string.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 static bool test_base10_uintmax_to_str(uintmax_t value) {

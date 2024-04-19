@@ -23,13 +23,13 @@
 
 #include "utility/io.h"
 #include "utility/log.h"
-#include "utility/numbers_to_string.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-#define LOG_FATAL_MSG "fatal"
-#define LOG_ERROR_MSG "error"
-#define LOG_WARNING_MSG "warning"
-#define LOG_STATUS_MSG "status"
+#define LOG_FATAL_MSG     "fatal"
+#define LOG_ERROR_MSG     "error"
+#define LOG_WARNING_MSG   "warning"
+#define LOG_STATUS_MSG    "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
 
 void log_message(LogLevel level, const char *restrict file, u64 line,

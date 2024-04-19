@@ -23,7 +23,7 @@
 
 #include "env/error.h"
 #include "frontend/parser.h"
-#include "utility/numbers_to_string.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 typedef struct Parser {
