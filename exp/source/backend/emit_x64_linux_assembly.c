@@ -18,6 +18,7 @@
  */
 #include <assert.h>
 
+#include "backend/as_directives.h"
 #include "backend/emit_x64_linux_assembly.h"
 #include "imr/opcode.h"
 #include "intrinsics/align_of.h"
@@ -65,271 +66,6 @@
  * which builds up it's content at runtime.
  */
 static StringView cpu_type = {sizeof("znver3") - 1, "znver3"};
-
-/**
- * @brief this directive is used to tell as about the
- * start of a new logical file.
- *
- * @param path
- * @param file
- */
-static void directive_file(StringView path, FILE *file) {
-  file_write("  .file \"", file);
-  file_write(path.ptr, file);
-  file_write("\"\n", file);
-}
-
-/**
- * @brief This directive exists to specify the specific
- * architecture of the x86 chip to be assembled for,
- * letting as produce more efficient bytecode for the given
- * assembly.
- * and lets as produce diagnostics about the usage of
- * features which are not available on the chip.
- *
- * @param cpu_type
- * @param file
- */
-static void directive_arch(StringView cpu_type, FILE *file) {
-  file_write("  .arch ", file);
-  file_write(cpu_type.ptr, file);
-  file_write("\n", file);
-}
-
-/**
- * @brief this directive is used to place comments/tags into the
- * produced object files. since we are targeting ELF.
- *
- * @param comment
- * @param file
- */
-static void directive_ident(StringView comment, FILE *file) {
-  file_write("  .ident \"", file);
-  file_write(comment.ptr, file);
-  file_write("\"\n", file);
-}
-
-static void directive_noexecstack(FILE *file) {
-  /**
-   * @brief the assembly directive which marks the stack as unexecutable.
-   * (as far as I can tell, I cannot find documentation which explicitly
-   * states that ".note.GNU-stack" marks the stack as noexec, only that
-   * "... and the .note.GNU-stack section may have the executable (x)
-   *  flag added". which implies to me that the .note... has something
-   * to do with marking the stack as exec or noexec.)
-   */
-  static char const noexecstack[] =
-      "  .section .note.GNU-stack,\"\",@progbits\n";
-  file_write(noexecstack, file);
-}
-
-/**
- * @brief defines a new symbol visible to ld for linking,
- * where the definition comes from a label (as far as I can tell.)
- * this means that .global is used for both forward declarations
- * and definitions.
- *
- * @param name
- * @param file
- */
-static void directive_globl(StringView name, FILE *file) {
-  file_write("  .globl ", file);
-  file_write(name.ptr, file);
-  file_write("\n", file);
-}
-
-/**
- * @brief tells as to assemble the following statements into
- * the data section.
- *
- * @param file
- */
-static void directive_data(FILE *file) { file_write("  .data\n", file); }
-
-/**
- * @brief tells as to assemble the following statements into
- * the bss section.
- *
- * @param file
- */
-static void directive_bss(FILE *file) { file_write("  .bss\n", file); }
-
-/**
- * @brief tells as to assemble the following statements into
- * the text section.
- *
- * @param file
- */
-// static void directive_text(FILE *file) { file_write("  .text\n", file); }
-
-/**
- * @brief pads the location counter to a particular storage boundary.
- * this causes an allocation which follows the align directive to be
- * emitted at that particular storage boundary.
- *
- * @param type
- * @param file
- */
-static void directive_balign(Type *type, FILE *file) {
-  u64 align = align_of(type);
-  file_write("  .balign ", file);
-  print_uintmax(align, RADIX_DECIMAL, file);
-  file_write("\n", file);
-}
-
-/**
- * @brief emits the .size <name>, <expression> directive
- *
- * @param name the name of the symbol to associate with the size
- * @param size the size to place in <expression>
- * @param file
- */
-static void directive_size(StringView name, u64 size, FILE *file) {
-  file_write("  .size ", file);
-  file_write(name.ptr, file);
-  file_write(", ", file);
-  print_uintmax(size, RADIX_DECIMAL, file);
-  file_write("\n", file);
-}
-
-/**
- * @brief emits a .size directive with a value equal to the
- * difference between the address of th directive and the
- * address of the given label.
- *
- * @warning assumes the label is emitted before the .size directive,
- * and that the label appears immediately before the addresses allocated
- * for the data the label refers to.
- *
- * @param name
- * @param file
- */
-// static void directive_size_label_relative(StringView name, FILE *file) {
-//   file_write("  .size ", file);
-//   file_write(name.ptr, file);
-//   // the '.' symbol refers to the current address, the '-' is
-//   // arithmetic subtraction, and the label refers to the address
-//   // of the label. thus, label relative size computes to the
-//   // numeric difference between the current address and the address
-//   // of the .size directive
-//   file_write(", .-", file);
-//   file_write(name.ptr, file);
-//   file_write("\n", file);
-// }
-
-typedef enum STT_Type {
-  STT_FUNC,
-  STT_OBJECT,
-  STT_TLS,
-  STT_COMMON,
-} STT_Type;
-
-static void directive_type_explicit(StringView name, STT_Type kind,
-                                    FILE *file) {
-  file_write("  .type ", file);
-  file_write(name.ptr, file);
-  file_write(", ", file);
-
-  switch (kind) {
-  case STT_OBJECT:
-    file_write("@object", file);
-    break;
-
-  case STT_FUNC:
-    file_write("@function", file);
-    break;
-
-  case STT_TLS:
-    file_write("@tls_object", file);
-    break;
-
-  case STT_COMMON:
-    file_write("@common", file);
-    break;
-
-  default:
-    PANIC("bad STT_Type");
-    break;
-  }
-
-  file_write("\n", file);
-}
-
-static void directive_type(StringView name, Type *type, FILE *file) {
-  switch (type->kind) {
-  // essentially everything is an @object unless it's an @function.
-  // with the edgecases of thread-locals @tls_object,
-  // common symbols @common (linker merges these symbols across translation
-  // units), indirect-functions @gnu_indirect_function.
-  // (the actual function to be called can be resolved at runtime;
-  // it's complex. https://maskray.me/blog/2021-01-18-gnu-indirect-function
-  // and mainly used so programmers can override malloc/free in the
-  // c stdlib. or so I've read.), and notype which does not mark the
-  // symbol with any type.
-  case TYPEKIND_NIL:
-  case TYPEKIND_BOOLEAN:
-  case TYPEKIND_INTEGER:
-    directive_type_explicit(name, STT_OBJECT, file);
-    break;
-
-  case TYPEKIND_FUNCTION:
-    directive_type_explicit(name, STT_FUNC, file);
-    break;
-
-  default:
-    PANIC("bad TYPEKIND");
-  }
-}
-
-static void directive_quad(i64 value, FILE *file) {
-  u64 len = intmax_safe_strlen(value, RADIX_DECIMAL);
-  char str[len + 1];
-  if (intmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
-    PANIC("conversion failed");
-  }
-  str[len] = '\0';
-
-  file_write("  .quad ", file);
-  file_write(str, file);
-  file_write("\n", file);
-}
-
-static void directive_byte(unsigned char value, FILE *file) {
-  u64 len = uintmax_safe_strlen(value, RADIX_DECIMAL);
-  char str[len + 1];
-  if (uintmax_to_str(value, str, RADIX_DECIMAL) == NULL) {
-    PANIC("conversion failed");
-  }
-  str[len] = '\0';
-
-  file_write("  .byte ", file);
-  file_write(str, file);
-  file_write("\n", file);
-}
-
-static void directive_zero(u64 bytes, FILE *file) {
-  u64 len = uintmax_safe_strlen(bytes, RADIX_DECIMAL);
-  char str[len + 1];
-  if (uintmax_to_str(bytes, str, RADIX_DECIMAL) == NULL) {
-    PANIC("conversion failed");
-  }
-  str[len] = '\0';
-
-  file_write("  .zero ", file);
-  file_write(str, file);
-  file_write("\n", file);
-}
-
-// static void directive_string(StringView sv, FILE *file) {
-//   file_write("  .string \"", file);
-//   file_write(sv.ptr, file);
-//   file_write("\"\n", file);
-// }
-
-static void directive_label(StringView name, FILE *file) {
-  file_write(name.ptr, file);
-  file_write(":\n", file);
-}
 
 // typedef enum RegisterName {
 //   REG_RAX,
@@ -414,6 +150,7 @@ as the CALL instruction.
 //   StringView sysexit = string_view_from_cstring("sysexit");
 //   directive_globl(sysexit, file);
 //   directive_type_explicit(sysexit, STT_FUNC, file);
+//   directive_label(sysexit, file);
 //   file_write("  mov $60, %rax\n", file);
 //   file_write("  syscall\n", file);
 //   directive_size_label_relative(sysexit, file);
@@ -567,10 +304,7 @@ compiler to prevent writes to constants.
 
 void emit_x64_linux_assembly(Context *restrict context) {
   StringView path = context_output_path(context);
-  FILE *file      = fopen(path.ptr, "w");
-  if (file == NULL) {
-    PANIC_ERRNO("fopen failed");
-  }
+  FILE *file      = file_open(path.ptr, "w");
 
   SymbolTableIterator iter =
       symbol_table_iterator_create(&(context->global_symbols));

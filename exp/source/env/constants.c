@@ -40,7 +40,7 @@ void constants_destroy(Constants *restrict constants) {
 }
 
 static bool constants_full(Constants *restrict constants) {
-  return constants->length == constants->capacity;
+  return (constants->length + 1) == constants->capacity;
 }
 
 static void constants_grow(Constants *restrict constants) {

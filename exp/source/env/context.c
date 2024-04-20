@@ -72,11 +72,7 @@ StringView context_output_path(Context *restrict context) {
 
 FILE *context_open_output(Context *restrict context) {
   StringView path = context_output_path(context);
-  FILE *file      = fopen(path.ptr, "w");
-  if (file == NULL) {
-    PANIC_ERRNO("fopen failed");
-  }
-  return file;
+  return file_open(path.ptr, "w");
 }
 
 StringView context_intern(Context *restrict context, StringView sv) {

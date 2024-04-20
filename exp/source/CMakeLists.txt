@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/backend/as_directives.c
   ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
 
   ${EXP_SOURCE_DIR}/core/compile.c

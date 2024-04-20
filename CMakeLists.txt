@@ -10,11 +10,12 @@ endif()
 set(C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 23)
 
-project(EXP LANGUAGES C VERSION 0.0.1 DESCRIPTION "A hobby programming language.")
+project(EXP LANGUAGES C ASM VERSION 0.1.0 DESCRIPTION "A hobby programming language.")
 
-set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source")
+set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
+set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
+set(LIBEXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp")
 set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
 
 set(WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
@@ -55,6 +56,7 @@ configure_file(
 )
 
 add_subdirectory(${EXP_SOURCE_DIR})
+add_subdirectory(${LIBEXP_SOURCE_DIR})
 
 include(CTest)
 add_subdirectory(${EXP_TEST_DIR})
