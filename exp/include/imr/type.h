@@ -22,7 +22,7 @@
 typedef enum TypeKind {
   TYPEKIND_NIL,
   TYPEKIND_BOOLEAN,
-  TYPEKIND_INTEGER,
+  TYPEKIND_I64,
   TYPEKIND_FUNCTION,
 } TypeKind;
 

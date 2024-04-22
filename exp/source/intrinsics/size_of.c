@@ -29,7 +29,7 @@ u64 size_of(Type *restrict type) {
     return 1;
   case TYPEKIND_BOOLEAN:
     return 1;
-  case TYPEKIND_INTEGER:
+  case TYPEKIND_I64:
     return 8;
 
   default:

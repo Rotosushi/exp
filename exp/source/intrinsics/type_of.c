@@ -30,7 +30,7 @@ Type *type_of(Value *restrict value, Context *restrict context) {
   case VALUEKIND_BOOLEAN:
     return context_boolean_type(context);
 
-  case VALUEKIND_INTEGER:
+  case VALUEKIND_I64:
     return context_integer_type(context);
 
   default:

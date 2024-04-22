@@ -9,6 +9,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
+  ${EXP_SOURCE_DIR}/env/control_flow_graph.c
   ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/module.c
   ${EXP_SOURCE_DIR}/env/stack.c

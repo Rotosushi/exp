@@ -107,7 +107,7 @@ void directive_text(FILE *file);
  * @param type
  * @param file
  */
-void directive_balign(Type *type, FILE *file);
+void directive_balign(u64 bytes, FILE *file);
 
 /**
  * @brief emits the .size <name>, <expression> directive
@@ -139,9 +139,7 @@ typedef enum STT_Type {
   STT_COMMON,
 } STT_Type;
 
-void directive_type_explicit(StringView name, STT_Type kind, FILE *file);
-
-void directive_type(StringView name, Type *type, FILE *file);
+void directive_type(StringView name, STT_Type kind, FILE *file);
 
 void directive_quad(i64 value, FILE *file);
 

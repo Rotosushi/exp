@@ -41,7 +41,7 @@ u64 align_of(Type *restrict type) {
     return 0;
   case TYPEKIND_BOOLEAN:
     return 0;
-  case TYPEKIND_INTEGER:
+  case TYPEKIND_I64:
     return 8;
 
   default:

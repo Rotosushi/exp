@@ -23,6 +23,7 @@
 
 #include "env/string_interner.h"
 #include "utility/array_growth.h"
+#include "utility/minmax.h"
 #include "utility/string_hash.h"
 
 #define STRING_INTERNER_MAX_LOAD 0.75
@@ -60,7 +61,8 @@ static String *string_interner_find(String *restrict strings, u64 capacity,
   while (1) {
     String *element = &(strings[index]);
     if ((element->buffer == NULL) ||
-        (strncmp(buffer, element->buffer, length) == 0)) {
+        (strncmp(buffer, element->buffer, ulmin(length, element->length)) ==
+         0)) {
       return element;
     }
 

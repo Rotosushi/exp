@@ -26,7 +26,7 @@ typedef enum ValueKind {
 
   VALUEKIND_NIL,
   VALUEKIND_BOOLEAN,
-  VALUEKIND_INTEGER,
+  VALUEKIND_I64,
 } ValueKind;
 
 /**

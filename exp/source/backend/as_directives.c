@@ -18,7 +18,6 @@
  */
 
 #include "backend/as_directives.h"
-#include "intrinsics/align_of.h"
 #include "utility/panic.h"
 
 void directive_file(StringView path, FILE *file) {
@@ -65,8 +64,7 @@ void directive_bss(FILE *file) { file_write("  .bss\n", file); }
 
 void directive_text(FILE *file) { file_write("  .text\n", file); }
 
-void directive_balign(Type *type, FILE *file) {
-  u64 align = align_of(type);
+void directive_balign(u64 align, FILE *file) {
   file_write("  .balign ", file);
   print_uintmax(align, RADIX_DECIMAL, file);
   file_write("\n", file);
@@ -93,59 +91,31 @@ void directive_size_label_relative(StringView name, FILE *file) {
   file_write("\n", file);
 }
 
-void directive_type_explicit(StringView name, STT_Type kind, FILE *file) {
+void directive_type(StringView name, STT_Type kind, FILE *file) {
   file_write("  .type ", file);
   file_write(name.ptr, file);
   file_write(", ", file);
 
   switch (kind) {
   case STT_OBJECT:
-    file_write("@object", file);
+    file_write("@object\n", file);
     break;
 
   case STT_FUNC:
-    file_write("@function", file);
+    file_write("@function\n", file);
     break;
 
   case STT_TLS:
-    file_write("@tls_object", file);
+    file_write("@tls_object\n", file);
     break;
 
   case STT_COMMON:
-    file_write("@common", file);
+    file_write("@common\n", file);
     break;
 
   default:
     PANIC("bad STT_Type");
     break;
-  }
-
-  file_write("\n", file);
-}
-
-void directive_type(StringView name, Type *type, FILE *file) {
-  switch (type->kind) {
-  // essentially everything is an @object unless it's an @function.
-  // with the edgecases of thread-locals @tls_object,
-  // common symbols @common (linker merges these symbols across translation
-  // units), indirect-functions @gnu_indirect_function.
-  // (the actual function to be called can be resolved at runtime;
-  // it's complex. https://maskray.me/blog/2021-01-18-gnu-indirect-function
-  // and mainly used so programmers can override malloc/free in the
-  // c stdlib. or so I've read.), and notype which does not mark the
-  // symbol with any type.
-  case TYPEKIND_NIL:
-  case TYPEKIND_BOOLEAN:
-  case TYPEKIND_INTEGER:
-    directive_type_explicit(name, STT_OBJECT, file);
-    break;
-
-  case TYPEKIND_FUNCTION:
-    directive_type_explicit(name, STT_FUNC, file);
-    break;
-
-  default:
-    PANIC("bad TYPEKIND");
   }
 }
 

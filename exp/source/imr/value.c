@@ -43,7 +43,7 @@ Value value_create_boolean(bool b) {
 
 Value value_create_integer(i64 i) {
   Value value;
-  value.kind    = VALUEKIND_INTEGER;
+  value.kind    = VALUEKIND_I64;
   value.integer = i;
   return value;
 }
@@ -80,8 +80,8 @@ bool value_equality(Value *v1, Value *v2) {
 
     return v1->boolean == v2->boolean;
 
-  case VALUEKIND_INTEGER:
-    if (v2->kind != VALUEKIND_INTEGER) {
+  case VALUEKIND_I64:
+    if (v2->kind != VALUEKIND_I64) {
       return 0;
     }
 

@@ -125,7 +125,7 @@ Type type_create_boolean() {
 
 Type type_create_integer() {
   Type type;
-  type.kind               = TYPEKIND_INTEGER;
+  type.kind               = TYPEKIND_I64;
   type.integer_type.empty = 0;
   return type;
 }
@@ -174,7 +174,7 @@ static void type_to_string_impl(String *str, Type const *t) {
     string_append(str, "bool");
     break;
 
-  case TYPEKIND_INTEGER:
+  case TYPEKIND_I64:
     string_append(str, "i64");
     break;
 

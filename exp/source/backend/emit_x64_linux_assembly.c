@@ -138,47 +138,6 @@ as the CALL instruction.
 // }
 
 /**
- * @brief emit the function which performs the exit
- * x64 linux syscall. the C function signature:
- * [[noreturn]] void exit(i32 status);
- *
- * @note the parameter is passed in rdi
- *
- * @param file
- */
-// static void emit_x86_linux_sysexit(FILE *file) {
-//   StringView sysexit = string_view_from_cstring("sysexit");
-//   directive_globl(sysexit, file);
-//   directive_type_explicit(sysexit, STT_FUNC, file);
-//   directive_label(sysexit, file);
-//   file_write("  mov $60, %rax\n", file);
-//   file_write("  syscall\n", file);
-//   directive_size_label_relative(sysexit, file);
-//   file_write("\n", file);
-// }
-
-/**
- * @brief emit the _start function which the linker will set
- * as the program startup location.
- *
- * @param main the name of the user programs main subroutine which
- * _start will call.
- * @param file the file to write into
- */
-// static void emit_x86_linux_start(StringView main, FILE *file) {
-//   StringView start = string_view_from_cstring("_start");
-//   directive_globl(start, file);
-//   directive_type_explicit(start, STT_FUNC, file);
-//   directive_label(start, file);
-//   instruction_call(main, file);
-//   file_write("  mov %rax, %rdi\n", file);
-//   StringView sysexit = string_view_from_cstring("sysexit");
-//   instruction_call(sysexit, file);
-//   directive_size_label_relative(start, file);
-//   file_write("\n", file);
-// }
-
-/**
  * @brief emit the header of the assembly file representing the
  * given context.
  *
@@ -192,9 +151,6 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
   StringView path = context_source_path(context);
   directive_file(path, file);
   directive_arch(cpu_type, file);
-  file_write("\n", file);
-  // emit_x86_linux_sysexit(file);
-  // emit_x86_linux_start(string_view_from_cstring("main"), file);
   file_write("\n", file);
 }
 
@@ -250,7 +206,7 @@ compiler to prevent writes to constants.
   case TYPEKIND_NIL:
     directive_globl(name, file);
     directive_bss(file);
-    directive_type(name, type, file);
+    directive_type(name, STT_OBJECT, file);
     directive_size(name, size_of(type), file);
 
     directive_label(name, file);
@@ -264,7 +220,7 @@ compiler to prevent writes to constants.
     } else {
       directive_bss(file);
     }
-    directive_type(name, type, file);
+    directive_type(name, STT_OBJECT, file);
     directive_size(name, size_of(type), file);
 
     directive_label(name, file);
@@ -275,19 +231,19 @@ compiler to prevent writes to constants.
     }
     break;
 
-  case TYPEKIND_INTEGER:
+  case TYPEKIND_I64:
     directive_globl(name, file);
-    if (value->kind == VALUEKIND_INTEGER) {
+    if (value->kind == VALUEKIND_I64) {
       directive_data(file);
     } else {
       directive_bss(file);
     }
-    directive_balign(type, file);
-    directive_type(name, type, file);
+    directive_balign(align_of(type), file);
+    directive_type(name, STT_OBJECT, file);
     directive_size(name, size_of(type), file);
 
     directive_label(name, file);
-    if (value->kind == VALUEKIND_INTEGER) {
+    if (value->kind == VALUEKIND_I64) {
       directive_quad(value->integer, file);
     } else {
       directive_zero(size_of(type), file);
