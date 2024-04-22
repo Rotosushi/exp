@@ -16,12 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "utility/string_hash.h"
+#include <string.h>
+
+#include "utility/hash.h"
+
+u64 hash_u64(u64 value) {
+#define BUFSZ sizeof(u64) + 1
+  char buffer[BUFSZ];
+  memcpy(buffer, &value, BUFSZ - 1);
+  return hash_cstring(buffer, BUFSZ);
+#undef BUFSZ
+}
 
 // non-crypto hash algorithm based on djb2
 // https://stackoverflow.com/questions/7666509/hash-function-for-string
 // specifically this answer https://stackoverflow.com/a/69812981
-u64 string_hash(char const *restrict string, u64 length) {
+u64 hash_cstring(char const *restrict string, u64 length) {
   // generated randomly using: https://asecuritysite.com/encryption/nprimes?y=64
   // no testing has been done to check if this prime is "good"
 #define LARGE_PRIME 11931085111904720063ul

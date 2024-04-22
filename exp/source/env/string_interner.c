@@ -22,9 +22,10 @@
 #include <string.h>
 
 #include "env/string_interner.h"
+#include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/hash.h"
 #include "utility/minmax.h"
-#include "utility/string_hash.h"
 
 #define STRING_INTERNER_MAX_LOAD 0.75
 
@@ -57,7 +58,7 @@ void string_interner_destroy(StringInterner *restrict si) {
 
 static String *string_interner_find(String *restrict strings, u64 capacity,
                                     char const *restrict buffer, u64 length) {
-  u64 index = string_hash(buffer, length) % capacity;
+  u64 index = hash_cstring(buffer, length) % capacity;
   while (1) {
     String *element = &(strings[index]);
     if ((element->buffer == NULL) ||
@@ -72,7 +73,7 @@ static String *string_interner_find(String *restrict strings, u64 capacity,
 
 static void string_interner_grow(StringInterner *restrict si) {
   Growth g         = array_growth(si->capacity, sizeof(String));
-  String *elements = calloc(g.new_capacity, sizeof(String));
+  String *elements = callocate(g.new_capacity, sizeof(String));
 
   // if the buffer isn't empty, we need to reinsert
   // all existing elements into the new buffer.

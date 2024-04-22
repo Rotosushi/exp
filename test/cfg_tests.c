@@ -20,14 +20,14 @@
 
 #include "env/control_flow_graph.h"
 
-// static bool list_contains(VertexList *restrict vl, u64 vertex) {
-//   for (u64 i = 0; i < vl->count; ++i) {
-//     if (vl->list[i] == vertex) {
-//       return 1;
-//     }
-//   }
-//   return 0;
-// }
+static bool list_contains(NameList *restrict nl, StringView name) {
+  for (u64 i = 0; i < nl->size; ++i) {
+    if (string_view_equality(nl->list[i], name)) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 int cfg_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   bool failure         = 0;
@@ -41,6 +41,7 @@ int cfg_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   control_flow_graph_add_function(&cfg, f1);
   control_flow_graph_add_function(&cfg, f2);
   control_flow_graph_add_function(&cfg, f3);
+
   /*
   f0 -> f1
   f0 -> f2
@@ -53,8 +54,45 @@ int cfg_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   control_flow_graph_add_call(&cfg, f1, f3);
   control_flow_graph_add_call(&cfg, f2, f3);
 
-  VertexList f0_fanout = control_flow_graph_function_fanout(&cfg, f0);
-  failure |= (f0_fanout.count != 2);
+  NameList f0_fanout = control_flow_graph_function_fanout(&cfg, f0);
+  failure |= (f0_fanout.size != 2);
+  failure |= (!list_contains(&f0_fanout, f1));
+  failure |= (!list_contains(&f0_fanout, f2));
+  name_list_destroy(&f0_fanout);
+
+  NameList f0_fanin = control_flow_graph_function_fanin(&cfg, f0);
+  failure |= (f0_fanin.size != 0);
+  name_list_destroy(&f0_fanin);
+
+  NameList f1_fanout = control_flow_graph_function_fanout(&cfg, f1);
+  failure |= (f1_fanout.size != 1);
+  failure |= (!list_contains(&f1_fanout, f3));
+  name_list_destroy(&f1_fanout);
+
+  NameList f1_fanin = control_flow_graph_function_fanin(&cfg, f1);
+  failure |= (f1_fanin.size != 1);
+  failure |= (!list_contains(&f1_fanin, f0));
+  name_list_destroy(&f1_fanin);
+
+  NameList f2_fanout = control_flow_graph_function_fanout(&cfg, f2);
+  failure |= (f2_fanout.size != 1);
+  failure |= (!list_contains(&f2_fanout, f3));
+  name_list_destroy(&f2_fanout);
+
+  NameList f2_fanin = control_flow_graph_function_fanin(&cfg, f2);
+  failure |= (f2_fanin.size != 1);
+  failure |= (!list_contains(&f2_fanin, f0));
+  name_list_destroy(&f2_fanin);
+
+  NameList f3_fanout = control_flow_graph_function_fanout(&cfg, f3);
+  failure |= (f3_fanout.size != 0);
+  name_list_destroy(&f3_fanout);
+
+  NameList f3_fanin = control_flow_graph_function_fanin(&cfg, f3);
+  failure |= (f3_fanin.size != 2);
+  failure |= (!list_contains(&f3_fanin, f1));
+  failure |= (!list_contains(&f3_fanin, f2));
+  name_list_destroy(&f3_fanin);
 
   control_flow_graph_destroy(&cfg);
   if (failure) {

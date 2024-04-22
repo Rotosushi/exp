@@ -33,6 +33,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/array_growth.c
   ${EXP_SOURCE_DIR}/utility/cli_options.c
   ${EXP_SOURCE_DIR}/utility/graph.c
+  ${EXP_SOURCE_DIR}/utility/hash.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
   ${EXP_SOURCE_DIR}/utility/minmax.c
@@ -41,7 +42,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/panic.c
   ${EXP_SOURCE_DIR}/utility/path.c
   ${EXP_SOURCE_DIR}/utility/process.c
-  ${EXP_SOURCE_DIR}/utility/string_hash.c
   ${EXP_SOURCE_DIR}/utility/string_view.c
   ${EXP_SOURCE_DIR}/utility/string.c
 )

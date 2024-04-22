@@ -29,6 +29,15 @@
 void *allocate(u64 size);
 
 /**
+ * @brief wraps a call to calloc, PANIC on failure
+ *
+ * @param num
+ * @param size
+ * @return void*
+ */
+void *callocate(u64 num, u64 size);
+
+/**
  * @brief wraps a call to realloc, PANIC on failure
  *
  * @param ptr

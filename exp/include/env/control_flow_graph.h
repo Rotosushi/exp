@@ -20,20 +20,31 @@
 #include "utility/graph.h"
 #include "utility/string_view.h"
 
-typedef struct NamePair {
+typedef struct CFGPair {
   StringView name;
-  u64 tag;
-} NamePair;
+  u64 vertex;
+} CFGPair;
 
-typedef struct NameMap {
+typedef struct CFGNameMap {
   u64 size;
   u64 capacity;
-  NamePair *map;
-} NameMap;
+  CFGPair *map;
+} CFGNameMap;
+
+typedef struct CFGVertexMap {
+  u64 size;
+  u64 capacity;
+  CFGPair *map;
+} CFGVertexMap;
+
+typedef struct CFGBimap {
+  CFGNameMap names;
+  CFGVertexMap vertices;
+} CFGBimap;
 
 typedef struct ControlFlowGraph {
   Graph graph;
-  NameMap names;
+  CFGBimap bimap;
 } ControlFlowGraph;
 
 ControlFlowGraph control_flow_graph_create();
@@ -44,9 +55,17 @@ void control_flow_graph_add_function(ControlFlowGraph *restrict cfg,
 void control_flow_graph_add_call(ControlFlowGraph *restrict cfg,
                                  StringView source, StringView target);
 
-VertexList control_flow_graph_function_fanout(ControlFlowGraph *restrict cfg,
-                                              StringView name);
-VertexList control_flow_graph_function_fanin(ControlFlowGraph *restrict cfg,
-                                             StringView name);
+typedef struct NameList {
+  u64 size;
+  u64 capacity;
+  StringView *list;
+} NameList;
+
+void name_list_destroy(NameList *restrict names);
+
+NameList control_flow_graph_function_fanout(ControlFlowGraph *restrict cfg,
+                                            StringView name);
+NameList control_flow_graph_function_fanin(ControlFlowGraph *restrict cfg,
+                                           StringView name);
 
 #endif // !EXP_ENV_CONTROL_FLOW_GRAPH_H

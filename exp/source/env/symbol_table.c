@@ -19,8 +19,9 @@
 #include <stdlib.h>
 
 #include "env/symbol_table.h"
+#include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/string_hash.h"
+#include "utility/hash.h"
 
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
@@ -47,7 +48,7 @@ void symbol_table_destroy(SymbolTable *restrict st) {
 static SymbolTableElement *
 symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
                   StringView name) {
-  u64 index                     = string_hash(name.ptr, name.length) % capacity;
+  u64 index = hash_cstring(name.ptr, name.length) % capacity;
   SymbolTableElement *tombstone = NULL;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
@@ -73,7 +74,7 @@ symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
 static void symbol_table_grow(SymbolTable *restrict st) {
   Growth g = array_growth(st->capacity, sizeof(SymbolTableElement));
   SymbolTableElement *elements =
-      calloc(g.new_capacity, sizeof(SymbolTableElement));
+      callocate(g.new_capacity, sizeof(SymbolTableElement));
 
   if (st->elements != NULL) {
     st->count = 0;
