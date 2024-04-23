@@ -68,121 +68,149 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
   bytecode->length += 1;
 }
 
-void bytecode_emit_move(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                        u32 B, OperandFormat Bf) {
+#define FORMAT_B(I, OP, B)                                                     \
+  INST_SET_OP(I, OP);                                                          \
+  INST_SET_FORMAT(I, FORMAT_B);                                                \
+  INST_SET_B_FORMAT(I, B.format);                                              \
+  INST_SET_B(I, B.common)
+
+#define FORMAT_AB(I, OP, A, B)                                                 \
+  INST_SET_OP(I, OP);                                                          \
+  INST_SET_FORMAT(I, FORMAT_AB);                                               \
+  INST_SET_A(I, A.common);                                                     \
+  INST_SET_B_FORMAT(I, B.format);                                              \
+  INST_SET_B(I, B.common)
+
+#define FORMAT_ABC(I, OP, A, B, C)                                             \
+  INST_SET_OP(I, OP);                                                          \
+  INST_SET_FORMAT(I, FORMAT_ABC);                                              \
+  INST_SET_A(I, A.common);                                                     \
+  INST_SET_B_FORMAT(I, B.format);                                              \
+  INST_SET_B(I, B.common);                                                     \
+  INST_SET_C_FORMAT(I, C.format);                                              \
+  INST_SET_C(I, C.common)
+
+//  AB  -- L[A] = B
+//  AB  -- L[A] = C[B]
+//  AB  -- L[A] = L[B]
+void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_MOVE);
-  INST_SET_FORMAT(I, If);
-  INST_SET_B_FORMAT(I, Bf);
+  FORMAT_AB(I, OPC_MOVE, A, B);
 
-  INST_SET_A(I, A);
-  switch (If) {
-  case FORMAT_AB:
-    if (B > u16_MAX) {
-      PANIC("operand too large");
-    }
-    INST_SET_B(I, (u16)B);
-    break;
+  bytecode_emit_instruction(bc, I);
+}
+// AB  -- L[A] = -(B)
+// AB  -- L[A] = -(C[B])
+// AB  -- L[A] = -(L[B])
+void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
+  assert(bc != NULL);
 
-  case FORMAT_ABx:
-    INST_SET_Bx(I, B);
-    break;
-
-  default:
-    PANIC("bad InstructionFormat");
-  }
+  Instruction I = 0;
+  FORMAT_AB(I, OPC_NEG, A, B);
 
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_neg(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u32 B, OperandFormat Bf) {
+// ABC -- L[A] = L[B] + L[C]
+// ABC -- L[A] = L[B] + C[C]
+// ABC -- L[A] = L[B] + C
+// ABC -- L[A] = C[B] + L[C]
+// ABC -- L[A] = C[B] + C[C]
+// ABC -- L[A] = C[B] + C
+// ABC -- L[A] = B    + L[C]
+// ABC -- L[A] = B    + C[C]
+// ABC -- L[A] = B    + C
+void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_NEG);
-  INST_SET_FORMAT(I, If);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_A(I, A);
-
-  switch (If) {
-  case FORMAT_AB:
-    if (B > u16_MAX) {
-      PANIC("operand too large");
-    }
-    INST_SET_B(I, (u16)B);
-    break;
-
-  case FORMAT_ABx:
-    INST_SET_Bx(I, B);
-    break;
-
-  default:
-    PANIC("bad InstructionFormat");
-  }
+  FORMAT_ABC(I, OPC_ADD, A, B, C);
 
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
-                       u16 C, OperandFormat Cf) {
+// ABC -- L[A] = L[B] - L[C]
+// ABC -- L[A] = L[B] - C[C]
+// ABC -- L[A] = L[B] - C
+// ABC -- L[A] = C[B] - L[C]
+// ABC -- L[A] = C[B] - C[C]
+// ABC -- L[A] = C[B] - C
+// ABC -- L[A] = B    - L[C]
+// ABC -- L[A] = B    - C[C]
+// ABC -- L[A] = B    - C
+void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_ADD);
-  INST_SET_FORMAT(I, FORMAT_ABC);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_C_FORMAT(I, Cf);
-  INST_SET_A(I, A);
-  INST_SET_B(I, B);
-  INST_SET_C(I, C);
+  FORMAT_ABC(I, OPC_SUB, A, B, C);
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
-                       u16 C, OperandFormat Cf) {
+// ABC -- L[A] = L[B] * L[C]
+// ABC -- L[A] = L[B] * C[C]
+// ABC -- L[A] = L[B] * C
+// ABC -- L[A] = C[B] * L[C]
+// ABC -- L[A] = C[B] * C[C]
+// ABC -- L[A] = C[B] * C
+// ABC -- L[A] = B    * L[C]
+// ABC -- L[A] = B    * C[C]
+// ABC -- L[A] = B    * C
+void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_SUB);
-  INST_SET_FORMAT(I, FORMAT_ABC);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_C_FORMAT(I, Cf);
-  INST_SET_A(I, A);
-  INST_SET_B(I, B);
-  INST_SET_C(I, C);
+  FORMAT_ABC(I, OPC_MUL, A, B, C);
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
-                       u16 C, OperandFormat Cf) {
+// ABC -- L[A] = L[B] / L[C]
+// ABC -- L[A] = L[B] / C[C]
+// ABC -- L[A] = L[B] / C
+// ABC -- L[A] = C[B] / L[C]
+// ABC -- L[A] = C[B] / C[C]
+// ABC -- L[A] = C[B] / C
+// ABC -- L[A] = B    / L[C]
+// ABC -- L[A] = B    / C[C]
+// ABC -- L[A] = B    / C
+void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_MUL);
-  INST_SET_FORMAT(I, FORMAT_ABC);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_C_FORMAT(I, Cf);
-  INST_SET_A(I, A);
-  INST_SET_B(I, B);
-  INST_SET_C(I, C);
+  FORMAT_ABC(I, OPC_DIV, A, B, C);
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
-                       u16 C, OperandFormat Cf) {
+// ABC -- L[A] = L[B] % L[C]
+// ABC -- L[A] = L[B] % C[C]
+// ABC -- L[A] = L[B] % C
+// ABC -- L[A] = C[B] % L[C]
+// ABC -- L[A] = C[B] % C[C]
+// ABC -- L[A] = C[B] % C
+// ABC -- L[A] = B    % L[C]
+// ABC -- L[A] = B    % C[C]
+// ABC -- L[A] = B    % C
+void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_DIV);
-  INST_SET_FORMAT(I, FORMAT_ABC);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_C_FORMAT(I, Cf);
-  INST_SET_A(I, A);
-  INST_SET_B(I, B);
-  INST_SET_C(I, C);
+  FORMAT_ABC(I, OPC_MOD, A, B, C);
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
-                       u16 C, OperandFormat Cf) {
+// B -- L[R] = B,    <return>
+// B -- L[R] = C[B], <return>
+// B -- L[R] = L[B], <return>
+void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
+  assert(bc != NULL);
+
   Instruction I = 0;
-  INST_SET_OP(I, OPC_MOD);
-  INST_SET_FORMAT(I, FORMAT_ABC);
-  INST_SET_B_FORMAT(I, Bf);
-  INST_SET_C_FORMAT(I, Cf);
-  INST_SET_A(I, A);
-  INST_SET_B(I, B);
-  INST_SET_C(I, C);
+  FORMAT_B(I, OPC_RETURN, B);
+
   bytecode_emit_instruction(bc, I);
 }

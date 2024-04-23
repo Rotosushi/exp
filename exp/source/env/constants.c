@@ -22,6 +22,7 @@
 #include "env/constants.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/panic.h"
 
 Constants constants_create() {
   Constants constants;
@@ -49,24 +50,40 @@ static void constants_grow(Constants *restrict constants) {
   constants->capacity = g.new_capacity;
 }
 
-// #TODO: this is the "greedy" approach, and it would be more
-// space efficient if we only performed an insert when the
-// new constant was unique. This trades time for space.
-u64 constants_append(Constants *restrict constants, Value value) {
-  assert(constants != NULL);
-
-  if (constants_full(constants)) {
-    constants_grow(constants);
-  }
-
-  u64 index                            = constants->length;
-  constants->buffer[constants->length] = value;
-  constants->length += 1;
-  return index;
+[[maybe_unused]] static bool index_inbounds(Constants *restrict c, u16 i) {
+  return i < c->length;
 }
 
-Value *constants_at(Constants *restrict constants, u64 index) {
-  assert(constants != NULL);
-  assert((index >= constants->length) && "index out of bounds");
-  return constants->buffer + index;
+Operand constants_add(Constants *restrict c, Value value) {
+  assert(c != NULL);
+
+  for (u64 i = 0; i < c->length; ++i) {
+    Value *v = c->buffer + i;
+    if (value_equality(v, &value)) {
+      if (i > u16_MAX) {
+        PANIC("constant index out of bounds");
+      }
+      return constant((u16)i);
+    }
+  }
+
+  if (constants_full(c)) {
+    constants_grow(c);
+  }
+
+  u64 index            = c->length;
+  c->buffer[c->length] = value;
+  c->length += 1;
+
+  if (index > u16_MAX) {
+    PANIC("constant index out of bounds");
+  }
+
+  return constant((u16)index);
+}
+
+Value *constants_at(Constants *restrict c, u16 i) {
+  assert(c != NULL);
+  assert(index_inbounds(c, i));
+  return c->buffer + i;
 }

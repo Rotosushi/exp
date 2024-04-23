@@ -18,6 +18,7 @@
 #define EXP_IMR_CONSTANTS_H
 #include <stddef.h>
 
+#include "imr/operand.h"
 #include "imr/value.h"
 
 typedef struct Constants {
@@ -47,7 +48,7 @@ void constants_destroy(Constants *restrict constants);
  * @param value
  * @return Value*
  */
-u64 constants_append(Constants *restrict constants, Value value);
+Operand constants_add(Constants *restrict constants, Value value);
 
 /**
  * @brief return the constant at the given index in the buffer
@@ -56,6 +57,6 @@ u64 constants_append(Constants *restrict constants, Value value);
  * @param index
  * @return Value*
  */
-Value *constants_at(Constants *restrict constants, u64 index);
+Value *constants_at(Constants *restrict constants, u16 index);
 
 #endif // !EXP_IMR_CONSTANTS_H

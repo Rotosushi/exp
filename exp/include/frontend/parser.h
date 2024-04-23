@@ -22,7 +22,11 @@
 
 /*
 #TODO:
-  "fn" identifier formal-args "->" type body
+  "const" identifier "=" expression ";"
+*/
+
+/*
+  definition = "fn" identifier formal-args "->" type body
 
   formal-args = "(" formal-arg-list? ")"
 
@@ -30,18 +34,17 @@
 
   formal-arg = identifier ":" type
 
-  body = "{" expression* "}"
-*/
+  body = "{" statement* "}"
 
-/*
-  definition = "const" identifier = expression ";"
+  statement = "return" expression ";"
+            | expression ";"
 
   expression = basic (binop precedece-parser)*
 
   basic = literal
         | unop basic
         | "(" expression ")"
-        //| identifier
+        //#TODO | identifier
 
   literal = integer
           | "true"

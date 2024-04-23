@@ -18,11 +18,38 @@
 #define EXP_UTILITY_ARRAY_GROWTH_H
 #include "utility/int_types.h"
 
+/**
+ * @brief The growth factor of array_growth
+ *
+ * @note With a growth factor of 2, there is
+ * amortized constant time append to arrays.
+ *
+ */
+#define ARRAY_GROWTH_FACTOR 2ul
+
+/**
+ * @brief The minimum capacity of any array grown
+ * with array_growth
+ *
+ */
+#define ARRAY_MIN_CAPACITY 8ul
+
+/**
+ * @brief the new capacity of the array, and it's allocation size
+ *
+ */
 typedef struct Growth {
   u64 new_capacity;
   u64 alloc_size;
 } Growth;
 
+/**
+ * @brief grow current_capacity by ARRAY_GROWTH_FACTOR
+ *
+ * @param current_capacity
+ * @param element_size
+ * @return Growth
+ */
 Growth array_growth(u64 current_capacity, u64 element_size);
 
 #endif // !EXP_UTILITY_ARRAY_GROWTH_H

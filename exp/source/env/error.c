@@ -48,19 +48,24 @@ char const *error_code_cstring(ErrorCode code) {
     return "Expected: [:]. Found: ";
   case ERROR_PARSER_EXPECTED_EQUAL:
     return "Expected: [=]. Found: ";
+
   case ERROR_PARSER_EXPECTED_KEYWORD_CONST:
     return "Expected: [const]. Found: ";
+  case ERROR_PARSER_EXPECTED_KEYWORD_FN:
+    return "Expected: [Fn]. Found: ";
 
   case ERROR_PARSER_EXPECTED_EXPRESSION:
     return "Expected an Expression. Found: ";
+  case ERROR_PARSER_EXPECTED_STATEMENT:
+    return "Expected a Statement. Found: ";
   case ERROR_PARSER_EXPECTED_IDENTIFIER:
     return "Expected an Identifier. Found: ";
 
   case ERROR_PARSER_UNEXPECTED_TOKEN:
     return "Unexpected Token: ";
 
-  case ERROR_INTERPRET_EXPECTED_TYPE_INT:
-    return "Expected Type [Int]. Have: ";
+  case ERROR_INTERPRET_EXPECTED_TYPE_I64:
+    return "Expected Type [i64]. Have: ";
 
   default:
     PANIC("bad ErrorCode");

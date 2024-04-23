@@ -17,13 +17,15 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
+#include "env/call_stack.h"
 #include "env/constants.h"
 #include "env/context_options.h"
-#include "env/stack.h"
+#include "env/locals.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "imr/bytecode.h"
+#include "imr/function_body.h"
+#include "imr/operand.h"
 
 /**
  * @brief A context models a Translation Unit.
@@ -34,8 +36,9 @@ typedef struct Context {
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbols;
+  CallStack call_stack;
+  Locals locals;
   Constants constants;
-  Stack stack;
 } Context;
 
 /**
@@ -77,20 +80,33 @@ Type *context_function_type(Context *restrict context, Type *return_type,
 SymbolTableElement *context_global_symbols_at(Context *restrict context,
                                               StringView name);
 
+// function functions
+CallFrame context_push_function(Context *restrict c, StringView name);
+
+void context_pop_function(Context *restrict c);
+
+CallFrame context_active_frame(Context *restrict c);
+
+// Locals functions
+Operand context_new_local(Context *restrict c);
+
+Value *context_local_at(Context *restrict c, Operand operand);
+
 // Constants functions
-u64 context_constants_append(Context *restrict context, Value value);
+Operand context_constants_add(Context *restrict context, Value value);
 
-Value *context_constants_at(Context *restrict context, u64 index);
+Value *context_constants_at(Context *restrict context, u16 index);
 
-// Stack functions
-bool context_stack_empty(Context *restrict context);
+// emit instruction functions
+Operand context_emit_move(Context *restrict c, Operand B);
 
-void context_stack_push(Context *restrict context, Value value);
+Operand context_emit_neg(Context *restrict c, Operand B);
 
-Value context_stack_pop(Context *restrict context);
+Operand context_emit_add(Context *restrict c, Operand B, Operand C);
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C);
+Operand context_emit_div(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C);
 
-Value *context_stack_peek(Context *restrict context);
-
-// Bytecode functions
-
+void context_emit_return(Context *restrict c, Operand B);
 #endif // !EXP_ENV_CONTEXT_H

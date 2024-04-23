@@ -16,19 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "utility/array_growth.h"
-#include "utility/minmax.h"
-#include "utility/panic.h"
 
-Growth array_growth(u64 current_capacity, u64 element_size) {
-  Growth g;
-  if (__builtin_mul_overflow(ulmax(current_capacity, ARRAY_MIN_CAPACITY),
-                             ARRAY_GROWTH_FACTOR, &g.new_capacity)) {
-    PANIC("cannot allocate more than SIZE_MAX elements");
-  }
+#include "imr/operand.h"
 
-  if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-  return g;
+Operand local(u16 common) {
+  Operand o = {.format = FORMAT_LOCAL, .common = common};
+  return o;
+}
+
+Operand constant(u16 common) {
+  Operand o = {.format = FORMAT_CONSTANT, .common = common};
+  return o;
+}
+
+Operand immediate(u16 common) {
+  Operand o = {.format = FORMAT_IMMEDIATE, .common = common};
+  return o;
 }

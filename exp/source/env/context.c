@@ -25,13 +25,14 @@
 #include "utility/panic.h"
 
 Context context_create(ContextOptions *restrict options) {
-  Context context;
-  context.options         = *options;
-  context.string_interner = string_interner_create();
-  context.type_interner   = type_interner_create();
-  context.global_symbols  = symbol_table_create();
-  context.constants       = constants_create();
-  context.stack           = stack_create();
+  assert(options != NULL);
+  Context context = {.options         = *options,
+                     .string_interner = string_interner_create(),
+                     .type_interner   = type_interner_create(),
+                     .global_symbols  = symbol_table_create(),
+                     .call_stack      = call_stack_create(),
+                     .locals          = locals_create(),
+                     .constants       = constants_create()};
   return context;
 }
 
@@ -41,8 +42,9 @@ void context_destroy(Context *restrict context) {
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbols));
+  call_stack_destroy(&context->call_stack);
+  locals_destroy(&(context->locals));
   constants_destroy(&(context->constants));
-  stack_destroy(&(context->stack));
 }
 
 StringView context_source_path(Context *restrict context) {
@@ -108,32 +110,110 @@ SymbolTableElement *context_global_symbols_at(Context *restrict context,
   return symbol_table_at(&context->global_symbols, name);
 }
 
-u64 context_constants_append(Context *restrict context, Value value) {
-  assert(context != NULL);
-  return constants_append(&(context->constants), value);
+CallFrame context_push_function(Context *restrict c, StringView name) {
+  assert(c != NULL);
+  // get the new function
+  SymbolTableElement *element = symbol_table_at(&c->global_symbols, name);
+  // push the function onto the call stack
+  CallFrame cf = call_stack_push(&c->call_stack, &element->function_body,
+                                 locals_push_frame(&c->locals));
+  // insert the return slot at frame[0]
+  locals_new_local(&c->locals, cf.frame);
+  return cf;
 }
 
-Value *context_constants_at(Context *restrict context, u64 index) {
+void context_pop_function(Context *restrict c) {
+  assert(c != NULL);
+  CallFrame cf = call_stack_pop(&c->call_stack);
+  locals_pop_frame(&c->locals, cf.frame);
+}
+
+CallFrame context_active_frame(Context *restrict c) {
+  return call_stack_top(&c->call_stack);
+}
+
+static Bytecode *context_active_bytecode(Context *restrict c) {
+  CallFrame cf = context_active_frame(c);
+  return &cf.function->bc;
+}
+
+Operand context_new_local(Context *restrict c) {
+  assert(c != NULL);
+  CallFrame cf   = context_active_frame(c);
+  Operand result = {.format = FORMAT_LOCAL,
+                    .common = locals_new_local(&c->locals, cf.frame)};
+  return result;
+}
+
+Value *context_local_at(Context *restrict c, Operand operand) {
+  assert(c != NULL);
+  assert(operand.format == FORMAT_LOCAL);
+  CallFrame cf = context_active_frame(c);
+  return locals_at(&c->locals, cf.frame, operand.common);
+}
+
+Operand context_constants_add(Context *restrict context, Value value) {
+  assert(context != NULL);
+  return constants_add(&(context->constants), value);
+}
+
+Value *context_constants_at(Context *restrict context, u16 index) {
   assert(context != NULL);
   return constants_at(&(context->constants), index);
 }
 
-bool context_stack_empty(Context *restrict context) {
-  assert(context != NULL);
-  return stack_empty(&(context->stack));
+Operand context_emit_move(Context *restrict c, Operand B) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_move(bc, A, B);
+  return A;
 }
 
-void context_stack_push(Context *restrict context, Value value) {
-  assert(context != NULL);
-  stack_push(&context->stack, value);
+Operand context_emit_neg(Context *restrict c, Operand B) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_neg(bc, A, B);
+  return A;
 }
 
-Value context_stack_pop(Context *restrict context) {
-  assert(context != NULL);
-  return stack_pop(&context->stack);
+Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_add(bc, A, B, C);
+  return A;
 }
 
-Value *context_stack_peek(Context *restrict context) {
-  assert(context != NULL);
-  return stack_peek(&context->stack);
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_sub(bc, A, B, C);
+  return A;
+}
+
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_mul(bc, A, B, C);
+  return A;
+}
+
+Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_div(bc, A, B, C);
+  return A;
+}
+
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_local(c);
+  bytecode_emit_mod(bc, A, B, C);
+  return A;
 }

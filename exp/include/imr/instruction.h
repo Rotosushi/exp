@@ -38,10 +38,14 @@ typedef u64 Instruction;
  * all instructions are defined to have one of the
  * following formats:
  *
- * ABC -> [opcode(u8)][format(u8)][A(u16)][B(u16)][C(u16)]
+ *
+ * B   -> [opcode(u8)][format(u8)][reserved(u16)][B(u16)][reserved(u16)]
  * AB  -> [opcode(u8)][format(u8)][A(u16)][B(u16)][reserved(u16)]
+ * ABC -> [opcode(u8)][format(u8)][A(u16)][B(u16)][C(u16)]
+ *
+ * // #TODO: add extended instruction formats
  * ABx -> [opcode(u8)][format(u8)][A(u16)][Bx(u32)]
- * Ax  -> [opcode(u8)][format(u8)][Ax(u32)][reserved(u16)]
+ * Bx  -> [opcode(u8)][format(u8)][reserved(u16)][Bx(u32)]
  *
  *
  * opcode selects which operation the instruction represents.
@@ -73,26 +77,20 @@ typedef u64 Instruction;
  */
 typedef enum Opcode {
   /*
-   *
-   *  ip    -> the instruction pointer
-   * Ax|B|C -> an immediate
-   * L[*]   -> indexing the locals array
-   * C[*]   -> indexing the constants array
+   * <...> -> side effect
+   * ip    -> the instruction pointer
+   * R     -> the return value index
+   * A|B|C -> an operand
+   * L[*]  -> indexing the locals array
+   * C[*]  -> indexing the constants array
    */
-
   OPC_MOVE, // AB  -- L[A] = B
             // AB  -- L[A] = C[B]
             // AB  -- L[A] = L[B]
-            // ABx -- L[A] = Bx
-            // ABx -- L[A] = C[Bx]
-            // ABx -- L[A] = L[Bx]
 
   OPC_NEG, // AB  -- L[A] = -(B)
            // AB  -- L[A] = -(C[B])
            // AB  -- L[A] = -(L[B])
-           // ABx -- L[A] = -(Bx)
-           // ABx -- L[A] = -(C[Bx])
-           // ABx -- L[A] = -(L[Bx])
 
   OPC_ADD, // ABC -- L[A] = L[B] + L[C]
            // ABC -- L[A] = L[B] + C[C]
@@ -143,13 +141,16 @@ typedef enum Opcode {
            // ABC -- L[A] = B    % L[C]
            // ABC -- L[A] = B    % C[C]
            // ABC -- L[A] = B    % C
+
+  OPC_RETURN, // B -- L[R] = B,    <return>
+              // B -- L[R] = C[B], <return>
+              // B -- L[R] = L[B], <return>
 } Opcode;
 
 typedef enum InstructionFormat {
-  FORMAT_ABC = 0x0,
+  FORMAT_B   = 0x0,
   FORMAT_AB  = 0x1,
-  FORMAT_ABx = 0x2,
-  FORMAT_Ax  = 0x3,
+  FORMAT_ABC = 0x2,
 } InstructionFormat;
 
 typedef enum OperandFormat {
@@ -158,12 +159,14 @@ typedef enum OperandFormat {
   FORMAT_IMMEDIATE = 0x2,
 } OperandFormat;
 
-#define INST_OP(I) ((u8)((I) & u8_MAX))
+#define INST_OP(I) ((Opcode)((u8)((I) & u8_MAX)))
 
 #define INST_FORMAT_BYTE(I) ((u8)(((I) >> 8) & u8_MAX))
-#define INST_FORMAT(I)      (INST_FORMAT_BYTE(I) & (u8)0x3)
-#define INST_B_FORMAT(I)    ((INST_FORMAT_BYTE(I) >> 2) & (u8)0x3)
-#define INST_C_FORMAT(I)    ((INST_FORMAT_BYTE(I) >> 4) & (u8)0x3)
+#define INST_FORMAT(I)      ((InstructionFormat)(INST_FORMAT_BYTE(I) & (u8)0x3))
+#define INST_B_FORMAT(I)                                                       \
+  ((InstructionFormat)((INST_FORMAT_BYTE(I) >> 2) & (u8)0x3))
+#define INST_C_FORMAT(I)                                                       \
+  ((InstructionFormat)((INST_FORMAT_BYTE(I) >> 4) & (u8)0x3))
 
 #define INST_A(I)  ((u16)(((I) >> 16) & u16_MAX))
 #define INST_B(I)  ((u16)(((I) >> 32) & u16_MAX))

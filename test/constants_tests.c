@@ -22,8 +22,8 @@
 #include "env/constants.h"
 
 bool test_constants(Constants *restrict constants, Value value) {
-  u64 index       = constants_append(constants, value);
-  Value *constant = constants_at(constants, index);
+  Operand index   = constants_add(constants, value);
+  Value *constant = constants_at(constants, index.common);
 
   if (value_equality(constant, &value)) {
     return 0;

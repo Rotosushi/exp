@@ -23,6 +23,7 @@
 
 #include "env/error.h"
 #include "frontend/parser.h"
+#include "imr/operand.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -34,7 +35,7 @@ typedef struct Parser {
 typedef struct ParserResult {
   bool has_error;
   union {
-    u16 result;
+    Operand result;
     Error error;
   };
 } ParserResult;
@@ -52,11 +53,16 @@ static ParserResult error(Parser *restrict p, ErrorCode code) {
   return result;
 }
 
-static ParserResult success(u16 result) {
+static ParserResult success(Operand result) {
   ParserResult pr;
   pr.has_error = 0;
   pr.result    = result;
   return pr;
+}
+
+static Operand zero() {
+  Operand o = {.format = FORMAT_IMMEDIATE, .common = 0};
+  return o;
 }
 
 typedef enum Precedence {
@@ -75,7 +81,7 @@ typedef enum Precedence {
 
 typedef ParserResult (*PrefixFunction)(Parser *restrict p, Context *restrict c);
 typedef ParserResult (*InfixFunction)(Parser *restrict p, Context *restrict c,
-                                      u16 left);
+                                      Operand left);
 
 typedef struct ParseRule {
   PrefixFunction prefix;
@@ -172,7 +178,8 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
   }
 
-  return maybe;
+  context_emit_return(c, maybe.result);
+  return success(zero());
 }
 
 static ParserResult parse_scalar_type(Parser *restrict p, Context *restrict c,
@@ -195,7 +202,7 @@ static ParserResult parse_scalar_type(Parser *restrict p, Context *restrict c,
   }
 
   nexttok(p); // eat <scalar-type>
-  return success(0);
+  return success(zero());
 }
 
 static ParserResult parse_type(Parser *restrict p, Context *restrict c,
@@ -227,16 +234,16 @@ static ParserResult parse_formal_argument(Parser *restrict p,
 
   arg->name = name;
   arg->type = type;
-  return success(0);
+  return success(zero());
 }
 
 static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                Context *restrict c,
                                                FormalArgumentList *args) {
   // #note: the nil literal is spelled "()", which is
-  // identical to an empty argument list
+  // lexically identical to an empty argument list
   if (expect(p, TOK_NIL)) {
-    return success(0);
+    return success(zero());
   }
 
   if (!expect(p, TOK_BEGIN_PAREN)) {
@@ -256,7 +263,27 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
     } while (!expect(p, TOK_END_PAREN));
   }
 
-  return success(0);
+  return success(zero());
+}
+
+static ParserResult statement(Parser *restrict p, Context *restrict c) {
+  switch (p->curtok) {
+  case TOK_RETURN:
+    return return_(p, c);
+
+  default: {
+    ParserResult result = expression(p, c);
+    if (result.has_error) {
+      return result;
+    }
+
+    if (!expect(p, TOK_SEMICOLON)) {
+      return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
+    }
+
+    return result;
+  }
+  }
 }
 
 static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
@@ -265,13 +292,13 @@ static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
   }
 
   while (!expect(p, TOK_END_BRACE)) {
-    ParserResult maybe = expression(p, c);
+    ParserResult maybe = statement(p, c);
     if (maybe.has_error) {
       return maybe;
     }
   }
 
-  return success(0);
+  return success(zero());
 }
 
 static ParserResult function(Parser *restrict p, Context *restrict c) {
@@ -284,18 +311,16 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
 
-  SymbolTableElement *element = context_global_symbols_at(c, name);
-  FunctionBody *fb            = &element->function_body;
+  CallFrame cf             = context_push_function(c, name);
+  FunctionBody *body       = cf.function;
+  FormalArgumentList *args = &body->arguments;
 
   {
-    ParserResult maybe = parse_formal_argument_list(p, c, &fb->arguments);
+    ParserResult maybe = parse_formal_argument_list(p, c, args);
     if (maybe.has_error) {
       return maybe;
     }
   }
-
-  // #note we need to set up the context to emit bytecode into
-  // the current FunctionBody's bytecode.
 
   {
     ParserResult maybe = parse_block(p, c);
@@ -304,7 +329,9 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
     }
   }
 
-  return success(0);
+  context_pop_function(c);
+
+  return success(zero());
 }
 
 static ParserResult definition(Parser *restrict p, Context *restrict c) {
@@ -313,23 +340,23 @@ static ParserResult definition(Parser *restrict p, Context *restrict c) {
     return function(p, c);
 
   default:
-    return error(p, ERROR_PARSER_EXPECTED_KEYWORD_CONST);
+    return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
   }
 }
 
 static ParserResult parens(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat '('
 
-  ParserResult maybe = expression(p, c);
-  if (maybe.has_error) {
-    return maybe;
+  ParserResult result = expression(p, c);
+  if (result.has_error) {
+    return result;
   }
 
   if (!expect(p, TOK_END_PAREN)) {
     return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
   }
 
-  return success(maybe.result);
+  return result;
 }
 
 static ParserResult unop(Parser *restrict p, Context *restrict c) {
@@ -343,14 +370,15 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
 
   switch (op) {
   case TOK_MINUS:
-    return success();
+    return success(context_emit_neg(c, maybe.result));
 
   default:
     unreachable();
   }
 }
 
-static ParserResult binop(Parser *restrict p, Context *restrict c, u16 left) {
+static ParserResult binop(Parser *restrict p, Context *restrict c,
+                          Operand left) {
   Token op        = p->curtok;
   ParseRule *rule = get_rule(op);
   nexttok(p); // eat the operator
@@ -360,22 +388,23 @@ static ParserResult binop(Parser *restrict p, Context *restrict c, u16 left) {
   if (maybe.has_error) {
     return maybe;
   }
+  Operand right = maybe.result;
 
   switch (op) {
   case TOK_PLUS:
-    return success();
+    return success(context_emit_add(c, left, right));
 
   case TOK_MINUS:
-    return success();
+    return success(context_emit_sub(c, left, right));
 
   case TOK_STAR:
-    return success();
+    return success(context_emit_mul(c, left, right));
 
   case TOK_SLASH:
-    return success();
+    return success(context_emit_div(c, left, right));
 
   case TOK_PERCENT:
-    return success();
+    return success(context_emit_mod(c, left, right));
 
   default:
     unreachable();
@@ -385,19 +414,22 @@ static ParserResult binop(Parser *restrict p, Context *restrict c, u16 left) {
 static ParserResult nil(Parser *restrict p,
                         [[maybe_unused]] Context *restrict c) {
   nexttok(p);
-  return success();
+  Operand idx = context_constants_add(c, value_create_nil());
+  return success(context_emit_move(c, idx));
 }
 
 static ParserResult boolean_true(Parser *restrict p,
                                  [[maybe_unused]] Context *restrict c) {
   nexttok(p);
-  return success();
+  Operand idx = context_constants_add(c, value_create_boolean(1));
+  return success(context_emit_move(c, idx));
 }
 
 static ParserResult boolean_false(Parser *restrict p,
                                   [[maybe_unused]] Context *restrict c) {
   nexttok(p);
-  return success();
+  Operand idx = context_constants_add(c, value_create_boolean(0));
+  return success(context_emit_move(c, idx));
 }
 
 static ParserResult integer(Parser *restrict p,
@@ -409,7 +441,14 @@ static ParserResult integer(Parser *restrict p,
   }
 
   nexttok(p);
-  return success();
+  Operand B;
+  if (integer <= u16_MAX) {
+    B = immediate((u16)integer);
+  } else {
+    B = context_constants_add(c, value_create_integer(integer));
+  }
+
+  return success(context_emit_move(c, B));
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {
@@ -484,7 +523,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_FN]     = {         NULL,  NULL,   PREC_NONE},
       [TOK_VAR]    = {         NULL,  NULL,   PREC_NONE},
       [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
-      [TOK_RETURN] = {      return_,  NULL,   PREC_NONE},
+      [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
       [TOK_NIL]            = {          nil,  NULL,   PREC_NONE},
       [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
