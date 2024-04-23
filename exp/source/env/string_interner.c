@@ -62,8 +62,8 @@ static String *string_interner_find(String *restrict strings, u64 capacity,
   while (1) {
     String *element = &(strings[index]);
     if ((element->buffer == NULL) ||
-        (strncmp(buffer, element->buffer, ulmin(length, element->length)) ==
-         0)) {
+        ((length == element->length) &&
+         strncmp(buffer, element->buffer, length) == 0)) {
       return element;
     }
 

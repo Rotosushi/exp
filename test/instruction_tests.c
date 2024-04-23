@@ -25,11 +25,11 @@
 bool test_ABC() {
   u8 op = (u8)(rand() & u8_MAX);
   u8 If = (u8)(rand() & 0x3);
+  u8 Bf = (u8)(rand() & 0x3);
+  u8 Cf = (u8)(rand() & 0x3);
   u16 A = (u16)(rand() & u16_MAX);
   u16 B = (u16)(rand() & u16_MAX);
-  u8 Bf = (u8)(rand() & 0x3);
   u16 C = (u16)(rand() & u16_MAX);
-  u8 Cf = (u8)(rand() & 0x3);
 
   Instruction I = 0;
 
@@ -62,21 +62,33 @@ bool test_ABC() {
 
 bool test_AB() {
   u8 op = (u8)(rand() % u8_MAX);
+  u8 If = (u8)(rand() & 0x3);
+  u8 Bf = (u8)(rand() & 0x3);
+  u8 Cf = (u8)(rand() & 0x3);
   u16 A = (u16)(rand() % u16_MAX);
   u16 B = (u16)(rand() % u16_MAX);
 
   Instruction I = 0;
 
   INST_SET_OP(I, op);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
 
   u8 op_ = INST_OP(I);
+  u8 If_ = INST_FORMAT(I);
+  u8 Bf_ = INST_B_FORMAT(I);
+  u8 Cf_ = INST_C_FORMAT(I);
   u16 A_ = INST_A(I);
   u16 B_ = INST_B(I);
 
   bool failed = 0;
   failed |= op != op_;
+  failed |= If != If_;
+  failed |= Bf != Bf_;
+  failed |= Cf != Cf_;
   failed |= A != A_;
   failed |= B != B_;
   return failed;
@@ -84,21 +96,33 @@ bool test_AB() {
 
 bool test_ABx() {
   u8 op  = (u8)(rand() % u8_MAX);
+  u8 If  = (u8)(rand() & 0x3);
+  u8 Bf  = (u8)(rand() & 0x3);
+  u8 Cf  = (u8)(rand() & 0x3);
   u16 A  = (u16)(rand() % u16_MAX);
   u32 Bx = (u32)rand();
 
   Instruction I = 0;
 
   INST_SET_OP(I, op);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_Bx(I, Bx);
 
   u8 op_  = INST_OP(I);
+  u8 If_  = INST_FORMAT(I);
+  u8 Bf_  = INST_B_FORMAT(I);
+  u8 Cf_  = INST_C_FORMAT(I);
   u16 A_  = INST_A(I);
   u32 Bx_ = INST_Bx(I);
 
   bool failed = 0;
   failed |= op != op_;
+  failed |= If != If_;
+  failed |= Bf != Bf_;
+  failed |= Cf != Cf_;
   failed |= A != A_;
   failed |= Bx != Bx_;
   return failed;
@@ -106,18 +130,30 @@ bool test_ABx() {
 
 bool test_Ax() {
   u8 op  = (u8)(rand() % u8_MAX);
+  u8 If  = (u8)(rand() & 0x3);
+  u8 Bf  = (u8)(rand() & 0x3);
+  u8 Cf  = (u8)(rand() & 0x3);
   u32 Ax = (u32)rand();
 
   Instruction I = 0;
 
   INST_SET_OP(I, op);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_Ax(I, Ax);
 
   u8 op_  = INST_OP(I);
+  u8 If_  = INST_FORMAT(I);
+  u8 Bf_  = INST_B_FORMAT(I);
+  u8 Cf_  = INST_C_FORMAT(I);
   u32 Ax_ = INST_Ax(I);
 
   bool failed = 0;
   failed |= op != op_;
+  failed |= If != If_;
+  failed |= Bf != Bf_;
+  failed |= Cf != Cf_;
   failed |= Ax != Ax_;
   return failed;
 }

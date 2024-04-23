@@ -122,11 +122,11 @@ void bytecode_emit_neg(Bytecode *restrict bc, InstructionFormat If, u16 A,
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_add(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
+void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
+                       u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_ADD);
-  INST_SET_FORMAT(I, If);
+  INST_SET_FORMAT(I, FORMAT_ABC);
   INST_SET_B_FORMAT(I, Bf);
   INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
@@ -135,11 +135,11 @@ void bytecode_emit_add(Bytecode *restrict bc, InstructionFormat If, u16 A,
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_sub(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
+void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
+                       u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_SUB);
-  INST_SET_FORMAT(I, If);
+  INST_SET_FORMAT(I, FORMAT_ABC);
   INST_SET_B_FORMAT(I, Bf);
   INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
@@ -148,11 +148,11 @@ void bytecode_emit_sub(Bytecode *restrict bc, InstructionFormat If, u16 A,
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mul(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
+void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
+                       u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_MUL);
-  INST_SET_FORMAT(I, If);
+  INST_SET_FORMAT(I, FORMAT_ABC);
   INST_SET_B_FORMAT(I, Bf);
   INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
@@ -161,11 +161,11 @@ void bytecode_emit_mul(Bytecode *restrict bc, InstructionFormat If, u16 A,
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_div(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
+void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
+                       u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_DIV);
-  INST_SET_FORMAT(I, If);
+  INST_SET_FORMAT(I, FORMAT_ABC);
   INST_SET_B_FORMAT(I, Bf);
   INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
@@ -174,11 +174,11 @@ void bytecode_emit_div(Bytecode *restrict bc, InstructionFormat If, u16 A,
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mod(Bytecode *restrict bc, InstructionFormat If, u16 A,
-                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
+void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, OperandFormat Bf,
+                       u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_MOD);
-  INST_SET_FORMAT(I, If);
+  INST_SET_FORMAT(I, FORMAT_ABC);
   INST_SET_B_FORMAT(I, Bf);
   INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);

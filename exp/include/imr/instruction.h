@@ -25,7 +25,7 @@
 typedef u64 Instruction;
 
 /*
- * These codes need to allow instructions to represent
+ * opcodes need to allow instructions to represent
  * expressions, which are composed of:
  *  - loads
  *  - stores

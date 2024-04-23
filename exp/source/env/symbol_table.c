@@ -51,12 +51,8 @@ symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
   u64 index = hash_cstring(name.ptr, name.length) % capacity;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
-    if ((element->name.ptr == NULL)) {
-      element->name = name;
-      return element;
-    }
-
-    if (string_view_equality(name, element->name)) {
+    if ((element->name.ptr == NULL) ||
+        string_view_equality(name, element->name)) {
       return element;
     }
 
@@ -103,7 +99,14 @@ SymbolTableElement *symbol_table_at(SymbolTable *restrict st, StringView name) {
     symbol_table_grow(st);
   }
 
-  return symbol_table_find(st->elements, st->capacity, name);
+  SymbolTableElement *element =
+      symbol_table_find(st->elements, st->capacity, name);
+  if (element->name.ptr == NULL) {
+    element->name = name;
+    st->count += 1;
+  }
+
+  return element;
 }
 
 SymbolTableIterator
