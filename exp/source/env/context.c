@@ -217,3 +217,9 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   bytecode_emit_mod(bc, A, B, C);
   return A;
 }
+
+void context_emit_return(Context *restrict c, Operand B) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  bytecode_emit_return(bc, B);
+}

@@ -41,7 +41,7 @@ bool call_stack_empty(CallStack *restrict cs) {
 }
 
 static bool call_stack_full(CallStack *restrict cs) {
-  return (cs->top + 1) == (cs->stack + cs->capacity);
+  return cs->top == (cs->stack + cs->capacity);
 }
 
 static void call_stack_grow(CallStack *restrict cs) {

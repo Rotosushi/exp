@@ -46,8 +46,7 @@ bool stack_empty(Stack const *restrict stack) {
 }
 
 static bool stack_full(Stack *restrict stack) {
-  assert(stack != NULL);
-  return (stack->top + 1) == (stack->buffer + stack->capacity);
+  return stack->top == (stack->buffer + stack->capacity);
 }
 
 static void stack_grow(Stack *restrict stack) {

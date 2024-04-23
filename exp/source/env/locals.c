@@ -99,7 +99,7 @@ static u64 frame_size(Locals *restrict l, Frame frame) {
  * @return false
  */
 [[maybe_unused]] static bool frame_inbounds(Locals *restrict l, Frame frame) {
-  return (frame >= l->locals) && (frame < (l->locals + l->size));
+  return (frame >= l->locals) && (frame < (l->locals + l->capacity));
 }
 
 /**

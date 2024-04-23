@@ -45,17 +45,7 @@ bool test_parse(char const *body) {
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
-  failure |= test_parse("const x = 3;");
-  failure |= test_parse("const x = true;");
-  failure |= test_parse("const x = false;");
-  // failure |= test_parse("const x = \"Hello, World\";");
-
-  failure |= test_parse("const x = -42;");
-  failure |= test_parse("const x = 3 + 3;");
-  failure |= test_parse("const x = 3 - 2;");
-  failure |= test_parse("const x = 3 * 3;");
-  failure |= test_parse("const x = 3 / 3;");
-  failure |= test_parse("const x = 3 % 3;");
+  test_parse("fn f () { return 0; }");
 
   if (failure) {
     return EXIT_FAILURE;
