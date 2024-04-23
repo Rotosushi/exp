@@ -20,7 +20,6 @@
 
 #include "backend/as_directives.h"
 #include "backend/emit_x64_linux_assembly.h"
-#include "imr/opcode.h"
 #include "intrinsics/align_of.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"

@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "imr/bytecode.h"
-#include "imr/opcode.h"
 #include "utility/alloc.h"
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
@@ -69,61 +68,119 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
   bytecode->length += 1;
 }
 
-void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 imm) {
+void bytecode_emit_move(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                        u32 B, OperandFormat Bf) {
   Instruction I = 0;
-  INST_SET_OP(I, OPC_LOADI);
+  INST_SET_OP(I, OPC_MOVE);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+
   INST_SET_A(I, A);
-  INST_SET_Bx(I, imm);
+  switch (If) {
+  case FORMAT_AB:
+    if (B > u16_MAX) {
+      PANIC("operand too large");
+    }
+    INST_SET_B(I, (u16)B);
+    break;
+
+  case FORMAT_ABx:
+    INST_SET_Bx(I, B);
+    break;
+
+  default:
+    PANIC("bad InstructionFormat");
+  }
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_neg(Bytecode *restrict bc, u16 A, u16 B) {
+void bytecode_emit_neg(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u32 B, OperandFormat Bf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_NEG);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
   INST_SET_A(I, A);
-  INST_SET_B(I, B);
+
+  switch (If) {
+  case FORMAT_AB:
+    if (B > u16_MAX) {
+      PANIC("operand too large");
+    }
+    INST_SET_B(I, (u16)B);
+    break;
+
+  case FORMAT_ABx:
+    INST_SET_Bx(I, B);
+    break;
+
+  default:
+    PANIC("bad InstructionFormat");
+  }
+
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
+void bytecode_emit_add(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_ADD);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
+void bytecode_emit_sub(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_SUB);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
+void bytecode_emit_mul(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_MUL);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
+void bytecode_emit_div(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_DIV);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
   bytecode_emit_instruction(bc, I);
 }
 
-void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, u16 C) {
+void bytecode_emit_mod(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf) {
   Instruction I = 0;
   INST_SET_OP(I, OPC_MOD);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);

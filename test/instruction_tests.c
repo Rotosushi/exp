@@ -20,28 +20,40 @@
 #include <time.h>
 
 #include "imr/instruction.h"
-#include "imr/opcode.h"
+#include "utility/debug.h"
 
 bool test_ABC() {
-  u8 op = (u8)(rand() % u8_MAX);
-  u16 A = (u16)(rand() % u16_MAX);
-  u16 B = (u16)(rand() % u16_MAX);
-  u16 C = (u16)(rand() % u16_MAX);
+  u8 op = (u8)(rand() & u8_MAX);
+  u8 If = (u8)(rand() & 0x3);
+  u16 A = (u16)(rand() & u16_MAX);
+  u16 B = (u16)(rand() & u16_MAX);
+  u8 Bf = (u8)(rand() & 0x3);
+  u16 C = (u16)(rand() & u16_MAX);
+  u8 Cf = (u8)(rand() & 0x3);
 
   Instruction I = 0;
 
   INST_SET_OP(I, op);
+  INST_SET_FORMAT(I, If);
+  INST_SET_B_FORMAT(I, Bf);
+  INST_SET_C_FORMAT(I, Cf);
   INST_SET_A(I, A);
   INST_SET_B(I, B);
   INST_SET_C(I, C);
 
   u8 op_ = INST_OP(I);
+  u8 If_ = INST_FORMAT(I);
+  u8 Bf_ = INST_B_FORMAT(I);
+  u8 Cf_ = INST_C_FORMAT(I);
   u16 A_ = INST_A(I);
   u16 B_ = INST_B(I);
   u16 C_ = INST_C(I);
 
   bool failed = 0;
   failed |= op != op_;
+  failed |= If != If_;
+  failed |= Bf != Bf_;
+  failed |= Cf != Cf_;
   failed |= A != A_;
   failed |= B != B_;
   failed |= C != C_;

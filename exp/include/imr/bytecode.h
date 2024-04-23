@@ -31,17 +31,24 @@ Bytecode bytecode_create();
 
 void bytecode_destroy(Bytecode *restrict bc);
 
-void bytecode_emit_load_immediate(Bytecode *restrict bc, u16 A, u32 I);
+void bytecode_emit_move(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                        u32 B, OperandFormat B_fmt);
 
-void bytecode_emit_neg(Bytecode *restrict bc, u16 A, u16 B);
+void bytecode_emit_neg(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u32 B, OperandFormat Bf);
 
-void bytecode_emit_add(Bytecode *restrict bc, u16 A, u16 B, u16 C);
+void bytecode_emit_add(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf);
 
-void bytecode_emit_sub(Bytecode *restrict bc, u16 A, u16 B, u16 C);
+void bytecode_emit_sub(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf);
 
-void bytecode_emit_mul(Bytecode *restrict bc, u16 A, u16 B, u16 C);
+void bytecode_emit_mul(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf);
 
-void bytecode_emit_div(Bytecode *restrict bc, u16 A, u16 B, u16 C);
+void bytecode_emit_div(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf);
 
-void bytecode_emit_mod(Bytecode *restrict bc, u16 A, u16 B, u16 C);
+void bytecode_emit_mod(Bytecode *restrict bc, InstructionFormat If, u16 A,
+                       u16 B, OperandFormat Bf, u16 C, OperandFormat Cf);
 #endif // !EXP_IMR_BYTECODE_H

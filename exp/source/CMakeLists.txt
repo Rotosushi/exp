@@ -17,7 +17,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/type_interner.c
 
   ${EXP_SOURCE_DIR}/frontend/lexer.c
-  ${EXP_SOURCE_DIR}/frontend/parser.c
+  #${EXP_SOURCE_DIR}/frontend/parser.c
 
   #${EXP_SOURCE_DIR}/imr/ast.c
   ${EXP_SOURCE_DIR}/imr/bytecode.c
