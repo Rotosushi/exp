@@ -22,17 +22,16 @@
 #include "env/symbol_table.h"
 
 bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
-  bool failure        = 0;
-  Value integer_value = value_create_integer(rand());
-  StringView n0       = string_view_from_cstring(name);
+  bool failure = 0;
 
-  failure |= !symbol_table_insert(symbol_table, n0, &integer_value);
+  StringView sv               = string_view_from_cstring(name);
+  SymbolTableElement *element = symbol_table_at(symbol_table, sv);
 
-  SymbolTableElement *element = symbol_table_lookup(symbol_table, n0);
+  if (element == NULL)
+    return 1;
 
-  failure |= (element == NULL);
-  failure |= !(string_view_equality(n0, element->name));
-  failure |= !(value_equality(element->value, &integer_value));
+  failure |= !string_view_equality(element->name, sv);
+
   return failure;
 }
 

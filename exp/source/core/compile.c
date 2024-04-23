@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "backend/emit_x64_linux_assembly.h"
+// #include "backend/emit_x64_linux_assembly.h"
 #include "core/compile.h"
 #include "frontend/parser.h"
 
@@ -28,6 +28,5 @@ i32 compile(Context *restrict context) {
     return EXIT_FAILURE;
   }
 
-  emit_x64_linux_assembly(context);
   return EXIT_SUCCESS;
 }

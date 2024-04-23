@@ -17,8 +17,6 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
-#include "imr/function.h"
-#include "imr/type.h"
 #include "utility/string_view.h"
 
 typedef enum ValueKind {

@@ -32,7 +32,7 @@
  *
  */
 typedef enum Opcode {
-  OPC_LOADI, // A Bx -- L[A] = Bx
+  OPC_LOADI, // A Bx  -- L[A] = Bx
   OPC_NEG,   // A B   -- L[A] = -L[B]
   OPC_ADD,   // A B C -- L[A] = L[B] + L[C]
   OPC_SUB,   // A B C -- L[A] = L[B] - L[C]

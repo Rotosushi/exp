@@ -4,14 +4,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/as_directives.c
   ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
 
-  ${EXP_SOURCE_DIR}/core/compile.c
+  #${EXP_SOURCE_DIR}/core/compile.c
 
   ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/control_flow_graph.c
   ${EXP_SOURCE_DIR}/env/error.c
-  ${EXP_SOURCE_DIR}/env/module.c
   ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
@@ -20,8 +19,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
-  ${EXP_SOURCE_DIR}/imr/ast.c
+  #${EXP_SOURCE_DIR}/imr/ast.c
   ${EXP_SOURCE_DIR}/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/imr/function_body.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 

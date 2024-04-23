@@ -49,25 +49,18 @@ static SymbolTableElement *
 symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
                   StringView name) {
   u64 index = hash_cstring(name.ptr, name.length) % capacity;
-  SymbolTableElement *tombstone = NULL;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
-    // if the name is empty the element can be either
-    // an empty element or a tombstone.
-    if (element->name.ptr == NULL) {
-      // NULL value -> tombstone
-      if (element->value == NULL) {
-        return tombstone != NULL ? tombstone : element;
-      } else { // otherwise -> tombstone element
-        if (tombstone == NULL) {
-          tombstone = element;
-        }
-      }
-    } else if (string_view_equality(name, element->name)) {
+    if ((element->name.ptr == NULL)) {
+      element->name = name;
       return element;
-    } else {
-      index = (index + 1) % capacity;
     }
+
+    if (string_view_equality(name, element->name)) {
+      return element;
+    }
+
+    index = (index + 1) % capacity;
   }
 }
 
@@ -77,7 +70,6 @@ static void symbol_table_grow(SymbolTable *restrict st) {
       callocate(g.new_capacity, sizeof(SymbolTableElement));
 
   if (st->elements != NULL) {
-    st->count = 0;
     for (u64 i = 0; i < st->capacity; ++i) {
       SymbolTableElement *element = &(st->elements[i]);
       if (element->name.ptr == NULL) {
@@ -86,9 +78,8 @@ static void symbol_table_grow(SymbolTable *restrict st) {
 
       SymbolTableElement *dest =
           symbol_table_find(elements, g.new_capacity, element->name);
-      dest->name  = element->name;
-      dest->value = element->value;
-      st->count += 1;
+      dest->name          = element->name;
+      dest->function_body = element->function_body;
     }
 
     // we can avoid freeing each element because we
@@ -105,63 +96,14 @@ static bool symbol_table_full(SymbolTable *restrict st) {
   return (st->count + 1) >= load_limit;
 }
 
-bool symbol_table_insert(SymbolTable *restrict st, StringView name,
-                         Value *value) {
+SymbolTableElement *symbol_table_at(SymbolTable *restrict st, StringView name) {
   assert(st != NULL);
+
   if (symbol_table_full(st)) {
     symbol_table_grow(st);
   }
 
-  SymbolTableElement *element =
-      symbol_table_find(st->elements, st->capacity, name);
-
-  // if the element already exists,
-  // we return false. we don't want
-  // to reassign a global so as to
-  // not define conflicting global
-  // symbols in the object file.
-  if (element->name.ptr != NULL) {
-    return 0;
-  }
-
-  // if we are replacing an empty element, we increment
-  // the count (+1 element). otherwise we are replacing a tombstone
-  // so we don't increment the count (-1 tombstone +1 element == +0).
-  if (element->value == NULL) {
-    st->count += 1;
-  }
-
-  element->name  = name;
-  element->value = value;
-  return 1;
-}
-
-SymbolTableElement *symbol_table_lookup(SymbolTable *restrict symbol_table,
-                                        StringView name) {
-  SymbolTableElement *element =
-      symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
-
-  if (element->name.ptr == NULL) {
-    return NULL;
-  } else {
-    return element;
-  }
-}
-
-bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name) {
-  if (symbol_table->count == 0) {
-    return 0;
-  }
-
-  SymbolTableElement *element =
-      symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
-  if (element == NULL) {
-    return 0;
-  }
-
-  element->name  = string_view_create();
-  element->value = NULL;
-  return 1;
+  return symbol_table_find(st->elements, st->capacity, name);
 }
 
 SymbolTableIterator

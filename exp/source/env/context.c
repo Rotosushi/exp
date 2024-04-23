@@ -90,9 +90,9 @@ Type *context_boolean_type(Context *restrict context) {
   return type_interner_boolean_type(&(context->type_interner));
 }
 
-Type *context_integer_type(Context *restrict context) {
+Type *context_i64_type(Context *restrict context) {
   assert(context != NULL);
-  return type_interner_integer_type(&(context->type_interner));
+  return type_interner_i64_type(&(context->type_interner));
 }
 
 Type *context_function_type(Context *restrict context, Type *return_type,
@@ -102,27 +102,12 @@ Type *context_function_type(Context *restrict context, Type *return_type,
                                      argument_types);
 }
 
-bool context_insert_global_symbol(Context *restrict context, StringView name,
-                                  Value *value) {
+SymbolTableElement *context_global_symbols_at(Context *restrict context,
+                                              StringView name) {
   assert(context != NULL);
-  return symbol_table_insert(&(context->global_symbols), name, value);
+  return symbol_table_at(&context->global_symbols, name);
 }
 
-SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
-                                                 StringView name) {
-  assert(context != NULL);
-  return symbol_table_lookup(&(context->global_symbols), name);
-}
-
-/**
- * @brief append the given value to the constants array.
- *
- * @note takes ownership of the given value.
- *
- * @param context
- * @param value
- * @return u64
- */
 u64 context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
   return constants_append(&(context->constants), value);

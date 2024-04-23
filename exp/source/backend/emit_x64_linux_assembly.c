@@ -65,7 +65,7 @@
  * This data needs to be associated with some dynamic structure
  * which builds up it's content at runtime.
  */
-static StringView cpu_type = {sizeof("znver3") - 1, "znver3"};
+// static StringView cpu_type = {sizeof("znver3") - 1, "znver3"};
 
 // typedef enum RegisterName {
 //   REG_RAX,
@@ -147,12 +147,12 @@ as the CALL instruction.
  *
  * @param file the FILE to write to.
  */
-static void emit_x64_linux_header(Context *restrict context, FILE *file) {
-  StringView path = context_source_path(context);
-  directive_file(path, file);
-  directive_arch(cpu_type, file);
-  file_write("\n", file);
-}
+// static void emit_x64_linux_header(Context *restrict context, FILE *file) {
+//   StringView path = context_source_path(context);
+//   directive_file(path, file);
+//   directive_arch(cpu_type, file);
+//   file_write("\n", file);
+// }
 
 /**
  * @brief emit the footer for the assembly file representing the
@@ -165,12 +165,12 @@ static void emit_x64_linux_header(Context *restrict context, FILE *file) {
  * @param context
  * @param file
  */
-static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
-                                  FILE *file) {
-  StringView exp_version = string_view_from_cstring(EXP_VERSION_STRING);
-  directive_ident(exp_version, file);
-  directive_noexecstack(file);
-}
+// static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
+//                                   FILE *file) {
+//   StringView exp_version = string_view_from_cstring(EXP_VERSION_STRING);
+//   directive_ident(exp_version, file);
+//   directive_noexecstack(file);
+// }
 
 /**
  * @brief emit the assembly for the given global constant symbol
@@ -180,18 +180,18 @@ static void emit_x64_linux_footer([[maybe_unused]] Context *restrict context,
  * @param element
  * @param file
  */
-static void emit_x64_linux_global_const(Context *restrict context,
-                                        SymbolTableElement *global,
-                                        FILE *file) {
-  /*
+// static void emit_x64_linux_global_const(Context *restrict context,
+//                                         SymbolTableElement *global,
+//                                         FILE *file) {
+/*
 a global object declaration in assembly looks like:
-  .globl <name>
-  .bss | .data
-  .align <alignment>
-  .type <name>, @object
-  .size <name>, <sizeof>
+.globl <name>
+.bss | .data
+.align <alignment>
+.type <name>, @object
+.size <name>, <sizeof>
 <name>:
-  .byte <init> | .zero <sizeof> | .quad <init> | .i32 <init> | ...
+.byte <init> | .zero <sizeof> | .quad <init> | .i32 <init> | ...
 
 -- all global symbols can go into the .data section. unless they
 are uninitialized, then they are default initialized to zero, and can go into
@@ -199,83 +199,83 @@ the .bss section. This holds for constants and variables, it is up to the
 compiler to prevent writes to constants.
 
 */
-  StringView name = global->name;
-  Value *value    = global->value;
-  Type *type      = type_of(value, context);
-  switch (type->kind) {
-  case TYPEKIND_NIL:
-    directive_globl(name, file);
-    directive_bss(file);
-    directive_type(name, STT_OBJECT, file);
-    directive_size(name, size_of(type), file);
+//   StringView name = global->name;
+//   Value *value    = global->value;
+//   Type *type      = type_of(value, context);
+//   switch (type->kind) {
+//   case TYPEKIND_NIL:
+//     directive_globl(name, file);
+//     directive_bss(file);
+//     directive_type(name, STT_OBJECT, file);
+//     directive_size(name, size_of(type), file);
 
-    directive_label(name, file);
-    directive_zero(1UL, file);
-    break;
+//     directive_label(name, file);
+//     directive_zero(1UL, file);
+//     break;
 
-  case TYPEKIND_BOOLEAN:
-    directive_globl(name, file);
-    if (value->kind == VALUEKIND_BOOLEAN) {
-      directive_data(file);
-    } else {
-      directive_bss(file);
-    }
-    directive_type(name, STT_OBJECT, file);
-    directive_size(name, size_of(type), file);
+//   case TYPEKIND_BOOLEAN:
+//     directive_globl(name, file);
+//     if (value->kind == VALUEKIND_BOOLEAN) {
+//       directive_data(file);
+//     } else {
+//       directive_bss(file);
+//     }
+//     directive_type(name, STT_OBJECT, file);
+//     directive_size(name, size_of(type), file);
 
-    directive_label(name, file);
-    if (value->kind == VALUEKIND_BOOLEAN) {
-      directive_byte((unsigned char)value->boolean, file);
-    } else {
-      directive_zero(1UL, file);
-    }
-    break;
+//     directive_label(name, file);
+//     if (value->kind == VALUEKIND_BOOLEAN) {
+//       directive_byte((unsigned char)value->boolean, file);
+//     } else {
+//       directive_zero(1UL, file);
+//     }
+//     break;
 
-  case TYPEKIND_I64:
-    directive_globl(name, file);
-    if (value->kind == VALUEKIND_I64) {
-      directive_data(file);
-    } else {
-      directive_bss(file);
-    }
-    directive_balign(align_of(type), file);
-    directive_type(name, STT_OBJECT, file);
-    directive_size(name, size_of(type), file);
+//   case TYPEKIND_I64:
+//     directive_globl(name, file);
+//     if (value->kind == VALUEKIND_I64) {
+//       directive_data(file);
+//     } else {
+//       directive_bss(file);
+//     }
+//     directive_balign(align_of(type), file);
+//     directive_type(name, STT_OBJECT, file);
+//     directive_size(name, size_of(type), file);
 
-    directive_label(name, file);
-    if (value->kind == VALUEKIND_I64) {
-      directive_quad(value->integer, file);
-    } else {
-      directive_zero(size_of(type), file);
-    }
-    break;
+//     directive_label(name, file);
+//     if (value->kind == VALUEKIND_I64) {
+//       directive_quad(value->integer, file);
+//     } else {
+//       directive_zero(size_of(type), file);
+//     }
+//     break;
 
-  default:
-    PANIC("bad VALUEKIND");
-  }
+//   default:
+//     PANIC("bad VALUEKIND");
+//   }
 
-  // give an extra line between globals in the assembly file
-  file_write("\n", file);
-}
+//   // give an extra line between globals in the assembly file
+//   file_write("\n", file);
+// }
 
-void emit_x64_linux_assembly(Context *restrict context) {
-  StringView path = context_output_path(context);
-  FILE *file      = file_open(path.ptr, "w");
+// void emit_x64_linux_assembly(Context *restrict context) {
+//   StringView path = context_output_path(context);
+//   FILE *file      = file_open(path.ptr, "w");
 
-  SymbolTableIterator iter =
-      symbol_table_iterator_create(&(context->global_symbols));
+//   SymbolTableIterator iter =
+//       symbol_table_iterator_create(&(context->global_symbols));
 
-  emit_x64_linux_header(context, file);
+//   emit_x64_linux_header(context, file);
 
-  while (!symbol_table_iterator_done(&iter)) {
-    emit_x64_linux_global_const(context, iter.element, file);
+//   while (!symbol_table_iterator_done(&iter)) {
+//     emit_x64_linux_global_const(context, iter.element, file);
 
-    symbol_table_iterator_next(&iter);
-  }
+//     symbol_table_iterator_next(&iter);
+//   }
 
-  emit_x64_linux_footer(context, file);
+//   emit_x64_linux_footer(context, file);
 
-  if (fclose(file) == EOF) {
-    PANIC_ERRNO("fclose failed");
-  }
-}
+//   if (fclose(file) == EOF) {
+//     PANIC_ERRNO("fclose failed");
+//   }
+// }

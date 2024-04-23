@@ -68,17 +68,14 @@ Type *context_nil_type(Context *restrict context);
 
 Type *context_boolean_type(Context *restrict context);
 
-Type *context_integer_type(Context *restrict context);
+Type *context_i64_type(Context *restrict context);
 
 Type *context_function_type(Context *restrict context, Type *return_type,
                             ArgumentTypes argument_types);
 
 // symbol table functions
-bool context_insert_global_symbol(Context *restrict context, StringView name,
-                                  Value *value);
-
-SymbolTableElement *context_lookup_global_symbol(Context *restrict context,
-                                                 StringView name);
+SymbolTableElement *context_global_symbols_at(Context *restrict context,
+                                              StringView name);
 
 // Constants functions
 u64 context_constants_append(Context *restrict context, Value value);

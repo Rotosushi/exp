@@ -42,7 +42,7 @@ Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
 typedef struct TypeInterner {
   Type nil_type;
   Type boolean_type;
-  Type integer_type;
+  Type i64_type;
   FunctionTypes function_types;
 } TypeInterner;
 
@@ -61,7 +61,7 @@ TypeInterner type_interner_create();
 void type_interner_destroy(TypeInterner *restrict type_interner);
 
 /**
- * @brief get the NilType
+ * @brief get the nil Type
  *
  * @param type_interner
  * @return Type*
@@ -69,7 +69,7 @@ void type_interner_destroy(TypeInterner *restrict type_interner);
 Type *type_interner_nil_type(TypeInterner *restrict type_interner);
 
 /**
- * @brief get the BooleanType
+ * @brief get the bool Type
  *
  * @param type_interner
  * @return Type*
@@ -77,15 +77,15 @@ Type *type_interner_nil_type(TypeInterner *restrict type_interner);
 Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
 
 /**
- * @brief get the IntegerType
+ * @brief get the i64 Type
  *
  * @param type_interner
  * @return Type*
  */
-Type *type_interner_integer_type(TypeInterner *restrict type_interner);
+Type *type_interner_i64_type(TypeInterner *restrict type_interner);
 
 /**
- * @brief get the interned FunctionType
+ * @brief get the FunctionType
  *
  * @note takes ownership of the passed in argument_types
  *

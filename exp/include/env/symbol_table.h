@@ -17,13 +17,12 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/value.h"
+#include "imr/function_body.h"
 #include "utility/string_view.h"
 
 typedef struct SymbolTableElement {
   StringView name;
-  // Type *type;
-  Value *value;
+  FunctionBody function_body;
 } SymbolTableElement;
 
 typedef struct SymbolTable {
@@ -36,9 +35,8 @@ SymbolTable symbol_table_create();
 void symbol_table_destroy(SymbolTable *restrict symbol_table);
 
 /**
- * @brief create and insert a new entry into the symbol table.
- *
- * @note if the entry already exists, the function returns false.
+ * @brief Return the entry associated with the given key in the
+ * symbol table.
  *
  * @param symbol_table
  * @param name
@@ -47,30 +45,8 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  * @return true if the entry is new
  * @return false if the entry already exists.
  */
-bool symbol_table_insert(SymbolTable *restrict symbol_table, StringView name,
-                         Value *value);
-
-/**
- * @brief lookup an existing entry in the symbol_table.
- *
- * @note returns NULL when no entry was found
- *
- * @param symbol_table
- * @param name
- * @return SymbolTableElement*
- */
-SymbolTableElement *symbol_table_lookup(SymbolTable *restrict symbol_table,
-                                        StringView name);
-
-/**
- * @brief delete an existing entry
- *
- * @param symbol_table
- * @param name
- * @return true if the entry was removed
- * @return false if nothing was removed
- */
-bool symbol_table_delete(SymbolTable *restrict symbol_table, StringView name);
+SymbolTableElement *symbol_table_at(SymbolTable *restrict symbol_table,
+                                    StringView name);
 
 typedef struct SymbolTableIterator {
   SymbolTableElement *element;

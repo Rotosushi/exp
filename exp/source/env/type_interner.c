@@ -82,7 +82,7 @@ TypeInterner type_interner_create() {
   TypeInterner type_interner;
   type_interner.nil_type       = type_create_nil();
   type_interner.boolean_type   = type_create_boolean();
-  type_interner.integer_type   = type_create_integer();
+  type_interner.i64_type       = type_create_integer();
   type_interner.function_types = function_types_create();
   return type_interner;
 }
@@ -102,9 +102,9 @@ Type *type_interner_boolean_type(TypeInterner *restrict type_interner) {
   return &(type_interner->boolean_type);
 }
 
-Type *type_interner_integer_type(TypeInterner *restrict type_interner) {
+Type *type_interner_i64_type(TypeInterner *restrict type_interner) {
   assert(type_interner != NULL);
-  return &(type_interner->integer_type);
+  return &(type_interner->i64_type);
 }
 
 Type *type_interner_function_type(TypeInterner *restrict type_interner,

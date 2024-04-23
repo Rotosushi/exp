@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 #include "utility/alloc.h"
+#include "utility/array_growth.h"
 #include "utility/graph.h"
-#include "utility/nearest_power.h"
 #include "utility/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {
@@ -76,15 +76,9 @@ static bool graph_full(Graph *restrict graph) {
 }
 
 static void graph_grow(Graph *restrict graph) {
-  u64 new_capacity = nearest_power_of_two(graph->capacity + 1);
-
-  u64 alloc_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Edge *), &alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  graph->list     = reallocate(graph->list, alloc_size);
-  graph->capacity = new_capacity;
+  Growth g        = array_growth(graph->capacity, sizeof(Edge *));
+  graph->list     = reallocate(graph->list, g.alloc_size);
+  graph->capacity = g.new_capacity;
 }
 
 u64 graph_add_vertex(Graph *restrict graph) {
@@ -133,19 +127,9 @@ static bool vertex_list_full(VertexList *restrict vl) {
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
-  u64 new_capacity = nearest_power_of_two(vl->capacity + 1);
-
-  u64 alloc;
-  if (__builtin_mul_overflow(new_capacity, sizeof(u64), &alloc)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  u64 *list = reallocate(vl->list, alloc);
-  if (list == NULL) {
-    PANIC_ERRNO("reallocate failed");
-  }
-  vl->capacity = new_capacity;
-  vl->list     = list;
+  Growth g     = array_growth(vl->capacity, sizeof(u64));
+  vl->list     = reallocate(vl->list, g.alloc_size);
+  vl->capacity = g.new_capacity;
 }
 
 static void vertext_list_append(VertexList *restrict vl, u64 vertex) {

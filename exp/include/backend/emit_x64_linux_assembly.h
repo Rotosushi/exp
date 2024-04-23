@@ -54,6 +54,6 @@
  * @param symbol_table
  * @param path
  */
-void emit_x64_linux_assembly(Context *restrict context);
+// void emit_x64_linux_assembly(Context *restrict context);
 
 #endif // !EXP_BACKEND_EMIT_X64_LINUX_ASSEMBLY_H

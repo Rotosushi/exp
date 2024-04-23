@@ -31,7 +31,7 @@ Type *type_of(Value *restrict value, Context *restrict context) {
     return context_boolean_type(context);
 
   case VALUEKIND_I64:
-    return context_integer_type(context);
+    return context_i64_type(context);
 
   default:
     PANIC("bad VALUEKIND");

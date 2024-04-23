@@ -25,10 +25,12 @@ some basic questions:
 
 5 - how can the IR be converted into SSA form?
 
-6 - how does the register allocator use the IR to allocate variables?
+6 - how do we allocate global constants and new types when BC IR
+    is optimized towards working with local variables?
 
 7 - how does the backend work with the register allocator
     to generate target machine assembly?
+7a - how does the register allocator use the IR to allocate variables?
 
 considerations of these questions:
 
@@ -282,9 +284,69 @@ considerations of these questions:
       values be contiguous within the locals array, which may not be 
       possible or convienient. so we'll see.
 
+  6 - "how do we allocate global constants and new types when BC IR
+      is optimized towards working with local variables?"
+
+      essentially, since we are going to represent expressions which 
+      operate on local variables as stated in [5] how do we handle 
+      global constants/variables? 
+      (variables are semantically nearly identical to 
+      constants, other than constness, so for the purposes of this discussion 
+      their treatment is going to be identical.
+      additionally new types are essentially global "constants" if types are 
+      semantically similar to values, which theoretically speaking they are 
+      in my opinion)
+
+      global constants are interesting because they are a location where 
+      expressions are allowed (binops and unops). but they are not held 
+      within a function's scope. So they cannot be executed at runtime
+      under the basic rules of evaluation. that is:
+
+      OS invokes main() invokes ... returns-to main() returns-to OS
+
+      in order for a global value to have semantic meaning within this 
+      framework of evaluation, that global value (i.e. memory location) must 
+      already be allocated, and be valid throughout the execution of the 
+      program. Now, from the assembly perspective, this is accomplished by 
+      allocating some space in the programs data or bss segments, and associating 
+      there allocations with the corresponding labels, so this is understood.
+
+      it is simple, they are evaluated at compile time. they are "comptime" values.
+      However, compile time evaluation is essentially interpretation, so we must 
+      add a phase to compilation, interpretation. 
+      so, where does the bytecode which represents the global constant live?
+      when we had a stack based, variable length instruction VM we had a
+      "global function scope"/"script scope" where the bytecode itself had 
+      instructions which defined global variables. local variables were simply 
+      slots on the stack. That is defining a local variable was "lowered" to a 
+      push operation.
+
+      (I want to avoid adding opcodes as much as possible, 
+      such that we stay under 255 opcodes total, for the full 
+      feature rich language)
+
+      I want to avoid adding an instruction just to define a global name. I would rather 
+      the global names be stored such that the code simply knew what was a global and 
+      how to define it.
+
+      The idea that comes to mind is that functions store their own section of bytecode 
+      to represent their body. (and perhaps that will be expanded to a list of sections
+      of bytecode to represent control flow within the body of the function.)
+      what if a global variable or constant or new type did the same?
+      that is, when we parse the source code which defines a global, the initializer 
+      expressions is represented as a new chunk of bytecode. 
+      Defining that global becomes, interpret that bytecode down to a result, and then 
+      initialize that global to the result. However, now we need bytecode which 
+      can represent types, can represent other global variables, and can represent 
+      other global constants.
+
+      okay, for now, lets drop support for global constants/variables and new types.
+      we are only going to support function definitions in this initial pass of the 
+      compiler. Since we have to support function calls, this mechanism should 
+      illuminate a potential pathway to referencing global names in bytecode.
 
 
-(numbers are arbitrary and relative, they only exist to artifically 
+(TODO: numbers are arbitrary and relative, they only exist to artifically 
        delineate thoughts.)
 TODO: 
  -1 - we are removing most of the existing code in order to refactor it.

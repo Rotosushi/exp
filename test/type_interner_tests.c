@@ -25,8 +25,8 @@ i32 type_interner_tests([[maybe_unused]] i32 argc,
   TypeInterner ti = type_interner_create();
   bool failure    = 0;
 
-  Type *t0 = type_interner_integer_type(&ti);
-  Type *t1 = type_interner_integer_type(&ti);
+  Type *t0 = type_interner_i64_type(&ti);
+  Type *t1 = type_interner_i64_type(&ti);
   failure |= !type_equality(t0, t1);
   failure |= t0 != t1;
 
