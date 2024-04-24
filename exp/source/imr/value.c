@@ -18,6 +18,7 @@
  */
 #include "imr/value.h"
 #include "env/context.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 Value value_create() {
@@ -89,5 +90,29 @@ bool value_equality(Value *v1, Value *v2) {
 
   default:
     PANIC("bad VALUEKIND");
+  }
+}
+
+void print_value(Value const *restrict v, FILE *restrict file) {
+  switch (v->kind) {
+  case VALUEKIND_UNINITIALIZED:
+  case VALUEKIND_NIL:
+    file_write("()", file);
+    break;
+
+  case VALUEKIND_BOOLEAN:
+    if (v->boolean)
+      file_write("true", file);
+    else
+      file_write("false", file);
+    break;
+
+  case VALUEKIND_I64:
+    print_intmax(v->integer, RADIX_DECIMAL, file);
+    break;
+
+  default:
+    file_write("undefined", file);
+    break;
   }
 }

@@ -16,8 +16,10 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_FUNCTION_H
 #define EXP_IMR_FUNCTION_H
+
 #include "imr/bytecode.h"
 #include "imr/type.h"
+#include "utility/io.h"
 #include "utility/string_view.h"
 
 typedef struct FormalArgument {
@@ -53,5 +55,7 @@ void function_body_destroy(FunctionBody *restrict function);
 struct Context;
 Type *function_body_type_of(FunctionBody const *restrict f,
                             struct Context *restrict context);
+
+void print_function_body(FunctionBody const *restrict f, FILE *restrict file);
 
 #endif // !EXP_IMR_FUNCTION_H

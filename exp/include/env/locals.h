@@ -18,6 +18,7 @@
 #define EXP_IMR_LOCALS_H
 
 #include "imr/value.h"
+#include "utility/io.h"
 
 typedef Value *Frame;
 
@@ -82,5 +83,7 @@ Frame locals_push_frame(Locals *restrict l);
  * @param frame
  */
 void locals_pop_frame(Locals *restrict l, Frame frame);
+
+void print_locals(Locals const *restrict l, FILE *restrict file);
 
 #endif // !EXP_IMR_LOCALS_H

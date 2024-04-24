@@ -24,6 +24,7 @@
 #include "imr/bytecode.h"
 #include "utility/alloc.h"
 #include "utility/nearest_power.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 Bytecode bytecode_create() {
@@ -210,7 +211,182 @@ void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
   assert(bc != NULL);
 
   Instruction I = 0;
-  FORMAT_B(I, OPC_RETURN, B);
+  FORMAT_B(I, OPC_RET, B);
 
   bytecode_emit_instruction(bc, I);
+}
+
+static void print_local(u16 v, FILE *restrict file) {
+  file_write("L[", file);
+  print_uintmax(v, RADIX_DECIMAL, file);
+  file_write("]", file);
+}
+
+static void print_constant(u16 v, FILE *restrict file) {
+  file_write("C[", file);
+  print_uintmax(v, RADIX_DECIMAL, file);
+  file_write("]", file);
+}
+
+static void print_immediate(u16 v, FILE *restrict file) {
+  print_uintmax(v, RADIX_DECIMAL, file);
+}
+
+static void print_operand(OperandFormat format, u16 value,
+                          FILE *restrict file) {
+  switch (format) {
+  case FORMAT_LOCAL:
+    print_local(value, file);
+    break;
+
+  case FORMAT_CONSTANT:
+    print_constant(value, file);
+    break;
+
+  case FORMAT_IMMEDIATE:
+    print_immediate(value, file);
+    break;
+
+  default:
+    file_write("undefined", file);
+  }
+}
+
+static void print_operand_A(Instruction I, FILE *restrict file) {
+  u16 v = INST_A(I);
+  print_operand(FORMAT_LOCAL, v, file);
+}
+
+static void print_operand_B(Instruction I, FILE *restrict file) {
+  OperandFormat o = INST_B_FORMAT(I);
+  u16 v           = INST_B(I);
+  print_operand(o, v, file);
+}
+
+static void print_operand_C(Instruction I, FILE *restrict file) {
+  OperandFormat o = INST_C_FORMAT(I);
+  u16 v           = INST_C(I);
+  print_operand(o, v, file);
+}
+
+// "move L[<A>], <B>"
+static void print_move(Instruction I, FILE *restrict file) {
+  file_write("move ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+}
+
+// "neg L[<A>], <B>"
+static void print_neg(Instruction I, FILE *restrict file) {
+  file_write("neg ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+}
+
+// "add L[<A>], <B>, <C>"
+static void print_add(Instruction I, FILE *restrict file) {
+  file_write("add ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+  file_write(", ", file);
+  print_operand_C(I, file);
+}
+
+// "sub L[<A>], <B>, <C>"
+static void print_sub(Instruction I, FILE *restrict file) {
+  file_write("sub ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+  file_write(", ", file);
+  print_operand_C(I, file);
+}
+
+// "mul L[<A>], <B>, <C>"
+static void print_mul(Instruction I, FILE *restrict file) {
+  file_write("mul ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+  file_write(", ", file);
+  print_operand_C(I, file);
+}
+
+// "div L[<A>], <B>, <C>"
+static void print_div(Instruction I, FILE *restrict file) {
+  file_write("div ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+  file_write(", ", file);
+  print_operand_C(I, file);
+}
+
+// "mod L[<A>], <B>, <C>"
+static void print_mod(Instruction I, FILE *restrict file) {
+  file_write("mod ", file);
+  print_operand_A(I, file);
+  file_write(", ", file);
+  print_operand_B(I, file);
+  file_write(", ", file);
+  print_operand_C(I, file);
+}
+
+// "ret <B>"
+static void print_ret(Instruction I, FILE *restrict file) {
+  file_write("ret ", file);
+  print_operand_B(I, file);
+}
+
+static void print_instruction(Instruction I, FILE *restrict file) {
+  switch (INST_OP(I)) {
+  case OPC_MOVE:
+    print_move(I, file);
+    break;
+
+  case OPC_NEG:
+    print_neg(I, file);
+    break;
+
+  case OPC_ADD:
+    print_add(I, file);
+    break;
+
+  case OPC_SUB:
+    print_sub(I, file);
+    break;
+
+  case OPC_MUL:
+    print_mul(I, file);
+    break;
+
+  case OPC_DIV:
+    print_div(I, file);
+    break;
+
+  case OPC_MOD:
+    print_mod(I, file);
+    break;
+
+  case OPC_RET:
+    print_ret(I, file);
+    break;
+
+  default:
+    file_write("undefined", file);
+    break;
+  }
+}
+
+void print_bytecode(Bytecode const *restrict bc, FILE *restrict file) {
+  // walk the entire buffer and print each instruction
+  for (u64 i = 0; i < bc->length; ++i) {
+    print_uintmax(i, RADIX_DECIMAL, file);
+    file_write(": ", file);
+    print_instruction(bc->buffer[i], file);
+    file_write("\n", file);
+  }
 }

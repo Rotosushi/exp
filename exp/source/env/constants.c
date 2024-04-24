@@ -22,6 +22,7 @@
 #include "env/constants.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 Constants constants_create() {
@@ -86,4 +87,14 @@ Value *constants_at(Constants *restrict c, u16 i) {
   assert(c != NULL);
   assert(index_inbounds(c, i));
   return c->buffer + i;
+}
+
+void print_constants(Constants const *restrict c, FILE *restrict file) {
+  for (u64 i = 0; i < c->length; ++i) {
+    print_uintmax(i, RADIX_DECIMAL, file);
+    file_write(": ", file);
+    file_write("[", file);
+    print_value(c->buffer + i, file);
+    file_write("]\n", file);
+  }
 }

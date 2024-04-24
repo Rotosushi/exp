@@ -18,8 +18,9 @@ set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(LIBEXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp")
 set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
 
-set(WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
-
+set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
+set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})
+set(EXP_LINK_OPTIONS)
 
 execute_process(
   COMMAND git rev-parse HEAD 
@@ -29,6 +30,8 @@ execute_process(
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(EXP_DEBUG 1)
+  #list(APPEND EXP_COMPILE_OPTIONS -fsanitize=address,undefined,leak)
+  #list(APPEND EXP_LINK_OPTIONS -fsanitize=address,undefined,leak)
 else()
   set(EXP_DEBUG 0)
 endif()

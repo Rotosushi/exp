@@ -205,3 +205,42 @@ String type_to_string(Type const *t) {
   type_to_string_impl(&result, t);
   return result;
 }
+
+static void print_function_type(FunctionType const *restrict ft,
+                                FILE *restrict file) {
+  file_write("fn (", file);
+  ArgumentTypes const *a = &ft->argument_types;
+  for (u64 i = 0; i < a->size; ++i) {
+    print_type(a->types[i], file);
+
+    if (i < (a->size - 1)) {
+      file_write(", ", file);
+    }
+  }
+
+  file_write(") -> ", file);
+  print_type(ft->return_type, file);
+}
+
+void print_type(Type const *restrict t, FILE *restrict file) {
+  switch (t->kind) {
+  case TYPEKIND_NIL:
+    file_write("nil", file);
+    break;
+
+  case TYPEKIND_BOOLEAN:
+    file_write("bool", file);
+    break;
+
+  case TYPEKIND_I64:
+    file_write("i64", file);
+    break;
+
+  case TYPEKIND_FUNCTION:
+    print_function_type(&t->function_type, file);
+    break;
+
+  default:
+    file_write("undefined", file);
+  }
+}

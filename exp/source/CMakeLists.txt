@@ -52,11 +52,13 @@ add_library(exp_common
   ${SOURCE_FILES}
 )
 target_include_directories(exp_common PUBLIC ${EXP_INCLUDE_DIR})
-target_compile_options(exp_common PUBLIC ${WARNINGS})
+target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
+target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
 
 add_executable(exp 
   ${EXP_SOURCE_DIR}/main.c
 )
 target_include_directories(exp PUBLIC ${EXP_INCLUDE_DIR})
-target_compile_options(exp PUBLIC ${WARNINGS})
+target_compile_options(exp PUBLIC ${EXP_COMPILE_OPTIONS})
+target_link_options(exp PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(exp PUBLIC exp_common m)

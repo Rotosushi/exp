@@ -45,7 +45,9 @@ bool test_parse(char const *body) {
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
-  test_parse("fn f () { return 0; }");
+  test_parse("fn f() { return 0; }");
+  test_parse("fn f() { return 3 + 3; }");
+  test_parse("fn f() { return 3 - 5 * 9; }");
 
   if (failure) {
     return EXIT_FAILURE;

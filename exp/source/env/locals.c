@@ -134,10 +134,12 @@ u16 locals_new_local(Locals *restrict l, Frame f) {
   }
 
   // (f + frame_size) is one past the end of the local frame
-  // and because we are operating on locals in a call stack,
-  // it must be equivalent to (l->locals + l->size).
+  // and because we are operating on locals as if they
+  // comprised a call stack,
+  // (f + frame_size) must be equivalent to (l->locals + l->size).
   // so in order to "allocate" that new local, all we need to
-  // do is increment l->size;
+  // do is increment l->size; since frame_size is computed
+  // relative to l->size, this in effect adds one to frame_size
   u64 absolute_offset = l->size++;
 
   // the frame relative offset is equal to the absolute
@@ -203,4 +205,12 @@ void locals_pop_frame(Locals *restrict l, Frame f) {
 
   u64 fsz = frame_size(l, f);
   l->size -= fsz;
+}
+
+void print_locals(Locals const *restrict l, FILE *restrict file) {
+  for (u64 i = 0; i < l->size; ++i) {
+    file_write("[", file);
+    print_value(l->locals + i, file);
+    file_write("]", file);
+  }
 }

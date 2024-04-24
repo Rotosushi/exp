@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_TYPE_H
 #define EXP_IMR_TYPE_H
 
+#include "utility/io.h"
 #include "utility/string.h"
 
 typedef enum TypeKind {
@@ -114,5 +115,7 @@ void type_destroy(Type *type);
 bool type_equality(Type const *t1, Type const *t2);
 
 String type_to_string(Type const *t);
+
+void print_type(Type const *restrict t, FILE *restrict file);
 
 #endif // !EXP_IMR_TYPE_H

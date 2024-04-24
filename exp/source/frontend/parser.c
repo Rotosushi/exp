@@ -24,6 +24,7 @@
 #include "env/error.h"
 #include "frontend/parser.h"
 #include "imr/operand.h"
+#include "utility/config.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -239,7 +240,17 @@ static ParserResult parse_formal_argument(Parser *restrict p,
 
 static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                Context *restrict c,
-                                               FormalArgumentList *args) {
+                                               FunctionBody *body) {
+  // we have to add arguments to the local frame,
+  // pretty sure we can just
+  // reserve the first n locals for the first n arguments.
+  // The issue is how do we associate identifiers
+  // with local slots. such that identifiers can be
+  // used which will refer to the correct local slot.
+  // And this solution will probably
+  // carry over to how local definitions are handled.
+  // for now we don't support function arguments.
+  FormalArgumentList *args = &body->arguments;
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
   if (expect(p, TOK_NIL)) {
@@ -311,12 +322,11 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
 
-  CallFrame cf             = context_push_function(c, name);
-  FunctionBody *body       = cf.function;
-  FormalArgumentList *args = &body->arguments;
+  CallFrame cf       = context_push_function(c, name);
+  FunctionBody *body = cf.function;
 
   {
-    ParserResult maybe = parse_formal_argument_list(p, c, args);
+    ParserResult maybe = parse_formal_argument_list(p, c, body);
     if (maybe.has_error) {
       return maybe;
     }
@@ -330,6 +340,13 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   }
 
   context_pop_function(c);
+
+#if EXP_DEBUG
+  file_write("parsed a function: \n fn ", stdout);
+  file_write(name.ptr, stdout);
+  print_function_body(body, stdout);
+  file_write("\n", stdout);
+#endif
 
   return success(zero());
 }

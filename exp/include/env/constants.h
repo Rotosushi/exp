@@ -20,6 +20,7 @@
 
 #include "imr/operand.h"
 #include "imr/value.h"
+#include "utility/io.h"
 
 typedef struct Constants {
   u64 length;
@@ -58,5 +59,7 @@ Operand constants_add(Constants *restrict constants, Value value);
  * @return Value*
  */
 Value *constants_at(Constants *restrict constants, u16 index);
+
+void print_constants(Constants const *restrict c, FILE *restrict file);
 
 #endif // !EXP_IMR_CONSTANTS_H

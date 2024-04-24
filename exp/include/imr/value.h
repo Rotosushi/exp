@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "utility/io.h"
 #include "utility/string_view.h"
 
 typedef enum ValueKind {
@@ -87,5 +88,7 @@ void value_assign(Value *dest, Value *source);
  * @return false
  */
 bool value_equality(Value *v1, Value *v2);
+
+void print_value(Value const *restrict v, FILE *restrict file);
 
 #endif // !EXP_IMR_VALUE_H

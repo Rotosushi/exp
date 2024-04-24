@@ -139,3 +139,23 @@ Type *function_body_type_of(FunctionBody const *restrict f,
 
   return context_function_type(context, f->return_type, argument_types);
 }
+
+void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
+  file_write(arg->name.ptr, file);
+  file_write(": ", file);
+  print_type(arg->type, file);
+}
+
+void print_function_body(FunctionBody const *restrict f, FILE *restrict file) {
+  file_write("(", file);
+  FormalArgumentList const *args = &f->arguments;
+  for (u64 i = 0; i < args->size; ++i) {
+    print_formal_argument(args->list + i, file);
+
+    if (i < (args->size - 1)) {
+      file_write(", ", file);
+    }
+  }
+  file_write(")\n", file);
+  print_bytecode(&f->bc, file);
+}

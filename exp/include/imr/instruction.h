@@ -142,9 +142,9 @@ typedef enum Opcode {
            // ABC -- L[A] = B    % C[C]
            // ABC -- L[A] = B    % C
 
-  OPC_RETURN, // B -- L[R] = B,    <return>
-              // B -- L[R] = C[B], <return>
-              // B -- L[R] = L[B], <return>
+  OPC_RET, // B -- L[R] = B,    <return>
+           // B -- L[R] = C[B], <return>
+           // B -- L[R] = L[B], <return>
 } Opcode;
 
 typedef enum InstructionFormat {
@@ -163,10 +163,8 @@ typedef enum OperandFormat {
 
 #define INST_FORMAT_BYTE(I) ((u8)(((I) >> 8) & u8_MAX))
 #define INST_FORMAT(I)      ((InstructionFormat)(INST_FORMAT_BYTE(I) & (u8)0x3))
-#define INST_B_FORMAT(I)                                                       \
-  ((InstructionFormat)((INST_FORMAT_BYTE(I) >> 2) & (u8)0x3))
-#define INST_C_FORMAT(I)                                                       \
-  ((InstructionFormat)((INST_FORMAT_BYTE(I) >> 4) & (u8)0x3))
+#define INST_B_FORMAT(I)    ((OperandFormat)((INST_FORMAT_BYTE(I) >> 2) & (u8)0x3))
+#define INST_C_FORMAT(I)    ((OperandFormat)((INST_FORMAT_BYTE(I) >> 4) & (u8)0x3))
 
 #define INST_A(I)  ((u16)(((I) >> 16) & u16_MAX))
 #define INST_B(I)  ((u16)(((I) >> 32) & u16_MAX))

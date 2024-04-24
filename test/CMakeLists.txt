@@ -24,7 +24,10 @@ create_test_sourcelist(Tests
 
 add_executable (exp_tests ${Tests})
 target_include_directories(exp_tests PUBLIC ${EXP_INCLUDE_DIR})
+target_compile_options(exp_tests PUBLIC ${EXP_COMPILE_OPTIONS})
+target_link_options(exp_tests PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(exp_tests PUBLIC exp_common m)
+
 
 set (TestsToRun ${Tests})
 remove (TestsToRun exp_tests.c)
