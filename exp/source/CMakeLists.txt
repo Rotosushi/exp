@@ -42,7 +42,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
   ${EXP_SOURCE_DIR}/utility/panic.c
-  ${EXP_SOURCE_DIR}/utility/path.c
   ${EXP_SOURCE_DIR}/utility/process.c
   ${EXP_SOURCE_DIR}/utility/string_view.c
   ${EXP_SOURCE_DIR}/utility/string.c

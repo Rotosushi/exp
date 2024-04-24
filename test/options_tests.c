@@ -38,8 +38,8 @@ bool test_options(i32 argc, char const *argv[], char const *d1, u64 d1_len) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
-  if (s1_same_as_s2(cli_options.source.string.buffer,
-                    cli_options.source.string.length, d1, d1_len)) {
+  if (s1_same_as_s2(cli_options.source.buffer, cli_options.source.length, d1,
+                    d1_len)) {
     failure |= 1;
   } else {
     failure |= 0;

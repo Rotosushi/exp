@@ -17,11 +17,11 @@
 #ifndef EXP_UTILITY_CLI_OPTIONS_H
 #define EXP_UTILITY_CLI_OPTIONS_H
 
-#include "utility/path.h"
+#include "utility/string.h"
 
 typedef struct CLIOptions {
-  Path source;
-  Path output;
+  String source;
+  String output;
 } CLIOptions;
 
 CLIOptions cli_options_create();

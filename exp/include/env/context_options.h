@@ -18,7 +18,7 @@
 #define EXP_ENV_OPTIONS_H
 
 #include "utility/cli_options.h"
-#include "utility/path.h"
+#include "utility/string.h"
 
 /**
  * @brief holds the options relevant for the given
@@ -30,12 +30,11 @@
  *
  */
 typedef struct ContextOptions {
-  Path source;
-  Path output;
+  String source;
+  String output;
 } ContextOptions;
 
 ContextOptions context_options_create();
-ContextOptions context_options_clone(ContextOptions *restrict options);
 void context_options_destroy(ContextOptions *restrict options);
 
 #endif // !EXP_ENV_OPTIONS_H

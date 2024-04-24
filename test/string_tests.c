@@ -126,8 +126,6 @@ bool test_string_erase(char const *d1, u64 offset, u64 length, char const *d2,
 
   string_assign(&str, d1);
 
-  // StringView view = string_to_view_at(&str, offset, length);
-
   string_erase(&str, offset, length);
 
   bool failure;

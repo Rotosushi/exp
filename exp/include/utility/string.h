@@ -81,24 +81,24 @@ void string_destroy(String *restrict str);
  */
 StringView string_to_view(String const *restrict str);
 
-/**
- * @brief return a StringView of a subsection of <string>,
- *  starting at <offset> and continuing for <length>.
- *
- * @warning assert((offset <= string->length) && ((offset + length) <=
- * string->length))
- *
- * @param string
- * @param offset
- * @param length
- * @return StringView
- */
-StringView string_to_view_at(String const *restrict string, u64 offset,
-                             u64 length);
+// /**
+//  * @brief return a StringView of a subsection of <string>,
+//  *  starting at <offset> and continuing for <length>.
+//  *
+//  * @warning assert((offset <= string->length) && ((offset + length) <=
+//  * string->length))
+//  *
+//  * @param string
+//  * @param offset
+//  * @param length
+//  * @return StringView
+//  */
+// StringView string_to_view_at(String const *restrict string, u64 offset,
+//                              u64 length);
 
 String string_from_view(StringView sv);
 
-String string_from_cstring(char const *restrict cs);
+// String string_from_cstring(char const *restrict cs);
 
 String string_from_file(FILE *restrict file);
 
@@ -111,14 +111,14 @@ String string_from_file(FILE *restrict file);
  */
 bool string_empty(String const *restrict string);
 
-/**
- * @brief compare two strings lexicographically
- *
- * @param s1
- * @param s2
- * @return i32
- */
-i32 string_compare(String const *restrict s1, String const *restrict s2);
+// /**
+//  * @brief compare two strings lexicographically
+//  *
+//  * @param s1
+//  * @param s2
+//  * @return i32
+//  */
+// i32 string_compare(String const *restrict s1, String const *restrict s2);
 
 /**
  * @brief resize the string to be able to hold at least
@@ -129,14 +129,14 @@ i32 string_compare(String const *restrict s1, String const *restrict s2);
  */
 void string_resize(String *restrict str, u64 capacity);
 
-/**
- * @brief resize the string to be able to hold at least
- * <capacity> more characters.
- *
- * @param str
- * @param capacity
- */
-void string_reserve_more(String *restrict str, u64 capacity);
+// /**
+//  * @brief resize the string to be able to hold at least
+//  * <capacity> more characters.
+//  *
+//  * @param str
+//  * @param capacity
+//  */
+// void string_reserve_more(String *restrict str, u64 capacity);
 
 /**
  * @brief assigns the string to hold exactly the contents of <data>
@@ -149,7 +149,7 @@ void string_assign(String *restrict str, const char *restrict data);
 
 void string_assign_view(String *restrict str, StringView sv);
 
-void string_move(String *restrict s1, String *restrict s2);
+// void string_move(String *restrict s1, String *restrict s2);
 
 /**
  * @brief appends <data> to the current contents of <str>
@@ -160,23 +160,23 @@ void string_move(String *restrict s1, String *restrict s2);
  */
 void string_append(String *restrict str, const char *restrict data);
 
-void string_append_view(String *restrict str, StringView sv);
+// void string_append_view(String *restrict str, StringView sv);
 
-/**
- * @brief concatenates <s2> onto the end of <s1>
- *
- * @param s1
- * @param s2
- */
-void string_append_string(String *restrict s1, const String *restrict s2);
+// /**
+//  * @brief concatenates <s2> onto the end of <s1>
+//  *
+//  * @param s1
+//  * @param s2
+//  */
+// void string_append_string(String *restrict s1, const String *restrict s2);
 
-/**
- * @brief appends <c> onto the end of <str>
- *
- * @param str
- * @param c
- */
-void string_append_char(String *restrict str, const char c);
+// /**
+//  * @brief appends <c> onto the end of <str>
+//  *
+//  * @param str
+//  * @param c
+//  */
+// void string_append_char(String *restrict str, const char c);
 
 /**
  * @brief erases the substring of str->buffer[offset]
@@ -199,6 +199,8 @@ void string_erase(String *restrict str, u64 offset, u64 length);
  */
 void string_insert(String *restrict str, u64 offset, char const *restrict data);
 
-void print_string(String *restrict s, FILE *restrict file);
+void string_replace_extension(String *restrict p1, const char *restrict p2);
+
+// void print_string(String *restrict s, FILE *restrict file);
 
 #endif // !EXP_UTILITY_STRING_H

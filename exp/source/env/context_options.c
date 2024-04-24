@@ -27,27 +27,20 @@
 
 ContextOptions context_options_create() {
   ContextOptions options;
-  options.source = path_create();
-  options.output = path_create();
-  return options;
-}
-
-ContextOptions context_options_clone(ContextOptions *restrict other) {
-  ContextOptions options = context_options_create();
-  options.source = path_clone(&other->source);
-  options.output = path_clone(&other->output);
+  options.source = string_create();
+  options.output = string_create();
   return options;
 }
 
 ContextOptions
 context_options_from_cli_options(CLIOptions *restrict cli_options) {
   ContextOptions options = context_options_create();
-  options.source = path_clone(&cli_options->source);
-  options.output = path_clone(&cli_options->output);
+  string_assign(&options.source, cli_options->source.buffer);
+  string_assign(&options.output, cli_options->output.buffer);
   return options;
 }
 
 void context_options_destroy(ContextOptions *restrict options) {
-  path_destroy(&(options->source));
-  path_destroy(&(options->output));
+  string_destroy(&(options->source));
+  string_destroy(&(options->output));
 }

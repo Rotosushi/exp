@@ -40,14 +40,14 @@ static void print_help(FILE *file) {
 
 CLIOptions cli_options_create() {
   CLIOptions cli_options;
-  cli_options.output = path_create();
-  cli_options.source = path_create();
+  cli_options.output = string_create();
+  cli_options.source = string_create();
   return cli_options;
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
-  path_destroy(&cli_options->output);
-  path_destroy(&cli_options->source);
+  string_destroy(&cli_options->output);
+  string_destroy(&cli_options->source);
 }
 
 #if defined(EXP_HOST_OS_LINUX)
@@ -73,7 +73,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     }
 
     case 'o': {
-      path_assign(&(options.output), optarg);
+      string_assign(&(options.output), optarg);
       break;
     }
 
@@ -89,7 +89,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
   if (optind < argc) {
     char const *source = argv[optind];
-    path_assign(&(options.source), source);
+    string_assign(&(options.source), source);
   } else { // no input file given
     log_message(LOG_ERROR, NULL, 0, "an input file must be specified.\n",
                 stderr);
@@ -98,8 +98,9 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
   // use the input filename as the default
   // base of the output filename
-  if (path_empty(&(options.output))) {
-    options.output = path_clone(&options.source);
+  if (string_empty(&(options.output))) {
+    string_assign(&options.output, options.source.buffer);
+    string_replace_extension(&options.output, ".s");
   }
 
   return options;

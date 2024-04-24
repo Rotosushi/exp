@@ -49,7 +49,7 @@ void context_destroy(Context *restrict context) {
 
 StringView context_source_path(Context *restrict context) {
   assert(context != NULL);
-  return path_to_view(&(context->options.source));
+  return string_to_view(&(context->options.source));
 }
 
 FILE *context_open_source(Context *restrict context) {
@@ -69,7 +69,7 @@ String context_buffer_source(Context *restrict context) {
 
 StringView context_output_path(Context *restrict context) {
   assert(context != NULL);
-  return path_to_view(&(context->options.output));
+  return string_to_view(&(context->options.output));
 }
 
 FILE *context_open_output(Context *restrict context) {
