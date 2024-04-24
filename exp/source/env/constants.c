@@ -46,7 +46,7 @@ static bool constants_full(Constants *restrict constants) {
 }
 
 static void constants_grow(Constants *restrict constants) {
-  Growth g            = array_growth(constants->capacity, sizeof(Value));
+  Growth g            = array_growth_u64(constants->capacity, sizeof(Value));
   constants->buffer   = reallocate(constants->buffer, g.alloc_size);
   constants->capacity = g.new_capacity;
 }

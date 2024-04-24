@@ -20,14 +20,6 @@
 
 #include "utility/hash.h"
 
-u64 hash_u64(u64 value) {
-#define BUFSZ sizeof(u64) + 1
-  char buffer[BUFSZ];
-  memcpy(buffer, &value, BUFSZ - 1);
-  return hash_cstring(buffer, BUFSZ);
-#undef BUFSZ
-}
-
 // non-crypto hash algorithm based on djb2
 // https://stackoverflow.com/questions/7666509/hash-function-for-string
 // specifically this answer https://stackoverflow.com/a/69812981

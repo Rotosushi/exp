@@ -50,7 +50,7 @@ static bool stack_full(Stack *restrict stack) {
 }
 
 static void stack_grow(Stack *restrict stack) {
-  Growth g = array_growth(stack->capacity, sizeof(Value *));
+  Growth g = array_growth_u64(stack->capacity, sizeof(Value *));
   // since stack->top >= stack->buffer, this subtraction
   // is always positive, making the cast lossless.
   u64 top_offset = (u64)(stack->top - stack->buffer);

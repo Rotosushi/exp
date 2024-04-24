@@ -45,11 +45,11 @@ static bool call_stack_full(CallStack *restrict cs) {
 }
 
 static void call_stack_grow(CallStack *restrict cs) {
-  Growth g     = array_growth(cs->capacity, sizeof(CallFrame));
-  u64 offset   = (u64)(cs->top - cs->stack);
+  Growth g     = array_growth_u8(cs->capacity, sizeof(CallFrame));
+  u8 offset    = (u8)(cs->top - cs->stack);
   cs->stack    = reallocate(cs->stack, g.alloc_size);
   cs->top      = cs->stack + offset;
-  cs->capacity = g.new_capacity;
+  cs->capacity = (u8)g.new_capacity;
 }
 
 CallFrame call_stack_push(CallStack *restrict cs, FunctionBody *fn,

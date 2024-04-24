@@ -62,7 +62,7 @@ static bool name_map_full(CFGNameMap *restrict map) {
 }
 
 static void name_map_grow(CFGNameMap *restrict map) {
-  Growth g        = array_growth(map->capacity, sizeof(CFGPair));
+  Growth g        = array_growth_u64(map->capacity, sizeof(CFGPair));
   CFGPair *buffer = callocate(g.new_capacity, sizeof(CFGPair));
 
   if (map->map != NULL) {
@@ -132,7 +132,7 @@ static bool vertex_map_full(CFGVertexMap *restrict map) {
 }
 
 static void vertex_map_grow(CFGVertexMap *restrict map) {
-  Growth g        = array_growth(map->capacity, sizeof(CFGPair));
+  Growth g        = array_growth_u64(map->capacity, sizeof(CFGPair));
   CFGPair *buffer = callocate(g.new_capacity, sizeof(CFGPair));
 
   if (map->map != NULL) {
@@ -243,7 +243,7 @@ static bool name_list_full(NameList *restrict names) {
 }
 
 static void name_list_grow(NameList *restrict names) {
-  Growth g         = array_growth(names->capacity, sizeof(StringView));
+  Growth g         = array_growth_u64(names->capacity, sizeof(StringView));
   StringView *list = reallocate(names->list, g.alloc_size);
   names->capacity  = g.new_capacity;
   names->list      = list;

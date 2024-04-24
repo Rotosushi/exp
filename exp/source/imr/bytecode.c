@@ -48,9 +48,9 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {
-  Growth g           = array_growth(bytecode->capacity, sizeof(Instruction));
-  bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
-  bytecode->capacity = g.new_capacity;
+  Growth g         = array_growth_u16(bytecode->capacity, sizeof(Instruction));
+  bytecode->buffer = reallocate(bytecode->buffer, g.alloc_size);
+  bytecode->capacity = (u16)g.new_capacity;
 }
 
 static void bytecode_emit_instruction(Bytecode *restrict bytecode,

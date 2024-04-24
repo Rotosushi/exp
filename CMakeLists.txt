@@ -2,9 +2,23 @@ cmake_minimum_required(VERSION 3.20)
 
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
   set(EXP_HOST_OS_LINUX 1)
+  execute_process(
+    COMMAND uname -m
+    OUTPUT_VARIABLE HOST_CPU
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 else()
   set(EXP_HOST_OS_LINUX 0)
   message(FATAL_ERROR "Unsupported Host OS")
+endif()
+
+
+
+if(HOST_CPU STREQUAL "x86_64")
+  set(EXP_HOST_CPU_x64 1)
+else()
+  set(EXP_HOST_CPU_x64 0)
+  message(FATAL_ERROR "Unsupported Host CPU: ${HOST_CPU}")
 endif()
 
 set(C_STANDARD_REQUIRED ON)

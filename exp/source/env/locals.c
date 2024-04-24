@@ -44,9 +44,9 @@ static bool locals_full(Locals *restrict l) {
 }
 
 static void locals_grow(Locals *restrict l) {
-  Growth g    = array_growth(l->capacity, sizeof(Value));
+  Growth g    = array_growth_u16(l->capacity, sizeof(Value));
   l->locals   = reallocate(l->locals, g.alloc_size);
-  l->capacity = g.new_capacity;
+  l->capacity = (u16)g.new_capacity;
 }
 
 /**
@@ -57,9 +57,9 @@ static void locals_grow(Locals *restrict l) {
  * @param frame
  * @return u64
  */
-static u64 frame_offset(Locals *restrict l, Frame frame) {
+static u16 frame_offset(Locals *restrict l, Frame frame) {
   // frame points somewhere >= the beginning of the buffer
-  return (u64)(frame - l->locals);
+  return (u16)(frame - l->locals);
 }
 
 /**
@@ -70,19 +70,19 @@ static u64 frame_offset(Locals *restrict l, Frame frame) {
  * @param frame
  * @return u64
  */
-static u64 frame_size(Locals *restrict l, Frame frame) {
+static u16 frame_size(Locals *restrict l, Frame frame) {
   // the size of the current frame is the number of
   // locals pushed within the given frame.
 
   // the frame_offset is equal to the number of active
   // locals which are not part of the frame.
-  u64 foff = frame_offset(l, frame);
+  u16 foff = frame_offset(l, frame);
   // l->size is the total number of locals active in all frames.
   // which must be >= frame_offset.
   // so the difference between the total number of locals
   // and the number of locals not part of the frame must
   // be equal to the number of locals within the given frame.
-  return (u64)(l->size - foff);
+  return (u16)(l->size - foff);
 }
 
 /**
@@ -140,11 +140,11 @@ u16 locals_new_local(Locals *restrict l, Frame f) {
   // so in order to "allocate" that new local, all we need to
   // do is increment l->size; since frame_size is computed
   // relative to l->size, this in effect adds one to frame_size
-  u64 absolute_offset = l->size++;
+  u16 absolute_offset = l->size++;
 
   // the frame relative offset is equal to the absolute
   // offset minus the frame offset
-  u64 relative_offset = absolute_offset - frame_offset(l, f);
+  u16 relative_offset = absolute_offset - frame_offset(l, f);
 
   // we can only reference locals in instructions with
   // a maximum offset of a single u16. Since we access
@@ -152,11 +152,11 @@ u16 locals_new_local(Locals *restrict l, Frame f) {
   // allocate a full u64's worth of local variables
   // accross all active frames. a single frame cannot be
   // larger than a u16 however.
-  if (relative_offset > u16_MAX) {
-    PANIC("local offset out of bounds");
-  }
+  // if (relative_offset > u16_MAX) {
+  //   PANIC("local offset out of bounds");
+  // }
 
-  return (u16)relative_offset;
+  return relative_offset;
 }
 
 Value *locals_at(Locals *restrict l, Frame f, u16 i) {
@@ -203,12 +203,12 @@ void locals_pop_frame(Locals *restrict l, Frame f) {
   assert(l != NULL);
   assert(frame_inbounds(l, f));
 
-  u64 fsz = frame_size(l, f);
+  u16 fsz = frame_size(l, f);
   l->size -= fsz;
 }
 
 void print_locals(Locals const *restrict l, FILE *restrict file) {
-  for (u64 i = 0; i < l->size; ++i) {
+  for (u16 i = 0; i < l->size; ++i) {
     file_write("[", file);
     print_value(l->locals + i, file);
     file_write("]", file);

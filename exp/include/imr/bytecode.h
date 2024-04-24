@@ -24,8 +24,8 @@
  * @brief represents a section of instructions.
  */
 typedef struct Bytecode {
-  u64 length;
-  u64 capacity;
+  u16 length;
+  u16 capacity;
   Instruction *buffer;
 } Bytecode;
 

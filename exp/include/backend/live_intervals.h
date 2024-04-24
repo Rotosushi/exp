@@ -14,32 +14,37 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_ARRAY_GROWTH_H
-#define EXP_UTILITY_ARRAY_GROWTH_H
+#ifndef EXP_BACKEND_LIVE_INTERVALS_H
+#define EXP_BACKEND_LIVE_INTERVALS_H
+
 #include "utility/int_types.h"
 
 /**
- * @brief the new capacity of the array, and it's allocation size
+ * @brief models the lifetime of a SSA local within a function.
+ *
+ * @note The beginning of an interval is the bytecode instruction number
+ * which assigns a live value to a given SSA local.
+ * the end of an interval is the last bytecode instruction number
+ * which uses the value of a SSA local.
  *
  */
-typedef struct Growth {
-  u64 new_capacity;
-  u64 alloc_size;
-} Growth;
+typedef struct Interval {
+  u16 local;
+  u16 begin;
+  u16 end;
+} Interval;
 
 /**
- * @brief grow current_capacity by ARRAY_GROWTH_FACTOR
+ * @brief manages a set of live intervals within a function
  *
- * @param current_capacity
- * @param element_size
- * @return Growth
  */
-Growth array_growth_u64(u64 current_capacity, u64 element_size);
+typedef struct LiveIntervals {
+  u16 size;
+  u16 capacity;
+  Interval *buffer;
+} LiveIntervals;
 
-Growth array_growth_u32(u32 current_capacity, u64 element_size);
+LiveIntervals live_intervals_create();
+void live_intervals_destroy(LiveIntervals *restrict li);
 
-Growth array_growth_u16(u16 current_capacity, u64 element_size);
-
-Growth array_growth_u8(u8 current_capacity, u64 element_size);
-
-#endif // !EXP_UTILITY_ARRAY_GROWTH_H
+#endif // !EXP_BACKEND_LIVE_INTERVALS_H

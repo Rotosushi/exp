@@ -49,7 +49,7 @@ static bool function_types_full(FunctionTypes *restrict f) {
 }
 
 static void function_types_grow(FunctionTypes *restrict f) {
-  Growth g    = array_growth(f->capacity, sizeof(Type *));
+  Growth g    = array_growth_u64(f->capacity, sizeof(Type *));
   f->types    = reallocate(f->types, g.alloc_size);
   f->capacity = g.new_capacity;
 }

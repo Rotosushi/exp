@@ -21,8 +21,8 @@
  * @brief enumerates the general purpose* registers in x64
  *
  * @note we still need to take into account the overlapping
- * 8-bit, 16-bit, and 32-bit registers.
- * as well as the SSE floating point registers XMM[0..15] and YMM[0..15].
+ * 8-bit, 16-bit, and 32-bit registers;
+ * and the SSE floating point registers XMM[0..15] and YMM[0..15].
  * of particular note are the SSE registers which can also be used
  * to efficiently process large amounts of data.
  */
@@ -42,7 +42,7 @@ typedef enum Register {
   REG_R12,
   REG_R13,
   REG_R14,
-  REG_R15
+  REG_R15,
 } Register;
 
 #endif // !EXP_BACKEND_REGISTER_H

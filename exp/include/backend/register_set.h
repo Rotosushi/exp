@@ -14,29 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_CALL_STACK_H
-#define EXP_IMR_CALL_STACK_H
-#include "env/locals.h"
-#include "imr/function_body.h"
+#ifndef EXP_BACKEND_REGISTER_SET_H
+#define EXP_BACKEND_REGISTER_SET_H
 
-typedef struct CallFrame {
-  FunctionBody *function;
-  Frame frame;
-} CallFrame;
+#include "backend/register.h"
+#include "utility/int_types.h"
 
-typedef struct CallStack {
-  u8 capacity;
-  CallFrame *top;
-  CallFrame *stack;
-} CallStack;
+/**
+ * @brief actively manages a set of registers within a function
+ *  and which locals they are assigned to.
+ */
+typedef struct RegisterSet {
+  u16 active_set;
+  u16 assignments[16];
+} RegisterSet;
 
-CallStack call_stack_create();
-void call_stack_destroy(CallStack *restrict cs);
+RegisterSet register_set_create();
 
-bool call_stack_empty(CallStack *restrict cs);
-CallFrame call_stack_push(CallStack *restrict cs, FunctionBody *fn,
-                          Frame frame);
-CallFrame call_stack_pop(CallStack *restrict cs);
-CallFrame call_stack_top(CallStack *restrict cs);
+bool register_set_assign_next_available(RegisterSet *restrict set,
+                                        Register *restrict r, u16 local);
+void register_set_release(RegisterSet *restrict set, Register r);
 
-#endif // !EXP_IMR_CALL_STACK_H
+#endif // !EXP_BACKEND_REGISTER_SET_H

@@ -19,14 +19,6 @@
 #include "utility/int_types.h"
 
 /**
- * @brief computes the hash of the given u64.
- *
- * @param value
- * @return u64
- */
-u64 hash_u64(u64 value);
-
-/**
  * @brief computes the hash of the given string.
  *
  * @param string

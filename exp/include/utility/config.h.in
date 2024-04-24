@@ -27,6 +27,7 @@
 #cmakedefine EXP_HOST_OS_LINUX
 #cmakedefine EXP_HOST_OS_WINDOWS
 #cmakedefine EXP_HOST_OS_APPLE
+#cmakedefine EXP_HOST_CPU_x64
 
 #define EXP_VERSION_STRING "@EXP_VERSION_STRING@"
 // NOLINTEND

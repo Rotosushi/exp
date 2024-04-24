@@ -20,10 +20,7 @@
 
 typedef struct Operand {
   OperandFormat format;
-  union {
-    u16 common;
-    u32 extended;
-  };
+  u16 common;
 } Operand;
 
 Operand local(u16 common);

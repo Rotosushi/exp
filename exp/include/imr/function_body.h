@@ -29,14 +29,11 @@ typedef struct FormalArgument {
 
 typedef struct FormalArgumentList {
   FormalArgument *list;
-  u64 size;
-  u64 capacity;
+  u8 size;
+  u8 capacity;
 } FormalArgumentList;
 
 FormalArgumentList formal_argument_list_create();
-void formal_argument_list_destroy(FormalArgumentList *restrict fal);
-void formal_argument_list_clone(FormalArgumentList *target,
-                                FormalArgumentList *source);
 bool formal_argument_list_equality(FormalArgumentList *a1,
                                    FormalArgumentList *a2);
 

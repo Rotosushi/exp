@@ -72,7 +72,7 @@ static String *string_interner_find(String *restrict strings, u64 capacity,
 }
 
 static void string_interner_grow(StringInterner *restrict si) {
-  Growth g         = array_growth(si->capacity, sizeof(String));
+  Growth g         = array_growth_u64(si->capacity, sizeof(String));
   String *elements = callocate(g.new_capacity, sizeof(String));
 
   // if the buffer isn't empty, we need to reinsert

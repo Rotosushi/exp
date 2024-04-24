@@ -25,10 +25,11 @@ typedef Value *Frame;
 /**
  * @brief represents the local variables of functions
  *
+ * @note
  */
 typedef struct Locals {
-  u64 size;
-  u64 capacity;
+  u16 size;
+  u16 capacity;
   Value *locals;
 } Locals;
 
@@ -40,7 +41,7 @@ void locals_destroy(Locals *restrict l);
  *
  * @param l
  * @param frame
- * @return u32 the index of the new local relative to <frame>
+ * @return u16 the index of the new local relative to <frame>
  */
 u16 locals_new_local(Locals *restrict l, Frame frame);
 

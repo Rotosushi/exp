@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_FILESYSTEM_IO_H
-#define EXP_FILESYSTEM_IO_H
+#ifndef EXP_UTILITY_IO_H
+#define EXP_UTILITY_IO_H
 
 #include <stdio.h>
 
@@ -52,4 +52,4 @@ u64 file_read(char *buffer, u64 length, FILE *restrict stream);
 
 u64 file_length(FILE *restrict file);
 
-#endif // !EXP_FILESYSTEM_IO_H
+#endif // !EXP_UTILITY_IO_H

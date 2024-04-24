@@ -62,7 +62,7 @@ symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
 }
 
 static void symbol_table_grow(SymbolTable *restrict st) {
-  Growth g = array_growth(st->capacity, sizeof(SymbolTableElement));
+  Growth g = array_growth_u64(st->capacity, sizeof(SymbolTableElement));
   SymbolTableElement *elements =
       callocate(g.new_capacity, sizeof(SymbolTableElement));
 

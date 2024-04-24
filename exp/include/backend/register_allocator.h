@@ -21,6 +21,11 @@
 
 /*
 The target algorithm is Linear Scan Register Allocation (LSRA)
+The goal of the algorithm is to allocate the local variables
+and temporary variables within a function to specific registers,
+such that the function body can be mapped to target assembly
+instructions.
+
 in pseudo-code:
 
 LinearScanRegisterAllocation
@@ -65,7 +70,6 @@ SpillAtInterval(i)
       of the corresponding SSA locals
   This can be done by a pre-allocation step, which runs before
   the main allocation algorithm.
-
 */
 
 #endif // !EXP_BACKEND_REGISTER_ALLOCATOR_H

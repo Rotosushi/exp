@@ -110,7 +110,7 @@ bool string_empty(String const *restrict string) {
 
 void string_resize(String *restrict str, u64 new_capacity) {
   assert(str != NULL);
-  Growth g                 = array_growth(new_capacity, sizeof(char));
+  Growth g                 = array_growth_u64(new_capacity, sizeof(char));
   str->buffer              = reallocate(str->buffer, g.alloc_size);
   str->capacity            = g.new_capacity;
   str->buffer[str->length] = '\0';
