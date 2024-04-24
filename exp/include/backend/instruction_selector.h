@@ -13,20 +13,4 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_CLI_OPTIONS_H
-#define EXP_UTILITY_CLI_OPTIONS_H
-
-#include "utility/string.h"
-
-typedef struct CLIOptions {
-  String source;
-  String output;
-} CLIOptions;
-
-CLIOptions cli_options_create();
-void cli_options_destroy(CLIOptions *restrict cli_options);
-
-[[nodiscard]] CLIOptions parse_cli_options(i32 argc, char const *argv[]);
-
-#endif // !EXP_UTILITY_CLI_OPTIONS_H
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.

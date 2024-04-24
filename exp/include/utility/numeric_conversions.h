@@ -16,11 +16,9 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 
-#include "utility/string.h"
+#include "utility/int_types.h"
+#include "utility/io.h"
 
 // #TODO: u64 float_safe_strlen(float value);
 // #TODO: u64 double_safe_strlen(double value);
@@ -80,18 +78,6 @@ u64 uintmax_safe_strlen(uintmax_t value, Radix radix);
  */
 char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix);
 
-/**
- * @brief create a string holding the result of intmax_to_str
- *
- * @note it is the callers responsibility to call string_destroy()
- * on the returned string
- *
- * @param value the value to convert
- * @param radix the radix of the resulting string
- * @return string the returned string
- */
-String intmax_to_string(intmax_t value, Radix radix);
-
 void print_intmax(intmax_t value, Radix radix, FILE *file);
 
 /**
@@ -109,18 +95,6 @@ void print_intmax(intmax_t value, Radix radix, FILE *file);
  * @return char* the end of the string, or NULL if conversion failed.
  */
 char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix);
-
-/**
- * @brief create a string holding the result of uintmax_to_str
- *
- * @note it is the callers responsibility to call string_destroy()
- * on the returned string
- *
- * @param value the value to convert
- * @param radix the radix of the resulting string
- * @return string the returned string
- */
-String uintmax_to_string(uintmax_t value, Radix radix);
 
 void print_uintmax(uintmax_t value, Radix radix, FILE *file);
 

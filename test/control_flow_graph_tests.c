@@ -29,7 +29,8 @@ static bool list_contains(NameList *restrict nl, StringView name) {
   return 0;
 }
 
-int cfg_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+int control_flow_graph_tests([[maybe_unused]] int argc,
+                             [[maybe_unused]] char **argv) {
   bool failure         = 0;
   ControlFlowGraph cfg = control_flow_graph_create();
   StringView f0        = string_view_from_cstring("f0");

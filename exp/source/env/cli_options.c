@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/cli_options.h"
+#include "env/cli_options.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/log.h"

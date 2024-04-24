@@ -346,6 +346,70 @@ considerations of these questions:
       illuminate a potential pathway to referencing global names in bytecode.
 
 
+7 - "how does the register allocator use the IR to allocate variables?"
+
+    So, from my current research into this, the "linear scan register allocation"
+    seems to work nicely. It is less complex than graph coloring, and apparently 
+    generates code which approaches the quality produced by graph coloring 
+    [https://dl.acm.org/doi/10.1145/330249.330250]. 
+    There are several algorithms which improve upon the initial algortihm as well.
+    (one that I am particularly interested in is: 
+    [https://arxiv.org/abs/2011.05608])
+
+    the pseudo-code for linear scan register allocation:
+
+    LinearScanRegisterAllocation
+    active ← {}
+    for each live interval i, in order of increasing start point do
+        ExpireOldIntervals(i)
+        if length(active) = R then
+            SpillAtInterval(i)
+        else
+            register[i] ← a register removed from pool of free registers
+            add i to active, sorted by increasing end point
+
+    ExpireOldIntervals(i)
+        for each interval j in active, in order of increasing end point do
+            if endpoint[j] ≥ startpoint[i] then
+                return 
+            remove j from active
+            add register[j] to pool of free registers
+
+    SpillAtInterval(i)
+        spill ← last interval in active
+        if endpoint[spill] > endpoint[i] then
+            register[i] ← register[spill]
+            location[spill] ← new stack location
+            remove spill from active
+            add i to active, sorted by increasing end point
+        else
+            location[i] ← new stack location
+
+    The algorithm relies on a set of "liveness ranges" or "live intervals"
+    which are precomputed for each basic block. The live interval is 
+    simply the interval that a given value is "alive." That is the 
+    range over which a variable is accessible within the current scope.
+
+    In order to allocate registers, this algorithm needs an enumeration 
+    of all available registers on the target machine. 
+    We also need to pre-allocate registers for incoming function arguments,
+    and for outgoing function arguments, and for certain instructions. 
+    (division, bit rotate, bit shift, etc.)
+
+    and this leads naturally into:
+
+7a - "how does the backend work with the register allocator
+    to generate target machine assembly?"
+
+    There needs to be an "instruction selector" which can take the 
+    information of what SSA locals are stored in what registers, 
+    plus the information of what operations need to be performed 
+    and select the correct assembly instruction. 
+    Then, the selected assembly instructions can be written to the 
+    output file.
+
+
+
 (TODO: numbers are arbitrary and relative, they only exist to artifically 
        delineate thoughts.)
 TODO: 

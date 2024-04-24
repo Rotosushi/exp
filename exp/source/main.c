@@ -19,8 +19,8 @@
 #include <stdlib.h>
 
 // #include "core/compile.h"
-#include "env/context.h"
-#include "utility/cli_options.h"
+// #include "env/context.h"
+#include "env/cli_options.h"
 
 i32 main(i32 argc, char const *argv[], [[maybe_unused]] char *envv[]) {
   [[maybe_unused]] CLIOptions cli_options = parse_cli_options(argc, argv);

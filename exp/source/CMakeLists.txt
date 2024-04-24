@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/adt/graph.c
+  ${EXP_SOURCE_DIR}/adt/string.c
+
   ${EXP_SOURCE_DIR}/backend/as_directives.c
   ${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
+  ${EXP_SOURCE_DIR}/backend/register_allocator.c
 
   #${EXP_SOURCE_DIR}/core/compile.c
 
   ${EXP_SOURCE_DIR}/env/call_stack.c
+  ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
@@ -33,8 +38,6 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/utility/alloc.c
   ${EXP_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_SOURCE_DIR}/utility/cli_options.c
-  ${EXP_SOURCE_DIR}/utility/graph.c
   ${EXP_SOURCE_DIR}/utility/hash.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
@@ -44,7 +47,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/panic.c
   ${EXP_SOURCE_DIR}/utility/process.c
   ${EXP_SOURCE_DIR}/utility/string_view.c
-  ${EXP_SOURCE_DIR}/utility/string.c
+  
 )
 
 add_library(exp_common

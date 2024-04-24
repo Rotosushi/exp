@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/cli_options.h"
+#include "env/cli_options.h"
 
 static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
                           const char *restrict s2, u64 s2_len) {
@@ -49,7 +49,7 @@ bool test_options(i32 argc, char const *argv[], char const *d1, u64 d1_len) {
   return failure;
 }
 
-i32 options_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
+i32 cli_options_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
   i32 test_argc           = 2;

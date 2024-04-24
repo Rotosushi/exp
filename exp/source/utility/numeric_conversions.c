@@ -107,21 +107,6 @@ char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix) {
   return buffer;
 }
 
-String intmax_to_string(intmax_t value, Radix radix) {
-  String str = string_create();
-
-  string_resize(&str, intmax_safe_strlen(value, radix));
-
-  char *end = intmax_to_str(value, str.buffer, radix);
-  if (end == NULL) {
-    PANIC("conversion failed");
-  }
-
-  str.length = (u64)(end - str.buffer);
-
-  return str;
-}
-
 void print_intmax(intmax_t value, Radix radix, FILE *file) {
   char buf[intmax_safe_strlen(value, radix)];
   if (intmax_to_str(value, buf, radix) == NULL) {
@@ -159,21 +144,6 @@ char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
   }
 
   return buffer;
-}
-
-String uintmax_to_string(uintmax_t value, Radix radix) {
-  String str = string_create();
-
-  string_resize(&str, uintmax_safe_strlen(value, radix));
-
-  char *end = uintmax_to_str(value, str.buffer, radix);
-  if (end == NULL) {
-    PANIC("conversion failed");
-  }
-
-  str.length = (u64)(end - str.buffer);
-
-  return str;
 }
 
 void print_uintmax(uintmax_t value, Radix radix, FILE *file) {

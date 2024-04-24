@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_STRING_INTERNER_H
 #define EXP_ENV_STRING_INTERNER_H
 
-#include "utility/string.h"
+#include "adt/string.h"
 
 /**
  * @brief holds a set of strings, such that the memory

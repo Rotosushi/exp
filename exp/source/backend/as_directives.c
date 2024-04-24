@@ -18,6 +18,7 @@
  */
 
 #include "backend/as_directives.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 void directive_file(StringView path, FILE *file) {

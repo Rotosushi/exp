@@ -17,8 +17,8 @@
 #ifndef EXP_ENV_OPTIONS_H
 #define EXP_ENV_OPTIONS_H
 
-#include "utility/cli_options.h"
-#include "utility/string.h"
+#include "adt/string.h"
+#include "env/cli_options.h"
 
 /**
  * @brief holds the options relevant for the given

@@ -23,7 +23,6 @@
 #include "utility/debug.h"
 #include "utility/log.h"
 #include "utility/panic.h"
-#include "utility/string.h"
 
 [[noreturn]] void panic(const char *msg, const char *file, i32 line) {
   EXP_BREAK();

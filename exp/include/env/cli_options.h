@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,22 +14,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_CONFIG_H
-#define EXP_UTILITY_CONFIG_H
-// NOLINTBEGIN
-// clang-format off
-#define EXP_VERSION_MAJOR 0
-#define EXP_VERSION_MINOR 1 
-#define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "a74d4acc0772f10490c5e92a9d485cf90e3f00e2"
-#define EXP_TEST_DIR "/home/cade/projects/exp/test"
-#define EXP_DEBUG 1
-#define EXP_HOST_OS_LINUX
-/* #undef EXP_HOST_OS_WINDOWS */
-/* #undef EXP_HOST_OS_APPLE */
+#ifndef EXP_UTILITY_CLI_OPTIONS_H
+#define EXP_UTILITY_CLI_OPTIONS_H
 
-#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-04-24 07:59:09) git revision (a74d4acc0772f10490c5e92a9d485cf90e3f00e2)"
-// NOLINTEND
-// clang-format on
+#include "adt/string.h"
 
-#endif // !EXP_UTILITY_CONFIG_H
+typedef struct CLIOptions {
+  String source;
+  String output;
+} CLIOptions;
+
+CLIOptions cli_options_create();
+void cli_options_destroy(CLIOptions *restrict cli_options);
+
+[[nodiscard]] CLIOptions parse_cli_options(i32 argc, char const *argv[]);
+
+#endif // !EXP_UTILITY_CLI_OPTIONS_H

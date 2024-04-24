@@ -17,9 +17,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "adt/string.h"
 #include "utility/io.h"
 #include "utility/panic.h"
-#include "utility/string.h"
 
 static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
                           const char *restrict s2, u64 s2_len) {

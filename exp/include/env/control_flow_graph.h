@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_CONTROL_FLOW_GRAPH_H
 #define EXP_ENV_CONTROL_FLOW_GRAPH_H
 
-#include "utility/graph.h"
+#include "adt/graph.h"
 #include "utility/string_view.h"
 
 typedef struct CFGPair {

@@ -19,9 +19,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "adt/graph.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/graph.h"
 #include "utility/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {

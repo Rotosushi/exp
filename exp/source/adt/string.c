@@ -21,11 +21,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "adt/string.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
 #include "utility/panic.h"
-#include "utility/string.h"
 
 String string_create() {
   String str;

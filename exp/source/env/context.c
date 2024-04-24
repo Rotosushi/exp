@@ -174,12 +174,12 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE) {
-    A = immediate(-B.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_neg(bc, A, B);
-  }
+  // if (B.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(-B.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_neg(bc, A, B);
+  // }
 
   return A;
 }
@@ -188,12 +188,12 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
-    A = immediate(B.common + C.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_add(bc, A, B, C);
-  }
+  // if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(B.common + C.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_add(bc, A, B, C);
+  // }
 
   return A;
 }
@@ -202,12 +202,12 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
-    A = immediate(B.common - C.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_add(bc, A, B, C);
-  }
+  // if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(B.common - C.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_sub(bc, A, B, C);
+  // }
 
   return A;
 }
@@ -216,12 +216,12 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
-    A = immediate(B.common * C.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_add(bc, A, B, C);
-  }
+  // if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(B.common * C.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_mul(bc, A, B, C);
+  // }
 
   return A;
 }
@@ -230,12 +230,12 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
-    A = immediate(B.common / C.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_add(bc, A, B, C);
-  }
+  // if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(B.common / C.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_div(bc, A, B, C);
+  // }
 
   return A;
 }
@@ -244,12 +244,12 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
-    A = immediate(B.common % C.common);
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_add(bc, A, B, C);
-  }
+  // if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+  //   A = immediate(B.common % C.common);
+  // } else {
+  A = context_new_local(c);
+  bytecode_emit_mod(bc, A, B, C);
+  // }
 
   return A;
 }

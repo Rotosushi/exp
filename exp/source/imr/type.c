@@ -164,48 +164,6 @@ bool type_equality(Type const *t1, Type const *t2) {
   }
 }
 
-static void type_to_string_impl(String *str, Type const *t) {
-  switch (t->kind) {
-  case TYPEKIND_NIL:
-    string_append(str, "nil");
-    break;
-
-  case TYPEKIND_BOOLEAN:
-    string_append(str, "bool");
-    break;
-
-  case TYPEKIND_I64:
-    string_append(str, "i64");
-    break;
-
-  case TYPEKIND_FUNCTION: {
-    FunctionType const *f  = &t->function_type;
-    ArgumentTypes const *a = &f->argument_types;
-
-    string_append(str, "fn (");
-    for (u64 i = 0; i < a->size; ++i) {
-      type_to_string_impl(str, a->types[i]);
-
-      if (i < (a->size - 1)) {
-        string_append(str, ", ");
-      }
-    }
-    string_append(str, ") -> ");
-    type_to_string_impl(str, f->return_type);
-    break;
-  }
-
-  default:
-    PANIC("bad TYPEKIND");
-  }
-}
-
-String type_to_string(Type const *t) {
-  String result;
-  type_to_string_impl(&result, t);
-  return result;
-}
-
 static void print_function_type(FunctionType const *restrict ft,
                                 FILE *restrict file) {
   file_write("fn (", file);

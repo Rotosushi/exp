@@ -37,19 +37,6 @@ static bool test_base10_uintmax_to_str(uintmax_t value) {
   return value != number;
 }
 
-static bool test_base10_uintmax_to_string(uintmax_t value) {
-  String number = uintmax_to_string(value, RADIX_DECIMAL);
-
-  uintmax_t scanned;
-  i32 result = sscanf(number.buffer, "%ju", &scanned);
-  if (result == EOF) {
-    PANIC_ERRNO("sscanf failed");
-  }
-
-  string_destroy(&number);
-  return value != scanned;
-}
-
 static bool test_base16_uintmax_to_str(uintmax_t value) {
   u64 buffer_length = uintmax_safe_strlen(value, RADIX_HEXADECIMAL);
   char buffer[buffer_length + 1];
@@ -101,11 +88,6 @@ i32 number_conversion_tests([[maybe_unused]] i32 argc,
   failed |= test_base10_uintmax_to_str((uintmax_t)rand());
   failed |= test_base10_uintmax_to_str(0);
   failed |= test_base10_uintmax_to_str(1);
-
-  failed |= test_base10_uintmax_to_string(UINTMAX_MAX);
-  failed |= test_base10_uintmax_to_string((uintmax_t)rand());
-  failed |= test_base10_uintmax_to_string(0);
-  failed |= test_base10_uintmax_to_string(1);
 
   failed |= test_base16_uintmax_to_str(UINTMAX_MAX);
   failed |= test_base16_uintmax_to_str((uintmax_t)rand());

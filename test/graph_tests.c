@@ -18,7 +18,7 @@
  */
 #include <stdlib.h>
 
-#include "utility/graph.h"
+#include "adt/graph.h"
 
 static bool list_contains(VertexList *restrict vl, u64 vertex) {
   for (u64 i = 0; i < vl->count; ++i) {

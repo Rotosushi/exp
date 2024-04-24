@@ -2,19 +2,15 @@ cmake_minimum_required(VERSION 3.20)
 
 add_test (NAME "smoke test" COMMAND exp -v)
 
-create_test_sourcelist(Tests 
-  exp_tests.c
-  cfg_tests.c
-  #compile_tests.c
+create_test_sourcelist(Tests exp_tests.c
+  cli_options_tests.c
   constants_tests.c
-  #emit_tests.c
+  control_flow_graph_tests.c
   graph_tests.c
   instruction_tests.c
   lexer_tests.c
   number_conversion_tests.c
-  options_tests.c
   parse_tests.c
-  #stack_tests.c
   string_interner_tests.c
   string_tests.c
   symbol_table_tests.c
