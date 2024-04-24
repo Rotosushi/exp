@@ -22,8 +22,8 @@
 #include <string.h>
 
 #include "utility/alloc.h"
+#include "utility/array_growth.h"
 #include "utility/minmax.h"
-#include "utility/nearest_power.h"
 #include "utility/panic.h"
 #include "utility/string.h"
 
@@ -37,23 +37,20 @@ String string_create() {
 
 void string_destroy(String *restrict str) {
   assert(str != NULL);
-  if ((str->length == 0) && (str->capacity == 0) && (str->buffer == NULL)) {
-    return;
-  }
-
   str->length   = 0;
   str->capacity = 0;
-
   free(str->buffer);
   str->buffer = NULL;
 }
 
 static void string_assign_impl(String *restrict str, char const *restrict data,
                                u64 length) {
-  string_resize(str, length);
+  string_destroy(str);
+  u64 new_capacity = length + 1;
+  str->buffer      = allocate(new_capacity);
+  str->length      = length;
+  str->capacity    = new_capacity;
   memcpy(str->buffer, data, length);
-  str->buffer[length] = '\0';
-  str->length         = length;
 }
 
 StringView string_to_view(String const *restrict str) {
@@ -84,7 +81,13 @@ String string_from_cstring(char const *restrict cs) {
   return str;
 }
 
-void print_string(String *string, FILE *file) { fputs(string->buffer, file); }
+String string_from_file(FILE *restrict file) {
+  String s;
+  u64 flen = file_length(file);
+  string_resize(&s, flen);
+  file_read(s.buffer, flen, file);
+  return s;
+}
 
 bool string_empty(String const *restrict string) {
   assert(string != NULL);
@@ -107,35 +110,21 @@ i32 string_compare(String const *restrict s1, String const *restrict s2) {
 
 void string_resize(String *restrict str, u64 new_capacity) {
   assert(str != NULL);
-  assert((new_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
-
-  // "resize" to the same size means we can exit early.
-  if ((str->capacity > 0) && (new_capacity == (str->capacity - 1))) {
-    return;
-  }
-
-  // the new buffer is smaller than it once was
-  if (str->length > new_capacity) {
-    str->length = new_capacity;
-  }
-
-  str->buffer   = reallocate(str->buffer, (new_capacity + 1) * sizeof(char));
-  str->capacity = new_capacity + 1;
+  Growth g                 = array_growth(new_capacity, sizeof(char));
+  str->buffer              = reallocate(str->buffer, g.alloc_size);
+  str->capacity            = g.new_capacity;
   str->buffer[str->length] = '\0';
 }
 
 void string_reserve_more(String *restrict str, u64 more_capacity) {
   assert(str != NULL);
-  assert((more_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
+
   u64 sum_capacity;
   if (__builtin_add_overflow(str->capacity, more_capacity, &sum_capacity)) {
     PANIC("cannot allocate more than SIZE_MAX");
   }
-  assert((sum_capacity != SIZE_MAX) && "cannot allocate more than SIZE_MAX");
 
-  u64 new_capacity = nearest_power_of_two(sum_capacity);
-
-  string_resize(str, new_capacity);
+  string_resize(str, sum_capacity);
 }
 
 void string_assign(String *restrict str, const char *restrict data) {
@@ -268,4 +257,8 @@ void string_insert(String *restrict str, u64 offset,
   }
 
   memcpy(str->buffer + offset, data, length);
+}
+
+void print_string(String *restrict s, FILE *restrict file) {
+  file_write(s->buffer, file);
 }

@@ -23,7 +23,7 @@
 
 #include "imr/bytecode.h"
 #include "utility/alloc.h"
-#include "utility/nearest_power.h"
+#include "utility/array_growth.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -48,15 +48,9 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {
-  u64 new_capacity = nearest_power_of_two(bytecode->capacity + 1);
-
-  u64 alloc_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Instruction), &alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  bytecode->buffer   = reallocate(bytecode->buffer, new_capacity);
-  bytecode->capacity = new_capacity;
+  Growth g           = array_growth(bytecode->capacity, sizeof(Instruction));
+  bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
+  bytecode->capacity = g.new_capacity;
 }
 
 static void bytecode_emit_instruction(Bytecode *restrict bytecode,
@@ -229,7 +223,7 @@ static void print_constant(u16 v, FILE *restrict file) {
 }
 
 static void print_immediate(u16 v, FILE *restrict file) {
-  print_uintmax(v, RADIX_DECIMAL, file);
+  print_intmax((i16)v, RADIX_DECIMAL, file);
 }
 
 static void print_operand(OperandFormat format, u16 value,

@@ -343,7 +343,7 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
 #if EXP_DEBUG
   file_write("parsed a function: \n fn ", stdout);
-  file_write(name.ptr, stdout);
+  print_string_view(name, stdout);
   print_function_body(body, stdout);
   file_write("\n", stdout);
 #endif
@@ -462,10 +462,11 @@ static ParserResult integer(Parser *restrict p,
   if (integer <= u16_MAX) {
     B = immediate((u16)integer);
   } else {
-    B = context_constants_add(c, value_create_integer(integer));
+    B = context_emit_move(
+        c, context_constants_add(c, value_create_integer(integer)));
   }
 
-  return success(context_emit_move(c, B));
+  return success(B);
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {

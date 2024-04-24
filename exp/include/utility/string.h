@@ -100,7 +100,7 @@ String string_from_view(StringView sv);
 
 String string_from_cstring(char const *restrict cs);
 
-void print_string(String *string, FILE *file);
+String string_from_file(FILE *restrict file);
 
 /**
  * @brief returns if the string is empty.
@@ -198,5 +198,7 @@ void string_erase(String *restrict str, u64 offset, u64 length);
  * @param data
  */
 void string_insert(String *restrict str, u64 offset, char const *restrict data);
+
+void print_string(String *restrict s, FILE *restrict file);
 
 #endif // !EXP_UTILITY_STRING_H

@@ -93,32 +93,3 @@ u64 file_length(FILE *restrict file) {
   return (u64)size;
 }
 #endif
-
-String file_readall(FILE *restrict stream) {
-  assert(stream != NULL);
-
-  String result = string_create();
-  string_resize(&result, file_length(stream));
-#define BUFSZ 1024
-  static char buffer[BUFSZ];
-  while (1) {
-    char *p = fgets(buffer, BUFSZ, stream);
-    if ((p == NULL)) {
-      if (feof(stream)) {
-        break;
-      } else if (ferror(stream)) {
-        fclose(stream);
-        PANIC_ERRNO("fgets failed");
-      }
-    }
-
-    string_append(&result, buffer);
-
-    if (feof(stream)) {
-      break;
-    }
-  }
-#undef BUFSZ
-
-  return result;
-}

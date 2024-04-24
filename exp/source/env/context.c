@@ -60,7 +60,7 @@ FILE *context_open_source(Context *restrict context) {
 String context_buffer_source(Context *restrict context) {
   FILE *file = context_open_source(context);
 
-  String result = file_readall(file);
+  String result = string_from_file(file);
 
   file_close(file);
 
@@ -173,48 +173,84 @@ Operand context_emit_move(Context *restrict c, Operand B) {
 Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_neg(bc, A, B);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE) {
+    A = immediate(-B.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_neg(bc, A, B);
+  }
+
   return A;
 }
 
 Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_add(bc, A, B, C);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+    A = immediate(B.common + C.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
+
   return A;
 }
 
 Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_sub(bc, A, B, C);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+    A = immediate(B.common - C.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
+
   return A;
 }
 
 Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_mul(bc, A, B, C);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+    A = immediate(B.common * C.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
+
   return A;
 }
 
 Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_div(bc, A, B, C);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+    A = immediate(B.common / C.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
+
   return A;
 }
 
 Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_mod(bc, A, B, C);
+  Operand A;
+  if (B.format == FORMAT_IMMEDIATE && C.format == FORMAT_IMMEDIATE) {
+    A = immediate(B.common % C.common);
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
+
   return A;
 }
 

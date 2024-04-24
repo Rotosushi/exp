@@ -18,6 +18,7 @@
  */
 #include <string.h>
 
+#include "utility/panic.h"
 #include "utility/string_view.h"
 
 StringView string_view_create() {
@@ -47,4 +48,12 @@ bool string_view_equality(StringView sv1, StringView sv2) {
   }
 
   return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
+}
+
+void print_string_view(StringView sv, FILE *restrict file) {
+  for (u64 i = 0; i < sv.length; ++i) {
+    if (fputc(sv.ptr[i], file) == EOF) {
+      PANIC_ERRNO("fputc failed");
+    }
+  }
 }

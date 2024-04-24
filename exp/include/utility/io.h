@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 
-#include "utility/string.h"
+#include "utility/int_types.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes);
 
@@ -51,7 +51,5 @@ void file_write(const char *restrict buffer, FILE *restrict stream);
 u64 file_read(char *buffer, u64 length, FILE *restrict stream);
 
 u64 file_length(FILE *restrict file);
-
-String file_readall(FILE *restrict file);
 
 #endif // !EXP_FILESYSTEM_IO_H

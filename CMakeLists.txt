@@ -30,8 +30,6 @@ execute_process(
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(EXP_DEBUG 1)
-  #list(APPEND EXP_COMPILE_OPTIONS -fsanitize=address,undefined,leak)
-  #list(APPEND EXP_LINK_OPTIONS -fsanitize=address,undefined,leak)
 else()
   set(EXP_DEBUG 0)
 endif()

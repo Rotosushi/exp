@@ -35,12 +35,13 @@ SymbolTable symbol_table_create() {
 void symbol_table_destroy(SymbolTable *restrict st) {
   assert(st != NULL);
 
-  if (st->elements == NULL) {
-    st->count = st->capacity = 0;
-    return;
+  for (u64 i = 0; i < st->capacity; ++i) {
+    SymbolTableElement *element = st->elements + i;
+    function_body_destroy(&element->function_body);
   }
 
-  st->count = st->capacity = 0;
+  st->count    = 0;
+  st->capacity = 0;
   free(st->elements);
   st->elements = NULL;
 }

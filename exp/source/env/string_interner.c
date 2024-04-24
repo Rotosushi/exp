@@ -46,7 +46,7 @@ void string_interner_destroy(StringInterner *restrict si) {
     return;
   }
 
-  for (u64 i = 0; i < si->count; ++i) {
+  for (u64 i = 0; i < si->capacity; ++i) {
     string_destroy(si->buffer + i);
   }
 
