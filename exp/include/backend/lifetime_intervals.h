@@ -35,16 +35,19 @@ typedef struct Interval {
 } Interval;
 
 /**
- * @brief manages a set of live intervals within a function
+ * @brief manages a set of lifetime intervals within a function
  *
  */
-typedef struct LiveIntervals {
+typedef struct LifetimeIntervals {
   u16 size;
   u16 capacity;
   Interval *buffer;
-} LiveIntervals;
+} LifetimeIntervals;
 
-LiveIntervals live_intervals_create();
-void live_intervals_destroy(LiveIntervals *restrict li);
+LifetimeIntervals lifetime_intervals_create();
+void lifetime_intervals_destroy(LifetimeIntervals *restrict li);
+
+void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
+                                      Interval i);
 
 #endif // !EXP_BACKEND_LIVE_INTERVALS_H

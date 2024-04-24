@@ -6,7 +6,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/backend/as_directives.c
   #${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
-  ${EXP_SOURCE_DIR}/backend/live_intervals.c
+  ${EXP_SOURCE_DIR}/backend/lifetime_intervals.c
   ${EXP_SOURCE_DIR}/backend/register_allocator.c
   ${EXP_SOURCE_DIR}/backend/register_set.c
 
