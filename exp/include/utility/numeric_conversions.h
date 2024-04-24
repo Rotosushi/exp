@@ -20,10 +20,16 @@
 #include "utility/int_types.h"
 #include "utility/io.h"
 
-// #TODO: u64 float_safe_strlen(float value);
-// #TODO: u64 double_safe_strlen(double value);
-// #TODO  char * float_to_string(float value, char *buffer, u64 buf_len);
-// #TODO: char * double_to_string(double value, char *buffer, u64 buf_len);
+// TODO:
+//    u64 f32_safe_strlen(float value);
+//    u64 f64_safe_strlen(double value);
+//    char * f32_to_str(float value, char *buffer, u64 buf_len);
+//    char * f64_to_str(double value, char *buffer, u64 buf_len);
+// of note is that the assembler does not accept floating point
+// literals, and instead reads integer literals and stores them
+// as floats. effectively the integer literal is just there to
+// specify the bit pattern of the float value. so the above functions
+// are not useful in the backend.
 
 typedef enum Radix {
   RADIX_BINARY      = 2,
@@ -38,14 +44,13 @@ typedef enum Radix {
  * into the given radix and the minus sign if value is negative.
  *
  * @note does not include the null terminator.
- * @note the resulting string length does not include the
- * c-style prefixes 0x, 0b, 0
+ * @note does not include the c-style prefixes 0x, 0b, 0
  *
  * @param value the value whose digits are to be stored
  * @param radix the radix to convert the number into
  * @return u64 the length of the string
  */
-u64 intmax_safe_strlen(intmax_t value, Radix radix);
+u64 i64_safe_strlen(i64 value, Radix radix);
 
 /**
  * @brief return the length of the string which can hold
@@ -53,14 +58,13 @@ u64 intmax_safe_strlen(intmax_t value, Radix radix);
  * into the given radix
  *
  * @note does not include the null terminator.
- * @note the resulting string length does not include the
- * c-style prefixes 0x, 0b, 0
+ * @note does not include the c-style prefixes 0x, 0b, 0
  *
  * @param value the value whose digits are to be stored
  * @param radix the radix to convert the number into
  * @return u64 the length of the string
  */
-u64 uintmax_safe_strlen(uintmax_t value, Radix radix);
+u64 u64_safe_strlen(u64 value, Radix radix);
 
 /**
  * @brief write the digits of <value> into <buffer>
@@ -76,9 +80,9 @@ u64 uintmax_safe_strlen(uintmax_t value, Radix radix);
  * @param radix the radix of the resulting string
  * @return char* the end of the string, or NULL if conversion failed.
  */
-char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix);
+char *i64_to_str(i64 value, char *restrict buffer, Radix radix);
 
-void print_intmax(intmax_t value, Radix radix, FILE *file);
+void print_i64(i64 value, Radix radix, FILE *file);
 
 /**
  * @brief write the digits of <value> into <buffer>
@@ -94,8 +98,12 @@ void print_intmax(intmax_t value, Radix radix, FILE *file);
  * @param radix the radix of the resulting string
  * @return char* the end of the string, or NULL if conversion failed.
  */
-char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix);
+char *u64_to_str(u64 value, char *restrict buffer, Radix radix);
 
-void print_uintmax(uintmax_t value, Radix radix, FILE *file);
+void print_u64(u64 value, Radix radix, FILE *file);
+
+i64 str_to_i64(char const *restrict buffer, u64 length, Radix radix);
+
+u64 str_to_u64(char const *restrict buffer, u64 length, Radix radix);
 
 #endif // !EXP_UTILITY_NUMBERS_TO_STRING_H

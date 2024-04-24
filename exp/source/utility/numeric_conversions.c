@@ -17,12 +17,18 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
+#include <ctype.h>
 #include <math.h>
 
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-u64 intmax_safe_strlen(intmax_t value, Radix radix) {
+[[maybe_unused]] static bool valid_radix(Radix r) {
+  return (r == RADIX_BINARY) || (r == RADIX_OCTAL) || (r == RADIX_DECIMAL) ||
+         (r == RADIX_HEXADECIMAL);
+}
+
+u64 i64_safe_strlen(i64 value, Radix radix) {
   u64 result = 0;
 
   if ((value == 0) || (value == 1)) {
@@ -55,7 +61,7 @@ u64 intmax_safe_strlen(intmax_t value, Radix radix) {
   }
 }
 
-u64 uintmax_safe_strlen(uintmax_t value, Radix radix) {
+u64 u64_safe_strlen(u64 value, Radix radix) {
   u64 result = 0;
 
   if ((value == 0) || (value == 1)) {
@@ -71,11 +77,11 @@ u64 uintmax_safe_strlen(uintmax_t value, Radix radix) {
   return result;
 }
 
-char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix) {
-  assert((radix == RADIX_BINARY) || (radix == RADIX_OCTAL) ||
-         (radix == RADIX_DECIMAL) || (radix == RADIX_HEXADECIMAL));
+char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
+  assert(valid_radix(radix));
+  assert(buffer != NULL);
 
-  intmax_t tmp_value;
+  i64 tmp_value;
   char *ptr1, *ptr2;
   char mapping[] =
       "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
@@ -107,17 +113,17 @@ char *intmax_to_str(intmax_t value, char *restrict buffer, Radix radix) {
   return buffer;
 }
 
-void print_intmax(intmax_t value, Radix radix, FILE *file) {
-  char buf[intmax_safe_strlen(value, radix)];
-  if (intmax_to_str(value, buf, radix) == NULL) {
+void print_i64(i64 value, Radix radix, FILE *file) {
+  char buf[i64_safe_strlen(value, radix)];
+  if (i64_to_str(value, buf, radix) == NULL) {
     PANIC("conversion failed");
   }
   fputs(buf, file);
 }
 
-char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
-  assert((radix == RADIX_BINARY) || (radix == RADIX_OCTAL) ||
-         (radix == RADIX_DECIMAL) || (radix == RADIX_HEXADECIMAL));
+char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
+  assert(valid_radix(radix));
+  assert(buffer != NULL);
 
   char *ptr1, *ptr2;
   char mapping[] =
@@ -126,7 +132,7 @@ char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
   // convert the number
   ptr1 = buffer;
   do {
-    uintmax_t tmp = value;
+    u64 tmp = value;
     value /= radix;
     *ptr1++ = mapping[35 + (tmp - value * radix)];
   } while (value);
@@ -146,10 +152,102 @@ char *uintmax_to_str(uintmax_t value, char *restrict buffer, Radix radix) {
   return buffer;
 }
 
-void print_uintmax(uintmax_t value, Radix radix, FILE *file) {
-  char buf[uintmax_safe_strlen(value, radix)];
-  if (uintmax_to_str(value, buf, radix) == NULL) {
+void print_u64(u64 value, Radix radix, FILE *file) {
+  char buf[u64_safe_strlen(value, radix)];
+  if (u64_to_str(value, buf, radix) == NULL) {
     PANIC("conversion failed");
   }
   fputs(buf, file);
+}
+
+// static u64 char_value(char c) {
+//   switch (c) {
+//   case '0':
+//   case '1':
+//   case '2':
+//   case '3':
+//   case '4':
+//   case '5':
+//   case '6':
+//   case '7':
+//   case '8':
+//   case '9':
+//     return c - '0';
+
+//   default:
+//     unreachable();
+//   }
+// }
+
+static u64 base10_stou64(char const *restrict buffer, u64 length) {
+  u64 result = 0;
+  u64 i      = 0;
+
+  while (i < length && isdigit(buffer[i])) {
+    if (__builtin_mul_overflow(result, 10, &result)) {
+      PANIC("string out of range of u64");
+    }
+
+    if (__builtin_add_overflow(result, (buffer[i] - '0'), &result)) {
+      PANIC("string out of range of u64");
+    }
+
+    ++i;
+  }
+
+  return result;
+}
+
+static i64 base10_stoi64(char const *restrict buffer, u64 length) {
+  char const *cursor = buffer;
+  i64 sign           = 1;
+  if (*cursor == '-') {
+    sign = -1;
+    ++cursor;
+  }
+
+  u64 val = base10_stou64(cursor, length);
+  if ((val == ((u64)i64_MAX + 1)) && (sign == -1)) {
+    return i64_MIN;
+  } else if (val > i64_MAX) {
+    PANIC("string out of range of i64");
+  }
+
+  // since we know val <= i64_MAX it is always safe to
+  // cast val to an i64.
+  return (i64)val * sign;
+}
+
+i64 str_to_i64(char const *restrict buffer, u64 length, Radix radix) {
+  assert(valid_radix(radix));
+  assert(buffer != NULL);
+
+  switch (radix) {
+  case RADIX_DECIMAL:
+    return base10_stoi64(buffer, length);
+
+  case RADIX_BINARY:
+  case RADIX_OCTAL:
+  case RADIX_HEXADECIMAL:
+  default:
+    PANIC("unsupported radix");
+  }
+
+  return 0;
+}
+
+u64 str_to_u64(char const *restrict buffer, u64 length, Radix radix) {
+  assert(valid_radix(radix));
+  assert(buffer != NULL);
+
+  switch (radix) {
+  case RADIX_DECIMAL:
+    return base10_stou64(buffer, length);
+
+  case RADIX_BINARY:
+  case RADIX_OCTAL:
+  case RADIX_HEXADECIMAL:
+  default:
+    PANIC("unsupported radix");
+  }
 }

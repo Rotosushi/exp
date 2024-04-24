@@ -67,7 +67,7 @@ void directive_text(FILE *file) { file_write("  .text\n", file); }
 
 void directive_balign(u64 align, FILE *file) {
   file_write("  .balign ", file);
-  print_uintmax(align, RADIX_DECIMAL, file);
+  print_u64(align, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 
@@ -75,7 +75,7 @@ void directive_size(StringView name, u64 size, FILE *file) {
   file_write("  .size ", file);
   file_write(name.ptr, file);
   file_write(", ", file);
-  print_uintmax(size, RADIX_DECIMAL, file);
+  print_u64(size, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 
@@ -122,19 +122,19 @@ void directive_type(StringView name, STT_Type kind, FILE *file) {
 
 void directive_quad(i64 value, FILE *file) {
   file_write("  .quad ", file);
-  print_intmax(value, RADIX_DECIMAL, file);
+  print_i64(value, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 
 void directive_byte(unsigned char value, FILE *file) {
   file_write("  .byte ", file);
-  print_uintmax(value, RADIX_DECIMAL, file);
+  print_u64(value, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 
 void directive_zero(u64 bytes, FILE *file) {
   file_write("  .zero ", file);
-  print_uintmax(bytes, RADIX_DECIMAL, file);
+  print_u64(bytes, RADIX_DECIMAL, file);
   file_write("\n", file);
 }
 

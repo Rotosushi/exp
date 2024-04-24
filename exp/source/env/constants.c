@@ -91,7 +91,7 @@ Value *constants_at(Constants *restrict c, u16 i) {
 
 void print_constants(Constants const *restrict c, FILE *restrict file) {
   for (u64 i = 0; i < c->length; ++i) {
-    print_uintmax(i, RADIX_DECIMAL, file);
+    print_u64(i, RADIX_DECIMAL, file);
     file_write(": ", file);
     file_write("[", file);
     print_value(c->buffer + i, file);

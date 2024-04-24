@@ -212,18 +212,18 @@ void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
 
 static void print_local(u16 v, FILE *restrict file) {
   file_write("L[", file);
-  print_uintmax(v, RADIX_DECIMAL, file);
+  print_u64(v, RADIX_DECIMAL, file);
   file_write("]", file);
 }
 
 static void print_constant(u16 v, FILE *restrict file) {
   file_write("C[", file);
-  print_uintmax(v, RADIX_DECIMAL, file);
+  print_u64(v, RADIX_DECIMAL, file);
   file_write("]", file);
 }
 
 static void print_immediate(u16 v, FILE *restrict file) {
-  print_intmax((i16)v, RADIX_DECIMAL, file);
+  print_i64((i16)v, RADIX_DECIMAL, file);
 }
 
 static void print_operand(OperandFormat format, u16 value,
@@ -378,7 +378,7 @@ static void print_instruction(Instruction I, FILE *restrict file) {
 void print_bytecode(Bytecode const *restrict bc, FILE *restrict file) {
   // walk the entire buffer and print each instruction
   for (u64 i = 0; i < bc->length; ++i) {
-    print_uintmax(i, RADIX_DECIMAL, file);
+    print_u64(i, RADIX_DECIMAL, file);
     file_write(": ", file);
     print_instruction(bc->buffer[i], file);
     file_write("\n", file);

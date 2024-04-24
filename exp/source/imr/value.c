@@ -108,7 +108,7 @@ void print_value(Value const *restrict v, FILE *restrict file) {
     break;
 
   case VALUEKIND_I64:
-    print_intmax(v->integer, RADIX_DECIMAL, file);
+    print_i64(v->integer, RADIX_DECIMAL, file);
     break;
 
   default:

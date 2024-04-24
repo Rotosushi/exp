@@ -452,7 +452,7 @@ static ParserResult boolean_false(Parser *restrict p,
 static ParserResult integer(Parser *restrict p,
                             [[maybe_unused]] Context *restrict c) {
   StringView sv = curtxt(p);
-  i64 integer   = strtol(sv.ptr, NULL, 10);
+  i64 integer   = str_to_i64(sv.ptr, sv.length, RADIX_DECIMAL);
   if (errno == ERANGE) {
     return error(p, ERROR_PARSER_INTEGER_TO_LARGE);
   }
@@ -462,8 +462,8 @@ static ParserResult integer(Parser *restrict p,
   if (integer <= u16_MAX) {
     B = immediate((u16)integer);
   } else {
-    B = context_emit_move(
-        c, context_constants_add(c, value_create_integer(integer)));
+    Operand index = context_constants_add(c, value_create_integer(integer));
+    B             = context_emit_move(c, index);
   }
 
   return success(B);

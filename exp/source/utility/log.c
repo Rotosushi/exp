@@ -65,7 +65,7 @@ void log_message(LogLevel level, const char *restrict file, u64 line,
 
     file_write(":", stream);
 
-    print_uintmax(line, RADIX_DECIMAL, stream);
+    print_u64(line, RADIX_DECIMAL, stream);
   }
 
   file_write("] ", stream);
