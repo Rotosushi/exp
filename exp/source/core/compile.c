@@ -19,12 +19,16 @@
 #include <assert.h>
 #include <stdlib.h>
 
-// #include "backend/emit_x64_linux_assembly.h"
+#include "backend/emit_assembly.h"
 #include "core/compile.h"
 #include "frontend/parser.h"
 
 i32 compile(Context *restrict context) {
   if (parse_source(context) == EXIT_FAILURE) {
+    return EXIT_FAILURE;
+  }
+
+  if (emit_assembly(context) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 

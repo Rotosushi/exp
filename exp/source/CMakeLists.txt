@@ -5,12 +5,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/string.c
 
   ${EXP_SOURCE_DIR}/backend/as_directives.c
-  #${EXP_SOURCE_DIR}/backend/emit_x64_linux_assembly.c
+  ${EXP_SOURCE_DIR}/backend/emit_assembly.c
+  ${EXP_SOURCE_DIR}/backend/instruction_selector.c
   ${EXP_SOURCE_DIR}/backend/lifetime_intervals.c
   ${EXP_SOURCE_DIR}/backend/register_allocator.c
   ${EXP_SOURCE_DIR}/backend/register_set.c
 
-  #${EXP_SOURCE_DIR}/core/compile.c
+  ${EXP_SOURCE_DIR}/core/compile.c
 
   ${EXP_SOURCE_DIR}/env/call_stack.c
   ${EXP_SOURCE_DIR}/env/cli_options.c

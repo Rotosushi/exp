@@ -61,7 +61,7 @@ void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
   // and insert just before it.
   u16 i = 0;
   for (; i < li->size; ++i) {
-    if (li->buffer[i].begin > interval.begin) {
+    if (li->buffer[i].first_use > interval.first_use) {
       break;
     }
   }
@@ -72,6 +72,5 @@ void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
   }
 
   li->buffer[i] = interval;
-
   li->size += 1;
 }

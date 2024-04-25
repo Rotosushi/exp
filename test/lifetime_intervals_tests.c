@@ -28,9 +28,9 @@
     file_write("[", file);
     print_u64(lifetime.local, RADIX_DECIMAL, file);
     file_write(", ", file);
-    print_u64(lifetime.begin, RADIX_DECIMAL, file);
+    print_u64(lifetime.first_use, RADIX_DECIMAL, file);
     file_write(", ", file);
-    print_u64(lifetime.end, RADIX_DECIMAL, file);
+    print_u64(lifetime.last_use, RADIX_DECIMAL, file);
     file_write("]", file);
   }
   file_write("\n", file);
@@ -38,7 +38,7 @@
 
 static bool intervals_sorted(LifetimeIntervals *restrict li) {
   for (u16 i = 0; i < (li->size - 1); ++i) {
-    if (li->buffer[i].begin > li->buffer[i + 1].begin) {
+    if (li->buffer[i].first_use > li->buffer[i + 1].first_use) {
       return 0;
     }
   }
@@ -46,9 +46,9 @@ static bool intervals_sorted(LifetimeIntervals *restrict li) {
 }
 
 static Interval create_interval() {
-  Interval i = {.local = (u16)(rand() & u16_MAX),
-                .begin = (u16)(rand() & u16_MAX),
-                .end   = (u16)(rand() & u16_MAX)};
+  Interval i = {.local     = (u16)(rand() & u16_MAX),
+                .first_use = (u16)(rand() & u16_MAX),
+                .last_use  = (u16)(rand() & u16_MAX)};
   return i;
 }
 

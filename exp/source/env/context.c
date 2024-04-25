@@ -110,6 +110,11 @@ SymbolTableElement *context_global_symbols_at(Context *restrict context,
   return symbol_table_at(&context->global_symbols, name);
 }
 
+SymbolTableIterator context_global_symbol_iterator(Context *restrict context) {
+  assert(context != NULL);
+  return symbol_table_iterator_create(&context->global_symbols);
+}
+
 CallFrame context_push_function(Context *restrict c, StringView name) {
   assert(c != NULL);
   // get the new function

@@ -80,6 +80,8 @@ Type *context_function_type(Context *restrict context, Type *return_type,
 SymbolTableElement *context_global_symbols_at(Context *restrict context,
                                               StringView name);
 
+SymbolTableIterator context_global_symbol_iterator(Context *restrict context);
+
 // function functions
 CallFrame context_push_function(Context *restrict c, StringView name);
 

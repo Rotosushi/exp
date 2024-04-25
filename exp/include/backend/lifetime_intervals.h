@@ -24,14 +24,14 @@
  *
  * @note The beginning of an interval is the bytecode instruction number
  * which assigns a live value to a given SSA local.
- * the end of an interval is the last bytecode instruction number
+ * the last_use of an interval is the last bytecode instruction number
  * which uses the value of a SSA local.
  *
  */
 typedef struct Interval {
   u16 local;
-  u16 begin;
-  u16 end;
+  u16 first_use;
+  u16 last_use;
 } Interval;
 
 /**
@@ -47,6 +47,12 @@ typedef struct LifetimeIntervals {
 LifetimeIntervals lifetime_intervals_create();
 void lifetime_intervals_destroy(LifetimeIntervals *restrict li);
 
+/**
+ * @brief insert a new interval, sorted in order of increasing first_use.
+ *
+ * @param li
+ * @param i
+ */
 void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
                                       Interval i);
 

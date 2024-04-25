@@ -341,12 +341,12 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
   context_pop_function(c);
 
-  // #if EXP_DEBUG
-  //   file_write("parsed a function: \n fn ", stdout);
-  //   print_string_view(name, stdout);
-  //   print_function_body(body, stdout);
-  //   file_write("\n", stdout);
-  // #endif
+#if EXP_DEBUG
+  file_write("parsed a function: \n fn ", stdout);
+  print_string_view(name, stdout);
+  print_function_body(body, stdout);
+  file_write("\n", stdout);
+#endif
 
   return success(zero());
 }
@@ -459,12 +459,12 @@ static ParserResult integer(Parser *restrict p,
 
   nexttok(p);
   Operand B;
-  if (integer <= u16_MAX) {
-    B = immediate((u16)integer);
-  } else {
-    Operand index = context_constants_add(c, value_create_integer(integer));
-    B             = context_emit_move(c, index);
-  }
+  // if (integer <= u16_MAX) {
+  //   B = immediate((u16)integer);
+  // } else {
+  Operand index = context_constants_add(c, value_create_integer(integer));
+  B             = context_emit_move(c, index);
+  // }
 
   return success(B);
 }
