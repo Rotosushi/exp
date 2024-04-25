@@ -12,6 +12,7 @@ create_test_sourcelist(Tests exp_tests.c
   lifetime_intervals_tests.c
   number_conversion_tests.c
   parse_tests.c
+  register_set_tests.c
   string_interner_tests.c
   string_tests.c
   symbol_table_tests.c

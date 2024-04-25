@@ -18,7 +18,30 @@
  */
 #include "backend/register_set.h"
 
-RegisterSet register_set_create() {
-  RegisterSet set = {.active_set = 0};
-  return set;
+#define SET_BIT(RS, r) ((RS) |= ((RegisterSet)1 << (RegisterSet)r))
+
+#define CLR_BIT(RS, r)                                                         \
+  ((RS) &= (RegisterSet) ~((RegisterSet)1 << (RegisterSet)r))
+
+#define CHK_BIT(RS, r) (((RS) >> (RegisterSet)r) & (RegisterSet)1)
+
+void register_set_preallocate(RegisterSet *restrict rs, Register r) {
+  SET_BIT(*rs, r);
 }
+
+Register register_set_next_available(RegisterSet *restrict rs) {
+  for (u8 i = 0; i < 16; ++i) {
+    if (!CHK_BIT(*rs, i)) {
+      return (Register)i;
+    }
+  }
+  return REG_NONE;
+}
+
+void register_set_release(RegisterSet *restrict rs, Register r) {
+  CLR_BIT(*rs, r);
+}
+
+#undef SET_BIT
+#undef CLR_BIT
+#undef CHK_BIT

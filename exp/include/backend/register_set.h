@@ -21,18 +21,34 @@
 #include "utility/int_types.h"
 
 /**
- * @brief actively manages a set of registers within a function
- *  and which locals they are assigned to.
+ * @brief a bitset of which registers are active
  */
-typedef struct RegisterSet {
-  u16 active_set;
-  u16 assignments[16];
-} RegisterSet;
+typedef u16 RegisterSet;
 
-RegisterSet register_set_create();
+/**
+ * @brief preallocate register r
+ *
+ * @param rs
+ * @param r
+ */
+void register_set_preallocate(RegisterSet *restrict rs, Register r);
 
-bool register_set_assign_next_available(RegisterSet *restrict set,
-                                        Register *restrict r, u16 local);
-void register_set_release(RegisterSet *restrict set, Register r);
+/**
+ * @brief allocate the next free register.
+ *
+ * @note returns REG_NONE if all registers are filled
+ *
+ * @param rs
+ * @return Register
+ */
+Register register_set_next_available(RegisterSet *restrict rs);
+
+/**
+ * @brief release register <r>
+ *
+ * @param rs
+ * @param r
+ */
+void register_set_release(RegisterSet *restrict rs, Register r);
 
 #endif // !EXP_BACKEND_REGISTER_SET_H

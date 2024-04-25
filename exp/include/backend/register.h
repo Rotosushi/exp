@@ -43,6 +43,7 @@ typedef enum Register {
   REG_R13,
   REG_R14,
   REG_R15,
+  REG_NONE,
 } Register;
 
 #endif // !EXP_BACKEND_REGISTER_H
