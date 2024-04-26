@@ -21,17 +21,24 @@
 #include "utility/int_types.h"
 
 /**
- * @brief a bitset of which registers are active
+ * @brief a map of local to register,
+ * which also tracks registers are active
  */
-typedef u16 RegisterSet;
+typedef struct RegisterSet {
+  u16 bitset;
+  u16 map[16];
+} RegisterSet;
+
+RegisterSet register_set_create();
 
 /**
- * @brief preallocate register r
+ * @brief preallocate register r to hold <local>
  *
  * @param rs
+ * @param local
  * @param r
  */
-void register_set_preallocate(RegisterSet *restrict rs, Register r);
+void register_set_preallocate(RegisterSet *restrict rs, u16 local, Register r);
 
 /**
  * @brief allocate the next free register.
@@ -39,16 +46,18 @@ void register_set_preallocate(RegisterSet *restrict rs, Register r);
  * @note returns REG_NONE if all registers are filled
  *
  * @param rs
- * @return Register
+ * @param local
+ * @return the allocated register
  */
-Register register_set_next_available(RegisterSet *restrict rs);
+Register register_set_allocate(RegisterSet *restrict rs, u16 local);
 
 /**
- * @brief release register <r>
+ * @brief release the register holding <local>
  *
  * @param rs
  * @param r
+ * @return the released register
  */
-void register_set_release(RegisterSet *restrict rs, Register r);
+Register register_set_release(RegisterSet *restrict rs, u16 local);
 
 #endif // !EXP_BACKEND_REGISTER_SET_H

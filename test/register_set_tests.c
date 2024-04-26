@@ -22,15 +22,15 @@
 
 int register_set_tests([[maybe_unused]] int argc,
                        [[maybe_unused]] char **argv) {
-  bool failure = false;
+  bool failure = 0;
   RegisterSet set;
 
-  register_set_preallocate(&set, REG_RAX);
-  Register r0 = register_set_next_available(&set);
+  register_set_preallocate(&set, 0, REG_RAX);
+  Register r0 = register_set_allocate(&set, 1);
   failure |= (r0 != REG_RBX);
 
-  register_set_release(&set, REG_RAX);
-  Register r1 = register_set_next_available(&set);
+  register_set_release(&set, 0);
+  Register r1 = register_set_allocate(&set, 2);
   failure |= (r1 != REG_RAX);
 
   if (failure) {

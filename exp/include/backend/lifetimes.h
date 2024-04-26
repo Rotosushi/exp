@@ -28,32 +28,31 @@
  * which uses the value of a SSA local.
  *
  */
-typedef struct Interval {
+typedef struct Lifetime {
   u16 local;
   u16 first_use;
   u16 last_use;
-} Interval;
+} Lifetime;
 
 /**
  * @brief manages a set of lifetime intervals within a function
  *
  */
-typedef struct LifetimeIntervals {
+typedef struct Lifetimes {
   u16 size;
   u16 capacity;
-  Interval *buffer;
-} LifetimeIntervals;
+  Lifetime *buffer;
+} Lifetimes;
 
-LifetimeIntervals lifetime_intervals_create();
-void lifetime_intervals_destroy(LifetimeIntervals *restrict li);
+Lifetimes lifetimes_create();
+void lifetimes_destroy(Lifetimes *restrict li);
 
 /**
- * @brief insert a new interval, sorted in order of increasing first_use.
+ * @brief insert a new lifetime, sorted in order of increasing first_use.
  *
  * @param li
  * @param i
  */
-void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
-                                      Interval i);
+void lifetimes_insert_sorted(Lifetimes *restrict li, Lifetime i);
 
 #endif // !EXP_BACKEND_LIVE_INTERVALS_H

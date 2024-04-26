@@ -38,11 +38,14 @@
 
 Growth array_growth_u64(u64 current_capacity, u64 element_size) {
   current_capacity = ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+  if (current_capacity == u64_MAX) {
+    PANIC("cannot allocate more than u64_MAX elements");
+  }
 
   Growth g;
   if (__builtin_mul_overflow(current_capacity, ARRAY_GROWTH_FACTOR,
                              &g.new_capacity)) {
-    PANIC("cannot allocate more than u64_MAX elements");
+    g.new_capacity = u64_MAX;
   }
 
   if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
@@ -53,11 +56,14 @@ Growth array_growth_u64(u64 current_capacity, u64 element_size) {
 
 Growth array_growth_u32(u32 current_capacity, u64 element_size) {
   current_capacity = (u32)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+  if (current_capacity == u32_MAX) {
+    PANIC("cannot allocate more than u32_MAX elements");
+  }
 
   Growth g;
   g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
   if (g.new_capacity > u32_MAX) {
-    PANIC("cannot allocate more than u32_MAX elements");
+    g.new_capacity = u32_MAX;
   }
 
   if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
@@ -68,11 +74,14 @@ Growth array_growth_u32(u32 current_capacity, u64 element_size) {
 
 Growth array_growth_u16(u16 current_capacity, u64 element_size) {
   current_capacity = (u16)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+  if (current_capacity == u16_MAX) {
+    PANIC("cannot allocate more than u16_MAX elements");
+  }
 
   Growth g;
   g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
   if (g.new_capacity > u16_MAX) {
-    PANIC("cannot allocate more than u16_MAX elements");
+    g.new_capacity = u16_MAX;
   }
 
   if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
@@ -83,11 +92,14 @@ Growth array_growth_u16(u16 current_capacity, u64 element_size) {
 
 Growth array_growth_u8(u8 current_capacity, u64 element_size) {
   current_capacity = (u8)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+  if (current_capacity == u8_MAX) {
+    PANIC("cannot allocate more than u8_MAX elements");
+  }
 
   Growth g;
   g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
   if (g.new_capacity > u8_MAX) {
-    PANIC("cannot allocate more than u8_MAX elements");
+    g.new_capacity = u8_MAX;
   }
 
   if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {

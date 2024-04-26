@@ -4,12 +4,14 @@ add_test (NAME "smoke test" COMMAND exp -v)
 
 create_test_sourcelist(Tests exp_tests.c
   cli_options_tests.c
+  compute_allocations_tests.c
+  compute_lifetimes_tests.c
   constants_tests.c
   control_flow_graph_tests.c
   graph_tests.c
   instruction_tests.c
   lexer_tests.c
-  lifetime_intervals_tests.c
+  lifetimes_tests.c
   number_conversion_tests.c
   parse_tests.c
   register_set_tests.c

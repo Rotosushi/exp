@@ -16,9 +16,10 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_BACKEND_REGISTER_H
 #define EXP_BACKEND_REGISTER_H
+#include "utility/int_types.h"
 
 /**
- * @brief enumerates the general purpose* registers in x64
+ * @brief enumerates the general purpose registers in x64
  *
  * @note we still need to take into account the overlapping
  * 8-bit, 16-bit, and 32-bit registers;

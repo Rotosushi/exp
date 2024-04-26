@@ -18,13 +18,12 @@
  */
 #include <stdlib.h>
 
-#include "backend/lifetime_intervals.h"
+#include "backend/lifetimes.h"
 #include "utility/numeric_conversions.h"
 
-[[maybe_unused]] static void print_li(LifetimeIntervals *restrict li,
-                                      FILE *file) {
+[[maybe_unused]] static void print_li(Lifetimes *restrict li, FILE *file) {
   for (u16 i = 0; i < li->size; ++i) {
-    Interval lifetime = li->buffer[i];
+    Lifetime lifetime = li->buffer[i];
     file_write("[", file);
     print_u64(lifetime.local, RADIX_DECIMAL, file);
     file_write(", ", file);
@@ -36,7 +35,7 @@
   file_write("\n", file);
 }
 
-static bool intervals_sorted(LifetimeIntervals *restrict li) {
+static bool intervals_sorted(Lifetimes *restrict li) {
   for (u16 i = 0; i < (li->size - 1); ++i) {
     if (li->buffer[i].first_use > li->buffer[i + 1].first_use) {
       return 0;
@@ -45,29 +44,28 @@ static bool intervals_sorted(LifetimeIntervals *restrict li) {
   return 1;
 }
 
-static Interval create_interval() {
-  Interval i = {.local     = (u16)(rand() & u16_MAX),
+static Lifetime create_interval() {
+  Lifetime i = {.local     = (u16)(rand() & u16_MAX),
                 .first_use = (u16)(rand() & u16_MAX),
                 .last_use  = (u16)(rand() & u16_MAX)};
   return i;
 }
 
-int lifetime_intervals_tests([[maybe_unused]] int argc,
-                             [[maybe_unused]] char **argv) {
-  LifetimeIntervals li = lifetime_intervals_create();
+int lifetimes_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+  Lifetimes li = lifetimes_create();
 
-  lifetime_intervals_insert_sorted(&li, create_interval());
+  lifetimes_insert_sorted(&li, create_interval());
   // print_li(&li, stdout);
-  lifetime_intervals_insert_sorted(&li, create_interval());
+  lifetimes_insert_sorted(&li, create_interval());
   // print_li(&li, stdout);
-  lifetime_intervals_insert_sorted(&li, create_interval());
+  lifetimes_insert_sorted(&li, create_interval());
   // print_li(&li, stdout);
-  lifetime_intervals_insert_sorted(&li, create_interval());
+  lifetimes_insert_sorted(&li, create_interval());
   // print_li(&li, stdout);
 
   bool failure = !intervals_sorted(&li);
 
-  lifetime_intervals_destroy(&li);
+  lifetimes_destroy(&li);
   if (failure) {
     return EXIT_FAILURE;
   } else {

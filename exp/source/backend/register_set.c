@@ -16,30 +16,47 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+
 #include "backend/register_set.h"
 
-#define SET_BIT(RS, r) ((RS) |= ((RegisterSet)1 << (RegisterSet)r))
+#define SET_BIT(B, r) ((B) |= ((u16)1 << (u16)r))
 
-#define CLR_BIT(RS, r)                                                         \
-  ((RS) &= (RegisterSet) ~((RegisterSet)1 << (RegisterSet)r))
+#define CLR_BIT(B, r) ((B) &= (u16) ~((u16)1 << (u16)r))
 
-#define CHK_BIT(RS, r) (((RS) >> (RegisterSet)r) & (RegisterSet)1)
+#define CHK_BIT(B, r) (((B) >> (u16)r) & (u16)1)
 
-void register_set_preallocate(RegisterSet *restrict rs, Register r) {
-  SET_BIT(*rs, r);
+RegisterSet register_set_create() {
+  RegisterSet rs = {.bitset = 0};
+  return rs;
 }
 
-Register register_set_next_available(RegisterSet *restrict rs) {
+void register_set_preallocate(RegisterSet *restrict rs, u16 local, Register r) {
+  assert(r != REG_NONE);
+  SET_BIT(rs->bitset, r);
+  rs->map[r] = local;
+}
+
+Register register_set_allocate(RegisterSet *restrict rs, u16 local) {
   for (u8 i = 0; i < 16; ++i) {
-    if (!CHK_BIT(*rs, i)) {
-      return (Register)i;
+    if (!CHK_BIT(rs->bitset, i)) {
+      SET_BIT(rs->bitset, i);
+      Register r = i;
+      rs->map[r] = local;
+      return r;
     }
   }
   return REG_NONE;
 }
 
-void register_set_release(RegisterSet *restrict rs, Register r) {
-  CLR_BIT(*rs, r);
+Register register_set_release(RegisterSet *restrict rs, u16 local) {
+  for (u8 i = 0; i < 16; ++i) {
+    if (rs->map[i] == local) {
+      CLR_BIT(rs->bitset, i);
+      return i;
+    }
+  }
+  return REG_NONE;
 }
 
 #undef SET_BIT

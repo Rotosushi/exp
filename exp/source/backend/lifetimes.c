@@ -19,19 +19,19 @@
 #include <assert.h>
 #include <string.h>
 
-#include "backend/lifetime_intervals.h"
+#include "backend/lifetimes.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 
-LifetimeIntervals lifetime_intervals_create() {
-  LifetimeIntervals li;
+Lifetimes lifetimes_create() {
+  Lifetimes li;
   li.size     = 0;
   li.capacity = 0;
   li.buffer   = NULL;
   return li;
 }
 
-void lifetime_intervals_destroy(LifetimeIntervals *restrict li) {
+void lifetimes_destroy(Lifetimes *restrict li) {
   assert(li != NULL);
   li->size     = 0;
   li->capacity = 0;
@@ -39,38 +39,37 @@ void lifetime_intervals_destroy(LifetimeIntervals *restrict li) {
   li->buffer = NULL;
 }
 
-static bool lifetime_intervals_full(LifetimeIntervals *restrict li) {
+static bool lifetimes_full(Lifetimes *restrict li) {
   return (li->size + 1) >= li->capacity;
 }
 
-static void lifetime_intervals_grow(LifetimeIntervals *restrict li) {
-  Growth g     = array_growth_u16(li->capacity, sizeof(Interval));
+static void lifetimes_grow(Lifetimes *restrict li) {
+  Growth g     = array_growth_u16(li->capacity, sizeof(Lifetime));
   li->buffer   = reallocate(li->buffer, g.alloc_size);
   li->capacity = (u16)g.new_capacity;
 }
 
-void lifetime_intervals_insert_sorted(LifetimeIntervals *restrict li,
-                                      Interval interval) {
+void lifetimes_insert_sorted(Lifetimes *restrict li, Lifetime l) {
   assert(li != NULL);
 
-  if (lifetime_intervals_full(li)) {
-    lifetime_intervals_grow(li);
+  if (lifetimes_full(li)) {
+    lifetimes_grow(li);
   }
 
-  // find the first interval that begins later than the new interval
+  // find the first lifetime that begins later than the new lifetime
   // and insert just before it.
   u16 i = 0;
   for (; i < li->size; ++i) {
-    if (li->buffer[i].first_use > interval.first_use) {
+    if (li->buffer[i].first_use > l.first_use) {
       break;
     }
   }
 
-  // shift all intervals after i forward one location
+  // shift all lifetimes after i forward one location
   for (u16 j = li->size; j > i; --j) {
     li->buffer[j] = li->buffer[j - 1];
   }
 
-  li->buffer[i] = interval;
+  li->buffer[i] = l;
   li->size += 1;
 }

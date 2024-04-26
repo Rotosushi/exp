@@ -4,11 +4,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
+  ${EXP_SOURCE_DIR}/backend/allocations.c
   ${EXP_SOURCE_DIR}/backend/as_directives.c
+  ${EXP_SOURCE_DIR}/backend/compute_allocations.c
+  ${EXP_SOURCE_DIR}/backend/compute_lifetimes.c
   ${EXP_SOURCE_DIR}/backend/emit_assembly.c
   ${EXP_SOURCE_DIR}/backend/instruction_selector.c
-  ${EXP_SOURCE_DIR}/backend/lifetime_intervals.c
-  ${EXP_SOURCE_DIR}/backend/register_allocator.c
+  ${EXP_SOURCE_DIR}/backend/lifetimes.c
   ${EXP_SOURCE_DIR}/backend/register_set.c
 
   ${EXP_SOURCE_DIR}/core/compile.c
