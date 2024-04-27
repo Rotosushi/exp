@@ -4,24 +4,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
-  ${EXP_SOURCE_DIR}/backend/allocations.c
-  ${EXP_SOURCE_DIR}/backend/as_directives.c
-  ${EXP_SOURCE_DIR}/backend/compute_allocations.c
-  ${EXP_SOURCE_DIR}/backend/compute_lifetimes.c
-  ${EXP_SOURCE_DIR}/backend/emit_assembly.c
-  ${EXP_SOURCE_DIR}/backend/IR_x64.c
-  ${EXP_SOURCE_DIR}/backend/lifetimes.c
-  ${EXP_SOURCE_DIR}/backend/register_set.c
-  ${EXP_SOURCE_DIR}/backend/register.c
-
-  ${EXP_SOURCE_DIR}/core/compile.c
+  ${EXP_SOURCE_DIR}/assembler/directives.c
 
   ${EXP_SOURCE_DIR}/env/call_stack.c
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
-  ${EXP_SOURCE_DIR}/env/control_flow_graph.c
   ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/locals.c
   ${EXP_SOURCE_DIR}/env/stack.c
