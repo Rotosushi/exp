@@ -6,14 +6,11 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/assembler/directives.c
 
-  ${EXP_SOURCE_DIR}/env/call_stack.c
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
-  ${EXP_SOURCE_DIR}/env/locals.c
-  ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c

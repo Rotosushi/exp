@@ -17,10 +17,8 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/call_stack.h"
 #include "env/constants.h"
 #include "env/context_options.h"
-#include "env/locals.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
@@ -36,8 +34,7 @@ typedef struct Context {
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbols;
-  CallStack call_stack;
-  Locals locals;
+  FunctionBody *current_function;
   Constants constants;
 } Context;
 
@@ -83,16 +80,9 @@ SymbolTableElement *context_global_symbols_at(Context *restrict context,
 SymbolTableIterator context_global_symbol_iterator(Context *restrict context);
 
 // function functions
-CallFrame context_push_function(Context *restrict c, StringView name);
+FunctionBody *context_enter_function(Context *restrict c, StringView name);
 
-void context_pop_function(Context *restrict c);
-
-CallFrame context_active_frame(Context *restrict c);
-
-// Locals functions
-Operand context_new_local(Context *restrict c);
-
-Value *context_local_at(Context *restrict c, Operand operand);
+void context_leave_function(Context *restrict c);
 
 // Constants functions
 Operand context_constants_add(Context *restrict context, Value value);

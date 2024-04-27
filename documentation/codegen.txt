@@ -18,139 +18,132 @@
 
 "how does the backend generate target machine assembly?"
 
-we need to select which target machine instructions implement the given IR.
-we need to select the order in which these instructions are executed.
-we need to select which registers the SSA locals are allocated.
+[https://arxiv.org/abs/1306.4898]
 
-then we have 
-    - which instruction is being emitted?
-    - what operands does it take as inputs?
-    - what are it's outputs?
-    - how does that affect the next instructions being emitted?
-    - how does that affect the previous instructions that were emitted?
+there are three main tasks which need to be accomplished:
+    - instruction selection 
+    - instruction scheduling 
+    - register allocation 
 
-so, how do we map bytecode instructions to target machine instructions?
+these three tasks are tightly coupled in the sense that 
+which instruction is selected has influence over which 
+register a value needs to be allocated within.
+And the reverse is true, which register a value is allocated 
+in has influence over which instructions can be selected.
+and this is occuring on a time axis as well, because
+values will often be needed within expressions that occur 
+later within the same scope, which affects where you can 
+schedule the instructions.
 
-there isn't a direct mapping for the current iteration of bytecode instructions.
-due to the three operand nature of the bytecode, and the two operand nature of x64.
+this is all on top of the fact that specific instructions have 
+further constraints on what registers their inputs can be in,
+what registers they affect as outputs, and how long each
+instruction takes to execute.
 
-essentially, the bytecode models the "side-effect" of producing a new value 
-as the result of addition by storing it into a newly allocated local. 
-(to preserve the SSA form.)
-and the x64 instruction simply models the "side-effect" of producing a new value 
-as the result of addition by storing it in the same register as one of the operands.
-which has the side-effect of overwriting the original value of the operand.
+the main thread that I have picked up is:
+data-flow analysis plus control-flow-analysis.
 
-which is similar to an accumulator. essentially the "+=" operation instead of 
-the "+" operation. Now, what is nice about x64 is that you can keep one register 
-as the "temporary" intermediate result as more and more additions are performed 
-on a given SSA local. and given that all arithmetic operations are similarly 
-"accumulator-style".
-this analysis would carry if you mixed addition, subtraction, and multiplication.
-where it breaks down is in the particulars.
-for instance multiplication can only be considered as above if the "accumulator"
-register is particularly %rax. and for division/modulus this only holds if the 
-dividend in particular is the temporary value being threaded through the 
-longer arithmetic expression.
+We are implementing a block-structured language.
 
-what I hope for here is that if we devise a method which translates 
-(A = B <op> C) bytecode into (B = B <op> C) x64, then we can apply that 
-method to each arithmetic operation. and we only have to add constraints 
-to allow for multiplication and division. we don't change the underlying 
-method.
+this means that for each instruction (I) within a basic block (BB) 
+the flow of execution starts at the top, and ends at the bottom.
+if there is some number (n) of I within a BB we can be sure 
+Iₙ execute when we execute that BB. 
+
+there are two kinds of breaks in this control flow, conditions and loops.
+
+within a condition, there is a choice of BB to execute.
+
+within a loop there is repeated execution of the same BB.
+
+and, these three constructs can be recursively applied.
+
+so we can have a basic block which contains a loop, and that 
+loop can contain a condition, and one of the choices can contain 
+another loop. Or any other possible combination of the above, ad-infinitum.
+
+we essentially have three patterns
+
+1 -> <BB> ->
+
+2 -> C
+    -> <BB0> 
+    -> <BB1> 
+  ->
+
+3 -> Loop
+    -> <BB0> -> Loop
+    ->
+ 
+if we consider the lowercase letters to be basic blocks with no 
+internal basic blocks. (we could call them simple, or straight-line, 
+or linear, or terminal, or case 1)
+
+then we consider the upper-case letters to be basic blocks with 
+some number of internal basic blocks. (we could call them composite,
+or complex, or non-terminal, or case 2/3)
+
+then modulo instructions and block structured program could be expressed
+as a graph of composed of these basic blocks.
+
+for instance we could have 
+
+-> <A> -> 
+
+<A> -> C
+        -> <B> 
+        -> <C>
+    -> <D>
+
+<B> -> L 
+        -> a -> L
+        -> 
+
+<C> -> b ->
+
+<D> -> c -> 
+
+if the assembly instructions which implement conditions and loops 
+are correctly modeled by this, and if we take the main subroutine
+to be the first basic block of a given program. 
+then I think this could be said to be the control flow graph of the program.
+
+we still need to model each instruction and sequence of instructions which 
+make up the semantics of individual language constructs. starting with binary and 
+unary operations on local variables. which we are starting with arithmetic.
+each bytecode instruction takes inputs and produces an output.
+and instruction can use existing locals as inputs, and we can think of the 
+flow of data through these instructions as the data-flow graph. 
+
+and this isn't the whole story about bytecode instructions, we also need the 
+data-flow graph to include information about the phi instructions which are 
+used to handle the multiple incoming edges to certain variables when those 
+variables have values which could come from multiple sources.
+for instance a variable is modified by both arms of an if-else conditional,
+and is used later in it's lifetime. How do we know which initializer to choose
+when the choice is happening at runtime? This is what the phi node models.
+
+then each target machine instruction has it's own set of inputs and outputs,
+has a time which it takes to run, has a place in the processor in which it runs, 
+which means that we can form a data-flow graph for a set of assembly instructions 
+as well. with additional information such as the costs and constraints of that 
+instruction.
 
 
-7 - "how does the register allocator use the IR to allocate variables?"
+Thus we have multiple graphs worth of important information all of which are 
+important in making choices about which instructions to select, where to 
+place them, and what registers are they operate on.
 
-    So, from my current research into this, the "linear scan register allocation"
-    seems to work nicely. It is less complex than graph coloring, and apparently 
-    generates code which approaches the quality produced by graph coloring 
-    [https://dl.acm.org/doi/10.1145/330249.330250]. 
-    There are several algorithms which improve upon the initial algortihm as well.
-    (one that I am particularly interested in is: 
-    [https://arxiv.org/abs/2011.05608])
+So, the method that I want to apply is pattern-matching and pattern-selection.
 
-    the pseudo-code for linear scan register allocation:
+The basic idea is (afaict) to model the underlying x64 ISA as a set of 
+a little pieces of a graph. a set of patterns.
 
-    LinearScanRegisterAllocation
-    active ← {}
-    for each live interval i, in order of increasing start point do
-        ExpireOldIntervals(i)
-        if length(active) = R then
-            SpillAtInterval(i)
-        else
-            register[i] ← a register removed from pool of free registers
-            add i to active, sorted by increasing end point
+then we take the total input graph which models the bytecode, and we construct 
+a new graph out of patterns which implement the input graph.
 
-    ExpireOldIntervals(i)
-        for each interval j in active, in order of increasing end point do
-            if endpoint[j] ≥ startpoint[i] then
-                return 
-            remove j from active
-            add register[j] to pool of free registers
 
-    SpillAtInterval(i)
-        spill ← last interval in active
-        if endpoint[spill] > endpoint[i] then
-            register[i] ← register[spill]
-            location[spill] ← new stack location
-            remove spill from active
-            add i to active, sorted by increasing end point
-        else
-            location[i] ← new stack location
 
-    The algorithm relies on a set of "liveness ranges" or "live intervals"
-    which are precomputed for each basic block. The live interval is 
-    simply the interval that a given value is "alive." That is the 
-    range over which a variable is accessible within the current scope.
-
-    In order to allocate registers, this algorithm needs an enumeration 
-    of all available registers on the target machine. 
-    We also need to pre-allocate registers for incoming function arguments,
-    and for outgoing function arguments, and for certain instructions. 
-    (division, bit rotate, bit shift, etc.)
-
-    and this leads naturally into:
-
-7 - "how does the backend generate target machine assembly?"
-
-    so, very broadly, it's walk each global symbol and 
-    convert it into assembly. 
-
-    specifically:
-    
-    -   global variables and constants can be converted 
-        into global data in the assembly file, as long as the size is 
-        known, space can be allocated within the assembly file. If an 
-        initializer exists, then this can be added to the assembly 
-        definition as well.
-
-    -   functions are more complex. 
-        broadly: convert each bytecode instruction into 
-        an "equivalent" assembly instruction.
-
-        There is often a 1-to-1 correspondence: 
-        move -> mov 
-        add -> add 
-        etc...
-
-        and when there isn't we can expand the produced 
-        assembly to generate the semantics of the single bytecode 
-        instruction.
-
-        The harder question is how do we map the "infinite" set 
-        of SSA local variables into a finite set of physical registers 
-        and stack space?
-
-        (note that 2^16 is not infinite, it's just larger than we 
-         presume we will need for all but the longest functions.)
-
-        first we have to compute the liveness intervals for all 
-        locals within the function. Then the register allocator 
-        uses that data to allocate locals to registers.
-        Then the instruction selector uses the register mapping 
-        to map bytecode instructions over SSA locals to assembly 
-        instructions over registers and stack space.
 
 
 

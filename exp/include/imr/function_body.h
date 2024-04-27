@@ -43,6 +43,7 @@ void formal_argument_list_append(FormalArgumentList *restrict fal,
 typedef struct FunctionBody {
   FormalArgumentList arguments;
   Type *return_type;
+  u16 local_count;
   Bytecode bc;
 } FunctionBody;
 

@@ -69,6 +69,7 @@ FunctionBody function_body_create() {
   function.arguments   = formal_argument_list_create();
   function.return_type = NULL;
   function.bc          = bytecode_create();
+  function.local_count = 0;
   return function;
 }
 
@@ -76,6 +77,8 @@ void function_body_destroy(FunctionBody *restrict function) {
   assert(function != NULL);
   formal_argument_list_destroy(&function->arguments);
   bytecode_destroy(&function->bc);
+  function->return_type = NULL;
+  function->local_count = 0;
 }
 
 Type *function_body_type_of(FunctionBody const *restrict f,

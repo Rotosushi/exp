@@ -322,8 +322,7 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
 
-  CallFrame cf       = context_push_function(c, name);
-  FunctionBody *body = cf.function;
+  FunctionBody *body = context_enter_function(c, name);
 
   {
     ParserResult maybe = parse_formal_argument_list(p, c, body);
@@ -339,7 +338,7 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
     }
   }
 
-  context_pop_function(c);
+  context_leave_function(c);
 
 #if EXP_DEBUG
   file_write("parsed a function: \n fn ", stdout);
@@ -459,12 +458,12 @@ static ParserResult integer(Parser *restrict p,
 
   nexttok(p);
   Operand B;
-  // if (integer <= u16_MAX) {
-  //   B = immediate((u16)integer);
-  // } else {
-  Operand index = context_constants_add(c, value_create_integer(integer));
-  B             = context_emit_move(c, index);
-  // }
+  if (integer <= u16_MAX) {
+    B = immediate((u16)integer);
+  } else {
+    Operand index = context_constants_add(c, value_create_integer(integer));
+    B             = context_emit_move(c, index);
+  }
 
   return success(B);
 }
