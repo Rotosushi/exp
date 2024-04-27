@@ -31,6 +31,6 @@ some basic questions:
 6 - how do we allocate global constants and new types when BC IR
     is optimized towards working with local variables?
 
-7 - how does the backend  generate target machine assembly?
+7 - how does the backend generate target machine assembly?
 7a - how does the register allocator use the IR to allocate variables?
 

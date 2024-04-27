@@ -16,6 +16,48 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
 
+"how does the backend generate target machine assembly?"
+
+we need to select which target machine instructions implement the given IR.
+we need to select the order in which these instructions are executed.
+we need to select which registers the SSA locals are allocated.
+
+then we have 
+    - which instruction is being emitted?
+    - what operands does it take as inputs?
+    - what are it's outputs?
+    - how does that affect the next instructions being emitted?
+    - how does that affect the previous instructions that were emitted?
+
+so, how do we map bytecode instructions to target machine instructions?
+
+there isn't a direct mapping for the current iteration of bytecode instructions.
+due to the three operand nature of the bytecode, and the two operand nature of x64.
+
+essentially, the bytecode models the "side-effect" of producing a new value 
+as the result of addition by storing it into a newly allocated local. 
+(to preserve the SSA form.)
+and the x64 instruction simply models the "side-effect" of producing a new value 
+as the result of addition by storing it in the same register as one of the operands.
+which has the side-effect of overwriting the original value of the operand.
+
+which is similar to an accumulator. essentially the "+=" operation instead of 
+the "+" operation. Now, what is nice about x64 is that you can keep one register 
+as the "temporary" intermediate result as more and more additions are performed 
+on a given SSA local. and given that all arithmetic operations are similarly 
+"accumulator-style".
+this analysis would carry if you mixed addition, subtraction, and multiplication.
+where it breaks down is in the particulars.
+for instance multiplication can only be considered as above if the "accumulator"
+register is particularly %rax. and for division/modulus this only holds if the 
+dividend in particular is the temporary value being threaded through the 
+longer arithmetic expression.
+
+what I hope for here is that if we devise a method which translates 
+(A = B <op> C) bytecode into (B = B <op> C) x64, then we can apply that 
+method to each arithmetic operation. and we only have to add constraints 
+to allow for multiplication and division. we don't change the underlying 
+method.
 
 
 7 - "how does the register allocator use the IR to allocate variables?"

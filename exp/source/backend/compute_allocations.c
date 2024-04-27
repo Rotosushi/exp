@@ -281,23 +281,39 @@ in my own words:
     else
     spill an active lifetime.
 */
-Allocations compute_allocations(Lifetimes *restrict lifetimes) {
+static void linear_scan(Allocator *restrict ar, Allocations *restrict as,
+                        Lifetimes *restrict ls) {
+  for (u16 i = 0; i < ls->size; ++i) {
+    Lifetime l = ls->buffer[i];
+
+    expire_old_intervals(ar, l);
+
+    Register r = register_set_allocate(&ar->rs, l.local);
+    if (r == REG_NONE) {
+      spill_at_interval(ar, as, l);
+    } else {
+      allocations_allocate(as, l.local, r);
+      active_lifetimes_insert_sorted(&ar->active, l);
+    }
+  }
+}
+
+//
+// static void compute_preallocations(Allocator *restrict ar,
+// Allocations *restrict as,
+// Lifetimes *restrict ls) {
+// what needs to be preallocated?
+// well, in general, local variables which
+// are used by specific instructions.
+//
+
+//}
+
+Allocations compute_allocations(Lifetimes *restrict ls) {
   Allocations as = allocations_create();
   Allocator ar   = allocator_create();
 
-  for (u16 i = 0; i < lifetimes->size; ++i) {
-    Lifetime l = lifetimes->buffer[i];
-
-    expire_old_intervals(&ar, l);
-
-    Register r = register_set_allocate(&ar.rs, l.local);
-    if (r == REG_NONE) {
-      spill_at_interval(&ar, &as, l);
-    } else {
-      allocations_allocate(&as, l.local, r);
-      active_lifetimes_insert_sorted(&ar.active, l);
-    }
-  }
+  linear_scan(&ar, &as, ls);
 
   allocator_destroy(&ar);
   return as;

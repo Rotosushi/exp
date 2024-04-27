@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_REGISTER_H
 #define EXP_BACKEND_REGISTER_H
 #include "utility/int_types.h"
+#include "utility/string_view.h"
 
 /**
  * @brief enumerates the general purpose registers in x64
@@ -46,5 +47,7 @@ typedef enum Register {
   REG_R15,
   REG_NONE,
 } Register;
+
+StringView register_to_sv(Register r);
 
 #endif // !EXP_BACKEND_REGISTER_H

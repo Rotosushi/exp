@@ -9,9 +9,10 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/compute_allocations.c
   ${EXP_SOURCE_DIR}/backend/compute_lifetimes.c
   ${EXP_SOURCE_DIR}/backend/emit_assembly.c
-  ${EXP_SOURCE_DIR}/backend/instruction_selector.c
+  ${EXP_SOURCE_DIR}/backend/IR_x64.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
   ${EXP_SOURCE_DIR}/backend/register_set.c
+  ${EXP_SOURCE_DIR}/backend/register.c
 
   ${EXP_SOURCE_DIR}/core/compile.c
 

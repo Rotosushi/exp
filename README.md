@@ -1,2 +1,3 @@
 # exp
-A hobby programming language
+
+I am writing this to learn about programming language implementation.
