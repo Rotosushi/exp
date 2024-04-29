@@ -14,22 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_INTRINSICS_TYPE_OF_H
-#define EXP_INTRINSICS_TYPE_OF_H
+#ifndef EXP_CORE_COMPILE_H
+#define EXP_CORE_COMPILE_H
+#include "utility/int_types.h"
 
-#include "env/context.h"
-#include "imr/type.h"
-#include "imr/value.h"
+i32 compile(i32 argc, char const *argv[]);
 
-/**
- * @brief return the type of the given value
- *
- * @param value
- * @param context
- * @return Type*
- */
-Type *type_of(Value *restrict value, Context *restrict context);
-
-Type *type_of_function(FunctionBody *restrict body, Context *restrict context);
-
-#endif // !EXP_INTRINSICS_TYPE_OF_H
+#endif // !EXP_CORE_COMPILE_H

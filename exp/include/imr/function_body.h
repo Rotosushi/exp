@@ -34,9 +34,6 @@ typedef struct FormalArgumentList {
 } FormalArgumentList;
 
 FormalArgumentList formal_argument_list_create();
-bool formal_argument_list_equality(FormalArgumentList *a1,
-                                   FormalArgumentList *a2);
-
 void formal_argument_list_append(FormalArgumentList *restrict fal,
                                  FormalArgument arg);
 
@@ -49,10 +46,6 @@ typedef struct FunctionBody {
 
 FunctionBody function_body_create();
 void function_body_destroy(FunctionBody *restrict function);
-
-struct Context;
-Type *function_body_type_of(FunctionBody const *restrict f,
-                            struct Context *restrict context);
 
 void print_function_body(FunctionBody const *restrict f, FILE *restrict file);
 

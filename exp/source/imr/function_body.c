@@ -81,22 +81,7 @@ void function_body_destroy(FunctionBody *restrict function) {
   function->local_count = 0;
 }
 
-Type *function_body_type_of(FunctionBody const *restrict f,
-                            Context *restrict context) {
-  assert(f != NULL);
-  assert(f->return_type != NULL);
-
-  ArgumentTypes argument_types = argument_types_create();
-  for (u64 i = 0; i < f->arguments.size; ++i) {
-    FormalArgument *formal_argument = &f->arguments.list[i];
-    Type *argument_type             = formal_argument->type;
-    argument_types_append(&argument_types, argument_type);
-  }
-
-  return context_function_type(context, f->return_type, argument_types);
-}
-
-void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
+static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
   file_write(arg->name.ptr, file);
   file_write(": ", file);
   print_type(arg->type, file);

@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "assembler/directives.h"
+#include "core/directives.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 

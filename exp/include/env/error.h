@@ -47,7 +47,9 @@ typedef enum ErrorCode {
 
   ERROR_PARSER_UNEXPECTED_TOKEN,
 
-  ERROR_INTERPRET_EXPECTED_TYPE_I64,
+  ERROR_TYPECHECK_UNDEFINED_SYMBOL,
+
+  ERROR_TYPECHECK_TYPE_MISMATCH,
 } ErrorCode;
 
 char const *error_code_cstring(ErrorCode code);
@@ -70,11 +72,12 @@ typedef struct Error {
 Error error_create();
 Error error_construct(ErrorCode code, char const *restrict data);
 Error error_from_view(ErrorCode code, StringView sv);
+Error error_from_string(ErrorCode code, String str);
 void error_destroy(Error *restrict error);
 
 void error_assign(Error *restrict error, ErrorCode code,
                   char const *restrict data);
 
-void error_print(Error *restrict error, char const *restrict file, u64 line);
+void error_print(Error *restrict error, StringView file, u64 line);
 
 #endif // !EXP_ENV_ERROR_H

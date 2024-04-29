@@ -64,8 +64,11 @@ char const *error_code_cstring(ErrorCode code) {
   case ERROR_PARSER_UNEXPECTED_TOKEN:
     return "Unexpected Token: ";
 
-  case ERROR_INTERPRET_EXPECTED_TYPE_I64:
-    return "Expected Type [i64]. Have: ";
+  case ERROR_TYPECHECK_UNDEFINED_SYMBOL:
+    return "Symbol Undefined: ";
+
+  case ERROR_TYPECHECK_TYPE_MISMATCH:
+    return "Expected Type does not match Actual Type: ";
 
   default:
     PANIC("bad ErrorCode");
@@ -93,6 +96,11 @@ Error error_from_view(ErrorCode code, StringView sv) {
   return error;
 }
 
+Error error_from_string(ErrorCode code, String str) {
+  Error error = {.code = code, .message = str};
+  return error;
+}
+
 void error_destroy(Error *restrict error) {
   error->code = ERROR_NONE;
   string_destroy(&error->message);
@@ -104,13 +112,13 @@ void error_assign(Error *restrict error, ErrorCode code,
   string_assign(&error->message, data);
 }
 
-void error_print(Error *restrict error, char const *restrict file, u64 line) {
+void error_print(Error *restrict error, StringView file, u64 line) {
   String msg = string_create();
   string_append(&msg, "\nError: ");
   string_append(&msg, error_code_cstring(error->code));
   string_append(&msg, "[");
   string_append(&msg, error->message.buffer);
   string_append(&msg, "]");
-  log_message(LOG_ERROR, file, line, msg.buffer, stderr);
+  log_message(LOG_ERROR, file.ptr, line, msg.buffer, stderr);
   string_destroy(&msg);
 }

@@ -4,7 +4,10 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
-  ${EXP_SOURCE_DIR}/assembler/directives.c
+  ${EXP_SOURCE_DIR}/core/codegen.c
+  ${EXP_SOURCE_DIR}/core/compile.c
+  ${EXP_SOURCE_DIR}/core/directives.c
+  ${EXP_SOURCE_DIR}/core/typecheck.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/constants.c

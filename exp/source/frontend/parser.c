@@ -569,8 +569,7 @@ i32 parse(char const *restrict buffer, Context *restrict c) {
   while (!finished(&p)) {
     ParserResult maybe = definition(&p, c);
     if (maybe.has_error) {
-      StringView source = context_source_path(c);
-      error_print(&maybe.error, source.ptr, curline(&p));
+      error_print(&maybe.error, context_source_path(c), curline(&p));
       parser_result_destroy(&maybe);
       return EXIT_FAILURE;
     }

@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+
 #include "intrinsics/type_of.h"
 #include "utility/panic.h"
 
@@ -36,4 +38,18 @@ Type *type_of(Value *restrict value, Context *restrict context) {
   default:
     PANIC("bad VALUEKIND");
   }
+}
+
+Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
+  assert(body != NULL);
+  assert(body->return_type != NULL);
+
+  ArgumentTypes argument_types = argument_types_create();
+  for (u64 i = 0; i < body->arguments.size; ++i) {
+    FormalArgument *formal_argument = &body->arguments.list[i];
+    Type *argument_type             = formal_argument->type;
+    argument_types_append(&argument_types, argument_type);
+  }
+
+  return context_function_type(context, body->return_type, argument_types);
 }

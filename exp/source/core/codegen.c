@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 cade
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,10 +14,11 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/compile.h"
+#include <assert.h>
+#include <stdlib.h>
 
-i32 main(i32 argc, char const *argv[], [[maybe_unused]] char *envv[]) {
-  return compile(argc, argv);
-}
+#include "core/codegen.h"
+
+i32 codegen(Context *restrict context) { return EXIT_SUCCESS; }
