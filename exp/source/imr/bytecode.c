@@ -65,29 +65,29 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 
 #define FORMAT_B(I, OP, B)                                                     \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, FORMAT_B);                                                \
+  INST_SET_FORMAT(I, IFMT_B);                                                \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common)
 
 #define FORMAT_AB(I, OP, A, B)                                                 \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, FORMAT_AB);                                               \
+  INST_SET_FORMAT(I, IFMT_AB);                                               \
   INST_SET_A(I, A.common);                                                     \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common)
 
 #define FORMAT_ABC(I, OP, A, B, C)                                             \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, FORMAT_ABC);                                              \
+  INST_SET_FORMAT(I, IFMT_ABC);                                              \
   INST_SET_A(I, A.common);                                                     \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common);                                                     \
   INST_SET_C_FORMAT(I, C.format);                                              \
   INST_SET_C(I, C.common)
 
-//  AB  -- L[A] = B
-//  AB  -- L[A] = C[B]
-//  AB  -- L[A] = L[B]
+// AB -- L[A] = B
+// AB -- L[A] = C[B]
+// AB -- L[A] = L[B]
 void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
 
@@ -229,15 +229,15 @@ static void print_immediate(u16 v, FILE *restrict file) {
 static void print_operand(OperandFormat format, u16 value,
                           FILE *restrict file) {
   switch (format) {
-  case FORMAT_LOCAL:
+  case OPRFMT_SSA:
     print_local(value, file);
     break;
 
-  case FORMAT_CONSTANT:
+  case OPRFMT_CONSTANT:
     print_constant(value, file);
     break;
 
-  case FORMAT_IMMEDIATE:
+  case OPRFMT_IMMEDIATE:
     print_immediate(value, file);
     break;
 
@@ -248,7 +248,7 @@ static void print_operand(OperandFormat format, u16 value,
 
 static void print_operand_A(Instruction I, FILE *restrict file) {
   u16 v = INST_A(I);
-  print_operand(FORMAT_LOCAL, v, file);
+  print_operand(OPRFMT_SSA, v, file);
 }
 
 static void print_operand_B(Instruction I, FILE *restrict file) {

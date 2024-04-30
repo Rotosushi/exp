@@ -88,7 +88,7 @@ static void lt_set(LocalTypes *restrict lt, u16 local, Type *type) {
 static TResult typecheck_operand(Context *restrict c, LocalTypes *restrict lt,
                                  OperandFormat fmt, u16 operand) {
   switch (fmt) {
-  case FORMAT_LOCAL: {
+  case OPRFMT_SSA: {
     Type *t = lt_at(lt, operand);
     if (t == NULL) {
       StringView sv = string_view_from_string("", 0);
@@ -97,12 +97,12 @@ static TResult typecheck_operand(Context *restrict c, LocalTypes *restrict lt,
 
     return success(t);
   }
-  case FORMAT_CONSTANT: {
+  case OPRFMT_CONSTANT: {
     Value *value = context_constants_at(c, operand);
     return success(type_of(value, c));
   }
 
-  case FORMAT_IMMEDIATE: {
+  case OPRFMT_IMMEDIATE: {
     return success(context_i64_type(c));
   }
 
@@ -336,8 +336,7 @@ static TResult typecheck_ste(Context *restrict c,
   }
 
   default:
-    PANIC("bad SymbolTableElementKind");
-    break;
+    unreachable();
   }
 }
 

@@ -160,7 +160,11 @@ void string_assign_view(String *restrict str, StringView sv);
  */
 void string_append(String *restrict str, const char *restrict data);
 
-// void string_append_view(String *restrict str, StringView sv);
+void string_append_sv(String *restrict str, StringView sv);
+
+void string_append_i64(String *restrict str, i64 i);
+
+void string_append_u64(String *restrict str, u64 u);
 
 // /**
 //  * @brief concatenates <s2> onto the end of <s1>

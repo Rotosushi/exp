@@ -25,6 +25,7 @@
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
+#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 String string_create() {
@@ -168,6 +169,33 @@ static void string_append_impl(String *restrict str, char const *restrict data,
 void string_append(String *restrict str, const char *restrict data) {
   assert(str != NULL);
   string_append_impl(str, data, strlen(data));
+}
+
+void string_append_sv(String *restrict str, StringView sv) {
+  assert(str != NULL);
+  string_append_impl(str, sv.ptr, sv.length);
+}
+
+void string_append_i64(String *restrict str, i64 i) {
+  u64 len = i64_safe_strlen(i, RADIX_DECIMAL);
+  char buf[len + 1];
+  char *r = i64_to_str(i, buf, RADIX_DECIMAL);
+  if (r == NULL) {
+    PANIC("conversion failed");
+  }
+  buf[len] = '\0';
+  string_append_impl(str, buf, len);
+}
+
+void string_append_u64(String *restrict str, u64 u) {
+  u64 len = u64_safe_strlen(u, RADIX_DECIMAL);
+  char buf[len + 1];
+  char *r = u64_to_str(u, buf, RADIX_DECIMAL);
+  if (r == NULL) {
+    PANIC("conversion failed");
+  }
+  buf[len] = '\0';
+  string_append_impl(str, buf, len);
 }
 
 // void string_append_view(String *restrict str, StringView sv) {

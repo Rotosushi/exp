@@ -20,16 +20,16 @@
 #include "imr/operand.h"
 
 Operand local(u16 common) {
-  Operand o = {.format = FORMAT_LOCAL, .common = common};
+  Operand o = {.format = OPRFMT_SSA, .common = common};
   return o;
 }
 
 Operand constant(u16 common) {
-  Operand o = {.format = FORMAT_CONSTANT, .common = common};
+  Operand o = {.format = OPRFMT_CONSTANT, .common = common};
   return o;
 }
 
 Operand immediate(u16 common) {
-  Operand o = {.format = FORMAT_IMMEDIATE, .common = common};
+  Operand o = {.format = OPRFMT_IMMEDIATE, .common = common};
   return o;
 }

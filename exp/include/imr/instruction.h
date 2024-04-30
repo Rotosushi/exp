@@ -84,6 +84,10 @@ typedef enum Opcode {
    * L[*]  -> indexing the locals array
    * C[*]  -> indexing the constants array
    */
+  OPC_RET, // B -- L[R] = B,    <return>
+           // B -- L[R] = C[B], <return>
+           // B -- L[R] = L[B], <return>
+
   OPC_MOVE, // AB  -- L[A] = B
             // AB  -- L[A] = C[B]
             // AB  -- L[A] = L[B]
@@ -141,22 +145,18 @@ typedef enum Opcode {
            // ABC -- L[A] = B    % L[C]
            // ABC -- L[A] = B    % C[C]
            // ABC -- L[A] = B    % C
-
-  OPC_RET, // B -- L[R] = B,    <return>
-           // B -- L[R] = C[B], <return>
-           // B -- L[R] = L[B], <return>
 } Opcode;
 
 typedef enum InstructionFormat {
-  FORMAT_B   = 0x0,
-  FORMAT_AB  = 0x1,
-  FORMAT_ABC = 0x2,
+  IFMT_B   = 0x0,
+  IFMT_AB  = 0x1,
+  IFMT_ABC = 0x2,
 } InstructionFormat;
 
 typedef enum OperandFormat {
-  FORMAT_LOCAL     = 0x0,
-  FORMAT_CONSTANT  = 0x1,
-  FORMAT_IMMEDIATE = 0x2,
+  OPRFMT_SSA       = 0x0,
+  OPRFMT_CONSTANT  = 0x1,
+  OPRFMT_IMMEDIATE = 0x2,
 } OperandFormat;
 
 #define INST_OP(I) ((Opcode)((u8)((I) & u8_MAX)))

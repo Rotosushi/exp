@@ -62,7 +62,7 @@ static ParserResult success(Operand result) {
 }
 
 static Operand zero() {
-  Operand o = {.format = FORMAT_IMMEDIATE, .common = 0};
+  Operand o = {.format = OPRFMT_IMMEDIATE, .common = 0};
   return o;
 }
 
