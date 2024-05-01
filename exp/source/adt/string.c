@@ -80,6 +80,7 @@ String string_from_file(FILE *restrict file) {
   u64 flen = file_length(file);
   string_resize(&s, flen);
   file_read(s.buffer, flen, file);
+  s.length = flen;
   return s;
 }
 
@@ -105,7 +106,7 @@ bool string_empty(String const *restrict string) {
 void string_resize(String *restrict str, u64 new_capacity) {
   assert(str != NULL);
   Growth g                 = array_growth_u64(new_capacity, sizeof(char));
-  str->buffer              = reallocate(str->buffer, g.alloc_size);
+  str->buffer              = reallocate(str->buffer, g.new_capacity);
   str->capacity            = g.new_capacity;
   str->buffer[str->length] = '\0';
 }

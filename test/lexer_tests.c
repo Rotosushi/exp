@@ -17,13 +17,14 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
+#include <string.h>
 
 #include "frontend/lexer.h"
 
 // return true on failure
 static bool test_lexer_scans_token(const char *buffer, Token token) {
   Lexer lexer = lexer_create();
-  lexer_set_view(&lexer, buffer);
+  lexer_set_view(&lexer, buffer, strlen(buffer));
 
   Token scanned = lexer_scan(&lexer);
   if (scanned != token) {

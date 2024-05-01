@@ -89,6 +89,7 @@ TypeInterner type_interner_create() {
 
 void type_interner_destroy(TypeInterner *restrict type_interner) {
   assert(type_interner != NULL);
+  function_types_destroy(&type_interner->function_types);
   return;
 }
 

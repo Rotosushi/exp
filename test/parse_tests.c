@@ -30,7 +30,7 @@ static Context init_context() {
 bool test_parse(char const *body) {
   Context context = init_context();
 
-  bool failure = (parse(body, &context) == EXIT_FAILURE);
+  bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 
   context_destroy(&context);
 

@@ -128,7 +128,7 @@ void symbol_table_iterator_next(SymbolTableIterator *restrict iter) {
   if ((iter->element != iter->end) && (iter->element != NULL)) {
     do {
       iter->element += 1;
-    } while ((iter->element->name.ptr == NULL) && (iter->element != iter->end));
+    } while ((iter->element != iter->end) && (iter->element->name.ptr == NULL));
   }
 }
 

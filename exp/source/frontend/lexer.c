@@ -30,7 +30,8 @@ Lexer lexer_create() {
 
 void lexer_init(Lexer *restrict lexer) {
   assert(lexer != NULL);
-  lexer->cursor = lexer->token = NULL;
+  lexer->length = 0;
+  lexer->buffer = lexer->cursor = lexer->token = NULL;
   lexer->line = lexer->column = 1;
 }
 
@@ -39,17 +40,15 @@ void lexer_reset(Lexer *restrict lexer) {
   lexer_init(lexer);
 }
 
-void lexer_set_view(Lexer *restrict lexer, char const *buffer) {
+void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length) {
   assert(lexer != NULL);
-  lexer->cursor = lexer->token = buffer;
+  lexer->buffer = lexer->cursor = lexer->token = buffer;
+  lexer->length                                = length;
 }
 
 bool lexer_at_end(Lexer *restrict lexer) {
   assert(lexer != NULL);
-  if ((lexer->cursor == NULL) || (lexer->token == NULL)) {
-    return 1;
-  }
-  return *(lexer->cursor) == '\0';
+  return (u64)(lexer->cursor - lexer->buffer) == lexer->length;
 }
 
 static u64 lexer_current_text_length(Lexer const *restrict lexer) {
@@ -217,6 +216,10 @@ static Token lexer_identifier(Lexer *restrict lexer) {
 
 Token lexer_scan(Lexer *restrict lexer) {
   assert(lexer != NULL);
+  if (lexer_at_end(lexer)) {
+    return TOK_END;
+  }
+
   lexer_skip_whitespace(lexer);
   lexer->token = lexer->cursor;
 

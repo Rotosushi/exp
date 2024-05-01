@@ -23,10 +23,12 @@
 #include "utility/string_view.h"
 
 typedef struct Lexer {
+  const char *buffer;
   const char *token;
   const char *cursor;
   u64 line;
   u64 column;
+  u64 length;
 } Lexer;
 
 /**
@@ -58,7 +60,7 @@ void lexer_reset(Lexer *restrict lexer);
  * @param lexer
  * @param buffer
  */
-void lexer_set_view(Lexer *restrict lexer, char const *buffer);
+void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length);
 
 /**
  * @brief returns true when the <lexer> has scanned all

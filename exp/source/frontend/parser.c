@@ -96,14 +96,15 @@ static Parser parser_create() {
   return parser;
 }
 
-static void parser_set_view(Parser *restrict parser, char const *buffer) {
+static void parser_set_view(Parser *restrict parser, char const *buffer,
+                            u64 length) {
   assert(parser != NULL);
   assert(buffer != NULL);
-  lexer_set_view(&(parser->lexer), buffer);
+  lexer_set_view(&(parser->lexer), buffer, length);
 }
 
 static bool finished(Parser *restrict parser) {
-  return lexer_at_end(&parser->lexer);
+  return parser->curtok == TOK_END;
 }
 
 static StringView curtxt(Parser *restrict parser) {
@@ -556,13 +557,13 @@ static ParseRule *get_rule(Token token) {
   return &rules[token];
 }
 
-i32 parse(char const *restrict buffer, Context *restrict c) {
+i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
   assert(buffer != NULL);
   assert(c != NULL);
 
   Parser p = parser_create();
 
-  parser_set_view(&p, buffer);
+  parser_set_view(&p, buffer, length);
   nexttok(&p);
 
   while (!finished(&p)) {
@@ -580,7 +581,7 @@ i32 parse(char const *restrict buffer, Context *restrict c) {
 i32 parse_source(Context *restrict c) {
   assert(c != NULL);
   String buffer = context_buffer_source(c);
-  i32 result    = parse(buffer.buffer, c);
+  i32 result    = parse_buffer(buffer.buffer, buffer.length, c);
   string_destroy(&buffer);
   return result;
 }
