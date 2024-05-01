@@ -156,30 +156,26 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  // switch (B.format) {
-  // case OPRFMT_SSA: {
-  //   A = context_new_local(c);
-  //   bytecode_emit_neg(bc, A, B);
-  //   break;
-  // }
+  switch (B.format) {
+  case OPRFMT_SSA:
+  case OPRFMT_CONSTANT: {
+    A = context_new_local(c);
+    bytecode_emit_neg(bc, A, B);
+    break;
+  }
 
-  // case OPRFMT_CONSTANT: {
-  //   Value *constant = context_constants_at(c, B.common);
-  //   A               = immediate(-(constant->integer));
-  //   break;
-  // }
+  case OPRFMT_IMMEDIATE: {
+    i64 n = -((i64)(B.common));
+    if (n > i16_MAX || n < i16_MIN) {
+      PANIC("immediate out of bounds");
+    }
+    A = opr_immediate((u16)n);
+    break;
+  }
 
-  // case OPRFMT_IMMEDIATE: {
-  //   A = immediate(-B.common);
-  //   break;
-  // }
-
-  // default:
-  //   unreachable();
-  // }
-
-  A = context_new_local(c);
-  bytecode_emit_neg(bc, A, B);
+  default:
+    unreachable();
+  }
 
   return A;
 }
@@ -188,116 +184,89 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-
-  // switch (B.format) {
-  // case OPRFMT_SSA: {
-  //   switch (C.format) {
-  //   case OPRFMT_SSA: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_CONSTANT: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_IMMEDIATE: {
-
-  //     break;
-  //   }
-
-  //   default:
-  //     unreachable();
-  //   }
-  //   break;
-  // }
-
-  // case OPRFMT_CONSTANT: {
-  //   switch (C.format) {
-  //   case OPRFMT_SSA: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_CONSTANT: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_IMMEDIATE: {
-
-  //     break;
-  //   }
-
-  //   default:
-  //     unreachable();
-  //   }
-  //   break;
-  // }
-
-  // case OPRFMT_IMMEDIATE: {
-  //   switch (C.format) {
-  //   case OPRFMT_SSA: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_CONSTANT: {
-
-  //     break;
-  //   }
-
-  //   case OPRFMT_IMMEDIATE: {
-
-  //     break;
-  //   }
-
-  //   default:
-  //     unreachable();
-  //   }
-  //   break;
-  // }
-
-  // default:
-  //   unreachable();
-  // }
-
-  A = context_new_local(c);
-  bytecode_emit_add(bc, A, B, C);
-
+  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
+    i64 n = B.common + C.common;
+    if (n > i16_MAX || n < i16_MIN) {
+      A = context_constants_add(c, value_create_integer(n));
+    } else {
+      A = opr_immediate((u16)n);
+    }
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_add(bc, A, B, C);
+  }
   return A;
 }
 
 Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_sub(bc, A, B, C);
+  Operand A;
+  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
+    i64 n = B.common - C.common;
+    if (n > i16_MAX || n < i16_MIN) {
+      A = context_constants_add(c, value_create_integer(n));
+    } else {
+      A = opr_immediate((u16)n);
+    }
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_sub(bc, A, B, C);
+  }
   return A;
 }
 
 Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_mul(bc, A, B, C);
+  Operand A;
+  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
+    i64 n = B.common * C.common;
+    if (n > i16_MAX || n < i16_MIN) {
+      A = context_constants_add(c, value_create_integer(n));
+    } else {
+      A = opr_immediate((u16)n);
+    }
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_mul(bc, A, B, C);
+  }
   return A;
 }
 
 Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_div(bc, A, B, C);
+  Operand A;
+  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
+    i64 n = B.common / C.common;
+    if (n > i16_MAX || n < i16_MIN) {
+      A = context_constants_add(c, value_create_integer(n));
+    } else {
+      A = opr_immediate((u16)n);
+    }
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_div(bc, A, B, C);
+  }
   return A;
 }
 
 Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
-  bytecode_emit_mod(bc, A, B, C);
+  Operand A;
+  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
+    i64 n = B.common % C.common;
+    if (n > i16_MAX || n < i16_MIN) {
+      A = context_constants_add(c, value_create_integer(n));
+    } else {
+      A = opr_immediate((u16)n);
+    }
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_mod(bc, A, B, C);
+  }
   return A;
 }
 

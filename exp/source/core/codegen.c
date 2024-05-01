@@ -273,12 +273,12 @@ typedef struct Active {
   ActiveLifetime *buffer;
 } Active;
 
-static Active a_create() {
+static Active active_create() {
   Active a = {.stack_size = 0, .size = 0, .capacity = 0, .buffer = NULL};
   return a;
 }
 
-static void a_destroy(Active *restrict a) {
+static void active_destroy(Active *restrict a) {
   a->stack_size = 0;
   a->size       = 0;
   a->capacity   = 0;
@@ -286,17 +286,19 @@ static void a_destroy(Active *restrict a) {
   a->buffer = NULL;
 }
 
-static bool a_full(Active *restrict a) { return (a->size + 1) >= a->capacity; }
+static bool active_full(Active *restrict a) {
+  return (a->size + 1) >= a->capacity;
+}
 
-static void a_grow(Active *restrict a) {
+static void active_grow(Active *restrict a) {
   Growth g    = array_growth_u16(a->capacity, sizeof(ActiveLifetime));
   a->buffer   = reallocate(a->buffer, g.alloc_size);
   a->capacity = (u16)g.new_capacity;
 }
 
-static void a_add(Active *restrict a, u16 ssa, Lifetime l) {
-  if (a_full(a)) {
-    a_grow(a);
+static void active_add(Active *restrict a, u16 ssa, Lifetime l) {
+  if (active_full(a)) {
+    active_grow(a);
   }
 
   // find the lifetime that ends later than the given lifetime
@@ -318,7 +320,7 @@ static void a_add(Active *restrict a, u16 ssa, Lifetime l) {
   a->size += 1;
 }
 
-static void a_remove(Active *restrict a, u16 ssa) {
+static void active_remove(Active *restrict a, u16 ssa) {
   // find the index, i, of the ssa's lifetime
   u16 i = 0;
   for (; i < a->size; ++i) {
@@ -380,7 +382,7 @@ typedef struct LocalAllocations {
 static LocalAllocations la_create(FunctionBody *restrict body) {
   LocalAllocations la = {.gprp       = gprp_create(),
                          .lifetimes  = li_compute(body),
-                         .active     = a_create(),
+                         .active     = active_create(),
                          .stack_size = 0,
                          .count      = body->local_count,
                          .buffer =
@@ -396,7 +398,7 @@ static LocalAllocations la_create(FunctionBody *restrict body) {
 static void la_destroy(LocalAllocations *restrict la) {
   gprp_destroy(&la->gprp);
   li_destroy(&la->lifetimes);
-  a_destroy(&la->active);
+  active_destroy(&la->active);
   la->stack_size = 0;
   la->count      = 0;
   free(la->buffer);
@@ -444,7 +446,7 @@ static void la_expire_old_lifetimes(LocalAllocations *restrict la, u16 Idx) {
     if (ssa_alloc->kind == ALLOC_GPR) {
       gprp_release(gprp, ssa_alloc->gpr);
     } else {
-      // #NOTE, active lifetimes also counts the active stack size.
+      // #NOTE, active lifetimes counts the active stack size.
       // so we update that here if we are releasing a spilled local.
       // so this is like a stack_release(...) akin to the above
       // gprp_release
@@ -456,14 +458,14 @@ static void la_expire_old_lifetimes(LocalAllocations *restrict la, u16 Idx) {
       a->stack_size -= 8;
     }
 
-    a_remove(a, al->ssa);
+    active_remove(a, al->ssa);
 
     // since we remove an element from active lifetimes
     // we also have to update the end point, so we don't
     // read garbage. I think this is okay because
     // A - we don't try to access a lifetime after it is
     //  removed
-    // B - we recompute the pointer on each iteration,
+    // B - we recompute the pointer on each iteration
     // C - ActiveLifetimes keeps all elements stored
     //  contiguously.
     // D - since we decrement the end by one when we remove
@@ -499,7 +501,7 @@ static Allocation *la_allocate(LocalAllocations *restrict la, u16 Idx,
 
   if (gprp_allocate(&la->gprp, &gpr)) {
     *a = alloc_reg(gpr);
-    a_add(&la->active, ssa, *l);
+    active_add(&la->active, ssa, *l);
   } else {
     // otherwise spill to the stack.
     //
@@ -508,28 +510,14 @@ static Allocation *la_allocate(LocalAllocations *restrict la, u16 Idx,
     // granular types, and types larger than a single
     // word, the amount that we grow the stack each
     // time becomes dependent upon the sizeof the local.
-    //
-    // #NOTE we store the stack size as an unsigned integer,
-    // but since the stack grows down we always want to
-    // subtract the current size from the stack pointer %rsp
-    //
-    // #NOTE we can use the stack space already allocated
-    // for a new allocation in the same way we reuse registers
-    // iff the stack allocation expired. So this also needs to be
-    // taken into account.
     la->active.stack_size += 8;
-    // we have to update the total stack size only if
-    // the active stack size grows beyond the total stack size.
+
     if (la->active.stack_size > la->stack_size) {
       la->stack_size = la->active.stack_size;
     }
 
-    // #NOTE we are using the currently active
-    // stack size as the offset from the frame
-    // pointer to construct the address of the
-    // stack slot where the allocation resides.
     *a = alloc_stack(la->active.stack_size);
-    a_add(&la->active, ssa, *l);
+    active_add(&la->active, ssa, *l);
   }
   return a;
 }
@@ -639,7 +627,7 @@ static i32 codegen_ret(Context *restrict c, LocalAllocations *restrict la,
   case OPRFMT_IMMEDIATE: {
     // "mov $<imm>, %rax"
     string_append(buffer, "\tmov $");
-    string_append_u64(buffer, B);
+    string_append_i64(buffer, (i64)B);
     string_append(buffer, ", %rax\n");
     break;
   }
@@ -831,7 +819,7 @@ static i32 codegen_mov(Context *restrict c, LocalAllocations *restrict la,
     switch (Aalloc->kind) {
     case ALLOC_GPR: {
       string_append(buffer, "\tmov $");
-      string_append_u64(buffer, B);
+      string_append_i64(buffer, (i64)B);
       string_append(buffer, ", %");
       string_append_sv(buffer, gpr_to_sv(Aalloc->gpr));
       string_append(buffer, "\n");
@@ -840,7 +828,7 @@ static i32 codegen_mov(Context *restrict c, LocalAllocations *restrict la,
 
     case ALLOC_STACK: {
       string_append(buffer, "\tmov $");
-      string_append_u64(buffer, B);
+      string_append_i64(buffer, (i64)B);
       string_append(buffer, ", -");
       string_append_u64(buffer, Aalloc->offset);
       string_append(buffer, "\n");
@@ -1038,6 +1026,7 @@ static i32 codegen_bytecode(Context *restrict c, LocalAllocations *restrict la,
 
 static i32 codegen_function(Context *restrict c, String *restrict buffer,
                             StringView name, FunctionBody *restrict body) {
+  // #NOTE
   // there is a catch here, that gets in the way of simply
   // emitting x64 assembly directly as we walk through
   // the bytecode making up the function body.
@@ -1052,14 +1041,12 @@ static i32 codegen_function(Context *restrict c, String *restrict buffer,
   // and end up having to spill some to the stack.
   // Which is going to happen while we are attempting to
   // select instructions to emit, because we are combining
-  // instruction selection and register allocation into the
-  // same algorithm.
+  // instruction selection and register allocation.
   // (we are ignoring instruction scheduling for now.)
   // the current solution is just buffer the converted x64
-  // assembly in a string, then once it's done converting
-  // we can write out the whole string, after writing out
-  // the correct prolouge, and follow everything up with
-  // the correct epilouge too.
+  // assembly in a string, then once it's converted
+  // we can write out the string, after writing out
+  // the correct prolouge.
 
   Bytecode *bc        = &body->bc;
   LocalAllocations la = la_create(body);
