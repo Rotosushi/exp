@@ -23,7 +23,6 @@
 
 #include "env/error.h"
 #include "frontend/parser.h"
-#include "imr/operand.h"
 #include "utility/config.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
@@ -459,7 +458,7 @@ static ParserResult integer(Parser *restrict p,
   nexttok(p);
   Operand B;
   if (integer <= u16_MAX) {
-    B = immediate((u16)integer);
+    B = opr_immediate((u16)integer);
   } else {
     Operand index = context_constants_add(c, value_create_integer(integer));
     B             = context_emit_move(c, index);

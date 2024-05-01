@@ -18,12 +18,6 @@
 #define EXP_IMR_INSTRUCTION_H
 #include "utility/int_types.h"
 
-/**
- * @brief represents a bytecode instruction
- *
- */
-typedef u64 Instruction;
-
 /*
  * opcodes need to allow instructions to represent
  * expressions, which are composed of:
@@ -158,6 +152,21 @@ typedef enum OperandFormat {
   OPRFMT_CONSTANT  = 0x1,
   OPRFMT_IMMEDIATE = 0x2,
 } OperandFormat;
+
+typedef struct Operand {
+  u8 format;
+  u16 common;
+} Operand;
+
+Operand opr_constant(u16 index);
+Operand opr_immediate(u16 imm);
+Operand opr_ssa(u16 ssa);
+
+/**
+ * @brief represents a bytecode instruction
+ *
+ */
+typedef u64 Instruction;
 
 #define INST_OP(I) ((Opcode)((u8)((I) & u8_MAX)))
 

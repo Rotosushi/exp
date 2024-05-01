@@ -21,25 +21,25 @@
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-void directive_file(StringView path, FILE *file) {
-  file_write("  .file \"", file);
-  file_write(path.ptr, file);
-  file_write("\"\n", file);
+void directive_file(StringView path, String *str) {
+  string_append(str, "  .file \"");
+  string_append(str, path.ptr);
+  string_append(str, "\"\n");
 }
 
-void directive_arch(StringView cpu_type, FILE *file) {
-  file_write("  .arch ", file);
-  file_write(cpu_type.ptr, file);
-  file_write("\n", file);
+void directive_arch(StringView cpu_type, String *str) {
+  string_append(str, "  .arch ");
+  string_append(str, cpu_type.ptr);
+  string_append(str, "\n");
 }
 
-void directive_ident(StringView comment, FILE *file) {
-  file_write("  .ident \"", file);
-  file_write(comment.ptr, file);
-  file_write("\"\n", file);
+void directive_ident(StringView comment, String *str) {
+  string_append(str, "  .ident \"");
+  string_append(str, comment.ptr);
+  string_append(str, "\"\n");
 }
 
-void directive_noexecstack(FILE *file) {
+void directive_noexecstack(String *str) {
   /**
    * this is the assembly directive which marks the stack as unexecutable.
    * (as far as I can tell, I cannot find documentation which explicitly
@@ -50,68 +50,68 @@ void directive_noexecstack(FILE *file) {
    */
   static char const noexecstack[] =
       "  .section .note.GNU-stack,\"\",@progbits\n";
-  file_write(noexecstack, file);
+  string_append(str, noexecstack);
 }
 
-void directive_globl(StringView name, FILE *file) {
-  file_write("  .globl ", file);
-  file_write(name.ptr, file);
-  file_write("\n", file);
+void directive_globl(StringView name, String *str) {
+  string_append(str, "  .globl ");
+  string_append(str, name.ptr);
+  string_append(str, "\n");
 }
 
-void directive_data(FILE *file) { file_write("  .data\n", file); }
+void directive_data(String *str) { string_append(str, "  .data\n"); }
 
-void directive_bss(FILE *file) { file_write("  .bss\n", file); }
+void directive_bss(String *str) { string_append(str, "  .bss\n"); }
 
-void directive_text(FILE *file) { file_write("  .text\n", file); }
+void directive_text(String *str) { string_append(str, "  .text\n"); }
 
-void directive_balign(u64 align, FILE *file) {
-  file_write("  .balign ", file);
-  print_u64(align, RADIX_DECIMAL, file);
-  file_write("\n", file);
+void directive_balign(u64 align, String *str) {
+  string_append(str, "  .balign ");
+  string_append_u64(str, align);
+  string_append(str, "\n");
 }
 
-void directive_size(StringView name, u64 size, FILE *file) {
-  file_write("  .size ", file);
-  file_write(name.ptr, file);
-  file_write(", ", file);
-  print_u64(size, RADIX_DECIMAL, file);
-  file_write("\n", file);
+void directive_size(StringView name, u64 size, String *str) {
+  string_append(str, "  .size ");
+  string_append(str, name.ptr);
+  string_append(str, ", ");
+  string_append_u64(str, size);
+  string_append(str, "\n");
 }
 
-void directive_size_label_relative(StringView name, FILE *file) {
-  file_write("  .size ", file);
-  file_write(name.ptr, file);
+void directive_size_label_relative(StringView name, String *str) {
+  string_append(str, "  .size ");
+  string_append(str, name.ptr);
   // the '.' symbol refers to the current address, the '-' is
   // arithmetic subtraction, and the label refers to the address
   // of the label. thus, label relative size computes to the
   // numeric difference between the current address and the address
   // of the label directive
-  file_write(", .-", file);
-  file_write(name.ptr, file);
-  file_write("\n", file);
+  string_append(str, ", .-");
+  string_append(str, name.ptr);
+  string_append(str, "\n");
 }
 
-void directive_type(StringView name, STT_Type kind, FILE *file) {
-  file_write("  .type ", file);
-  file_write(name.ptr, file);
-  file_write(", ", file);
+void directive_type(StringView name, STT_Type kind, String *str) {
+  string_append(str, "  .type ");
+  string_append(str, name.ptr);
+  string_append(str, ", ");
 
   switch (kind) {
   case STT_OBJECT:
-    file_write("@object\n", file);
+    string_append(str, "@object\n");
     break;
 
   case STT_FUNC:
-    file_write("@function\n", file);
+    string_append(str, "@function\n");
     break;
 
   case STT_TLS:
-    file_write("@tls_object\n", file);
+    string_append(str, "@tls_object\n");
     break;
 
   case STT_COMMON:
-    file_write("@common\n", file);
+    string_append(str, "@common\n");
     break;
 
   default:
@@ -120,31 +120,31 @@ void directive_type(StringView name, STT_Type kind, FILE *file) {
   }
 }
 
-void directive_quad(i64 value, FILE *file) {
-  file_write("  .quad ", file);
-  print_i64(value, RADIX_DECIMAL, file);
-  file_write("\n", file);
+void directive_quad(i64 value, String *str) {
+  string_append(str, "  .quad ");
+  string_append_i64(str, value);
+  string_append(str, "\n");
 }
 
-void directive_byte(unsigned char value, FILE *file) {
-  file_write("  .byte ", file);
-  print_u64(value, RADIX_DECIMAL, file);
-  file_write("\n", file);
+void directive_byte(unsigned char value, String *str) {
+  string_append(str, "  .byte ");
+  string_append_u64(str, value);
+  string_append(str, "\n");
 }
 
-void directive_zero(u64 bytes, FILE *file) {
-  file_write("  .zero ", file);
-  print_u64(bytes, RADIX_DECIMAL, file);
-  file_write("\n", file);
+void directive_zero(u64 bytes, String *str) {
+  string_append(str, "  .zero ");
+  string_append_u64(str, bytes);
+  string_append(str, "\n");
 }
 
-void directive_string(StringView sv, FILE *file) {
-  file_write("  .string \"", file);
-  file_write(sv.ptr, file);
-  file_write("\"\n", file);
+void directive_string(StringView sv, String *str) {
+  string_append(str, "  .string \"");
+  string_append(str, sv.ptr);
+  string_append(str, "\"\n");
 }
 
-void directive_label(StringView name, FILE *file) {
-  file_write(name.ptr, file);
-  file_write(":\n", file);
+void directive_label(StringView name, String *str) {
+  string_append(str, name.ptr);
+  string_append(str, ":\n");
 }

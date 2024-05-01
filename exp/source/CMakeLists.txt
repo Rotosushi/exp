@@ -23,7 +23,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function_body.c
-  ${EXP_SOURCE_DIR}/imr/operand.c
+  ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 

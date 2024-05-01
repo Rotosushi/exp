@@ -23,7 +23,6 @@
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
 #include "imr/function_body.h"
-#include "imr/operand.h"
 
 /**
  * @brief A context models a Translation Unit.

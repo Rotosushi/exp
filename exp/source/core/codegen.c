@@ -93,11 +93,6 @@ static StringView gpr_to_sv(X64GPR r) {
 
 #undef SV
 
-// static void print_gpr(X64GPR r, FILE *restrict file) {
-//   file_write("%", file);
-//   print_string_view(gpr_to_sv(r), file);
-// }
-
 /**
  * @brief General Purpose Register Pool keeps track of which
  * general purpose registers are currently allocated.
@@ -755,7 +750,14 @@ static i32 codegen_mov(Context *restrict c, LocalAllocations *restrict la,
         // This -technically speaking- adds an extra SSA local we
         // have to reason about, which breaks the assumptions of
         // our LocalAllocator.
-        // So hopefully we can sidestep this somehow.
+        //
+        // We need to add support for temporary usages of registers.
+        // This is easy if there is an available register, we can
+        // simply use that register.
+        // Its slightly more complex if there is no available registers.
+        // in this situation we have to spill a filled register,
+        // store it on the stack, then use that register as the temporary,
+        // then unspill the register
         PANIC("#TODO");
         break;
       }
@@ -857,6 +859,12 @@ static i32 codegen_mov(Context *restrict c, LocalAllocations *restrict la,
 
   return EXIT_SUCCESS;
 }
+
+// static i32 codegen_add(Context *restrict c, LocalAllocations *restrict la,
+//                        Instruction I, u16 Idx, String *restrict buffer) {
+
+//   return EXIT_SUCCESS;
+// }
 
 static i32 codegen_bytecode(Context *restrict c, LocalAllocations *restrict la,
                             Bytecode *restrict bc, String *restrict buffer) {
@@ -1028,7 +1036,7 @@ static i32 codegen_bytecode(Context *restrict c, LocalAllocations *restrict la,
   return EXIT_SUCCESS;
 }
 
-static i32 codegen_function(Context *restrict c, FILE *restrict file,
+static i32 codegen_function(Context *restrict c, String *restrict buffer,
                             StringView name, FunctionBody *restrict body) {
   // there is a catch here, that gets in the way of simply
   // emitting x64 assembly directly as we walk through
@@ -1055,35 +1063,35 @@ static i32 codegen_function(Context *restrict c, FILE *restrict file,
 
   Bytecode *bc        = &body->bc;
   LocalAllocations la = la_create(body);
-  String buffer       = string_create();
+  String body_buffer  = string_create();
 
-  if (codegen_bytecode(c, &la, bc, &buffer) == EXIT_FAILURE) {
+  if (codegen_bytecode(c, &la, bc, &body_buffer) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 
-  directive_globl(name, file);
-  directive_type(name, STT_FUNC, file);
-  directive_label(name, file);
+  directive_globl(name, buffer);
+  directive_type(name, STT_FUNC, buffer);
+  directive_label(name, buffer);
 
-  file_write("\tpush rbp\n", file);
-  file_write("\tmov %rsp, %rbp\n", file);
+  string_append(buffer, "\tpush rbp\n");
+  string_append(buffer, "\tmov %rsp, %rbp\n");
   if (la.stack_size != 0) {
-    file_write("\tsub $", file);
-    print_u64(la.stack_size, RADIX_DECIMAL, file);
-    file_write(", %rsp\n", file);
+    string_append(buffer, "\tsub $");
+    string_append_u64(buffer, la.stack_size);
+    string_append(buffer, ", %rsp\n");
   }
 
-  file_write(buffer.buffer, file);
+  string_append(buffer, body_buffer.buffer);
 
-  directive_size_label_relative(name, file);
+  directive_size_label_relative(name, buffer);
 
   la_destroy(&la);
-  string_destroy(&buffer);
+  string_destroy(&body_buffer);
 
   return EXIT_SUCCESS;
 }
 
-static i32 codegen_ste(Context *restrict c, FILE *restrict file,
+static i32 codegen_ste(Context *restrict c, String *restrict buffer,
                        SymbolTableElement *restrict ste) {
   StringView name = ste->name;
   switch (ste->kind) {
@@ -1093,7 +1101,7 @@ static i32 codegen_ste(Context *restrict c, FILE *restrict file,
 
   case STE_FUNCTION: {
     FunctionBody *body = &ste->function_body;
-    return codegen_function(c, file, name, body);
+    return codegen_function(c, buffer, name, body);
   }
 
   default:
@@ -1102,17 +1110,20 @@ static i32 codegen_ste(Context *restrict c, FILE *restrict file,
 }
 
 i32 codegen(Context *restrict context) {
-  FILE *file               = context_open_output(context);
+  String buffer            = string_create();
   SymbolTableIterator iter = context_global_symbol_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
-
-    if (codegen_ste(context, file, iter.element) == EXIT_FAILURE) {
+    if (codegen_ste(context, &buffer, iter.element) == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
 
     symbol_table_iterator_next(&iter);
   }
 
+  FILE *file = context_open_output(context);
+  file_write(buffer.buffer, file);
   file_close(file);
+
+  string_destroy(&buffer);
   return EXIT_SUCCESS;
 }

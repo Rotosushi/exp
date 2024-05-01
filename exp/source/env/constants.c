@@ -64,7 +64,7 @@ Operand constants_add(Constants *restrict c, Value value) {
       if (i > u16_MAX) {
         PANIC("constant index out of bounds");
       }
-      return constant((u16)i);
+      return opr_constant((u16)i);
     }
   }
 
@@ -80,7 +80,7 @@ Operand constants_add(Constants *restrict c, Value value) {
     PANIC("constant index out of bounds");
   }
 
-  return constant((u16)index);
+  return opr_constant((u16)index);
 }
 
 Value *constants_at(Constants *restrict c, u16 i) {

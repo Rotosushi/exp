@@ -16,20 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include "imr/instruction.h"
 
-#include "imr/operand.h"
-
-Operand local(u16 common) {
-  Operand o = {.format = OPRFMT_SSA, .common = common};
-  return o;
+Operand opr_constant(u16 index) {
+  Operand opr = {.format = (u8)OPRFMT_CONSTANT, .common = index};
+  return opr;
 }
 
-Operand constant(u16 common) {
-  Operand o = {.format = OPRFMT_CONSTANT, .common = common};
-  return o;
+Operand opr_immediate(u16 imm) {
+  Operand opr = {.format = (u8)OPRFMT_IMMEDIATE, .common = imm};
+  return opr;
 }
 
-Operand immediate(u16 common) {
-  Operand o = {.format = OPRFMT_IMMEDIATE, .common = common};
-  return o;
+Operand opr_ssa(u16 ssa) {
+  Operand opr = {.format = (u8)OPRFMT_SSA, .common = ssa};
+  return opr;
 }

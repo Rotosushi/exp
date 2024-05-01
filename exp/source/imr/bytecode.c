@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
 #include <stdint.h>
@@ -24,6 +24,7 @@
 #include "imr/bytecode.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -65,20 +66,20 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 
 #define FORMAT_B(I, OP, B)                                                     \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_B);                                                \
+  INST_SET_FORMAT(I, IFMT_B);                                                  \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common)
 
 #define FORMAT_AB(I, OP, A, B)                                                 \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_AB);                                               \
+  INST_SET_FORMAT(I, IFMT_AB);                                                 \
   INST_SET_A(I, A.common);                                                     \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common)
 
 #define FORMAT_ABC(I, OP, A, B, C)                                             \
   INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_ABC);                                              \
+  INST_SET_FORMAT(I, IFMT_ABC);                                                \
   INST_SET_A(I, A.common);                                                     \
   INST_SET_B_FORMAT(I, B.format);                                              \
   INST_SET_B(I, B.common);                                                     \

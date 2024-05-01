@@ -18,7 +18,7 @@
 #define EXP_IMR_CONSTANTS_H
 #include <stddef.h>
 
-#include "imr/operand.h"
+#include "imr/instruction.h"
 #include "imr/value.h"
 #include "utility/io.h"
 

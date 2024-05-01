@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 1 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "19d4c9eb1af2f92213c7d4f5ea70bd76d5427c96"
+#define EXP_GIT_REVISION "2ec12ff979319eff3528222b5d6a8f5f2e57a81b"
 #define EXP_TEST_DIR "/home/cade/projects/exp/test"
 #define EXP_DEBUG 1
 #define EXP_HOST_OS_LINUX
@@ -29,7 +29,7 @@
 /* #undef EXP_HOST_OS_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-04-28 20:41:25) git revision (19d4c9eb1af2f92213c7d4f5ea70bd76d5427c96)"
+#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-04-30 21:01:14) git revision (2ec12ff979319eff3528222b5d6a8f5f2e57a81b)"
 // NOLINTEND
 // clang-format on
 

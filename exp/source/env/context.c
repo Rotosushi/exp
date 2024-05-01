@@ -131,7 +131,7 @@ static Bytecode *context_active_bytecode(Context *restrict c) {
 
 static Operand context_new_local(Context *restrict c) {
   assert(c->current_function != NULL);
-  return local(c->current_function->local_count++);
+  return opr_ssa(c->current_function->local_count++);
 }
 
 Operand context_constants_add(Context *restrict context, Value value) {
@@ -155,16 +155,117 @@ Operand context_emit_move(Context *restrict c, Operand B) {
 Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
+  Operand A;
+  // switch (B.format) {
+  // case OPRFMT_SSA: {
+  //   A = context_new_local(c);
+  //   bytecode_emit_neg(bc, A, B);
+  //   break;
+  // }
+
+  // case OPRFMT_CONSTANT: {
+  //   Value *constant = context_constants_at(c, B.common);
+  //   A               = immediate(-(constant->integer));
+  //   break;
+  // }
+
+  // case OPRFMT_IMMEDIATE: {
+  //   A = immediate(-B.common);
+  //   break;
+  // }
+
+  // default:
+  //   unreachable();
+  // }
+
+  A = context_new_local(c);
   bytecode_emit_neg(bc, A, B);
+
   return A;
 }
 
 Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
+  Operand A;
+
+  // switch (B.format) {
+  // case OPRFMT_SSA: {
+  //   switch (C.format) {
+  //   case OPRFMT_SSA: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_CONSTANT: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_IMMEDIATE: {
+
+  //     break;
+  //   }
+
+  //   default:
+  //     unreachable();
+  //   }
+  //   break;
+  // }
+
+  // case OPRFMT_CONSTANT: {
+  //   switch (C.format) {
+  //   case OPRFMT_SSA: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_CONSTANT: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_IMMEDIATE: {
+
+  //     break;
+  //   }
+
+  //   default:
+  //     unreachable();
+  //   }
+  //   break;
+  // }
+
+  // case OPRFMT_IMMEDIATE: {
+  //   switch (C.format) {
+  //   case OPRFMT_SSA: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_CONSTANT: {
+
+  //     break;
+  //   }
+
+  //   case OPRFMT_IMMEDIATE: {
+
+  //     break;
+  //   }
+
+  //   default:
+  //     unreachable();
+  //   }
+  //   break;
+  // }
+
+  // default:
+  //   unreachable();
+  // }
+
+  A = context_new_local(c);
   bytecode_emit_add(bc, A, B, C);
+
   return A;
 }
 
