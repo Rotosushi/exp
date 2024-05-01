@@ -25,7 +25,7 @@
 #include "env/context.h"
 #include "frontend/parser.h"
 
-i32 compile_context(Context *restrict c) {
+static i32 compile_context(Context *restrict c) {
   if (parse_source(c) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }

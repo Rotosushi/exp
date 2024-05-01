@@ -43,8 +43,8 @@ i32 emit_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char const *argv[]) {
   StringView g0 = context_intern(&context, string_view_from_cstring("g0"));
   StringView g1 = context_intern(&context, string_view_from_cstring("g1"));
   StringView g2 = context_intern(&context, string_view_from_cstring("g2"));
-  Value v0      = value_create_integer(rand());
-  Value v1      = value_create_integer(rand());
+  Value v0      = value_create_i64(rand());
+  Value v1      = value_create_i64(rand());
   Value v2      = value_create_boolean((bool)(rand() % 2));
 
   context_insert_global_symbol(&context, g0, &v0);

@@ -53,8 +53,7 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  * @param name
  * @param type
  * @param value
- * @return true if the entry is new
- * @return false if the entry already exists.
+ * @return SymbolTableElement *
  */
 SymbolTableElement *symbol_table_at(SymbolTable *restrict symbol_table,
                                     StringView name);

@@ -457,10 +457,10 @@ static ParserResult integer(Parser *restrict p,
 
   nexttok(p);
   Operand B;
-  if (integer <= u16_MAX) {
+  if ((integer < i16_MAX) && (integer > i16_MIN)) {
     B = opr_immediate((u16)integer);
   } else {
-    Operand index = context_constants_add(c, value_create_integer(integer));
+    Operand index = context_constants_add(c, value_create_i64(integer));
     B             = context_emit_move(c, index);
   }
 

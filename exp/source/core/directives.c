@@ -22,19 +22,19 @@
 #include "utility/panic.h"
 
 void directive_file(StringView path, String *str) {
-  string_append(str, "  .file \"");
+  string_append(str, "\t.file \"");
   string_append(str, path.ptr);
   string_append(str, "\"\n");
 }
 
 void directive_arch(StringView cpu_type, String *str) {
-  string_append(str, "  .arch ");
+  string_append(str, "\t.arch ");
   string_append(str, cpu_type.ptr);
   string_append(str, "\n");
 }
 
 void directive_ident(StringView comment, String *str) {
-  string_append(str, "  .ident \"");
+  string_append(str, "\t.ident \"");
   string_append(str, comment.ptr);
   string_append(str, "\"\n");
 }
@@ -49,30 +49,30 @@ void directive_noexecstack(String *str) {
    * to do with marking the stack as exec or noexec.)
    */
   static char const noexecstack[] =
-      "  .section .note.GNU-stack,\"\",@progbits\n";
+      "\t.section .note.GNU-stack,\"\",@progbits\n";
   string_append(str, noexecstack);
 }
 
 void directive_globl(StringView name, String *str) {
-  string_append(str, "  .globl ");
+  string_append(str, "\t.globl ");
   string_append(str, name.ptr);
   string_append(str, "\n");
 }
 
-void directive_data(String *str) { string_append(str, "  .data\n"); }
+void directive_data(String *str) { string_append(str, "\t.data\n"); }
 
-void directive_bss(String *str) { string_append(str, "  .bss\n"); }
+void directive_bss(String *str) { string_append(str, "\t.bss\n"); }
 
-void directive_text(String *str) { string_append(str, "  .text\n"); }
+void directive_text(String *str) { string_append(str, "\t.text\n"); }
 
 void directive_balign(u64 align, String *str) {
-  string_append(str, "  .balign ");
+  string_append(str, "\t.balign ");
   string_append_u64(str, align);
   string_append(str, "\n");
 }
 
 void directive_size(StringView name, u64 size, String *str) {
-  string_append(str, "  .size ");
+  string_append(str, "\t.size ");
   string_append(str, name.ptr);
   string_append(str, ", ");
   string_append_u64(str, size);
@@ -80,7 +80,7 @@ void directive_size(StringView name, u64 size, String *str) {
 }
 
 void directive_size_label_relative(StringView name, String *str) {
-  string_append(str, "  .size ");
+  string_append(str, "\t.size ");
   string_append(str, name.ptr);
   // the '.' symbol refers to the current address, the '-' is
   // arithmetic subtraction, and the label refers to the address
@@ -93,7 +93,7 @@ void directive_size_label_relative(StringView name, String *str) {
 }
 
 void directive_type(StringView name, STT_Type kind, String *str) {
-  string_append(str, "  .type ");
+  string_append(str, "\t.type ");
   string_append(str, name.ptr);
   string_append(str, ", ");
 
@@ -121,25 +121,25 @@ void directive_type(StringView name, STT_Type kind, String *str) {
 }
 
 void directive_quad(i64 value, String *str) {
-  string_append(str, "  .quad ");
+  string_append(str, "\t.quad ");
   string_append_i64(str, value);
   string_append(str, "\n");
 }
 
 void directive_byte(unsigned char value, String *str) {
-  string_append(str, "  .byte ");
+  string_append(str, "\t.byte ");
   string_append_u64(str, value);
   string_append(str, "\n");
 }
 
 void directive_zero(u64 bytes, String *str) {
-  string_append(str, "  .zero ");
+  string_append(str, "\t.zero ");
   string_append_u64(str, bytes);
   string_append(str, "\n");
 }
 
 void directive_string(StringView sv, String *str) {
-  string_append(str, "  .string \"");
+  string_append(str, "\t.string \"");
   string_append(str, sv.ptr);
   string_append(str, "\"\n");
 }

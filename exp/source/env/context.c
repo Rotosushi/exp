@@ -113,8 +113,8 @@ SymbolTableIterator context_global_symbol_iterator(Context *restrict context) {
 
 FunctionBody *context_enter_function(Context *restrict c, StringView name) {
   assert(c != NULL);
-  // get the new function
   SymbolTableElement *element = symbol_table_at(&c->global_symbols, name);
+  element->kind               = STE_FUNCTION;
   c->current_function         = &element->function_body;
   return c->current_function;
 }
@@ -156,27 +156,17 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  switch (B.format) {
-  case OPRFMT_SSA:
-  case OPRFMT_CONSTANT: {
-    A = context_new_local(c);
-    bytecode_emit_neg(bc, A, B);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
+  if (B.format == OPRFMT_IMMEDIATE) {
     i64 n = -((i64)(B.common));
     if (n > i16_MAX || n < i16_MIN) {
-      PANIC("immediate out of bounds");
+      A = context_constants_add(c, value_create_i64(n));
+    } else {
+      A = opr_immediate((u16)n);
     }
-    A = opr_immediate((u16)n);
-    break;
+  } else {
+    A = context_new_local(c);
+    bytecode_emit_neg(bc, A, B);
   }
-
-  default:
-    unreachable();
-  }
-
   return A;
 }
 
@@ -187,7 +177,7 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
     i64 n = B.common + C.common;
     if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_integer(n));
+      A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }
@@ -205,7 +195,7 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
     i64 n = B.common - C.common;
     if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_integer(n));
+      A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }
@@ -223,7 +213,7 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
     i64 n = B.common * C.common;
     if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_integer(n));
+      A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }
@@ -241,7 +231,7 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
     i64 n = B.common / C.common;
     if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_integer(n));
+      A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }
@@ -259,7 +249,7 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
     i64 n = B.common % C.common;
     if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_integer(n));
+      A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }

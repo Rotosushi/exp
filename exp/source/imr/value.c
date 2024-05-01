@@ -42,7 +42,7 @@ Value value_create_boolean(bool b) {
   return value;
 }
 
-Value value_create_integer(i64 i) {
+Value value_create_i64(i64 i) {
   Value value;
   value.kind    = VALUEKIND_I64;
   value.integer = i;

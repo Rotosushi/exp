@@ -214,9 +214,11 @@ static Lifetimes li_compute(FunctionBody *restrict body) {
     Instruction I = bc->buffer[inst];
     switch (INST_FORMAT(I)) {
     case IFMT_B: {
-      Lifetime *Bl = li_at(&li, INST_B(I));
-      if ((INST_B_FORMAT(I) == OPRFMT_SSA) && (inst > Bl->last_use)) {
-        Bl->last_use = inst;
+      if (INST_B_FORMAT(I) == OPRFMT_SSA) {
+        Lifetime *Bl = li_at(&li, INST_B(I));
+        if (inst > Bl->last_use) {
+          Bl->last_use = inst;
+        }
       }
       break;
     }
@@ -226,10 +228,11 @@ static Lifetimes li_compute(FunctionBody *restrict body) {
       Lifetime *Al  = li_at(&li, A);
       Al->first_use = inst;
 
-      u16 B        = INST_B(I);
-      Lifetime *Bl = li_at(&li, B);
-      if ((INST_B_FORMAT(I) == OPRFMT_SSA) && (inst > Bl->last_use)) {
-        Bl->last_use = inst;
+      if (INST_B_FORMAT(I) == OPRFMT_SSA) {
+        Lifetime *Bl = li_at(&li, INST_B(I));
+        if (inst > Bl->last_use) {
+          Bl->last_use = inst;
+        }
       }
       break;
     }
@@ -239,16 +242,18 @@ static Lifetimes li_compute(FunctionBody *restrict body) {
       Lifetime *Al  = li_at(&li, A);
       Al->first_use = inst;
 
-      u16 B        = INST_B(I);
-      Lifetime *Bl = li_at(&li, B);
-      if ((INST_B_FORMAT(I) == OPRFMT_SSA) && (inst > Bl->last_use)) {
-        Bl->last_use = inst;
+      if (INST_B_FORMAT(I) == OPRFMT_SSA) {
+        Lifetime *Bl = li_at(&li, INST_B(I));
+        if (inst > Bl->last_use) {
+          Bl->last_use = inst;
+        }
       }
 
-      u16 C        = INST_C(I);
-      Lifetime *Cl = li_at(&li, C);
-      if ((INST_C_FORMAT(I) == OPRFMT_SSA) && (inst > Cl->last_use)) {
-        Cl->last_use = inst;
+      if (INST_C_FORMAT(I) == OPRFMT_SSA) {
+        Lifetime *Cl = li_at(&li, INST_C(I));
+        if (inst > Cl->last_use) {
+          Cl->last_use = inst;
+        }
       }
       break;
     }
@@ -639,7 +644,7 @@ static i32 codegen_ret(Context *restrict c, LocalAllocations *restrict la,
 
   // - emit the function epilouge
   string_append(buffer, "\tmov %rbp, %rsp\n");
-  string_append(buffer, "\tpop %rbp");
+  string_append(buffer, "\tpop %rbp\n");
 
   // - emit ret
   string_append(buffer, "\tret\n");
@@ -1026,28 +1031,6 @@ static i32 codegen_bytecode(Context *restrict c, LocalAllocations *restrict la,
 
 static i32 codegen_function(Context *restrict c, String *restrict buffer,
                             StringView name, FunctionBody *restrict body) {
-  // #NOTE
-  // there is a catch here, that gets in the way of simply
-  // emitting x64 assembly directly as we walk through
-  // the bytecode making up the function body.
-  // and that is stack allocation of variables.
-  // we need to emit the function prolouge right up front.
-  // part of the prolouge is decrementing the stack pointer
-  // to allocate space on the stack for local variables.
-  // but we cannot know how much to decrement the stack
-  // pointer until we know how many local variables are
-  // going to be spilled to the stack. This cannot happen
-  // until we attempt to allocate the local variables
-  // and end up having to spill some to the stack.
-  // Which is going to happen while we are attempting to
-  // select instructions to emit, because we are combining
-  // instruction selection and register allocation.
-  // (we are ignoring instruction scheduling for now.)
-  // the current solution is just buffer the converted x64
-  // assembly in a string, then once it's converted
-  // we can write out the string, after writing out
-  // the correct prolouge.
-
   Bytecode *bc        = &body->bc;
   LocalAllocations la = la_create(body);
   String body_buffer  = string_create();
@@ -1101,8 +1084,10 @@ i32 codegen(Context *restrict context) {
   SymbolTableIterator iter = context_global_symbol_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
     if (codegen_ste(context, &buffer, iter.element) == EXIT_FAILURE) {
+      string_destroy(&buffer);
       return EXIT_FAILURE;
     }
+    string_append(&buffer, "\n");
 
     symbol_table_iterator_next(&iter);
   }

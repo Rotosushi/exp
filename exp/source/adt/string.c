@@ -44,16 +44,6 @@ void string_destroy(String *restrict str) {
   str->buffer = NULL;
 }
 
-static void string_assign_impl(String *restrict str, char const *restrict data,
-                               u64 length) {
-  string_destroy(str);
-  u64 new_capacity = length + 1;
-  str->buffer      = allocate(new_capacity);
-  str->length      = length;
-  str->capacity    = new_capacity;
-  memcpy(str->buffer, data, length);
-}
-
 StringView string_to_view(String const *restrict str) {
   assert(str != NULL);
   StringView sv = string_view_from_string(str->buffer, str->length);
@@ -70,6 +60,9 @@ StringView string_to_view(String const *restrict str) {
 //   return sv;
 // }
 
+static void string_assign_impl(String *restrict str, char const *restrict ptr,
+                               u64 length);
+
 String string_from_view(StringView sv) {
   String string = string_create();
   string_assign_impl(&string, sv.ptr, sv.length);
@@ -83,7 +76,7 @@ String string_from_view(StringView sv) {
 // }
 
 String string_from_file(FILE *restrict file) {
-  String s;
+  String s = string_create();
   u64 flen = file_length(file);
   string_resize(&s, flen);
   file_read(s.buffer, flen, file);
@@ -127,6 +120,16 @@ void string_resize(String *restrict str, u64 new_capacity) {
 
 //   string_resize(str, sum_capacity);
 // }
+
+static void string_assign_impl(String *restrict str, char const *restrict data,
+                               u64 length) {
+  string_destroy(str);
+  u64 new_capacity = length + 1;
+  str->buffer      = callocate(new_capacity, sizeof(char));
+  str->length      = length;
+  str->capacity    = new_capacity;
+  memcpy(str->buffer, data, length);
+}
 
 void string_assign(String *restrict str, const char *restrict data) {
   assert(str != NULL);

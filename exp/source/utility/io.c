@@ -18,6 +18,7 @@
  */
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "utility/config.h"
 #include "utility/io.h"
@@ -54,12 +55,13 @@ void file_write(const char *restrict buffer, FILE *restrict stream) {
 }
 
 u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
-  char *result = fgets(buffer, (i32)length, stream);
-  if (result == NULL) {
-    PANIC_ERRNO("fgets failed");
+  u64 count = fread(buffer, sizeof(*buffer), length, stream);
+  int error = ferror(stream);
+  if (error != 0) {
+    PANIC(strerror(error));
   }
 
-  return (u64)(result - buffer);
+  return count;
 }
 
 #if defined(EXP_HOST_OS_LINUX)

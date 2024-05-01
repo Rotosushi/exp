@@ -69,7 +69,7 @@ Value value_create_boolean(bool b);
  * @param i
  * @return Value
  */
-Value value_create_integer(i64 i);
+Value value_create_i64(i64 i);
 
 /**
  * @brief assign dest the value of source
