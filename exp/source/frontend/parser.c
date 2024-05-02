@@ -60,6 +60,16 @@ static ParserResult success(Operand result) {
   return pr;
 }
 
+static ParserResult from_fold(FoldResult fold) {
+  ParserResult result = {.has_error = fold.has_error};
+  if (fold.has_error) {
+    result.error = fold.error;
+  } else {
+    result.result = fold.operand;
+  }
+  return result;
+}
+
 static Operand zero() {
   Operand o = {.format = OPRFMT_IMMEDIATE, .common = 0};
   return o;
@@ -386,7 +396,7 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
 
   switch (op) {
   case TOK_MINUS:
-    return success(context_emit_neg(c, maybe.result));
+    return from_fold(context_emit_neg(c, maybe.result));
 
   default:
     unreachable();
@@ -408,19 +418,19 @@ static ParserResult binop(Parser *restrict p, Context *restrict c,
 
   switch (op) {
   case TOK_PLUS:
-    return success(context_emit_add(c, left, right));
+    return from_fold(context_emit_add(c, left, right));
 
   case TOK_MINUS:
-    return success(context_emit_sub(c, left, right));
+    return from_fold(context_emit_sub(c, left, right));
 
   case TOK_STAR:
-    return success(context_emit_mul(c, left, right));
+    return from_fold(context_emit_mul(c, left, right));
 
   case TOK_SLASH:
-    return success(context_emit_div(c, left, right));
+    return from_fold(context_emit_div(c, left, right));
 
   case TOK_PERCENT:
-    return success(context_emit_mod(c, left, right));
+    return from_fold(context_emit_mod(c, left, right));
 
   default:
     unreachable();

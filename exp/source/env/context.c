@@ -149,6 +149,22 @@ Value *context_constants_at(Context *restrict context, u16 index) {
   return constants_at(&(context->constants), index);
 }
 
+static FoldResult success(Operand O) {
+  FoldResult result = {.has_error = 0, .operand = O};
+  return result;
+}
+
+static FoldResult error(ErrorCode code, StringView sv) {
+  FoldResult result = {.has_error = 1, .error = error_from_view(code, sv)};
+  return result;
+}
+
+void fresult_destroy(FoldResult *restrict fr) {
+  if (fr->has_error) {
+    error_destroy(&fr->error);
+  }
+}
+
 void context_emit_return(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
@@ -163,7 +179,7 @@ Operand context_emit_move(Context *restrict c, Operand B) {
   return A;
 }
 
-Operand context_emit_neg(Context *restrict c, Operand B) {
+FoldResult context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -180,8 +196,7 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
       i64 n = -(v->integer);
       A     = context_constants_add(c, value_create_i64(n));
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
     break;
   }
@@ -199,10 +214,10 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
 
-Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
+FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -219,8 +234,7 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
 
     switch (C.format) {
@@ -236,14 +250,14 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_add_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -255,8 +269,8 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_add_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -285,14 +299,14 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_add_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -304,8 +318,8 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_add_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       if ((z > i16_MIN) && (z < i16_MAX)) {
@@ -325,10 +339,10 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
 
-Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
+FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -345,8 +359,7 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
 
     switch (C.format) {
@@ -362,14 +375,14 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_sub_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -381,8 +394,8 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_sub_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -411,14 +424,14 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_sub_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -430,8 +443,8 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_sub_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       if ((z > i16_MIN) && (z < i16_MAX)) {
@@ -451,10 +464,10 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
 
-Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
+FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -471,8 +484,7 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
 
     switch (C.format) {
@@ -488,14 +500,14 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_mul_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -507,8 +519,8 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_mul_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -537,14 +549,14 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = 0;
       if (__builtin_mul_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       A = context_constants_add(c, value_create_i64(z));
@@ -556,8 +568,8 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
 
       i64 z = 0;
       if (__builtin_mul_overflow(x, y, &z)) {
-        // TODO refactor to return an error here.
-        PANIC("result out of bounds");
+        return error(ERROR_PARSER_INTEGER_TO_LARGE,
+                     string_view_from_cstring(""));
       }
 
       if ((z > i16_MIN) && (z < i16_MAX)) {
@@ -577,10 +589,10 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
 
-Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
+FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -597,8 +609,7 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
 
     switch (C.format) {
@@ -614,8 +625,8 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = x / y;
@@ -655,8 +666,8 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = x / y;
@@ -687,10 +698,10 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
 
-Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
+FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
@@ -707,8 +718,7 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
-      // TODO refactor to return an error here.
-      PANIC("operator invalid on given type");
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
 
     switch (C.format) {
@@ -724,8 +734,8 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = x % y;
@@ -765,8 +775,8 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
       if (Cv->kind == VALUEKIND_I64) {
         y = Cv->integer;
       } else {
-        // TODO refactor to return an error here.
-        PANIC("operator invalid on given type");
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
+                     string_view_from_cstring(""));
       }
 
       i64 z = x % y;
@@ -797,5 +807,5 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   default:
     unreachable();
   }
-  return A;
+  return success(A);
 }
