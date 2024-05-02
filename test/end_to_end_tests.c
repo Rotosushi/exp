@@ -63,6 +63,11 @@ int end_to_end_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
   result |= test_exp("fn main() { return 0; }", 0);
+  result |= test_exp("fn main() { return 3 + 3; }", 6);
+  result |= test_exp("fn main() { return 3 - 3; }", 0);
+  result |= test_exp("fn main() { return 3 * 3; }", 9);
+  result |= test_exp("fn main() { return 3 / 3; }", 1);
+  result |= test_exp("fn main() { return 3 % 3; }", 0);
 
   return result;
 }
