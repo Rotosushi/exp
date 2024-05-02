@@ -1,0 +1,31 @@
+// Copyright (C) 2024 Cade Weinberg
+// 
+// This file is part of exp.
+// 
+// exp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// exp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
+
+so, we want to call the standard GNU binutils as and ld.
+
+as needs the source assembly file that exp created as well as the 
+target object file name
+
+ld needs the source object file, plus the directory where the standard libraries 
+are kept, and the ouput exectuable name.
+
+this raises an interesting question, namely where do we place the standard libraries?
+for now, during this early stage, where they go in the build directory is good enough.
+but this is an important question to consider if we ever reach the stage of installing 
+exp on a target system. I do think the answer is /usr/local/lib64/
+because these are x64 target libraries, and they are intended to be installed 
+per user.

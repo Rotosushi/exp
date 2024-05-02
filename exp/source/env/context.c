@@ -24,9 +24,9 @@
 #include "utility/nearest_power.h"
 #include "utility/panic.h"
 
-Context context_create(ContextOptions *restrict options) {
+Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
-  Context context = {.options         = *options,
+  Context context = {.options         = context_options_create(options),
                      .string_interner = string_interner_create(),
                      .type_interner   = type_interner_create(),
                      .global_symbols  = symbol_table_create(),
@@ -43,34 +43,39 @@ void context_destroy(Context *restrict context) {
   constants_destroy(&(context->constants));
 }
 
+bool context_do_assemble(Context *restrict context) {
+  assert(context != NULL);
+  return context_options_do_assemble(&context->options);
+}
+
+bool context_do_link(Context *restrict context) {
+  assert(context != NULL);
+  return context_options_do_link(&context->options);
+}
+
+bool context_do_cleanup(Context *restrict context) {
+  assert(context != NULL);
+  return context_options_do_cleanup(&context->options);
+}
+
 StringView context_source_path(Context *restrict context) {
   assert(context != NULL);
   return string_to_view(&(context->options.source));
 }
 
-FILE *context_open_source(Context *restrict context) {
-  StringView path = context_source_path(context);
-  return file_open(path.ptr, "r");
+StringView context_assembly_path(Context *restrict context) {
+  assert(context != NULL);
+  return string_to_view(&context->options.assembly);
 }
 
-String context_buffer_source(Context *restrict context) {
-  FILE *file = context_open_source(context);
-
-  String result = string_from_file(file);
-
-  file_close(file);
-
-  return result;
+StringView context_object_path(Context *restrict context) {
+  assert(context != NULL);
+  return string_to_view(&context->options.object);
 }
 
 StringView context_output_path(Context *restrict context) {
   assert(context != NULL);
   return string_to_view(&(context->options.output));
-}
-
-FILE *context_open_output(Context *restrict context) {
-  StringView path = context_output_path(context);
-  return file_open(path.ptr, "w");
 }
 
 StringView context_intern(Context *restrict context, StringView sv) {

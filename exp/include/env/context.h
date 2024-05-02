@@ -45,19 +45,18 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-Context context_create(ContextOptions *restrict options);
+Context context_create(CLIOptions *restrict options);
 void context_destroy(Context *restrict context);
 
 // context options functions
+bool context_do_assemble(Context *restrict context);
+bool context_do_link(Context *restrict context);
+bool context_do_cleanup(Context *restrict context);
+
 StringView context_source_path(Context *restrict context);
-
-FILE *context_open_source(Context *restrict context);
-
-String context_buffer_source(Context *restrict context);
-
+StringView context_assembly_path(Context *restrict context);
+StringView context_object_path(Context *restrict context);
 StringView context_output_path(Context *restrict context);
-
-FILE *context_open_output(Context *restrict context);
 
 // string interner functions
 StringView context_intern(Context *restrict context, StringView sv);

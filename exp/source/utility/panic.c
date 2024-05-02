@@ -25,14 +25,14 @@
 #include "utility/panic.h"
 
 [[noreturn]] void panic(const char *msg, const char *file, i32 line) {
-  EXP_BREAK();
+  EXP_BREAK()
 
   log_message(LOG_FATAL, file, (u64)line, msg, stderr);
   exit(EXIT_FAILURE);
 }
 
 [[noreturn]] void panic_errno(const char *msg, const char *file, i32 line) {
-  EXP_BREAK();
+  EXP_BREAK()
 
   static char const *text = " errno: ";
   char const *errmsg      = strerror(errno);

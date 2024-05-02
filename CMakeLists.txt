@@ -31,6 +31,7 @@ set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(LIBEXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp")
 set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
+set(EXP_LIB_DIR "${PROJECT_BINARY_DIR}/libexp")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})

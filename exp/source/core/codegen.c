@@ -24,6 +24,7 @@
 #include "core/directives.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/config.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -1039,11 +1040,12 @@ static i32 codegen_function(Context *restrict c, String *restrict buffer,
     return EXIT_FAILURE;
   }
 
+  directive_text(buffer);
   directive_globl(name, buffer);
   directive_type(name, STT_FUNC, buffer);
   directive_label(name, buffer);
 
-  string_append(buffer, "\tpush rbp\n");
+  string_append(buffer, "\tpush %rbp\n");
   string_append(buffer, "\tmov %rsp, %rbp\n");
   if (la.stack_size != 0) {
     string_append(buffer, "\tsub $");
@@ -1079,8 +1081,29 @@ static i32 codegen_ste(Context *restrict c, String *restrict buffer,
   }
 }
 
+// static StringView cpu_type = {.length = sizeof("znver3") - 1, .ptr =
+// "znver3"};
+
+static StringView version = {.length = sizeof(EXP_VERSION_STRING) - 1,
+                             EXP_VERSION_STRING};
+
+static void emit_file_prolouge(Context *restrict context,
+                               String *restrict buffer) {
+  directive_file(context_source_path(context), buffer);
+  // directive_arch(cpu_type, buffer);
+  string_append(buffer, "\n");
+}
+
+static void emit_file_epilouge(String *restrict buffer) {
+  directive_ident(version, buffer);
+  directive_noexecstack(buffer);
+}
+
 i32 codegen(Context *restrict context) {
-  String buffer            = string_create();
+  String buffer = string_create();
+
+  emit_file_prolouge(context, &buffer);
+
   SymbolTableIterator iter = context_global_symbol_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
     if (codegen_ste(context, &buffer, iter.element) == EXIT_FAILURE) {
@@ -1092,7 +1115,10 @@ i32 codegen(Context *restrict context) {
     symbol_table_iterator_next(&iter);
   }
 
-  FILE *file = context_open_output(context);
+  emit_file_epilouge(&buffer);
+
+  StringView path = context_assembly_path(context);
+  FILE *file      = file_open(path.ptr, "w");
   file_write(buffer.buffer, file);
   file_close(file);
 

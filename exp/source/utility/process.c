@@ -37,7 +37,7 @@ i32 process(char const *cmd, char const *args[]) {
     PANIC_ERRNO("execvp failed");
   } else {
     // parent process
-    siginfo_t status;
+    siginfo_t status = {};
     if (waitid(P_PID, (id_t)pid, &status, WEXITED | WSTOPPED) == -1) {
       PANIC_ERRNO("waitid failed");
     }

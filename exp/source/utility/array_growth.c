@@ -34,7 +34,7 @@
  * with array_growth
  *
  */
-#define ARRAY_MIN_CAPACITY 8ul
+#define ARRAY_MIN_CAPACITY 4ul
 
 Growth array_growth_u64(u64 current_capacity, u64 element_size) {
   current_capacity = ulmax(current_capacity, ARRAY_MIN_CAPACITY);

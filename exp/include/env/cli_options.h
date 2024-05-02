@@ -19,7 +19,14 @@
 
 #include "adt/string.h"
 
+typedef enum CLIFlags {
+  CLI_DO_ASSEMBLE,
+  CLI_DO_LINK,
+  CLI_DO_CLEANUP,
+} CLIFlags;
+
 typedef struct CLIOptions {
+  u64 flags;
   String source;
   String output;
 } CLIOptions;

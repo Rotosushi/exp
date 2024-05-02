@@ -26,7 +26,7 @@
  * @param path
  * @param file
  */
-void directive_file(StringView path, String *str);
+void directive_file(StringView path, String *restrict str);
 
 /**
  * @brief This directive specifies the specific
@@ -38,7 +38,7 @@ void directive_file(StringView path, String *str);
  * @param cpu_type
  * @param file
  */
-void directive_arch(StringView cpu_type, String *file);
+void directive_arch(StringView cpu_type, String *restrict file);
 
 /**
  * @brief tells as to place comments/tags into the
@@ -49,7 +49,7 @@ void directive_arch(StringView cpu_type, String *file);
  * @param comment
  * @param file
  */
-void directive_ident(StringView comment, String *file);
+void directive_ident(StringView comment, String *restrict file);
 
 /**
  * @brief tells as to mark the stack as noexec,
@@ -58,7 +58,7 @@ void directive_ident(StringView comment, String *file);
  *
  * @param file
  */
-void directive_noexecstack(String *file);
+void directive_noexecstack(String *restrict file);
 
 /**
  * @brief defines a new symbol visible to ld for linking,
@@ -69,7 +69,7 @@ void directive_noexecstack(String *file);
  * @param name
  * @param file
  */
-void directive_globl(StringView name, String *file);
+void directive_globl(StringView name, String *restrict file);
 
 /**
  * @brief tells as to assemble the following statements into
@@ -77,7 +77,7 @@ void directive_globl(StringView name, String *file);
  *
  * @param file
  */
-void directive_data(String *file);
+void directive_data(String *restrict file);
 
 /**
  * @brief tells as to assemble the following statements into
@@ -85,7 +85,7 @@ void directive_data(String *file);
  *
  * @param file
  */
-void directive_bss(String *file);
+void directive_bss(String *restrict file);
 
 /**
  * @brief tells as to assemble the following statements into
@@ -93,7 +93,7 @@ void directive_bss(String *file);
  *
  * @param file
  */
-void directive_text(String *file);
+void directive_text(String *restrict file);
 
 /**
  * @brief pads the location counter to a particular storage boundary.
@@ -105,7 +105,7 @@ void directive_text(String *file);
  * @param type
  * @param file
  */
-void directive_balign(u64 bytes, String *file);
+void directive_balign(u64 bytes, String *restrict file);
 
 /**
  * @brief emits the .size <name>, <expression> directive
@@ -114,7 +114,7 @@ void directive_balign(u64 bytes, String *file);
  * @param size the size to place in <expression>
  * @param file
  */
-void directive_size(StringView name, u64 size, String *file);
+void directive_size(StringView name, u64 size, String *restrict file);
 
 /**
  * @brief emits a .size directive with a value equal to the
@@ -128,7 +128,7 @@ void directive_size(StringView name, u64 size, String *file);
  * @param name
  * @param file
  */
-void directive_size_label_relative(StringView name, String *file);
+void directive_size_label_relative(StringView name, String *restrict file);
 
 typedef enum STT_Type {
   STT_FUNC,
@@ -137,16 +137,16 @@ typedef enum STT_Type {
   STT_COMMON,
 } STT_Type;
 
-void directive_type(StringView name, STT_Type kind, String *file);
+void directive_type(StringView name, STT_Type kind, String *restrict file);
 
-void directive_quad(i64 value, String *file);
+void directive_quad(i64 value, String *restrict file);
 
-void directive_byte(unsigned char value, String *file);
+void directive_byte(unsigned char value, String *restrict file);
 
-void directive_zero(u64 bytes, String *file);
+void directive_zero(u64 bytes, String *restrict file);
 
-void directive_string(StringView sv, String *file);
+void directive_string(StringView sv, String *restrict file);
 
-void directive_label(StringView name, String *file);
+void directive_label(StringView name, String *restrict file);
 
 #endif // !EXP_BACKEND_AS_DIRECTIVES_H

@@ -14,23 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_DEBUG_H
-#define EXP_UTILITY_DEBUG_H
-#include "utility/config.h"
+#ifndef EXP_CORE_LINK_H
+#define EXP_CORE_LINK_H
+#include "env/context.h"
 
-#if EXP_DEBUG
-#if defined(EXP_HOST_OS_LINUX)
-#if defined(__GNUC__) || defined(__clang__)
-#define EXP_BREAK() __builtin_trap();
-#else
-#include <stdlib.h>
-#define EXP_BREAK() abort();
-#endif
-#else
-#error "unsupported host OS"
-#endif
-#else
-#define EXP_BREAK()
-#endif
+i32 link(Context *restrict context);
 
-#endif // !EXP_UTILITY_DEBUG_H
+#endif // !EXP_CORE_LINK_H

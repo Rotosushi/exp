@@ -134,9 +134,11 @@ static void string_assign_impl(String *restrict str, char const *restrict data,
 
 void string_assign(String *restrict str, const char *restrict data) {
   assert(str != NULL);
+  if (data == NULL) {
+    return;
+  }
 
   u64 data_length = strlen(data);
-
   string_assign_impl(str, data, data_length);
 }
 
@@ -289,6 +291,7 @@ void string_insert(String *restrict str, u64 offset,
   }
 
   memcpy(str->buffer + offset, data, length);
+  str->buffer[offset + length] = '\0';
 }
 
 void string_replace_extension(String *restrict p1, const char *restrict p2) {
@@ -324,12 +327,9 @@ void string_replace_extension(String *restrict p1, const char *restrict p2) {
     ++cursor;
   }
 
-  if (p2 == NULL) {
+  if ((p2 == NULL) || (strlen(p2) == 0)) {
     // remove the extension
-    char *pos       = buffer + cursor;
-    char *rest      = pos + length;
-    u64 rest_length = (u64)((buffer + length) - rest);
-    string_erase(p1, cursor, rest_length);
+    buffer[cursor] = '\0';
   } else {
     if (p2[0] != '.') {
       if (buffer[cursor] != '.') {

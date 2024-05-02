@@ -5,6 +5,7 @@ add_test (NAME "smoke test" COMMAND exp -v)
 create_test_sourcelist(Tests exp_tests.c
   cli_options_tests.c
   constants_tests.c
+  end_to_end_tests.c
   graph_tests.c
   instruction_tests.c
   lexer_tests.c

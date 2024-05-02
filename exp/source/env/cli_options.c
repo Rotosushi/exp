@@ -25,6 +25,10 @@
 #include "utility/io.h"
 #include "utility/log.h"
 
+#define SET_BIT(B, r) ((B) |= (u64)(1 << r))
+#define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
+#define CHK_BIT(B, r) (((B) >> r) & 1)
+
 static void print_version(FILE *file) {
   file_write(EXP_VERSION_STRING, file);
   file_write("\n", file);
@@ -32,20 +36,24 @@ static void print_version(FILE *file) {
 
 static void print_help(FILE *file) {
   file_write("exp [options] <source-file>\n\n", file);
-  file_write("  -h print help\n", file);
-  file_write("  -v print version\n", file);
-  file_write("  -o <filename> set output filename\n", file);
+  file_write("\t-h print help.\n", file);
+  file_write("\t-v print version.\n", file);
+  file_write("\t-o <filename> set output filename.\n", file);
+  file_write("\t-c emit an object file.\n", file);
+  file_write("\t-s emit an assembly file.\n", file);
   file_write("\n", file);
 }
 
 CLIOptions cli_options_create() {
-  CLIOptions cli_options;
-  cli_options.output = string_create();
-  cli_options.source = string_create();
+  CLIOptions cli_options = {.flags = 0};
+  SET_BIT(cli_options.flags, CLI_DO_ASSEMBLE);
+  SET_BIT(cli_options.flags, CLI_DO_LINK);
+  SET_BIT(cli_options.flags, CLI_DO_CLEANUP);
   return cli_options;
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
+  cli_options->flags = 0;
   string_destroy(&cli_options->output);
   string_destroy(&cli_options->source);
 }
@@ -55,7 +63,7 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
   CLIOptions options               = cli_options_create();
-  static char const *short_options = "hvo:";
+  static char const *short_options = "hvo:cs";
 
   i32 option = 0;
   while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -74,6 +82,19 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
     case 'o': {
       string_assign(&(options.output), optarg);
+      break;
+    }
+
+    case 'c': {
+      CLR_BIT(options.flags, CLI_DO_CLEANUP);
+      CLR_BIT(options.flags, CLI_DO_LINK);
+      break;
+    }
+
+    case 's': {
+      CLR_BIT(options.flags, CLI_DO_CLEANUP);
+      CLR_BIT(options.flags, CLI_DO_ASSEMBLE);
+      CLR_BIT(options.flags, CLI_DO_LINK);
       break;
     }
 
@@ -99,11 +120,15 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
   // base of the output filename
   if (string_empty(&(options.output))) {
     string_assign(&options.output, options.source.buffer);
-    string_replace_extension(&options.output, ".s");
+    string_replace_extension(&options.output, "");
   }
 
   return options;
 }
+
+#undef SET_BIT
+#undef CLR_BIT
+#undef CHK_BIT
 
 #else
 #error "unsupported host OS"

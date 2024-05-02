@@ -17,24 +17,26 @@
 #ifndef EXP_ENV_OPTIONS_H
 #define EXP_ENV_OPTIONS_H
 
-#include "adt/string.h"
 #include "env/cli_options.h"
 
 /**
  * @brief holds the options relevant for the given
- * context. For now it holds the names of both source
- * and output file. But the intention is to hold other
- * "translation unit" relevant information, such as
- * which files have been imported, what the level of
- * optimization is, and so forth and so on.
+ * context.
  *
  */
 typedef struct ContextOptions {
+  u64 flags;
   String source;
+  String assembly;
+  String object;
   String output;
 } ContextOptions;
 
-ContextOptions context_options_create();
+ContextOptions context_options_create(CLIOptions *restrict cli_options);
 void context_options_destroy(ContextOptions *restrict options);
+
+bool context_options_do_assemble(ContextOptions *restrict options);
+bool context_options_do_link(ContextOptions *restrict options);
+bool context_options_do_cleanup(ContextOptions *restrict options);
 
 #endif // !EXP_ENV_OPTIONS_H
