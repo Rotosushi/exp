@@ -26,6 +26,7 @@ i32 link(Context *restrict context) {
   StringView obj_path = context_object_path(context);
   StringView out_path = context_output_path(context);
 
+  // #TODO place our target libraries into one of ld's standard search locations
   char const *args[] = {
       "ld",          "-o",    out_path.ptr, "-L" EXP_LIB_DIR,
       "-lexp_start", "-lexp", obj_path.ptr, NULL,

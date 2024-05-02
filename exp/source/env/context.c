@@ -149,6 +149,12 @@ Value *context_constants_at(Context *restrict context, u16 index) {
   return constants_at(&(context->constants), index);
 }
 
+void context_emit_return(Context *restrict c, Operand B) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  bytecode_emit_return(bc, B);
+}
+
 Operand context_emit_move(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
@@ -161,16 +167,37 @@ Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if (B.format == OPRFMT_IMMEDIATE) {
+  switch (B.format) {
+  case OPRFMT_SSA: {
+    A = context_new_local(c);
+    bytecode_emit_neg(bc, A, B);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *v = context_constants_at(c, B.common);
+    if (v->kind == VALUEKIND_I64) {
+      i64 n = -(v->integer);
+      A     = context_constants_add(c, value_create_i64(n));
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
     i64 n = -((i64)(B.common));
-    if (n > i16_MAX || n < i16_MIN) {
+    if ((n > i16_MAX) || (n < i16_MIN)) {
       A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
     }
-  } else {
-    A = context_new_local(c);
-    bytecode_emit_neg(bc, A, B);
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
 }
@@ -179,16 +206,124 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
-    i64 n = B.common + C.common;
-    if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
-      A = opr_immediate((u16)n);
-    }
-  } else {
+  switch (B.format) {
+  case OPRFMT_SSA: {
     A = context_new_local(c);
     bytecode_emit_add(bc, A, B, C);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Bv = context_constants_at(c, B.common);
+    i64 x     = 0;
+    if (Bv->kind == VALUEKIND_I64) {
+      x = Bv->integer;
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_add(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_add_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_add_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    i64 x = (i64)B.common;
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_add(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_add_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_add_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      if ((z > i16_MIN) && (z < i16_MAX)) {
+        A = opr_immediate((u16)z);
+      } else {
+        A = context_constants_add(c, value_create_i64(z));
+      }
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
 }
@@ -197,16 +332,124 @@ Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
-    i64 n = B.common - C.common;
-    if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
-      A = opr_immediate((u16)n);
-    }
-  } else {
+  switch (B.format) {
+  case OPRFMT_SSA: {
     A = context_new_local(c);
     bytecode_emit_sub(bc, A, B, C);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Bv = context_constants_at(c, B.common);
+    i64 x     = 0;
+    if (Bv->kind == VALUEKIND_I64) {
+      x = Bv->integer;
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_sub(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_sub_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_sub_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    i64 x = (i64)B.common;
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_sub(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_sub_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_sub_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      if ((z > i16_MIN) && (z < i16_MAX)) {
+        A = opr_immediate((u16)z);
+      } else {
+        A = context_constants_add(c, value_create_i64(z));
+      }
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
 }
@@ -215,16 +458,124 @@ Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
-    i64 n = B.common * C.common;
-    if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
-      A = opr_immediate((u16)n);
-    }
-  } else {
+  switch (B.format) {
+  case OPRFMT_SSA: {
     A = context_new_local(c);
     bytecode_emit_mul(bc, A, B, C);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Bv = context_constants_at(c, B.common);
+    i64 x     = 0;
+    if (Bv->kind == VALUEKIND_I64) {
+      x = Bv->integer;
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_mul(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_mul_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_mul_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    i64 x = (i64)B.common;
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_mul(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = 0;
+      if (__builtin_mul_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = 0;
+      if (__builtin_mul_overflow(x, y, &z)) {
+        // TODO refactor to return an error here.
+        PANIC("result out of bounds");
+      }
+
+      if ((z > i16_MIN) && (z < i16_MAX)) {
+        A = opr_immediate((u16)z);
+      } else {
+        A = context_constants_add(c, value_create_i64(z));
+      }
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
 }
@@ -233,16 +584,108 @@ Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
-    i64 n = B.common / C.common;
-    if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
-      A = opr_immediate((u16)n);
-    }
-  } else {
+  switch (B.format) {
+  case OPRFMT_SSA: {
     A = context_new_local(c);
     bytecode_emit_div(bc, A, B, C);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Bv = context_constants_at(c, B.common);
+    i64 x     = 0;
+    if (Bv->kind == VALUEKIND_I64) {
+      x = Bv->integer;
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_div(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = x / y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = x / y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    i64 x = (i64)B.common;
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_div(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = x / y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = x / y;
+
+      if ((z > i16_MIN) && (z < i16_MAX)) {
+        A = opr_immediate((u16)z);
+      } else {
+        A = context_constants_add(c, value_create_i64(z));
+      }
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
 }
@@ -251,22 +694,108 @@ Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
-  if ((B.format == C.format) && (B.format == OPRFMT_IMMEDIATE)) {
-    i64 n = B.common % C.common;
-    if (n > i16_MAX || n < i16_MIN) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
-      A = opr_immediate((u16)n);
-    }
-  } else {
+  switch (B.format) {
+  case OPRFMT_SSA: {
     A = context_new_local(c);
     bytecode_emit_mod(bc, A, B, C);
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Bv = context_constants_at(c, B.common);
+    i64 x     = 0;
+    if (Bv->kind == VALUEKIND_I64) {
+      x = Bv->integer;
+    } else {
+      // TODO refactor to return an error here.
+      PANIC("operator invalid on given type");
+    }
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_mod(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = x % y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = x % y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    i64 x = (i64)B.common;
+
+    switch (C.format) {
+    case OPRFMT_SSA: {
+      A = context_new_local(c);
+      bytecode_emit_mod(bc, A, B, C);
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cv = context_constants_at(c, C.common);
+      i64 y     = 0;
+      if (Cv->kind == VALUEKIND_I64) {
+        y = Cv->integer;
+      } else {
+        // TODO refactor to return an error here.
+        PANIC("operator invalid on given type");
+      }
+
+      i64 z = x % y;
+
+      A = context_constants_add(c, value_create_i64(z));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      i64 y = (i64)C.common;
+
+      i64 z = x % y;
+
+      if ((z > i16_MIN) && (z < i16_MAX)) {
+        A = opr_immediate((u16)z);
+      } else {
+        A = context_constants_add(c, value_create_i64(z));
+      }
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  default:
+    unreachable();
   }
   return A;
-}
-
-void context_emit_return(Context *restrict c, Operand B) {
-  assert(c != NULL);
-  Bytecode *bc = context_active_bytecode(c);
-  bytecode_emit_return(bc, B);
 }
