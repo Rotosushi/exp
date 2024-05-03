@@ -124,19 +124,31 @@ FunctionBody *context_enter_function(Context *restrict c, StringView name) {
   return c->current_function;
 }
 
-void context_leave_function(Context *restrict c) {
-  assert(c != NULL);
-  c->current_function = NULL;
-}
-
 static Bytecode *context_active_bytecode(Context *restrict c) {
   assert(c->current_function != NULL);
   return &c->current_function->bc;
 }
 
-static Operand context_new_local(Context *restrict c) {
+static Operand context_new_ssa(Context *restrict c) {
   assert(c->current_function != NULL);
-  return opr_ssa(c->current_function->local_count++);
+  return opr_ssa(c->current_function->ssa_count++);
+}
+
+void context_new_local(Context *restrict c, StringView name, u16 ssa) {
+  assert(c != NULL);
+  LocalVariable lv = {.name = name, .ssa = ssa};
+  local_variables_append(&c->current_function->locals, lv);
+}
+
+LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
+  assert(c != NULL);
+  assert(c->current_function != NULL);
+  return local_variables_lookup(&c->current_function->locals, name);
+}
+
+void context_leave_function(Context *restrict c) {
+  assert(c != NULL);
+  c->current_function = NULL;
 }
 
 Operand context_constants_add(Context *restrict context, Value value) {
@@ -174,7 +186,7 @@ void context_emit_return(Context *restrict c, Operand B) {
 Operand context_emit_move(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_local(c);
+  Operand A    = context_new_ssa(c);
   bytecode_emit_move(bc, A, B);
   return A;
 }
@@ -185,7 +197,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_neg(bc, A, B);
     break;
   }
@@ -223,7 +235,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_add(bc, A, B, C);
     break;
   }
@@ -239,7 +251,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_add(bc, A, B, C);
       break;
     }
@@ -288,7 +300,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_add(bc, A, B, C);
       break;
     }
@@ -348,7 +360,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_sub(bc, A, B, C);
     break;
   }
@@ -364,7 +376,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_sub(bc, A, B, C);
       break;
     }
@@ -413,7 +425,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_sub(bc, A, B, C);
       break;
     }
@@ -473,7 +485,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_mul(bc, A, B, C);
     break;
   }
@@ -489,7 +501,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_mul(bc, A, B, C);
       break;
     }
@@ -538,7 +550,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_mul(bc, A, B, C);
       break;
     }
@@ -598,7 +610,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_div(bc, A, B, C);
     break;
   }
@@ -614,7 +626,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_div(bc, A, B, C);
       break;
     }
@@ -655,7 +667,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_div(bc, A, B, C);
       break;
     }
@@ -707,7 +719,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   Operand A;
   switch (B.format) {
   case OPRFMT_SSA: {
-    A = context_new_local(c);
+    A = context_new_ssa(c);
     bytecode_emit_mod(bc, A, B, C);
     break;
   }
@@ -723,7 +735,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_mod(bc, A, B, C);
       break;
     }
@@ -764,7 +776,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
 
     switch (C.format) {
     case OPRFMT_SSA: {
-      A = context_new_local(c);
+      A = context_new_ssa(c);
       bytecode_emit_mod(bc, A, B, C);
       break;
     }

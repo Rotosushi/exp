@@ -81,6 +81,9 @@ SymbolTableIterator context_global_symbol_iterator(Context *restrict context);
 // function functions
 FunctionBody *context_enter_function(Context *restrict c, StringView name);
 
+void context_new_local(Context *restrict c, StringView name, u16 ssa);
+LocalVariable *context_lookup_local(Context *restrict c, StringView name);
+
 void context_leave_function(Context *restrict c);
 
 // Constants functions

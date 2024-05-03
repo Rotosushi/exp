@@ -64,21 +64,65 @@ void formal_argument_list_append(FormalArgumentList *restrict fal,
   fal->size += 1;
 }
 
+LocalVariables local_variables_create() {
+  LocalVariables lv = {.size = 0, .capacity = 0, .buffer = NULL};
+  return lv;
+}
+
+static void local_variables_destroy(LocalVariables *restrict lv) {
+  lv->size     = 0;
+  lv->capacity = 0;
+  free(lv->buffer);
+  lv->buffer = NULL;
+}
+
+static bool local_variables_full(LocalVariables *restrict lv) {
+  return (lv->size + 1) >= lv->capacity;
+}
+
+static void local_variables_grow(LocalVariables *restrict lv) {
+  Growth g     = array_growth_u16(lv->capacity, sizeof(LocalVariable));
+  lv->buffer   = reallocate(lv->buffer, g.alloc_size);
+  lv->capacity = (u16)g.new_capacity;
+}
+
+void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
+  if (local_variables_full(lv)) {
+    local_variables_grow(lv);
+  }
+
+  lv->buffer[lv->size] = var;
+  lv->size += 1;
+}
+
+LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
+                                      StringView name) {
+  for (u16 i = 0; i < lv->size; ++i) {
+    LocalVariable *var = lv->buffer + i;
+    if (string_view_equality(var->name, name)) {
+      return var;
+    }
+  }
+  return NULL;
+}
+
 FunctionBody function_body_create() {
   FunctionBody function;
   function.arguments   = formal_argument_list_create();
+  function.locals      = local_variables_create();
   function.return_type = NULL;
   function.bc          = bytecode_create();
-  function.local_count = 0;
+  function.ssa_count   = 0;
   return function;
 }
 
 void function_body_destroy(FunctionBody *restrict function) {
   assert(function != NULL);
   formal_argument_list_destroy(&function->arguments);
+  local_variables_destroy(&function->locals);
   bytecode_destroy(&function->bc);
   function->return_type = NULL;
-  function->local_count = 0;
+  function->ssa_count   = 0;
 }
 
 static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {

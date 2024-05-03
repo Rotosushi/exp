@@ -238,7 +238,7 @@ static TResult typecheck_function(Context *restrict c,
                                   FunctionBody *restrict body) {
   Type *return_type = NULL;
   Bytecode *bc      = &body->bc;
-  LocalTypes lt     = lt_create(body->local_count);
+  LocalTypes lt     = lt_create(body->ssa_count);
 
   Instruction *ip = bc->buffer;
   for (u16 idx = 0; idx < bc->length; ++idx) {

@@ -151,48 +151,6 @@ static ParserResult expression(Parser *restrict p, Context *restrict c);
 static ParserResult parse_precedence(Parser *restrict p, Context *restrict c,
                                      Precedence precedence);
 
-// static ParserResult constant(Parser *restrict p, Context *restrict c) {
-//   nexttok(p); // eat 'const'
-
-//   if (!peek(p, TOK_IDENTIFIER)) {
-//     return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
-//   }
-//   StringView name = context_intern(c, curtxt(p));
-//   nexttok(p);
-
-//   if (!expect(p, TOK_EQUAL)) {
-//     return error(p, ERROR_PARSER_EXPECTED_EQUAL);
-//   }
-
-//   ParserResult maybe = expression(p, c);
-//   if (maybe.has_error) {
-//     return maybe;
-//   }
-
-//   if (!expect(p, TOK_SEMICOLON)) {
-//     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
-//   }
-
-//   return success();
-// }
-
-// "return" <expression> ";"
-static ParserResult return_(Parser *restrict p, Context *restrict c) {
-  nexttok(p); // eat "return"
-
-  ParserResult maybe = expression(p, c);
-  if (maybe.has_error) {
-    return maybe;
-  }
-
-  if (!expect(p, TOK_SEMICOLON)) {
-    return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
-  }
-
-  context_emit_return(c, maybe.result);
-  return success(zero());
-}
-
 static ParserResult parse_scalar_type(Parser *restrict p, Context *restrict c,
                                       Type **type) {
   switch (p->curtok) {
@@ -287,10 +245,59 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
   return success(zero());
 }
 
+// "const" identifier "=" <expression> ";"
+static ParserResult constant(Parser *restrict p, Context *restrict c) {
+  nexttok(p); // eat 'const'
+
+  if (!peek(p, TOK_IDENTIFIER)) {
+    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
+  }
+  StringView name = context_intern(c, curtxt(p));
+  nexttok(p);
+
+  if (!expect(p, TOK_EQUAL)) {
+    return error(p, ERROR_PARSER_EXPECTED_EQUAL);
+  }
+
+  ParserResult maybe = expression(p, c);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  if (!expect(p, TOK_SEMICOLON)) {
+    return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
+  }
+
+  Operand A = context_emit_move(c, maybe.result);
+  assert(A.format == OPRFMT_SSA);
+  context_new_local(c, name, A.common);
+  return success(zero());
+}
+
+// "return" <expression> ";"
+static ParserResult return_(Parser *restrict p, Context *restrict c) {
+  nexttok(p); // eat "return"
+
+  ParserResult maybe = expression(p, c);
+  if (maybe.has_error) {
+    return maybe;
+  }
+
+  if (!expect(p, TOK_SEMICOLON)) {
+    return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
+  }
+
+  context_emit_return(c, maybe.result);
+  return success(zero());
+}
+
 static ParserResult statement(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
   case TOK_RETURN:
     return return_(p, c);
+
+  case TOK_CONST:
+    return constant(p, c);
 
   default: {
     ParserResult result = expression(p, c);
@@ -437,29 +444,25 @@ static ParserResult binop(Parser *restrict p, Context *restrict c,
   }
 }
 
-static ParserResult nil(Parser *restrict p,
-                        [[maybe_unused]] Context *restrict c) {
+static ParserResult nil(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_nil());
   return success(context_emit_move(c, idx));
 }
 
-static ParserResult boolean_true(Parser *restrict p,
-                                 [[maybe_unused]] Context *restrict c) {
+static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_boolean(1));
   return success(context_emit_move(c, idx));
 }
 
-static ParserResult boolean_false(Parser *restrict p,
-                                  [[maybe_unused]] Context *restrict c) {
+static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_boolean(0));
   return success(context_emit_move(c, idx));
 }
 
-static ParserResult integer(Parser *restrict p,
-                            [[maybe_unused]] Context *restrict c) {
+static ParserResult integer(Parser *restrict p, Context *restrict c) {
   StringView sv = curtxt(p);
   i64 integer   = str_to_i64(sv.ptr, sv.length, RADIX_DECIMAL);
   if (errno == ERANGE) {
@@ -476,6 +479,17 @@ static ParserResult integer(Parser *restrict p,
   }
 
   return success(B);
+}
+
+static ParserResult identifier(Parser *restrict p, Context *restrict c) {
+  StringView name = context_intern(c, curtxt(p));
+  nexttok(p);
+  LocalVariable *var = context_lookup_local(c, name);
+  if (var == NULL) {
+    return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
+  }
+
+  return success(opr_ssa(var->ssa));
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {
@@ -557,7 +571,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
       [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},
       [TOK_STRING_LITERAL] = {         NULL,  NULL,   PREC_NONE},
-      [TOK_IDENTIFIER]     = {         NULL,  NULL,   PREC_NONE},
+      [TOK_IDENTIFIER]     = {   identifier,  NULL,   PREC_NONE},
 
       [TOK_TYPE_NIL]  = {         NULL,  NULL,   PREC_NONE},
       [TOK_TYPE_BOOL] = {         NULL,  NULL,   PREC_NONE},

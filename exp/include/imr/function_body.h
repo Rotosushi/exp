@@ -33,14 +33,29 @@ typedef struct FormalArgumentList {
   u8 capacity;
 } FormalArgumentList;
 
-FormalArgumentList formal_argument_list_create();
 void formal_argument_list_append(FormalArgumentList *restrict fal,
                                  FormalArgument arg);
 
+typedef struct LocalVariable {
+  StringView name;
+  u16 ssa;
+} LocalVariable;
+
+typedef struct LocalVariables {
+  u16 size;
+  u16 capacity;
+  LocalVariable *buffer;
+} LocalVariables;
+
+void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
+LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
+                                      StringView name);
+
 typedef struct FunctionBody {
   FormalArgumentList arguments;
+  LocalVariables locals;
   Type *return_type;
-  u16 local_count;
+  u16 ssa_count;
   Bytecode bc;
 } FunctionBody;
 
