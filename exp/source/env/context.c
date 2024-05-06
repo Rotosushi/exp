@@ -215,7 +215,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
 
   case OPRFMT_IMMEDIATE: {
     i64 n = -((i64)(B.common));
-    if ((n > i16_MAX) || (n < i16_MIN)) {
+    if ((n > i16_MAX) || (n < 0)) {
       A = context_constants_add(c, value_create_i64(n));
     } else {
       A = opr_immediate((u16)n);
@@ -334,7 +334,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
                      string_view_from_cstring(""));
       }
 
-      if ((z > i16_MIN) && (z < i16_MAX)) {
+      if ((z > 0) && (z <= u16_MAX)) {
         A = opr_immediate((u16)z);
       } else {
         A = context_constants_add(c, value_create_i64(z));
@@ -459,7 +459,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
                      string_view_from_cstring(""));
       }
 
-      if ((z > i16_MIN) && (z < i16_MAX)) {
+      if ((z > 0) && (z <= u16_MAX)) {
         A = opr_immediate((u16)z);
       } else {
         A = context_constants_add(c, value_create_i64(z));
@@ -584,7 +584,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
                      string_view_from_cstring(""));
       }
 
-      if ((z > i16_MIN) && (z < i16_MAX)) {
+      if ((z > 0) && (z <= u16_MAX)) {
         A = opr_immediate((u16)z);
       } else {
         A = context_constants_add(c, value_create_i64(z));
@@ -693,7 +693,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
 
       i64 z = x / y;
 
-      if ((z > i16_MIN) && (z < i16_MAX)) {
+      if ((z > 0) && (z <= u16_MAX)) {
         A = opr_immediate((u16)z);
       } else {
         A = context_constants_add(c, value_create_i64(z));
@@ -802,7 +802,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
 
       i64 z = x % y;
 
-      if ((z > i16_MIN) && (z < i16_MAX)) {
+      if ((z > 0) && (z <= u16_MAX)) {
         A = opr_immediate((u16)z);
       } else {
         A = context_constants_add(c, value_create_i64(z));

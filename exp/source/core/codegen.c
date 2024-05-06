@@ -134,6 +134,17 @@ static bool gprp_any_available(GPRP *restrict gprp, X64GPR *restrict r) {
   return 0;
 }
 
+static bool gprp_any_available_other_than(GPRP *restrict gprp,
+                                          X64GPR *restrict r, X64GPR avoid) {
+  for (u8 i = 0; i < 16; ++i) {
+    if (!CHK_BIT(gprp->bitset, i) && (i != avoid)) {
+      *r = (X64GPR)i;
+      return 1;
+    }
+  }
+  return 0;
+}
+
 /**
  * @brief allocate the next available register
  *
@@ -143,6 +154,16 @@ static bool gprp_any_available(GPRP *restrict gprp, X64GPR *restrict r) {
  */
 static bool gprp_allocate(GPRP *restrict gprp, X64GPR *restrict r) {
   if (gprp_any_available(gprp, r)) {
+    SET_BIT(gprp->bitset, *r);
+    return 1;
+  }
+
+  return 0;
+}
+
+static bool gprp_allocate_other_than(GPRP *restrict gprp, X64GPR *restrict r,
+                                     X64GPR avoid) {
+  if (gprp_any_available_other_than(gprp, r, avoid)) {
     SET_BIT(gprp->bitset, *r);
     return 1;
   }
@@ -367,7 +388,14 @@ static ActiveAllocation active_add(Active *restrict active, u16 ssa,
 }
 
 static void active_erase(Active *restrict a, ActiveAllocation *restrict aa) {
-  u16 i = (u16)(aa - a->buffer);
+  u16 i = 0;
+  for (; i < a->size; ++i) {
+    ActiveAllocation *al = a->buffer + i;
+    if (al->ssa == aa->ssa) {
+      break;
+    }
+  }
+
   // move all lifetimes after i backwards one location
   for (u16 j = i; j < a->size; ++j) {
     a->buffer[j] = a->buffer[j + 1];
@@ -379,13 +407,7 @@ static void active_erase(Active *restrict a, ActiveAllocation *restrict aa) {
 // static void active_erase_ssa(Active *restrict a, u16 ssa) {
 //   // find the index, i, of the ssa's lifetime
 //   u16 i = 0;
-//   for (; i < a->size; ++i) {
-//     ActiveAllocation *al = a->buffer + i;
-//     if (al->ssa == ssa) {
-//       active_erase(a, al);
-//       return;
-//     }
-//   }
+//
 // }
 
 /**
@@ -612,68 +634,48 @@ static void codegen_constant_operand(Value *restrict constant,
   codegen_immediate_operand(imm, buffer);
 }
 
-/*
-  we have a problem in many instruction mappings.
-  namely we need an existing register allocation
-  to be moved to either the stack or another register.
-
-  when we map a move instruction between two ssa locals
-  that are stack allocated we have to use a temporary
-  register to do a swap between the stack locations.
-  and if all registers are full, we additionally have to
-  spill an existing register to use for the swap, then
-  unspill the allocation after the swap.
-
-  when we are adding or subtracting two ssa locals and
-  both are on the stack we have to move one into a
-  register temporarily before we can do the addition or subtraction.
-  and if all registers are full, we additionally have to
-  spill a register to use for the addition or subtraction.
-  then unspill after the addition or subtraction.
-
-  multiplication can only occur between the %rax
-  and a ssa local in another register or the stack.
-  AND stores the result in %rdx:%rax, meaning both are
-  overwritten and we have to relocate any ssa locals within
-  those registers before the multiplication can occur.
-
-  division can only occur with the dividend in %rax
-  and divisor in %rdx, and the quotient is stored in %rax
-  and the remainder in %rdx. Thus the ssa local taking part
-  in division must be relocated to %rax and %rdx respectively.
-  and any ssa local already there must be relocated.
-
-  common element:
-  - we need a target register to be available for use
-    in an upcoming computation.
-
-  we don't always care which particular register is the target.
-  though sometimes we do.
-  we sometimes have more than one target register which must be
-  clear.
-  sometimes we just need to clear a target register because it will
-  be overwritten by the upcoming operation.
-
-  if we write an operation which releases a target register
-  then we can use it as a building block in many of the above situations.
-
-  if we write an operation which moves an existing allocation to
-  a target register, we can use that as a building block too.
- */
-
 static void codegen_reallocate_local(LocalAllocator *restrict la,
                                      ActiveAllocation *aa,
                                      String *restrict buffer) {
-  X64GPR new_gpr = 0;
-  if (gprp_allocate(&la->gprp, &new_gpr)) {
+  X64GPR gpr = 0;
+  if (gprp_allocate(&la->gprp, &gpr)) {
     // move allocation to new register.
     string_append(buffer, "\tmov %");
     string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
     string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(new_gpr));
+    string_append_sv(buffer, gpr_to_sv(gpr));
     string_append(buffer, "\n");
     // update the existing allocation to the new register
-    aa->allocation.gpr = new_gpr;
+    aa->allocation.gpr = gpr;
+    return;
+  }
+
+  // spill allocation to the stack
+  u16 offset = la_bump_active_stack_size(la);
+  string_append(buffer, "\tmov %");
+  string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
+  string_append(buffer, ", -");
+  string_append_u64(buffer, offset);
+  string_append(buffer, "(%rbp)\n");
+  // update the existing allocation to the new stack slot
+  aa->allocation.kind   = ALLOC_STACK;
+  aa->allocation.offset = offset;
+}
+
+static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
+                                                ActiveAllocation *aa,
+                                                X64GPR avoid,
+                                                String *restrict buffer) {
+  X64GPR gpr = 0;
+  if (gprp_allocate_other_than(&la->gprp, &gpr, avoid)) {
+    // move allocation to new register.
+    string_append(buffer, "\tmov %");
+    string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
+    string_append(buffer, ", %");
+    string_append_sv(buffer, gpr_to_sv(gpr));
+    string_append(buffer, "\n");
+    // update the existing allocation to the new register
+    aa->allocation.gpr = gpr;
     return;
   }
 
@@ -709,6 +711,14 @@ static void codegen_release_gpr(LocalAllocator *restrict la, X64GPR gpr,
   codegen_reallocate_local(la, aa, buffer);
 }
 
+static void codegen_zero_gpr(X64GPR gpr, String *restrict buffer) {
+  string_append(buffer, "\tmov ");
+  codegen_immediate_operand((i64)0, buffer);
+  string_append(buffer, ", %");
+  string_append_sv(buffer, gpr_to_sv(gpr));
+  string_append(buffer, "\n");
+}
+
 /**
  * @brief force release some gpr, prioritizing old allocations, making sure to
  * reallocate any ssa local.
@@ -720,7 +730,7 @@ static void codegen_release_gpr(LocalAllocator *restrict la, X64GPR gpr,
 static X64GPR codegen_release_any_gpr(LocalAllocator *restrict la, u16 Idx,
                                       String *restrict buffer) {
   // attempt to release an old active allocation in a gpr.
-  // this could release nothing, or release an old stack
+  // this could release nothing, a gpr, or an old stack
   // allocation.
   la_expire_old_lifetimes(la, Idx);
 
@@ -738,6 +748,62 @@ static X64GPR codegen_release_any_gpr(LocalAllocator *restrict la, u16 Idx,
     // the heuristic the linear register allocator uses.
     codegen_release_gpr(la, X64GPR_R15, buffer);
     return X64GPR_R15;
+  }
+}
+
+static Allocation
+codegen_create_temporary_from_immediate(LocalAllocator *restrict la, u16 Idx,
+                                        i64 imm, X64GPR avoid,
+                                        String *restrict buffer) {
+  // attempt to release an old active allocation in a gpr.
+  // this could release nothing, a gpr, or an old stack
+  // allocation.
+  la_expire_old_lifetimes(la, Idx);
+
+  X64GPR gpr = 0;
+  if (gprp_any_available_other_than(&la->gprp, &gpr, avoid)) {
+    string_append(buffer, "\tmov ");
+    codegen_immediate_operand(imm, buffer);
+    string_append(buffer, ", %");
+    string_append_sv(buffer, gpr_to_sv(gpr));
+    string_append(buffer, "\n");
+
+    return alloc_reg(gpr);
+  } else {
+    u16 offset = la_bump_active_stack_size(la);
+    string_append(buffer, "\tmov ");
+    codegen_immediate_operand(imm, buffer);
+    string_append(buffer, ", -");
+    string_append_u64(buffer, offset);
+    string_append(buffer, "(%rbp)\n");
+
+    return alloc_stack(offset);
+  }
+}
+
+static Allocation
+codegen_create_temporary_from_constant(LocalAllocator *restrict la, u16 Idx,
+                                       Value *restrict constant, X64GPR avoid,
+                                       String *restrict buffer) {
+  switch (constant->kind) {
+  case VALUEKIND_UNINITIALIZED:
+    PANIC("uninitialized value");
+    break;
+
+  case VALUEKIND_NIL:
+    return codegen_create_temporary_from_immediate(la, Idx, (i64)0, avoid,
+                                                   buffer);
+
+  case VALUEKIND_BOOLEAN:
+    return codegen_create_temporary_from_immediate(
+        la, Idx, (i64)constant->boolean, avoid, buffer);
+
+  case VALUEKIND_I64:
+    return codegen_create_temporary_from_immediate(la, Idx, constant->integer,
+                                                   avoid, buffer);
+
+  default:
+    unreachable();
   }
 }
 
@@ -789,6 +855,95 @@ codegen_allocate_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
   // start the lifetime of ssa associated with gpr
   return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
                     alloc_reg(gpr));
+}
+
+static ActiveAllocation
+codegen_allocate_gpr_from_immediate(LocalAllocator *restrict la, i64 imm,
+                                    X64GPR gpr, u16 ssa,
+                                    String *restrict buffer) {
+  codegen_release_gpr(la, gpr, buffer);
+  // initialize gpr with imm
+  string_append(buffer, "\tmov ");
+  codegen_immediate_operand(imm, buffer);
+  string_append(buffer, ", %");
+  string_append_sv(buffer, gpr_to_sv(gpr));
+  string_append(buffer, "\n");
+
+  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
+                    alloc_reg(gpr));
+}
+
+static ActiveAllocation
+codegen_allocate_mem_from_immediate(LocalAllocator *restrict la, i64 imm,
+                                    u16 ssa, String *restrict buffer) {
+  u16 offset = la_bump_active_stack_size(la);
+
+  // initialize mem with imm
+  string_append(buffer, "\tmov ");
+  codegen_immediate_operand(imm, buffer);
+  string_append(buffer, ", -");
+  string_append_u64(buffer, offset);
+  string_append(buffer, "(%rbp)\n");
+
+  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
+                    alloc_stack(offset));
+}
+
+static ActiveAllocation
+codegen_allocate_gpr_from_constant(LocalAllocator *restrict la, Value *constant,
+                                   X64GPR gpr, u16 ssa,
+                                   String *restrict buffer) {
+  switch (constant->kind) {
+  case VALUEKIND_UNINITIALIZED: {
+    PANIC("uninitialized value");
+    break;
+  }
+
+  case VALUEKIND_NIL: {
+    return codegen_allocate_gpr_from_immediate(la, (i64)0, gpr, ssa, buffer);
+  }
+
+  case VALUEKIND_BOOLEAN: {
+    return codegen_allocate_gpr_from_immediate(la, (i64)constant->boolean, gpr,
+                                               ssa, buffer);
+  }
+
+  case VALUEKIND_I64: {
+    return codegen_allocate_gpr_from_immediate(la, (i64)constant->integer, gpr,
+                                               ssa, buffer);
+  }
+
+  default:
+    unreachable();
+  }
+}
+
+static ActiveAllocation
+codegen_allocate_mem_from_constant(LocalAllocator *restrict la, Value *constant,
+                                   u16 ssa, String *restrict buffer) {
+  switch (constant->kind) {
+  case VALUEKIND_UNINITIALIZED: {
+    PANIC("uninitialized value");
+    break;
+  }
+
+  case VALUEKIND_NIL: {
+    return codegen_allocate_mem_from_immediate(la, (i64)0, ssa, buffer);
+  }
+
+  case VALUEKIND_BOOLEAN: {
+    return codegen_allocate_mem_from_immediate(la, (i64)constant->boolean, ssa,
+                                               buffer);
+  }
+
+  case VALUEKIND_I64: {
+    return codegen_allocate_mem_from_immediate(la, (i64)constant->integer, ssa,
+                                               buffer);
+  }
+
+  default:
+    unreachable();
+  }
 }
 
 /**
@@ -853,6 +1008,28 @@ static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_existing(
   // allocation the ssa
   return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
                     alloc_stack(offset));
+}
+
+static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_immediate(
+    LocalAllocator *restrict la, i64 imm, u16 ssa, String *restrict buffer) {
+  X64GPR gpr;
+  if (gprp_any_available(&la->gprp, &gpr)) {
+    return codegen_allocate_gpr_from_immediate(la, imm, gpr, ssa, buffer);
+  } else {
+    return codegen_allocate_mem_from_immediate(la, imm, ssa, buffer);
+  }
+}
+
+static ActiveAllocation
+codegen_allocate_any_gpr_or_mem_from_constant(LocalAllocator *restrict la,
+                                              Value *constant, u16 ssa,
+                                              String *restrict buffer) {
+  X64GPR gpr;
+  if (gprp_any_available(&la->gprp, &gpr)) {
+    return codegen_allocate_gpr_from_constant(la, constant, gpr, ssa, buffer);
+  } else {
+    return codegen_allocate_mem_from_constant(la, constant, ssa, buffer);
+  }
 }
 
 // in order to map the one operand IR instruction
@@ -1197,6 +1374,391 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
   }
 }
 
+// in order to map the 3 operand IR instruction
+//   sub A, B, C
+// where:
+//   ABC -- L[A] = L[B] - L[C]
+//   ABC -- L[A] = L[B] - C[C]
+//   ABC -- L[A] = L[B] - C
+//   ABC -- L[A] = C[B] - L[C]
+//   ABC -- L[A] = C[B] - C[C]
+//   ABC -- L[A] = C[B] - C
+//   ABC -- L[A] = B    - L[C]
+//   ABC -- L[A] = B    - C[C]
+//   ABC -- L[A] = B    - C
+//
+// to the two operand x64 instruction
+//   sub A, B
+// where:
+//   AB -- R[A] = R[A] - R[B]
+//
+// we have to ensure that the previous value of
+// A isn't overwritten if it is needed after this
+// expression.
+static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
+                        Instruction I, u16 Idx, String *restrict buffer) {
+  u16 A = INST_A(I);
+  u16 B = INST_B(I);
+  u16 C = INST_C(I);
+
+  ActiveAllocation Aalloc = {};
+  switch (INST_B_FORMAT(I)) {
+  case OPRFMT_SSA: {
+    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    switch (INST_C_FORMAT(I)) {
+    case OPRFMT_SSA: {
+      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      Aalloc =
+          codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
+      // recall that in AT&T syntax the destination is on the right.
+      // so "<A> - <C>" gets lowered to  "sub <C>, <A>"
+      string_append(buffer, "\tsub ");
+      codegen_alloc_operand(&Calloc, buffer);
+      string_append(buffer, ", ");
+      codegen_alloc_operand(&Aalloc, buffer);
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      Value *Cconst = context_constants_at(c, C);
+
+      Aalloc =
+          codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
+      string_append(buffer, "\tsub ");
+      codegen_constant_operand(Cconst, buffer);
+      string_append(buffer, ", ");
+      codegen_alloc_operand(&Aalloc, buffer);
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      Aalloc =
+          codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
+      string_append(buffer, "\tsub ");
+      codegen_immediate_operand((u16)C, buffer);
+      string_append(buffer, ", ");
+      codegen_alloc_operand(&Aalloc, buffer);
+      string_append(buffer, "\n");
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  // #note subtraction is not associative, so it matters
+  // in which order we perform it. So we have to implement
+  // B - C to maintain the semantics of the source code.
+  // additionally, there is no x64 instruction to
+  // subtract a register from an immediate.
+  // this means we have to allocate B into a register
+  // before we can subtract C from it. this goes along with
+  // the usual, we want to start the lifetime of A using that
+  // register or stack slot as it's allocation.
+  case OPRFMT_CONSTANT: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    Value *Bconst           = context_constants_at(c, B);
+    ActiveAllocation Aalloc =
+        codegen_allocate_any_gpr_or_mem_from_constant(la, Bconst, A, buffer);
+
+    string_append(buffer, "\tsub ");
+    codegen_alloc_operand(&Calloc, buffer);
+    string_append(buffer, ", ");
+    codegen_alloc_operand(&Aalloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    ActiveAllocation Aalloc =
+        codegen_allocate_any_gpr_or_mem_from_immediate(la, (i64)B, A, buffer);
+
+    string_append(buffer, "\tsub ");
+    codegen_alloc_operand(&Calloc, buffer);
+    string_append(buffer, ", ");
+    codegen_alloc_operand(&Aalloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+}
+
+// in order to map the 3 operand IR instruction
+//   mul A, B, C
+// where:
+//   ABC -- L[A] = L[B] * L[C]
+//   ABC -- L[A] = L[B] * C[C]
+//   ABC -- L[A] = L[B] * C
+//   ABC -- L[A] = C[B] * L[C]
+//   ABC -- L[A] = C[B] * C[C]
+//   ABC -- L[A] = C[B] * C
+//   ABC -- L[A] = B    * L[C]
+//   ABC -- L[A] = B    * C[C]
+//   ABC -- L[A] = B    * C
+//
+// to the 1 operand x64 instruction
+//   mul B
+// where:
+//   B -- RDX:RAX = RAX + R[B]
+//
+// we have to ensure that the previous value of
+// RAX and RDX isn't overwritten if either is needed
+// after this expression. and we have to ensure
+// that at least one of the operands can be
+// allocated to RAX before the instruction.
+// we must also note that the result, A,
+// is allocated to RAX afterwords.
+static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
+                        Instruction I, u16 Idx, String *restrict buffer) {
+  u16 A                                    = INST_A(I);
+  u16 B                                    = INST_B(I);
+  u16 C                                    = INST_C(I);
+  [[maybe_unused]] ActiveAllocation Aalloc = {};
+  switch (INST_B_FORMAT(I)) {
+  case OPRFMT_SSA: {
+    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    // make sure the value of B is held in %rax, for the imul instruction.
+    Aalloc = codegen_allocate_gpr_from_existing(la, Idx, &Balloc, X64GPR_RAX, A,
+                                                buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the imul instruction.
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    switch (INST_C_FORMAT(I)) {
+    case OPRFMT_SSA: {
+      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      // "imul <Calloc>"
+      string_append(buffer, "\timul ");
+      codegen_alloc_operand(&Calloc, buffer);
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      // so, we can't have an immediate as the operand to imul
+      // or idiv. however, we do know for sure that %rdx is free,
+      // so we can use it to store the temporary.
+      Value *Cconst = context_constants_at(c, C);
+      string_append(buffer, "\tmov ");
+      codegen_constant_operand(Cconst, buffer);
+      string_append(buffer, ", %");
+      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, "\n");
+
+      string_append(buffer, "\timul %");
+      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      string_append(buffer, "\tmov ");
+      codegen_immediate_operand((i64)C, buffer);
+      string_append(buffer, ", %");
+      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, "\n");
+
+      string_append(buffer, "\timul %");
+      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, "\n");
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    Value *Bconst           = context_constants_at(c, B);
+    // initialize A's ActiveAllocation with the value of B at %rax
+    Aalloc =
+        codegen_allocate_gpr_from_constant(la, Bconst, X64GPR_RAX, A, buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the imul instruction.
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    string_append(buffer, "\timul ");
+    codegen_alloc_operand(&Calloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    Aalloc =
+        codegen_allocate_gpr_from_immediate(la, (i64)B, X64GPR_RAX, A, buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the imul instruction.
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    string_append(buffer, "\timul ");
+    codegen_alloc_operand(&Calloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+}
+
+// in order to map the 3 operand IR instruction
+//   div A, B, C
+// where:
+//   ABC -- L[A] = L[B] / L[C]
+//   ABC -- L[A] = L[B] / C[C]
+//   ABC -- L[A] = L[B] / C
+//   ABC -- L[A] = C[B] / L[C]
+//   ABC -- L[A] = C[B] / C[C]
+//   ABC -- L[A] = C[B] / C
+//   ABC -- L[A] = B    / L[C]
+//   ABC -- L[A] = B    / C[C]
+//   ABC -- L[A] = B    / C
+//
+// to the 1 operand x64 instruction
+//   div B
+// where:
+//   B -- RAX = RAX / R[B], RDX = RAX % R[B]
+//
+// we have to ensure that the previous value of
+// RAX and RDX isn't overwritten if either is needed
+// after this expression. And we have to ensure
+// that the dividend B's value is held in %rax
+// before the instruction.
+// we must also note that the result, A, is
+// allocated to RAX afterwords.
+static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
+                        Instruction I, u16 Idx, String *restrict buffer) {
+  u16 A                                    = INST_A(I);
+  u16 B                                    = INST_B(I);
+  u16 C                                    = INST_C(I);
+  [[maybe_unused]] ActiveAllocation Aalloc = {};
+  switch (INST_B_FORMAT(I)) {
+  case OPRFMT_SSA: {
+    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    // make sure the value of B is held in %rax, for the idiv instruction.
+    Aalloc = codegen_allocate_gpr_from_existing(la, Idx, &Balloc, X64GPR_RAX, A,
+                                                buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the idiv instruction.
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    codegen_zero_gpr(X64GPR_RDX, buffer);
+    switch (INST_C_FORMAT(I)) {
+    case OPRFMT_SSA: {
+      ActiveAllocation Calloc = *la_allocation_of(la, C);
+
+      string_append(buffer, "\tidiv ");
+      codegen_alloc_operand(&Calloc, buffer);
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_CONSTANT: {
+      // so, we can't have an immediate as the operand to imul
+      // or idiv. and %rdx is used as the upper bits of a the
+      // dividend. so we have to use another temporary.
+      Value *Cconst  = context_constants_at(c, C);
+      Allocation tmp = codegen_create_temporary_from_constant(
+          la, Idx, Cconst, X64GPR_RDX, buffer);
+
+      string_append(buffer, "\tidiv ");
+      if (tmp.kind == ALLOC_GPR) {
+        string_append(buffer, "%");
+        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+      } else {
+        string_append(buffer, "-");
+        string_append_u64(buffer, tmp.offset);
+        string_append(buffer, "(%rbp)");
+      }
+      string_append(buffer, "\n");
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      Allocation tmp = codegen_create_temporary_from_immediate(
+          la, Idx, (i64)C, X64GPR_RDX, buffer);
+
+      string_append(buffer, "\tidiv ");
+      if (tmp.kind == ALLOC_GPR) {
+        string_append(buffer, "%");
+        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+      } else {
+        string_append(buffer, "-");
+        string_append_u64(buffer, tmp.offset);
+        string_append(buffer, "(%rbp)");
+      }
+      string_append(buffer, "\n");
+      break;
+    }
+
+    default:
+      unreachable();
+    }
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation *Calloc = la_allocation_of(la, C);
+    if ((Calloc->allocation.kind == ALLOC_GPR) &&
+        (Calloc->allocation.gpr == X64GPR_RDX)) {
+      codegen_reallocate_local_other_than(la, Calloc, X64GPR_RDX, buffer);
+    }
+
+    Value *Bconst = context_constants_at(c, B);
+    // initialize A's ActiveAllocation with the value of B at %rax
+    Aalloc =
+        codegen_allocate_gpr_from_constant(la, Bconst, X64GPR_RAX, A, buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the idiv instruction. and that rdx holds no erraneous
+    // data
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    codegen_zero_gpr(X64GPR_RDX, buffer);
+
+    string_append(buffer, "\tidiv ");
+    codegen_alloc_operand(Calloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    assert(INST_C_FORMAT(I) == OPRFMT_SSA);
+    ActiveAllocation *Calloc = la_allocation_of(la, C);
+    if ((Calloc->allocation.kind == ALLOC_GPR) &&
+        (Calloc->allocation.gpr == X64GPR_RDX)) {
+      codegen_reallocate_local_other_than(la, Calloc, X64GPR_RDX, buffer);
+    }
+
+    Aalloc =
+        codegen_allocate_gpr_from_immediate(la, (i64)B, X64GPR_RAX, A, buffer);
+    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // when we evaluate the idiv instruction.
+    codegen_release_gpr(la, X64GPR_RDX, buffer);
+    codegen_zero_gpr(X64GPR_RDX, buffer);
+
+    string_append(buffer, "\tidiv ");
+    codegen_alloc_operand(Calloc, buffer);
+    string_append(buffer, "\n");
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+}
+
 static void codegen_bytecode(Context *restrict c, LocalAllocator *restrict la,
                              Bytecode *restrict bc, String *restrict buffer) {
   Instruction *ip = bc->buffer;
@@ -1224,89 +1786,18 @@ static void codegen_bytecode(Context *restrict c, LocalAllocator *restrict la,
       break;
     }
 
-      // in order to map the 3 operand IR instruction
-      //   sub A, B, C
-      // where:
-      //   ABC -- L[A] = L[B] - L[C]
-      //   ABC -- L[A] = L[B] - C[C]
-      //   ABC -- L[A] = L[B] - C
-      //   ABC -- L[A] = C[B] - L[C]
-      //   ABC -- L[A] = C[B] - C[C]
-      //   ABC -- L[A] = C[B] - C
-      //   ABC -- L[A] = B    - L[C]
-      //   ABC -- L[A] = B    - C[C]
-      //   ABC -- L[A] = B    - C
-      //
-      // to the two operand x64 instruction
-      //   sub A, B
-      // where:
-      //   AB -- R[A] = R[A] - R[B]
-      //
-      // we have to ensure that the previous value of
-      // A isn't overwritten if it is needed after this
-      // expression.
     case OPC_SUB: {
-
+      codegen_sub(c, la, I, idx, buffer);
       break;
     }
 
-      // in order to map the 3 operand IR instruction
-      //   mul A, B, C
-      // where:
-      //   ABC -- L[A] = L[B] * L[C]
-      //   ABC -- L[A] = L[B] * C[C]
-      //   ABC -- L[A] = L[B] * C
-      //   ABC -- L[A] = C[B] * L[C]
-      //   ABC -- L[A] = C[B] * C[C]
-      //   ABC -- L[A] = C[B] * C
-      //   ABC -- L[A] = B    * L[C]
-      //   ABC -- L[A] = B    * C[C]
-      //   ABC -- L[A] = B    * C
-      //
-      // to the 1 operand x64 instruction
-      //   mul B
-      // where:
-      //   B -- RDX:RAX = RAX + R[B]
-      //
-      // we have to ensure that the previous value of
-      // RAX and RDX isn't overwritten if either is needed
-      // after this expression. and we have to ensure
-      // that at least one of the operands can be
-      // allocated to RAX before the instruction.
-      // we must also note that the result, A,
-      // is allocated to RAX afterwords.
     case OPC_MUL: {
-
+      codegen_mul(c, la, I, idx, buffer);
       break;
     }
 
-      // in order to map the 3 operand IR instruction
-      //   div A, B, C
-      // where:
-      //   ABC -- L[A] = L[B] / L[C]
-      //   ABC -- L[A] = L[B] / C[C]
-      //   ABC -- L[A] = L[B] / C
-      //   ABC -- L[A] = C[B] / L[C]
-      //   ABC -- L[A] = C[B] / C[C]
-      //   ABC -- L[A] = C[B] / C
-      //   ABC -- L[A] = B    / L[C]
-      //   ABC -- L[A] = B    / C[C]
-      //   ABC -- L[A] = B    / C
-      //
-      // to the 1 operand x64 instruction
-      //   div B
-      // where:
-      //   B -- RAX = RAX / R[B], RDX = RAX % R[B]
-      //
-      // we have to ensure that the previous value of
-      // RAX and RDX isn't overwritten if either is needed
-      // after this expression. And we have to ensure
-      // that exactly the dividend, operand B, can be
-      // allocated to RAX before the instruction.
-      // we must also note that the result, A, is
-      // allocated to RAX afterwords.
     case OPC_DIV: {
-
+      codegen_div(c, la, I, idx, buffer);
       break;
     }
 

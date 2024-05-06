@@ -59,15 +59,72 @@ static int test_exp(char const *contents, int expected_code) {
   return result;
 }
 
-int end_to_end_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+int test_trivial_constant_folding() {
   int result = EXIT_SUCCESS;
 
-  result |= test_exp("fn main() { return 0; }", 0);
   result |= test_exp("fn main() { return 3 + 3; }", 6);
   result |= test_exp("fn main() { return 3 - 3; }", 0);
   result |= test_exp("fn main() { return 3 * 3; }", 9);
   result |= test_exp("fn main() { return 3 / 3; }", 1);
   result |= test_exp("fn main() { return 3 % 3; }", 0);
+
+  return result;
+}
+
+int test_addition() {
+  int result = EXIT_SUCCESS;
+
+  result |=
+      test_exp("fn main() { const x = 3; const y = 3; return x + y; }", 6);
+  result |= test_exp("fn main() { const x = 3; return x + 3; }", 6);
+  result |= test_exp("fn main() { const x = 3; return 3 + x; }", 6);
+
+  return result;
+}
+
+int test_subtraction() {
+  int result = EXIT_SUCCESS;
+
+  result |=
+      test_exp("fn main() { const x = 3; const y = 3; return x - y; }", 0);
+  result |= test_exp("fn main() { const x = 3; return x - 3; }", 0);
+  result |= test_exp("fn main() { const x = 3; return 3 - x; }", 0);
+
+  return result;
+}
+
+int test_multiplication() {
+  int result = EXIT_SUCCESS;
+
+  result |=
+      test_exp("fn main() { const x = 3; const y = 3; return x * y; }", 9);
+  result |= test_exp("fn main() { const x = 3; return x * 3; }", 9);
+  result |= test_exp("fn main() { const x = 3; return 3 * x; }", 9);
+
+  return result;
+}
+
+int test_division() {
+  int result = EXIT_SUCCESS;
+
+  result |=
+      test_exp("fn main() { const x = 9; const y = 3; return x / y; }", 3);
+  result |= test_exp("fn main() { const x = 9; return x / 3; }", 3);
+  // result |= test_exp("fn main() { const x = 3; return 9 / x; }", 3);
+
+  return result;
+}
+
+int end_to_end_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+  int result = EXIT_SUCCESS;
+
+  result |= test_exp("fn main() { return 0; }", 0);
+
+  result |= test_trivial_constant_folding();
+  result |= test_addition();
+  result |= test_subtraction();
+  result |= test_multiplication();
+  result |= test_division();
 
   return result;
 }
