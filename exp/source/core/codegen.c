@@ -2080,7 +2080,7 @@ i32 codegen(Context *restrict context) {
 
   StringView path = context_assembly_path(context);
   FILE *file      = file_open(path.ptr, "w");
-  file_write(buffer.buffer, file);
+  file_write(string_to_cstring(&buffer), file);
   file_close(file);
 
   string_destroy(&buffer);

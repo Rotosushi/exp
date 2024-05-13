@@ -139,18 +139,16 @@ void string_resize(String *restrict str, u64 capacity) {
   assert(str != NULL);
   if (string_small(str)) {
     if (capacity >= sizeof(char *)) {
-      Growth g      = array_growth_u64(capacity, sizeof(char));
-      char *buf     = callocate(g.new_capacity, sizeof(char));
-      str->capacity = g.new_capacity;
+      char *buf     = callocate(capacity, sizeof(char));
+      str->capacity = capacity;
       memcpy(buf, str->buffer, str->length);
       str->ptr = buf;
     }
     return;
   }
 
-  Growth g              = array_growth_u64(capacity, sizeof(char));
-  str->ptr              = reallocate(str->ptr, g.new_capacity);
-  str->capacity         = g.new_capacity;
+  str->ptr              = reallocate(str->ptr, capacity);
+  str->capacity         = capacity;
   str->ptr[str->length] = '\0';
 }
 
@@ -161,7 +159,8 @@ static void string_append_impl(String *restrict str, char const *restrict data,
   }
 
   if ((str->length + size) >= str->capacity) {
-    string_resize(str, str->capacity + size);
+    Growth g = array_growth_u64(str->capacity + size, sizeof(char));
+    string_resize(str, g.new_capacity);
   }
 
   if (string_small(str)) {
@@ -240,8 +239,7 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
     } else {
       str->ptr[0] = '\0';
     }
-    str->length   = 0;
-    str->capacity = sizeof(char *);
+    str->length = 0;
     return;
   }
 
@@ -291,7 +289,7 @@ void string_insert(String *restrict str, u64 offset, char const *restrict data,
   assert(offset <= str->length);
 
   if ((offset + length) >= str->capacity) {
-    string_resize(str, (offset + length));
+    string_resize(str, (offset + length) + str->length);
     u64 added_length = (offset + length) - str->length;
     str->length += added_length;
   }
