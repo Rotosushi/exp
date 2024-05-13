@@ -69,13 +69,13 @@ typedef struct Error {
 } Error;
 
 Error error_create();
-Error error_construct(ErrorCode code, char const *restrict data);
+Error error_construct(ErrorCode code, char const *restrict data, u64 len);
 Error error_from_view(ErrorCode code, StringView sv);
 Error error_from_string(ErrorCode code, String str);
 void error_destroy(Error *restrict error);
 
 void error_assign(Error *restrict error, ErrorCode code,
-                  char const *restrict data);
+                  char const *restrict data, u64 len);
 
 void error_print(Error *restrict error, StringView file, u64 line);
 

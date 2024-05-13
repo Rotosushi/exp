@@ -56,7 +56,7 @@
  *
  *
  * format:
- *      7        6 5  4 3  2 1
+ *    8 7        6 5  4 3  2 1
  *  [reserved]   [C]  [B]  [I]
  *
  * I is the Instruction Format
@@ -154,8 +154,8 @@ typedef enum OperandFormat {
 } OperandFormat;
 
 typedef struct Operand {
-  u8 format;
-  u16 common;
+  unsigned format : 2;
+  unsigned common : 16;
 } Operand;
 
 Operand opr_constant(u16 index);
@@ -166,63 +166,19 @@ Operand opr_ssa(u16 ssa);
  * @brief represents a bytecode instruction
  *
  */
-typedef u64 Instruction;
+typedef struct Instruction {
+  unsigned opcode   : 8;
+  unsigned I_format : 2;
+  unsigned B_format : 2;
+  unsigned C_format : 2;
+  unsigned          : 2;
+  unsigned A        : 16;
+  unsigned B        : 16;
+  unsigned C        : 16;
+} Instruction;
 
-#define INST_OP(I) ((Opcode)((u8)((I) & u8_MAX)))
-
-#define INST_FORMAT_BYTE(I) ((u8)(((I) >> 8) & u8_MAX))
-#define INST_FORMAT(I)      ((InstructionFormat)(INST_FORMAT_BYTE(I) & (u8)0x3))
-#define INST_B_FORMAT(I)    ((OperandFormat)((INST_FORMAT_BYTE(I) >> 2) & (u8)0x3))
-#define INST_C_FORMAT(I)    ((OperandFormat)((INST_FORMAT_BYTE(I) >> 4) & (u8)0x3))
-
-#define INST_A(I)  ((u16)(((I) >> 16) & u16_MAX))
-#define INST_B(I)  ((u16)(((I) >> 32) & u16_MAX))
-#define INST_C(I)  ((u16)(((I) >> 48) & u16_MAX))
-#define INST_Ax(I) ((u32)(((I) >> 16) & u32_MAX))
-#define INST_Bx(I) ((u32)(((I) >> 32) & u32_MAX))
-
-/*
-  #NOTE:
-  INST_SET_* works by first creating a temporary equal to the
-  original I with the target bits cleared (bitwise and (&) with 0
-  in the target position), then setting those bits equal to the
-  value of the argument (bitwise or (|) with target bits set to the value).
-  then setting the original value equal to the result.
-*/
-
-#define INST_SET_OP(I, op)                                                     \
-  ((I) = (((I) & ~(u64)(u8_MAX)) | ((u64)(op) & (u64)(u8_MAX))))
-
-#define INST_SET_FORMAT(I, f)                                                  \
-  ((I) = (((I) & ~((u64)(u8_MAX) << 8)) |                                      \
-          (((u64)(f) << 8) & ((u64)(u8_MAX) << 8))))
-
-#define INST_SET_A(I, n)                                                       \
-  ((I) = (((I) & ~((u64)(u16_MAX) << 16)) |                                    \
-          (((u64)(n) << 16) & ((u64)(u16_MAX) << 16))))
-
-#define INST_SET_B_FORMAT(I, f)                                                \
-  ((I) = (((I) & ~((u64)(0x3) << 10)) |                                        \
-          (((u64)(f) << 10) & ((u64)(0x3) << 10))))
-
-#define INST_SET_C_FORMAT(I, f)                                                \
-  ((I) = (((I) & ~((u64)(0x3) << 12)) |                                        \
-          (((u64)(f) << 12) & ((u64)(0x3) << 12))))
-
-#define INST_SET_B(I, n)                                                       \
-  ((I) = (((I) & ~(((u64)(u16_MAX)) << 32)) |                                  \
-          (((u64)(n) << 32) & (((u64)(u16_MAX)) << 32))))
-
-#define INST_SET_C(I, n)                                                       \
-  ((I) = (((I) & ~(((u64)(u16_MAX)) << 48)) |                                  \
-          (((u64)(n) << 48) & (((u64)(u16_MAX)) << 48))))
-
-#define INST_SET_Ax(I, n)                                                      \
-  ((I) = (((I) & ~(((u64)(u32_MAX)) << 16)) |                                  \
-          (((u64)(n) << 16) & (((u64)(u32_MAX)) << 16))))
-
-#define INST_SET_Bx(I, n)                                                      \
-  ((I) = (((I) & ~(((u64)(u32_MAX)) << 32)) |                                  \
-          (((u64)(n) << 32) & (((u64)(u32_MAX)) << 32))))
+Instruction inst_B(Opcode opcode, Operand B);
+Instruction inst_AB(Opcode opcode, Operand A, Operand B);
+Instruction inst_ABC(Opcode opcode, Operand A, Operand B, Operand C);
 
 #endif // !EXP_IMR_INSTRUCTION_H

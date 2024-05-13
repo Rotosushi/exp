@@ -32,3 +32,31 @@ Operand opr_ssa(u16 ssa) {
   Operand opr = {.format = (u8)OPRFMT_SSA, .common = ssa};
   return opr;
 }
+
+Instruction inst_B(Opcode opcode, Operand B) {
+  Instruction I = {.opcode   = opcode,
+                   .I_format = IFMT_B,
+                   .B_format = B.format,
+                   .B        = B.common};
+  return I;
+}
+
+Instruction inst_AB(Opcode opcode, Operand A, Operand B) {
+  Instruction I = {.opcode   = opcode,
+                   .I_format = IFMT_AB,
+                   .A        = A.common,
+                   .B_format = B.format,
+                   .B        = B.common};
+  return I;
+}
+
+Instruction inst_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
+  Instruction I = {.opcode   = opcode,
+                   .I_format = IFMT_ABC,
+                   .A        = A.common,
+                   .B_format = B.format,
+                   .B        = B.common,
+                   .C_format = C.format,
+                   .C        = C.common};
+  return I;
+}

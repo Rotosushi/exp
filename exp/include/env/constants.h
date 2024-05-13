@@ -23,8 +23,8 @@
 #include "utility/io.h"
 
 typedef struct Constants {
-  u64 length;
-  u64 capacity;
+  u16 length;
+  u16 capacity;
   Value *buffer;
 } Constants;
 

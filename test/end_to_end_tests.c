@@ -110,7 +110,18 @@ int test_division() {
   result |=
       test_exp("fn main() { const x = 9; const y = 3; return x / y; }", 3);
   result |= test_exp("fn main() { const x = 9; return x / 3; }", 3);
-  // result |= test_exp("fn main() { const x = 3; return 9 / x; }", 3);
+  result |= test_exp("fn main() { const x = 3; return 9 / x; }", 3);
+
+  return result;
+}
+
+int test_modulus() {
+  int result = EXIT_SUCCESS;
+
+  result |=
+      test_exp("fn main() { const x = 9; const y = 3; return x % y; }", 0);
+  result |= test_exp("fn main() { const x = 9; return x % 3; }", 0);
+  result |= test_exp("fn main() { const x = 3; return 9 % x; }", 0);
 
   return result;
 }
@@ -125,6 +136,7 @@ int end_to_end_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   result |= test_subtraction();
   result |= test_multiplication();
   result |= test_division();
+  result |= test_modulus();
 
   return result;
 }

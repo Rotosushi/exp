@@ -81,7 +81,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     }
 
     case 'o': {
-      string_assign(&(options.output), optarg);
+      string_assign(&(options.output), optarg, strlen(optarg));
       break;
     }
 
@@ -109,7 +109,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
   }
 
   if (optind < argc) {
-    string_assign(&(options.source), argv[optind]);
+    string_assign(&(options.source), argv[optind], strlen(argv[optind]));
   } else { // no input file given
     log_message(LOG_ERROR, NULL, 0, "an input file must be specified.\n",
                 stderr);
@@ -119,8 +119,8 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
   // use the input filename as the default
   // base of the output filename
   if (string_empty(&(options.output))) {
-    string_assign(&options.output, options.source.buffer);
-    string_replace_extension(&options.output, "");
+    string_assign_string(&options.output, &options.source);
+    string_replace_extension(&options.output, "", 0);
   }
 
   return options;

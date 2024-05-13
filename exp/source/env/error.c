@@ -82,10 +82,10 @@ Error error_create() {
   return error;
 }
 
-Error error_construct(ErrorCode code, char const *restrict data) {
+Error error_construct(ErrorCode code, char const *restrict data, u64 len) {
   Error error;
   error.code = code;
-  string_assign(&error.message, data);
+  string_assign(&error.message, data, len);
   return error;
 }
 
@@ -107,9 +107,9 @@ void error_destroy(Error *restrict error) {
 }
 
 void error_assign(Error *restrict error, ErrorCode code,
-                  char const *restrict data) {
+                  char const *restrict data, u64 len) {
   error->code = code;
-  string_assign(&error->message, data);
+  string_assign(&error->message, data, len);
 }
 
 void error_print(Error *restrict error, StringView file, u64 line) {
@@ -117,8 +117,8 @@ void error_print(Error *restrict error, StringView file, u64 line) {
   string_append(&msg, "\nError: ");
   string_append(&msg, error_code_cstring(error->code));
   string_append(&msg, "[");
-  string_append(&msg, error->message.buffer);
+  string_append_string(&msg, &error->message);
   string_append(&msg, "]");
-  log_message(LOG_ERROR, file.ptr, line, msg.buffer, stderr);
+  log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
   string_destroy(&msg);
 }

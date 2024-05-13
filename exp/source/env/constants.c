@@ -46,9 +46,9 @@ static bool constants_full(Constants *restrict constants) {
 }
 
 static void constants_grow(Constants *restrict constants) {
-  Growth g            = array_growth_u64(constants->capacity, sizeof(Value));
+  Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
   constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-  constants->capacity = g.new_capacity;
+  constants->capacity = (u16)g.new_capacity;
 }
 
 [[maybe_unused]] static bool index_inbounds(Constants *restrict c, u16 i) {
@@ -72,15 +72,15 @@ Operand constants_add(Constants *restrict c, Value value) {
     constants_grow(c);
   }
 
-  u64 index            = c->length;
-  c->buffer[c->length] = value;
-  c->length += 1;
-
-  if (index > u16_MAX) {
+  if (c->length == u16_MAX) {
     PANIC("constant index out of bounds");
   }
 
-  return opr_constant((u16)index);
+  u16 index            = c->length;
+  c->buffer[c->length] = value;
+  c->length += 1;
+
+  return opr_constant(index);
 }
 
 Value *constants_at(Constants *restrict c, u16 i) {

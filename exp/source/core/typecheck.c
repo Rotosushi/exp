@@ -113,17 +113,17 @@ static TResult typecheck_operand(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_move(Context *restrict c, LocalTypes *restrict lt,
                               Instruction I) {
-  return typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I));
+  return typecheck_operand(c, lt, I.B_format, I.B);
 }
 
 static TResult typecheck_ret(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  return typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I));
+  return typecheck_operand(c, lt, I.B_format, I.B);
 }
 
 static TResult typecheck_neg(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -136,9 +136,9 @@ static TResult typecheck_neg(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_add(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, lt, INST_C_FORMAT(I), INST_C(I)));
+  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -156,9 +156,9 @@ static TResult typecheck_add(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_sub(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, lt, INST_C_FORMAT(I), INST_C(I)));
+  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -176,9 +176,9 @@ static TResult typecheck_sub(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_mul(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, lt, INST_C_FORMAT(I), INST_C(I)));
+  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -196,9 +196,9 @@ static TResult typecheck_mul(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_div(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, lt, INST_C_FORMAT(I), INST_C(I)));
+  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -216,9 +216,9 @@ static TResult typecheck_div(Context *restrict c, LocalTypes *restrict lt,
 
 static TResult typecheck_mod(Context *restrict c, LocalTypes *restrict lt,
                              Instruction I) {
-  try(Bty, typecheck_operand(c, lt, INST_B_FORMAT(I), INST_B(I)));
+  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, lt, INST_C_FORMAT(I), INST_C(I)));
+  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -243,53 +243,53 @@ static TResult typecheck_function(Context *restrict c,
   Instruction *ip = bc->buffer;
   for (u16 idx = 0; idx < bc->length; ++idx) {
     Instruction I = ip[idx];
-    switch (INST_OP(I)) {
+    switch (I.opcode) {
     case OPC_MOVE: {
       try(Bty, typecheck_move(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Bty);
+      lt_set(&lt, I.A, Bty);
       break;
     }
 
     case OPC_NEG: {
       try(Bty, typecheck_neg(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Bty);
+      lt_set(&lt, I.A, Bty);
       break;
     }
 
     case OPC_ADD: {
       try(Aty, typecheck_add(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Aty);
+      lt_set(&lt, I.A, Aty);
       break;
     }
 
     case OPC_SUB: {
       try(Aty, typecheck_sub(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Aty);
+      lt_set(&lt, I.A, Aty);
       break;
     }
 
     case OPC_MUL: {
       try(Aty, typecheck_mul(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Aty);
+      lt_set(&lt, I.A, Aty);
       break;
     }
 
     case OPC_DIV: {
       try(Aty, typecheck_div(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Aty);
+      lt_set(&lt, I.A, Aty);
       break;
     }
 
     case OPC_MOD: {
       try(Aty, typecheck_mod(c, &lt, I));
 
-      lt_set(&lt, INST_A(I), Aty);
+      lt_set(&lt, I.A, Aty);
       break;
     }
 

@@ -21,25 +21,11 @@
 
 #include "env/cli_options.h"
 
-static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
-                          const char *restrict s2, u64 s2_len) {
-  if (s1_len != s2_len) {
-    return 1;
-  }
-
-  if (memcmp(s1, s2, s1_len) != 0) {
-    return 1;
-  }
-
-  return 0;
-}
-
 bool test_options(i32 argc, char const *argv[], char const *d1, u64 d1_len) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
-  if (s1_same_as_s2(cli_options.source.buffer, cli_options.source.length, d1,
-                    d1_len)) {
+  if (!string_eq(&cli_options.source, d1, d1_len)) {
     failure |= 1;
   } else {
     failure |= 0;

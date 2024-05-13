@@ -64,27 +64,15 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
   bytecode->length += 1;
 }
 
-#define FORMAT_B(I, OP, B)                                                     \
-  INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_B);                                                  \
-  INST_SET_B_FORMAT(I, B.format);                                              \
-  INST_SET_B(I, B.common)
+// B -- L[R] = B,    <return>
+// B -- L[R] = C[B], <return>
+// B -- L[R] = L[B], <return>
+void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
+  assert(bc != NULL);
 
-#define FORMAT_AB(I, OP, A, B)                                                 \
-  INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_AB);                                                 \
-  INST_SET_A(I, A.common);                                                     \
-  INST_SET_B_FORMAT(I, B.format);                                              \
-  INST_SET_B(I, B.common)
-
-#define FORMAT_ABC(I, OP, A, B, C)                                             \
-  INST_SET_OP(I, OP);                                                          \
-  INST_SET_FORMAT(I, IFMT_ABC);                                                \
-  INST_SET_A(I, A.common);                                                     \
-  INST_SET_B_FORMAT(I, B.format);                                              \
-  INST_SET_B(I, B.common);                                                     \
-  INST_SET_C_FORMAT(I, C.format);                                              \
-  INST_SET_C(I, C.common)
+  Instruction I = inst_B(OPC_RET, B);
+  bytecode_emit_instruction(bc, I);
+}
 
 // AB -- L[A] = B
 // AB -- L[A] = C[B]
@@ -92,9 +80,7 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_AB(I, OPC_MOVE, A, B);
-
+  Instruction I = inst_AB(OPC_MOVE, A, B);
   bytecode_emit_instruction(bc, I);
 }
 // AB  -- L[A] = -(B)
@@ -103,9 +89,7 @@ void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
 void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_AB(I, OPC_NEG, A, B);
-
+  Instruction I = inst_AB(OPC_NEG, A, B);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -121,9 +105,7 @@ void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
 void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_ABC(I, OPC_ADD, A, B, C);
-
+  Instruction I = inst_ABC(OPC_ADD, A, B, C);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -139,9 +121,7 @@ void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_ABC(I, OPC_SUB, A, B, C);
-
+  Instruction I = inst_ABC(OPC_SUB, A, B, C);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -157,9 +137,7 @@ void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_ABC(I, OPC_MUL, A, B, C);
-
+  Instruction I = inst_ABC(OPC_MUL, A, B, C);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -175,9 +153,7 @@ void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_ABC(I, OPC_DIV, A, B, C);
-
+  Instruction I = inst_ABC(OPC_DIV, A, B, C);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -193,21 +169,7 @@ void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
 
-  Instruction I = 0;
-  FORMAT_ABC(I, OPC_MOD, A, B, C);
-
-  bytecode_emit_instruction(bc, I);
-}
-
-// B -- L[R] = B,    <return>
-// B -- L[R] = C[B], <return>
-// B -- L[R] = L[B], <return>
-void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
-  assert(bc != NULL);
-
-  Instruction I = 0;
-  FORMAT_B(I, OPC_RET, B);
-
+  Instruction I = inst_ABC(OPC_MOD, A, B, C);
   bytecode_emit_instruction(bc, I);
 }
 
@@ -248,20 +210,15 @@ static void print_operand(OperandFormat format, u16 value,
 }
 
 static void print_operand_A(Instruction I, FILE *restrict file) {
-  u16 v = INST_A(I);
-  print_operand(OPRFMT_SSA, v, file);
+  print_operand(OPRFMT_SSA, I.A, file);
 }
 
 static void print_operand_B(Instruction I, FILE *restrict file) {
-  OperandFormat o = INST_B_FORMAT(I);
-  u16 v           = INST_B(I);
-  print_operand(o, v, file);
+  print_operand(I.B_format, I.B, file);
 }
 
 static void print_operand_C(Instruction I, FILE *restrict file) {
-  OperandFormat o = INST_C_FORMAT(I);
-  u16 v           = INST_C(I);
-  print_operand(o, v, file);
+  print_operand(I.C_format, I.C, file);
 }
 
 // "move L[<A>], <B>"
@@ -337,7 +294,7 @@ static void print_ret(Instruction I, FILE *restrict file) {
 }
 
 static void print_instruction(Instruction I, FILE *restrict file) {
-  switch (INST_OP(I)) {
+  switch (I.opcode) {
   case OPC_MOVE:
     print_move(I, file);
     break;

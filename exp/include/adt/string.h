@@ -29,158 +29,46 @@
 typedef struct String {
   u64 length;
   u64 capacity;
-  char *buffer;
+  union {
+    char *ptr;
+    char buffer[sizeof(char *)];
+  };
 } String;
 
-/*
-  the so called "small string optimization" is
-  a string structure which looks something like:
-  struct string {
-    u64 length;
-    u64 capacity;
-    bool is_small;
-    union {
-      char *buffer;
-      char small[sizeof(char *)];
-    };
-  };
-  so the string is only 1 bool larger than
-  the current string structure.
-  a fancy implementation could store the
-  bool within the allocation of another
-  data member, or so I have heard.
-
-  addendum, isn't it true that whenever (length < sizeof(char *))
-  the string will be stored in the small string buffer?
-  thus, the bool is completely equivalent to the above check
-  and is actually unnecessary.
-  well, why not make this a #TODO just for fun. (and experience)
-*/
-
-/**
- * @brief create a new string
- *
- * @return string
- */
 String string_create();
 
-/**
- * @brief free the given string
- *
- * @note frees the strings allocated buffer, if any
- *
- * @param str
- */
 void string_destroy(String *restrict str);
 
-/**
- * @brief return a StringView of the entire string
- *
- * @param str
- * @return StringView
- */
 StringView string_to_view(String const *restrict str);
 
-// /**
-//  * @brief return a StringView of a subsection of <string>,
-//  *  starting at <offset> and continuing for <length>.
-//  *
-//  * @warning assert((offset <= string->length) && ((offset + length) <=
-//  * string->length))
-//  *
-//  * @param string
-//  * @param offset
-//  * @param length
-//  * @return StringView
-//  */
-// StringView string_to_view_at(String const *restrict string, u64 offset,
-//                              u64 length);
+char const *string_to_cstring(String const *restrict str);
 
 String string_from_view(StringView sv);
 
-// String string_from_cstring(char const *restrict cs);
-
 String string_from_file(FILE *restrict file);
 
-/**
- * @brief returns if the string is empty.
- *
- * @param string
- * @return true
- * @return false
- */
 bool string_empty(String const *restrict string);
 
-// /**
-//  * @brief compare two strings lexicographically
-//  *
-//  * @param s1
-//  * @param s2
-//  * @return i32
-//  */
-// i32 string_compare(String const *restrict s1, String const *restrict s2);
+bool string_eq(String const *restrict str, char const *restrict data,
+               u64 length);
 
-/**
- * @brief resize the string to be able to hold at least
- * <capacity> characters.
- *
- * @param str the string to resize
- * @param capacity the new capacity of the string
- */
 void string_resize(String *restrict str, u64 capacity);
 
-// /**
-//  * @brief resize the string to be able to hold at least
-//  * <capacity> more characters.
-//  *
-//  * @param str
-//  * @param capacity
-//  */
-// void string_reserve_more(String *restrict str, u64 capacity);
+void string_assign(String *restrict str, const char *restrict data, u64 length);
 
-/**
- * @brief assigns the string to hold exactly the contents of <data>
- *
- * @param str
- * @param data
- * @param data_length
- */
-void string_assign(String *restrict str, const char *restrict data);
+void string_assign_sv(String *restrict str, StringView sv);
 
-void string_assign_view(String *restrict str, StringView sv);
+void string_assign_string(String *restrict dst, String const *restrict src);
 
-// void string_move(String *restrict s1, String *restrict s2);
-
-/**
- * @brief appends <data> to the current contents of <str>
- *
- * @param str
- * @param data
- * @param data_length
- */
 void string_append(String *restrict str, const char *restrict data);
 
 void string_append_sv(String *restrict str, StringView sv);
 
+void string_append_string(String *restrict dst, String const *restrict src);
+
 void string_append_i64(String *restrict str, i64 i);
 
 void string_append_u64(String *restrict str, u64 u);
-
-// /**
-//  * @brief concatenates <s2> onto the end of <s1>
-//  *
-//  * @param s1
-//  * @param s2
-//  */
-// void string_append_string(String *restrict s1, const String *restrict s2);
-
-// /**
-//  * @brief appends <c> onto the end of <str>
-//  *
-//  * @param str
-//  * @param c
-//  */
-// void string_append_char(String *restrict str, const char c);
 
 /**
  * @brief erases the substring of str->buffer[offset]
@@ -201,10 +89,10 @@ void string_erase(String *restrict str, u64 offset, u64 length);
  * @param offset
  * @param data
  */
-void string_insert(String *restrict str, u64 offset, char const *restrict data);
+void string_insert(String *restrict str, u64 offset, char const *restrict data,
+                   u64 length);
 
-void string_replace_extension(String *restrict p1, const char *restrict p2);
-
-// void print_string(String *restrict s, FILE *restrict file);
+void string_replace_extension(String *restrict p1, const char *restrict p2,
+                              u64 len);
 
 #endif // !EXP_UTILITY_STRING_H

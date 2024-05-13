@@ -21,27 +21,14 @@
 #include "utility/io.h"
 #include "utility/panic.h"
 
-static bool s1_same_as_s2(const char *restrict s1, u64 s1_len,
-                          const char *restrict s2, u64 s2_len) {
-  if (s1_len != s2_len) {
-    return 1;
-  }
-
-  if (memcmp(s1, s2, s1_len) != 0) {
-    return 1;
-  }
-
-  return 0;
-}
-
 // returns true on failure
 bool test_string_assign(const char *data, u64 data_length) {
   String str = string_create();
 
-  string_assign(&str, data);
+  string_assign(&str, data, data_length);
 
   bool failed;
-  if (s1_same_as_s2(str.buffer, str.length, data, data_length)) {
+  if (!string_eq(&str, data, data_length)) {
     fputs(str.buffer, stderr);
     failed = 1;
   } else {
@@ -55,19 +42,20 @@ bool test_string_assign(const char *data, u64 data_length) {
 bool test_string_to_view(const char *data, u64 data_length) {
   String str = string_create();
 
-  string_assign(&str, data);
+  string_assign(&str, data, data_length);
 
   bool failed;
-  if (s1_same_as_s2(str.buffer, str.length, data, data_length)) {
+  if (!string_eq(&str, data, data_length)) {
     fputs(str.buffer, stderr);
     failed = 1;
   } else {
     failed = 0;
   }
 
-  StringView sv = string_to_view(&str);
+  StringView sv0 = string_to_view(&str);
+  StringView sv1 = string_view_from_string(data, data_length);
 
-  if (s1_same_as_s2(sv.ptr, sv.length, data, data_length)) {
+  if (!string_view_equality(sv0, sv1)) {
     fputs(str.buffer, stderr);
     failed |= 1;
   } else {
@@ -108,9 +96,12 @@ bool test_string_append(const char *d1, u64 d1_len, const char *d2,
   string_append(&str, d1);
   string_append(&str, d2);
 
+  char *buffer = (str.length < sizeof(char *)) ? str.buffer : str.ptr;
+  u64 len      = str.length;
+
   bool failure;
-  if (s1_same_as_sum_of_s2_s3(str.buffer, str.length, d1, d1_len, d2, d2_len)) {
-    fputs(str.buffer, stderr);
+  if (s1_same_as_sum_of_s2_s3(buffer, len, d1, d1_len, d2, d2_len)) {
+    fputs(str.ptr, stderr);
     failure = 1;
   } else {
     failure = 0;
@@ -124,12 +115,12 @@ bool test_string_erase(char const *d1, u64 offset, u64 length, char const *d2,
                        u64 d2_length) {
   String str = string_create();
 
-  string_assign(&str, d1);
+  string_assign(&str, d1, strlen(d1));
 
   string_erase(&str, offset, length);
 
   bool failure;
-  if (s1_same_as_s2(str.buffer, str.length, d2, d2_length)) {
+  if (!string_eq(&str, d2, d2_length)) {
     fputs(str.buffer, stderr);
     failure = 1;
   } else {
@@ -144,12 +135,12 @@ bool test_string_insert(char const *d1, u64 offset, char const *d2,
                         char const *d3, u64 d3_length) {
   String str = string_create();
 
-  string_assign(&str, d1);
+  string_assign(&str, d1, strlen(d1));
 
-  string_insert(&str, offset, d2);
+  string_insert(&str, offset, d2, strlen(d2));
 
   bool failure;
-  if (s1_same_as_s2(str.buffer, str.length, d3, d3_length)) {
+  if (!string_eq(&str, d3, d3_length)) {
     fputs(str.buffer, stderr);
     failure = 1;
   } else {

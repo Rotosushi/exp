@@ -465,13 +465,10 @@ static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
 static ParserResult integer(Parser *restrict p, Context *restrict c) {
   StringView sv = curtxt(p);
   i64 integer   = str_to_i64(sv.ptr, sv.length, RADIX_DECIMAL);
-  if (errno == ERANGE) {
-    return error(p, ERROR_PARSER_INTEGER_TO_LARGE);
-  }
 
   nexttok(p);
   Operand B;
-  if ((integer > 0) && (integer < u16_MAX)) {
+  if ((integer >= 0) && (integer < u16_MAX)) {
     B = opr_immediate((u16)integer);
   } else {
     Operand index = context_constants_add(c, value_create_i64(integer));
@@ -608,7 +605,7 @@ i32 parse_source(Context *restrict c) {
   FILE *file      = file_open(path.ptr, "r");
   String buffer   = string_from_file(file);
   file_close(file);
-  i32 result = parse_buffer(buffer.buffer, buffer.length, c);
+  i32 result = parse_buffer(string_to_cstring(&buffer), buffer.length, c);
   string_destroy(&buffer);
   return result;
 }
