@@ -43,7 +43,8 @@ i32 process(char const *cmd, char const *args[]) {
     }
 
     if (status.si_code == CLD_EXITED) {
-      return status.si_status;
+      i32 result = status.si_status;
+      return result;
     } else {
       PANIC("child possibly killed by signal.");
     }

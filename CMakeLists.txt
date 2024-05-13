@@ -29,6 +29,7 @@ project(EXP LANGUAGES C ASM VERSION 0.1.0 DESCRIPTION "A hobby programming langu
 set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
 set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
+set(EXP_TEST_E2E_DIR "${EXP_TEST_DIR}/end_to_end_tests")
 set(LIBEXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp")
 set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
 set(EXP_LIB_DIR "${PROJECT_BINARY_DIR}/libexp")
