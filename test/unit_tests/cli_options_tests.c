@@ -21,11 +21,11 @@
 
 #include "env/cli_options.h"
 
-bool test_options(i32 argc, char const *argv[], char const *d1, u64 d1_len) {
+bool test_options(i32 argc, char const *argv[], StringView sv) {
   CLIOptions cli_options = parse_cli_options(argc, argv);
 
   bool failure = 0;
-  if (!string_eq(&cli_options.source, d1, d1_len)) {
+  if (!string_eq(&cli_options.source, sv)) {
     failure |= 1;
   } else {
     failure |= 0;
@@ -41,8 +41,7 @@ i32 cli_options_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   i32 test_argc           = 2;
   char const *test_argv[] = {"options_tests", "hello.txt", NULL};
 
-  failure |=
-      test_options(test_argc, test_argv, "hello.txt", strlen("hello.txt"));
+  failure |= test_options(test_argc, test_argv, SV("hello.txt"));
 
   if (failure) {
     return EXIT_FAILURE;

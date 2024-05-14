@@ -51,7 +51,7 @@ typedef enum ErrorCode {
   ERROR_TYPECHECK_TYPE_MISMATCH,
 } ErrorCode;
 
-char const *error_code_cstring(ErrorCode code);
+StringView error_code_sv(ErrorCode code);
 
 /**
  * @brief models errors which are produced during compilation.
@@ -69,13 +69,11 @@ typedef struct Error {
 } Error;
 
 Error error_create();
-Error error_construct(ErrorCode code, char const *restrict data, u64 len);
-Error error_from_view(ErrorCode code, StringView sv);
+Error error_construct(ErrorCode code, StringView sv);
 Error error_from_string(ErrorCode code, String str);
 void error_destroy(Error *restrict error);
 
-void error_assign(Error *restrict error, ErrorCode code,
-                  char const *restrict data, u64 len);
+void error_assign(Error *restrict error, ErrorCode code, StringView sv);
 
 void error_print(Error *restrict error, StringView file, u64 line);
 

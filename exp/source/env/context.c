@@ -80,7 +80,7 @@ StringView context_output_path(Context *restrict context) {
 
 StringView context_intern(Context *restrict context, StringView sv) {
   assert(context != NULL);
-  return string_interner_insert(&(context->string_interner), sv.ptr, sv.length);
+  return string_interner_insert(&(context->string_interner), sv);
 }
 
 Type *context_nil_type(Context *restrict context) {
@@ -167,7 +167,7 @@ static FoldResult success(Operand O) {
 }
 
 static FoldResult error(ErrorCode code, StringView sv) {
-  FoldResult result = {.has_error = 1, .error = error_from_view(code, sv)};
+  FoldResult result = {.has_error = 1, .error = error_construct(code, sv)};
   return result;
 }
 
@@ -190,6 +190,8 @@ Operand context_emit_move(Context *restrict c, Operand B) {
   bytecode_emit_move(bc, A, B);
   return A;
 }
+
+static bool in_range(i64 n) { return (n < u16_MAX) && (n > 0); }
 
 FoldResult context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
@@ -215,10 +217,10 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
 
   case OPRFMT_IMMEDIATE: {
     i64 n = -((i64)(B.common));
-    if ((n > i16_MAX) || (n < 0)) {
-      A = context_constants_add(c, value_create_i64(n));
-    } else {
+    if (in_range(n)) {
       A = opr_immediate((u16)n);
+    } else {
+      A = context_constants_add(c, value_create_i64(n));
     }
     break;
   }
@@ -233,123 +235,69 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
+  i64 x = 0;
+  i64 y = 0;
+  i64 z = 0;
   switch (B.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
     bytecode_emit_add(bc, A, B, C);
-    break;
+    return success(A);
   }
 
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
-    i64 x     = 0;
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_add(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_add_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_add_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    default:
-      unreachable();
-    }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    i64 x = (i64)B.common;
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_add(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_add_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_add_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      if ((z > 0) && (z <= u16_MAX)) {
-        A = opr_immediate((u16)z);
-      } else {
-        A = context_constants_add(c, value_create_i64(z));
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
+    x = (i64)B.common;
     break;
   }
 
   default:
     unreachable();
+  }
+
+  switch (C.format) {
+  case OPRFMT_SSA: {
+    A = context_new_ssa(c);
+    bytecode_emit_add(bc, A, B, C);
+    return success(A);
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Cv = context_constants_at(c, C.common);
+    if (Cv->kind == VALUEKIND_I64) {
+      y = Cv->integer;
+    } else {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    y = (i64)C.common;
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+
+  if (__builtin_add_overflow(x, y, &z)) {
+    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+  }
+
+  if (in_range(z)) {
+    A = opr_immediate((u16)z);
+  } else {
+    A = context_constants_add(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -358,123 +306,69 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
+  i64 x = 0;
+  i64 y = 0;
+  i64 z = 0;
   switch (B.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
     bytecode_emit_sub(bc, A, B, C);
-    break;
+    return success(A);
   }
 
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
-    i64 x     = 0;
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_sub(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_sub_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_sub_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    default:
-      unreachable();
-    }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    i64 x = (i64)B.common;
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_sub(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_sub_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_sub_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      if ((z > 0) && (z <= u16_MAX)) {
-        A = opr_immediate((u16)z);
-      } else {
-        A = context_constants_add(c, value_create_i64(z));
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
+    x = (i64)B.common;
     break;
   }
 
   default:
     unreachable();
+  }
+
+  switch (C.format) {
+  case OPRFMT_SSA: {
+    A = context_new_ssa(c);
+    bytecode_emit_sub(bc, A, B, C);
+    return success(A);
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Cv = context_constants_at(c, C.common);
+    if (Cv->kind == VALUEKIND_I64) {
+      y = Cv->integer;
+    } else {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    y = (i64)C.common;
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+
+  if (__builtin_sub_overflow(x, y, &z)) {
+    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+  }
+
+  if (in_range(z)) {
+    A = opr_immediate((u16)z);
+  } else {
+    A = context_constants_add(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -483,123 +377,69 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
+  i64 x = 0;
+  i64 y = 0;
+  i64 z = 0;
   switch (B.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
     bytecode_emit_mul(bc, A, B, C);
-    break;
+    return success(A);
   }
 
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
-    i64 x     = 0;
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_mul(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_mul_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_mul_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    default:
-      unreachable();
-    }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    i64 x = (i64)B.common;
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_mul(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = 0;
-      if (__builtin_mul_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = 0;
-      if (__builtin_mul_overflow(x, y, &z)) {
-        return error(ERROR_PARSER_INTEGER_TO_LARGE,
-                     string_view_from_cstring(""));
-      }
-
-      if ((z > 0) && (z <= u16_MAX)) {
-        A = opr_immediate((u16)z);
-      } else {
-        A = context_constants_add(c, value_create_i64(z));
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
+    x = (i64)B.common;
     break;
   }
 
   default:
     unreachable();
+  }
+
+  switch (C.format) {
+  case OPRFMT_SSA: {
+    A = context_new_ssa(c);
+    bytecode_emit_mul(bc, A, B, C);
+    return success(A);
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Cv = context_constants_at(c, C.common);
+    if (Cv->kind == VALUEKIND_I64) {
+      y = Cv->integer;
+    } else {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    y = (i64)C.common;
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+
+  if (__builtin_mul_overflow(x, y, &z)) {
+    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+  }
+
+  if (in_range(z)) {
+    A = opr_immediate((u16)z);
+  } else {
+    A = context_constants_add(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -608,107 +448,67 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
+  i64 x = 0;
+  i64 y = 0;
+  i64 z = 0;
   switch (B.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
     bytecode_emit_div(bc, A, B, C);
-    break;
+    return success(A);
   }
 
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
-    i64 x     = 0;
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_div(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = x / y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = x / y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    default:
-      unreachable();
-    }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    i64 x = (i64)B.common;
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_div(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = x / y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = x / y;
-
-      if ((z > 0) && (z <= u16_MAX)) {
-        A = opr_immediate((u16)z);
-      } else {
-        A = context_constants_add(c, value_create_i64(z));
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
+    x = (i64)B.common;
     break;
   }
 
   default:
     unreachable();
+  }
+
+  switch (C.format) {
+  case OPRFMT_SSA: {
+    A = context_new_ssa(c);
+    bytecode_emit_div(bc, A, B, C);
+    return success(A);
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Cv = context_constants_at(c, C.common);
+    if (Cv->kind == VALUEKIND_I64) {
+      y = Cv->integer;
+    } else {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    y = (i64)C.common;
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+
+  z = x / y;
+
+  if (in_range(z)) {
+    A = opr_immediate((u16)z);
+  } else {
+    A = context_constants_add(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -717,107 +517,67 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A;
+  i64 x = 0;
+  i64 y = 0;
+  i64 z = 0;
   switch (B.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
     bytecode_emit_mod(bc, A, B, C);
-    break;
+    return success(A);
   }
 
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
-    i64 x     = 0;
     if (Bv->kind == VALUEKIND_I64) {
       x = Bv->integer;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_mod(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = x % y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = x % y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    default:
-      unreachable();
-    }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    i64 x = (i64)B.common;
-
-    switch (C.format) {
-    case OPRFMT_SSA: {
-      A = context_new_ssa(c);
-      bytecode_emit_mod(bc, A, B, C);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      Value *Cv = context_constants_at(c, C.common);
-      i64 y     = 0;
-      if (Cv->kind == VALUEKIND_I64) {
-        y = Cv->integer;
-      } else {
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH,
-                     string_view_from_cstring(""));
-      }
-
-      i64 z = x % y;
-
-      A = context_constants_add(c, value_create_i64(z));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      i64 y = (i64)C.common;
-
-      i64 z = x % y;
-
-      if ((z > 0) && (z <= u16_MAX)) {
-        A = opr_immediate((u16)z);
-      } else {
-        A = context_constants_add(c, value_create_i64(z));
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
+    x = (i64)B.common;
     break;
   }
 
   default:
     unreachable();
+  }
+
+  switch (C.format) {
+  case OPRFMT_SSA: {
+    A = context_new_ssa(c);
+    bytecode_emit_mod(bc, A, B, C);
+    return success(A);
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *Cv = context_constants_at(c, C.common);
+    if (Cv->kind == VALUEKIND_I64) {
+      y = Cv->integer;
+    } else {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    y = (i64)C.common;
+    break;
+  }
+
+  default:
+    unreachable();
+  }
+
+  z = x % y;
+
+  if (in_range(z)) {
+    A = opr_immediate((u16)z);
+  } else {
+    A = context_constants_add(c, value_create_i64(z));
   }
   return success(A);
 }

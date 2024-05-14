@@ -24,7 +24,7 @@
 int modulus([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  char const *source_path = EXP_TEST_DIR "/modulus.exp";
+  StringView source_path = SV(EXP_TEST_DIR "/modulus.exp");
 
   result |= test_exp(
       source_path, "fn main() { const x = 9; const y = 3; return x % y; }", 0);

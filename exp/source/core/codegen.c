@@ -51,8 +51,6 @@ typedef enum X64GPR {
   X64GPR_R15,
 } X64GPR;
 
-#define SV(s) string_view_from_string(s, sizeof(s) - 1)
-
 static StringView gpr_to_sv(X64GPR r) {
   switch (r) {
   case X64GPR_RAX:
@@ -91,8 +89,6 @@ static StringView gpr_to_sv(X64GPR r) {
     unreachable();
   }
 }
-
-#undef SV
 
 /**
  * @brief General Purpose Register Pool keeps track of which
@@ -577,15 +573,15 @@ static void codegen_alloc_operand(ActiveAllocation *restrict aa,
                                   String *restrict buffer) {
   switch (aa->allocation.kind) {
   case ALLOC_GPR: {
-    string_append(buffer, "%");
-    string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
+    string_append(buffer, SV("%"));
+    string_append(buffer, gpr_to_sv(aa->allocation.gpr));
     break;
   }
 
   case ALLOC_STACK: {
-    string_append(buffer, "-");
+    string_append(buffer, SV("-"));
     string_append_u64(buffer, aa->allocation.offset);
-    string_append(buffer, "(%rbp)");
+    string_append(buffer, SV("(%rbp)"));
     break;
   }
 
@@ -595,7 +591,7 @@ static void codegen_alloc_operand(ActiveAllocation *restrict aa,
 }
 
 static void codegen_immediate_operand(i64 imm, String *restrict buffer) {
-  string_append(buffer, "$");
+  string_append(buffer, SV("$"));
   string_append_i64(buffer, imm);
 }
 
@@ -640,11 +636,11 @@ static void codegen_reallocate_gpr(LocalAllocator *restrict la,
   X64GPR gpr = 0;
   if (gprp_allocate(&la->gprp, &gpr)) {
     // move allocation to new register.
-    string_append(buffer, "\tmov ");
-    string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
-    string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(gpr));
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\tmov %"));
+    string_append(buffer, gpr_to_sv(aa->allocation.gpr));
+    string_append(buffer, SV(", %"));
+    string_append(buffer, gpr_to_sv(gpr));
+    string_append(buffer, SV("\n"));
 
     gprp_release(&la->gprp, aa->allocation.gpr);
     // update the existing allocation to the new register
@@ -654,11 +650,11 @@ static void codegen_reallocate_gpr(LocalAllocator *restrict la,
 
   // spill allocation to the stack
   u16 offset = la_bump_active_stack_size(la);
-  string_append(buffer, "\tmov %");
-  string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
-  string_append(buffer, ", -");
+  string_append(buffer, SV("\tmov %"));
+  string_append(buffer, gpr_to_sv(aa->allocation.gpr));
+  string_append(buffer, SV(", -"));
   string_append_u64(buffer, offset);
-  string_append(buffer, "(%rbp)\n");
+  string_append(buffer, SV("(%rbp)\n"));
   // update the existing allocation to the new stack slot
   aa->allocation.kind   = ALLOC_STACK;
   aa->allocation.offset = offset;
@@ -671,11 +667,11 @@ static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
   X64GPR gpr = 0;
   if (gprp_allocate_other_than(&la->gprp, &gpr, avoid)) {
     // move allocation to new register.
-    string_append(buffer, "\tmov %");
-    string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
-    string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(gpr));
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\tmov %"));
+    string_append(buffer, gpr_to_sv(aa->allocation.gpr));
+    string_append(buffer, SV(", %"));
+    string_append(buffer, gpr_to_sv(gpr));
+    string_append(buffer, SV("\n"));
     // update the existing allocation to the new register
     aa->allocation.gpr = gpr;
     return;
@@ -683,11 +679,11 @@ static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
 
   // spill allocation to the stack
   u16 offset = la_bump_active_stack_size(la);
-  string_append(buffer, "\tmov %");
-  string_append_sv(buffer, gpr_to_sv(aa->allocation.gpr));
-  string_append(buffer, ", -");
+  string_append(buffer, SV("\tmov %"));
+  string_append(buffer, gpr_to_sv(aa->allocation.gpr));
+  string_append(buffer, SV(", -"));
   string_append_u64(buffer, offset);
-  string_append(buffer, "(%rbp)\n");
+  string_append(buffer, SV("(%rbp)\n"));
   // update the existing allocation to the new stack slot
   aa->allocation.kind   = ALLOC_STACK;
   aa->allocation.offset = offset;
@@ -713,11 +709,11 @@ static void codegen_release_gpr(LocalAllocator *restrict la, X64GPR gpr,
 }
 
 static void codegen_zero_gpr(X64GPR gpr, String *restrict buffer) {
-  string_append(buffer, "\tmov ");
+  string_append(buffer, SV("\tmov "));
   codegen_immediate_operand((i64)0, buffer);
-  string_append(buffer, ", %");
-  string_append_sv(buffer, gpr_to_sv(gpr));
-  string_append(buffer, "\n");
+  string_append(buffer, SV(", %"));
+  string_append(buffer, gpr_to_sv(gpr));
+  string_append(buffer, SV("\n"));
 }
 
 /**
@@ -772,20 +768,20 @@ codegen_create_temporary_from_immediate(LocalAllocator *restrict la, u16 Idx,
 
   X64GPR gpr = 0;
   if (gprp_any_available_other_than(&la->gprp, &gpr, avoid)) {
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_immediate_operand(imm, buffer);
-    string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(gpr));
-    string_append(buffer, "\n");
+    string_append(buffer, SV(", %"));
+    string_append(buffer, gpr_to_sv(gpr));
+    string_append(buffer, SV("\n"));
 
     return alloc_reg(gpr);
   } else {
     u16 offset = la_bump_active_stack_size(la);
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_immediate_operand(imm, buffer);
-    string_append(buffer, ", -");
+    string_append(buffer, SV(", -"));
     string_append_u64(buffer, offset);
-    string_append(buffer, "(%rbp)\n");
+    string_append(buffer, SV("(%rbp)\n"));
 
     return alloc_stack(offset);
   }
@@ -852,11 +848,11 @@ codegen_allocate_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
   }
   // else (aa->allocation.kind != ALLOC_GPR) || (aa->allocation.gpr != gpr)
   // move the value of <aa> to the target register
-  string_append(buffer, "\tmov ");
+  string_append(buffer, SV("\tmov "));
   codegen_alloc_operand(aa, buffer);
-  string_append(buffer, ", %");
-  string_append_sv(buffer, gpr_to_sv(gpr));
-  string_append(buffer, "\n");
+  string_append(buffer, SV(", %"));
+  string_append(buffer, gpr_to_sv(gpr));
+  string_append(buffer, SV("\n"));
 
   // if <aa> is old, we can remove it from active
   if (aa->lifetime.last_use <= Idx) {
@@ -873,11 +869,11 @@ codegen_allocate_gpr_from_immediate(LocalAllocator *restrict la, i64 imm,
                                     String *restrict buffer) {
   codegen_release_gpr(la, gpr, buffer);
   // initialize gpr with imm
-  string_append(buffer, "\tmov ");
+  string_append(buffer, SV("\tmov "));
   codegen_immediate_operand(imm, buffer);
-  string_append(buffer, ", %");
-  string_append_sv(buffer, gpr_to_sv(gpr));
-  string_append(buffer, "\n");
+  string_append(buffer, SV(", %"));
+  string_append(buffer, gpr_to_sv(gpr));
+  string_append(buffer, SV("\n"));
 
   return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
                     alloc_reg(gpr));
@@ -889,11 +885,11 @@ codegen_allocate_mem_from_immediate(LocalAllocator *restrict la, i64 imm,
   u16 offset = la_bump_active_stack_size(la);
 
   // initialize mem with imm
-  string_append(buffer, "\tmov ");
+  string_append(buffer, SV("\tmov "));
   codegen_immediate_operand(imm, buffer);
-  string_append(buffer, ", -");
+  string_append(buffer, SV(", -"));
   string_append_u64(buffer, offset);
-  string_append(buffer, "(%rbp)\n");
+  string_append(buffer, SV("(%rbp)\n"));
 
   return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
                     alloc_stack(offset));
@@ -1042,6 +1038,11 @@ codegen_allocate_any_gpr_or_mem_from_constant(LocalAllocator *restrict la,
   }
 }
 
+static void codegen_function_epilouge(String *restrict buffer) {
+  string_append(buffer, SV("\tmov %rbp, %rsp\n"));
+  string_append(buffer, SV("\tpop %rbp\n"));
+}
+
 // in order to map the one operand IR instruction
 //   ret B
 // where:
@@ -1069,25 +1070,25 @@ static void codegen_ret(Context *restrict c, LocalAllocator *restrict la,
     }
 
     // "mov <Balloc>, %rax"
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_alloc_operand(Balloc, buffer);
-    string_append(buffer, ", %rax\n");
+    string_append(buffer, SV(", %rax\n"));
     break;
   }
 
   case OPRFMT_CONSTANT: {
     // "mov $<imm>, %rax"
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_constant_operand(context_constants_at(c, B), buffer);
-    string_append(buffer, ", %rax\n");
+    string_append(buffer, SV(", %rax\n"));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
     // "mov $<imm>, %rax"
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_immediate_operand((i64)B, buffer);
-    string_append(buffer, ", %rax\n");
+    string_append(buffer, SV(", %rax\n"));
     break;
   }
 
@@ -1095,11 +1096,8 @@ static void codegen_ret(Context *restrict c, LocalAllocator *restrict la,
     unreachable();
   }
 
-  // - emit the function epilouge
-  string_append(buffer, "\tmov %rbp, %rsp\n");
-  string_append(buffer, "\tpop %rbp\n");
-  // - lastly emit ret
-  string_append(buffer, "\tret\n");
+  codegen_function_epilouge(buffer);
+  string_append(buffer, SV("\tret\n"));
 }
 
 // in order to map the 2 operand move IR instruction
@@ -1135,46 +1133,46 @@ static void codegen_mov(Context *restrict c, LocalAllocator *restrict la,
         (Balloc.allocation.kind == ALLOC_STACK)) {
       X64GPR gpr = codegen_release_any_gpr(la, Idx, buffer);
 
-      string_append(buffer, "\tmov -");
+      string_append(buffer, SV("\tmov -"));
       string_append_u64(buffer, Balloc.allocation.offset);
-      string_append(buffer, "(%rbp), %");
-      string_append_sv(buffer, gpr_to_sv(gpr));
-      string_append(buffer, "\n");
+      string_append(buffer, SV("(%rbp), %"));
+      string_append(buffer, gpr_to_sv(gpr));
+      string_append(buffer, SV("\n"));
 
-      string_append(buffer, "\tmov %");
-      string_append_sv(buffer, gpr_to_sv(gpr));
-      string_append(buffer, ", -");
+      string_append(buffer, SV("\tmov %"));
+      string_append(buffer, gpr_to_sv(gpr));
+      string_append(buffer, SV(", -"));
       string_append_u64(buffer, Aalloc.allocation.offset);
-      string_append(buffer, "(%rbp)\n");
+      string_append(buffer, SV("(%rbp)\n"));
       return;
     }
 
     // "mov <Balloc>, <Aalloc>"
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_alloc_operand(&Balloc, buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     return;
   } // !case OPRFMT_SSA:
 
   // "mov $<B-imm>, <A>"
   case OPRFMT_CONSTANT: {
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_constant_operand(context_constants_at(c, B), buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   } // case OPRFMT_CONSTANT:
 
   // "mov $<B-imm>, <A>"
   case OPRFMT_IMMEDIATE: {
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_immediate_operand((i64)B, buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1216,9 +1214,9 @@ static void codegen_neg(LocalAllocator *restrict la, Instruction I, u16 Idx,
       la, Idx, &Balloc, A, buffer);
 
   // "neg <Aalloc>"
-  string_append(buffer, "\tneg ");
+  string_append(buffer, SV("\tneg "));
   codegen_alloc_operand(&Aalloc, buffer);
-  string_append(buffer, "\n");
+  string_append(buffer, SV("\n"));
 }
 
 // in order to map the 3 operand IR instruction
@@ -1267,11 +1265,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
         Aalloc = codegen_allocate_gpr_from_existing(
             la, Idx, &Balloc, Balloc.allocation.gpr, A, buffer);
         // "add <Calloc>, <Aalloc>"
-        string_append(buffer, "\tadd ");
+        string_append(buffer, SV("\tadd "));
         codegen_alloc_operand(&Calloc, buffer);
-        string_append(buffer, ", ");
+        string_append(buffer, SV(", "));
         codegen_alloc_operand(&Aalloc, buffer);
-        string_append(buffer, "\n");
+        string_append(buffer, SV("\n"));
       } else if (Calloc.allocation.kind == ALLOC_GPR) {
         // since we know C is in a register, we can use
         // that register as the destination operand for
@@ -1280,11 +1278,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
         Aalloc = codegen_allocate_gpr_from_existing(
             la, Idx, &Calloc, Calloc.allocation.gpr, A, buffer);
         // "add <Balloc>, <Aalloc>"
-        string_append(buffer, "\tadd ");
+        string_append(buffer, SV("\tadd "));
         codegen_alloc_operand(&Balloc, buffer);
-        string_append(buffer, ", ");
+        string_append(buffer, SV(", "));
         codegen_alloc_operand(&Aalloc, buffer);
-        string_append(buffer, "\n");
+        string_append(buffer, SV("\n"));
       } else {
         // B and C are both memory operands, so we have to move
         // one to a register before we can add. we arbitrarily
@@ -1299,11 +1297,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
                                                     buffer);
         // since we know Aalloc now holds B and is in the destination:
         // "add <Aalloc>, <Calloc>"
-        string_append(buffer, "\tadd ");
+        string_append(buffer, SV("\tadd "));
         codegen_alloc_operand(&Calloc, buffer);
-        string_append(buffer, ", ");
+        string_append(buffer, SV(", "));
         codegen_alloc_operand(&Aalloc, buffer);
-        string_append(buffer, "\n");
+        string_append(buffer, SV("\n"));
       }
       break;
     } // !case OPRFMT_SSA:
@@ -1316,11 +1314,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
       Aalloc =
           codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
       // "add <Aalloc>, <Cimm>"
-      string_append(buffer, "\tadd ");
+      string_append(buffer, SV("\tadd "));
       codegen_constant_operand(Cconst, buffer);
-      string_append(buffer, ", ");
+      string_append(buffer, SV(", "));
       codegen_alloc_operand(&Aalloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1331,11 +1329,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
       Aalloc =
           codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
       // "add <Aalloc>, <Cimm>"
-      string_append(buffer, "\tadd ");
+      string_append(buffer, SV("\tadd "));
       codegen_immediate_operand((i64)C, buffer);
-      string_append(buffer, ", ");
+      string_append(buffer, SV(", "));
       codegen_alloc_operand(&Aalloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1355,11 +1353,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
     // first we have to start A's lifetime. using the value of C
     Aalloc =
         codegen_allocate_any_gpr_from_existing(la, Idx, &Calloc, A, buffer);
-    string_append(buffer, "\tadd ");
+    string_append(buffer, SV("\tadd "));
     codegen_constant_operand(context_constants_at(c, B), buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1372,11 +1370,11 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
     // first we have to start A's lifetime. using the value of C
     Aalloc =
         codegen_allocate_any_gpr_from_existing(la, Idx, &Calloc, A, buffer);
-    string_append(buffer, "\tadd ");
+    string_append(buffer, SV("\tadd "));
     codegen_immediate_operand((i64)B, buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1429,11 +1427,11 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
         Aalloc = codegen_allocate_gpr_from_existing(
             la, Idx, &Balloc, Balloc.allocation.gpr, A, buffer);
         // "sub <Calloc>, <Aalloc>"
-        string_append(buffer, "\tsub ");
+        string_append(buffer, SV("\tsub "));
         codegen_alloc_operand(&Calloc, buffer);
-        string_append(buffer, ", ");
+        string_append(buffer, SV(", "));
         codegen_alloc_operand(&Aalloc, buffer);
-        string_append(buffer, "\n");
+        string_append(buffer, SV("\n"));
       } else {
         // B and C are both memory operands, so we have to move
         // one to a register before we can sub.
@@ -1442,11 +1440,11 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
                                                     buffer);
         // since we know Aalloc now holds B and is in the destination:
         // "sub <Calloc>, <Aalloc>"
-        string_append(buffer, "\tsub ");
+        string_append(buffer, SV("\tsub "));
         codegen_alloc_operand(&Calloc, buffer);
-        string_append(buffer, ", ");
+        string_append(buffer, SV(", "));
         codegen_alloc_operand(&Aalloc, buffer);
-        string_append(buffer, "\n");
+        string_append(buffer, SV("\n"));
       }
       break;
     }
@@ -1456,22 +1454,22 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
 
       Aalloc =
           codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
-      string_append(buffer, "\tsub ");
+      string_append(buffer, SV("\tsub "));
       codegen_constant_operand(Cconst, buffer);
-      string_append(buffer, ", ");
+      string_append(buffer, SV(", "));
       codegen_alloc_operand(&Aalloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
       Aalloc =
           codegen_allocate_any_gpr_from_existing(la, Idx, &Balloc, A, buffer);
-      string_append(buffer, "\tsub ");
+      string_append(buffer, SV("\tsub "));
       codegen_immediate_operand((u16)C, buffer);
-      string_append(buffer, ", ");
+      string_append(buffer, SV(", "));
       codegen_alloc_operand(&Aalloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1497,11 +1495,11 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
     ActiveAllocation Aalloc =
         codegen_allocate_any_gpr_or_mem_from_constant(la, Bconst, A, buffer);
 
-    string_append(buffer, "\tsub ");
+    string_append(buffer, SV("\tsub "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1511,11 +1509,11 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
     ActiveAllocation Aalloc =
         codegen_allocate_any_gpr_or_mem_from_immediate(la, (i64)B, A, buffer);
 
-    string_append(buffer, "\tsub ");
+    string_append(buffer, SV("\tsub "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, ", ");
+    string_append(buffer, SV(", "));
     codegen_alloc_operand(&Aalloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1568,9 +1566,9 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
     case OPRFMT_SSA: {
       ActiveAllocation Calloc = *la_allocation_of(la, C);
       // "imul <Calloc>"
-      string_append(buffer, "\timul ");
+      string_append(buffer, SV("\timul "));
       codegen_alloc_operand(&Calloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1579,28 +1577,28 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
       // or idiv. however, we do know for sure that %rdx is free,
       // so we can use it to store the temporary.
       Value *Cconst = context_constants_at(c, C);
-      string_append(buffer, "\tmov ");
+      string_append(buffer, SV("\tmov "));
       codegen_constant_operand(Cconst, buffer);
-      string_append(buffer, ", %");
-      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
-      string_append(buffer, "\n");
+      string_append(buffer, SV(", %"));
+      string_append(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, SV("\n"));
 
-      string_append(buffer, "\timul %");
-      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\timul %"));
+      string_append(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, SV("\n"));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
-      string_append(buffer, "\tmov ");
+      string_append(buffer, SV("\tmov "));
       codegen_immediate_operand((i64)C, buffer);
-      string_append(buffer, ", %");
-      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
-      string_append(buffer, "\n");
+      string_append(buffer, SV(", %"));
+      string_append(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, SV("\n"));
 
-      string_append(buffer, "\timul %");
-      string_append_sv(buffer, gpr_to_sv(X64GPR_RDX));
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\timul %"));
+      string_append(buffer, gpr_to_sv(X64GPR_RDX));
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1620,9 +1618,9 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
     // make sure we are not overwriting an existing ActiveAllocation in %rdx
     // when we evaluate the imul instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
-    string_append(buffer, "\timul ");
+    string_append(buffer, SV("\timul "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1634,9 +1632,9 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
     // make sure we are not overwriting an existing ActiveAllocation in %rdx
     // when we evaluate the imul instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
-    string_append(buffer, "\timul ");
+    string_append(buffer, SV("\timul "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1690,9 +1688,9 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
     case OPRFMT_SSA: {
       ActiveAllocation Calloc = *la_allocation_of(la, C);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       codegen_alloc_operand(&Calloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1704,16 +1702,16 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
       Allocation tmp = codegen_create_temporary_from_constant(
           la, Idx, Cconst, X64GPR_RDX, buffer);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       if (tmp.kind == ALLOC_GPR) {
-        string_append(buffer, "%");
-        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+        string_append(buffer, SV("%"));
+        string_append(buffer, gpr_to_sv(tmp.gpr));
       } else {
-        string_append(buffer, "-");
+        string_append(buffer, SV("-"));
         string_append_u64(buffer, tmp.offset);
-        string_append(buffer, "(%rbp)");
+        string_append(buffer, SV("(%rbp)"));
       }
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1721,16 +1719,16 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
       Allocation tmp = codegen_create_temporary_from_immediate(
           la, Idx, (i64)C, X64GPR_RDX, buffer);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       if (tmp.kind == ALLOC_GPR) {
-        string_append(buffer, "%");
-        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+        string_append(buffer, SV("%"));
+        string_append(buffer, gpr_to_sv(tmp.gpr));
       } else {
-        string_append(buffer, "-");
+        string_append(buffer, SV("-"));
         string_append_u64(buffer, tmp.offset);
-        string_append(buffer, "(%rbp)");
+        string_append(buffer, SV("(%rbp)"));
       }
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1758,9 +1756,9 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
 
-    string_append(buffer, "\tidiv ");
+    string_append(buffer, SV("\tidiv "));
     codegen_alloc_operand(Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1779,9 +1777,9 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
 
-    string_append(buffer, "\tidiv ");
+    string_append(buffer, SV("\tidiv "));
     codegen_alloc_operand(Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1831,11 +1829,11 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     ActiveAllocation Balloc = *la_allocation_of(la, B);
     if ((Balloc.allocation.kind != ALLOC_GPR) ||
         (Balloc.allocation.gpr != X64GPR_RAX)) {
-      string_append(buffer, "\tmov ");
+      string_append(buffer, SV("\tmov "));
       codegen_alloc_operand(&Balloc, buffer);
-      string_append(buffer, ", %");
-      string_append_sv(buffer, gpr_to_sv(X64GPR_RAX));
-      string_append(buffer, "\n");
+      string_append(buffer, SV(", %"));
+      string_append(buffer, gpr_to_sv(X64GPR_RAX));
+      string_append(buffer, SV("\n"));
 
       if (Balloc.lifetime.last_use <= Idx) {
         active_erase(&la->active, &Balloc);
@@ -1850,9 +1848,9 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     case OPRFMT_SSA: {
       ActiveAllocation Calloc = *la_allocation_of(la, C);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       codegen_alloc_operand(&Calloc, buffer);
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1861,16 +1859,16 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
       Allocation tmp = codegen_create_temporary_from_constant(
           la, Idx, Cconst, X64GPR_RAX, buffer);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       if (tmp.kind == ALLOC_GPR) {
-        string_append(buffer, "%");
-        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+        string_append(buffer, SV("%"));
+        string_append(buffer, gpr_to_sv(tmp.gpr));
       } else {
-        string_append(buffer, "-");
+        string_append(buffer, SV("-"));
         string_append_u64(buffer, tmp.offset);
-        string_append(buffer, "(%rbp)");
+        string_append(buffer, SV("(%rbp)"));
       }
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1878,16 +1876,16 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
       Allocation tmp = codegen_create_temporary_from_immediate(
           la, Idx, (i64)C, X64GPR_RAX, buffer);
 
-      string_append(buffer, "\tidiv ");
+      string_append(buffer, SV("\tidiv "));
       if (tmp.kind == ALLOC_GPR) {
-        string_append(buffer, "%");
-        string_append_sv(buffer, gpr_to_sv(tmp.gpr));
+        string_append(buffer, SV("%"));
+        string_append(buffer, gpr_to_sv(tmp.gpr));
       } else {
-        string_append(buffer, "-");
+        string_append(buffer, SV("-"));
         string_append_u64(buffer, tmp.offset);
-        string_append(buffer, "(%rbp)");
+        string_append(buffer, SV("(%rbp)"));
       }
-      string_append(buffer, "\n");
+      string_append(buffer, SV("\n"));
       break;
     }
 
@@ -1906,15 +1904,15 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     codegen_zero_gpr(X64GPR_RDX, buffer);
     Aalloc = codegen_allocate_gpr(la, X64GPR_RDX, A, buffer);
 
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_constant_operand(Bconst, buffer);
-    string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(X64GPR_RAX));
-    string_append(buffer, "\n");
+    string_append(buffer, SV(", %"));
+    string_append(buffer, gpr_to_sv(X64GPR_RAX));
+    string_append(buffer, SV("\n"));
 
-    string_append(buffer, "\tidiv ");
+    string_append(buffer, SV("\tidiv "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1926,15 +1924,15 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     codegen_zero_gpr(X64GPR_RDX, buffer);
     Aalloc = codegen_allocate_gpr(la, X64GPR_RDX, A, buffer);
 
-    string_append(buffer, "\tmov ");
+    string_append(buffer, SV("\tmov "));
     codegen_immediate_operand((i64)B, buffer);
-    string_append(buffer, ", %");
-    string_append_sv(buffer, gpr_to_sv(X64GPR_RAX));
-    string_append(buffer, "\n");
+    string_append(buffer, SV(", %"));
+    string_append(buffer, gpr_to_sv(X64GPR_RAX));
+    string_append(buffer, SV("\n"));
 
-    string_append(buffer, "\tidiv ");
+    string_append(buffer, SV("\tidiv "));
     codegen_alloc_operand(&Calloc, buffer);
-    string_append(buffer, "\n");
+    string_append(buffer, SV("\n"));
     break;
   }
 
@@ -1996,6 +1994,23 @@ static void codegen_bytecode(Context *restrict c, LocalAllocator *restrict la,
   }
 }
 
+static void codegen_function_prolouge(LocalAllocator *restrict la,
+                                      StringView name,
+                                      String *restrict buffer) {
+  directive_text(buffer);
+  directive_globl(name, buffer);
+  directive_type(name, STT_FUNC, buffer);
+  directive_label(name, buffer);
+
+  string_append(buffer, SV("\tpush %rbp\n"));
+  string_append(buffer, SV("\tmov %rsp, %rbp\n"));
+  if (la->stack_size != 0) {
+    string_append(buffer, SV("\tsub $"));
+    string_append_u64(buffer, la->stack_size);
+    string_append(buffer, SV(", %rsp\n"));
+  }
+}
+
 static void codegen_function(Context *restrict c, String *restrict buffer,
                              StringView name, FunctionBody *restrict body) {
   Bytecode *bc       = &body->bc;
@@ -2004,18 +2019,7 @@ static void codegen_function(Context *restrict c, String *restrict buffer,
 
   codegen_bytecode(c, &la, bc, &body_buffer);
 
-  directive_text(buffer);
-  directive_globl(name, buffer);
-  directive_type(name, STT_FUNC, buffer);
-  directive_label(name, buffer);
-
-  string_append(buffer, "\tpush %rbp\n");
-  string_append(buffer, "\tmov %rsp, %rbp\n");
-  if (la.stack_size != 0) {
-    string_append(buffer, "\tsub $");
-    string_append_u64(buffer, la.stack_size);
-    string_append(buffer, ", %rsp\n");
-  }
+  codegen_function_prolouge(&la, name, buffer);
 
   string_append_string(buffer, &body_buffer);
 
@@ -2055,7 +2059,7 @@ static void emit_file_prolouge(Context *restrict context,
                                String *restrict buffer) {
   directive_file(context_source_path(context), buffer);
   // directive_arch(cpu_type, buffer);
-  string_append(buffer, "\n");
+  string_append(buffer, SV("\n"));
 }
 
 static void emit_file_epilouge(String *restrict buffer) {
@@ -2071,7 +2075,7 @@ i32 codegen(Context *restrict context) {
   SymbolTableIterator iter = context_global_symbol_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
     codegen_ste(context, &buffer, iter.element);
-    string_append(&buffer, "\n");
+    string_append(&buffer, SV("\n"));
 
     symbol_table_iterator_next(&iter);
   }

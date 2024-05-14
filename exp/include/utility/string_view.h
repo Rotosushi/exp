@@ -31,4 +31,6 @@ bool string_view_equality(StringView sv1, StringView sv2);
 
 void print_string_view(StringView sv, FILE *restrict file);
 
+#define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
+
 #endif // !EXP_UTILITY_STRING_VIEW_H

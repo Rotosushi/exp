@@ -25,7 +25,7 @@ int trivial_constant_folding([[maybe_unused]] int argc,
                              [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  char const *source_path = EXP_TEST_DIR "/trivial_constant_folding.exp";
+  StringView source_path = SV(EXP_TEST_DIR "/trivial_constant_folding.exp");
 
   result |= test_exp(source_path, "fn main() { return 3 + 3; }", 6);
   result |= test_exp(source_path, "fn main() { return 3 - 3; }", 0);

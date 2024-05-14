@@ -24,7 +24,7 @@
 int subtraction([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  char const *source_path = EXP_TEST_DIR "/subtraction.exp";
+  StringView source_path = SV(EXP_TEST_DIR "/subtraction.exp");
 
   result |= test_exp(
       source_path, "fn main() { const x = 3; const y = 3; return x - y; }", 0);

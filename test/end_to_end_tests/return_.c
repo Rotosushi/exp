@@ -24,7 +24,7 @@
 int return_([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  char const *source_path = EXP_TEST_DIR "/return.exp";
+  StringView source_path = SV(EXP_TEST_DIR "/return.exp");
 
   result |= test_exp(source_path, "fn main() { return 0; }", 0);
   result |= test_exp(source_path, "fn main() { return 255; }", 255);

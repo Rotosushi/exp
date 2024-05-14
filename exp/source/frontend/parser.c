@@ -49,7 +49,7 @@ static void parser_result_destroy(ParserResult *restrict pr) {
 static ParserResult error(Parser *restrict p, ErrorCode code) {
   ParserResult result;
   result.has_error = 1;
-  result.error     = error_from_view(code, lexer_current_text(&p->lexer));
+  result.error     = error_construct(code, lexer_current_text(&p->lexer));
   return result;
 }
 

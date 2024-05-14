@@ -24,7 +24,7 @@
 int multiplication([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  char const *source_path = EXP_TEST_DIR "/multcation.exp";
+  StringView source_path = SV(EXP_TEST_DIR "/multcation.exp");
 
   result |= test_exp(
       source_path, "fn main() { const x = 3; const y = 3; return x * y; }", 9);

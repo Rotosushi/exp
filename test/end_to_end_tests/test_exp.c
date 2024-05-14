@@ -28,19 +28,19 @@
 
 static char const *exp_path = EXP_BUILD_DIR "/exp/source/exp";
 
-i32 test_exp(char const *source_path, char const *contents, i32 expected_code) {
+i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
   i32 result = EXIT_SUCCESS;
 
   String exe = string_create();
-  string_assign(&exe, source_path, strlen(source_path));
-  string_replace_extension(&exe, "", 0);
+  string_assign(&exe, source_path);
+  string_replace_extension(&exe, SV(""));
   char const *exe_path = string_to_cstring(&exe);
 
-  FILE *file = file_open(source_path, "w");
+  FILE *file = file_open(source_path.ptr, "w");
   file_write(contents, file);
   file_close(file);
 
-  char const *exp_args[] = {exp_path, source_path, NULL};
+  char const *exp_args[] = {exp_path, source_path.ptr, NULL};
   i32 exp_result         = process(exp_path, exp_args);
   result |= exp_result;
 
@@ -59,7 +59,7 @@ i32 test_exp(char const *source_path, char const *contents, i32 expected_code) {
     file_remove(exe_path);
   }
 
-  file_remove(source_path);
+  file_remove(source_path.ptr);
   string_destroy(&exe);
   return result;
 }

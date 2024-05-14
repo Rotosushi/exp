@@ -18,7 +18,8 @@
 #define EXP_TEST_E2E_TEST_EXP_H
 
 #include "utility/int_types.h"
+#include "utility/string_view.h"
 
-i32 test_exp(char const *source_path, char const *contents, i32 expected_code);
+i32 test_exp(StringView source_path, char const *contents, i32 expected_code);
 
 #endif // !EXP_TEST_E2E_TEST_EXP_H

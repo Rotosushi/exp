@@ -27,10 +27,10 @@ ContextOptions context_options_create(CLIOptions *restrict cli_options) {
     string_assign_string(&options.source, &cli_options->source);
 
     string_assign_string(&options.assembly, &cli_options->source);
-    string_replace_extension(&options.assembly, ".s", 2);
+    string_replace_extension(&options.assembly, SV(".s"));
 
     string_assign_string(&options.object, &cli_options->source);
-    string_replace_extension(&options.object, ".o", 2);
+    string_replace_extension(&options.object, SV(".o"));
   }
 
   if (!string_empty(&cli_options->output)) {

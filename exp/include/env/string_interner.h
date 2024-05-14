@@ -38,6 +38,6 @@ StringInterner string_interner_create();
 void string_interner_destroy(StringInterner *restrict string_interner);
 
 StringView string_interner_insert(StringInterner *restrict string_interner,
-                                  char const *string, u64 length);
+                                  StringView sv);
 
 #endif // !EXP_ENV_STRING_INTERNER_H

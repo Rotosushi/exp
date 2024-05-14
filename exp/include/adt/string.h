@@ -49,20 +49,15 @@ String string_from_file(FILE *restrict file);
 
 bool string_empty(String const *restrict string);
 
-bool string_eq(String const *restrict str, char const *restrict data,
-               u64 length);
+bool string_eq(String const *restrict str, StringView sv);
 
 void string_resize(String *restrict str, u64 capacity);
 
-void string_assign(String *restrict str, const char *restrict data, u64 length);
-
-void string_assign_sv(String *restrict str, StringView sv);
+void string_assign(String *restrict str, StringView sv);
 
 void string_assign_string(String *restrict dst, String const *restrict src);
 
-void string_append(String *restrict str, const char *restrict data);
-
-void string_append_sv(String *restrict str, StringView sv);
+void string_append(String *restrict str, StringView sv);
 
 void string_append_string(String *restrict dst, String const *restrict src);
 
@@ -89,10 +84,8 @@ void string_erase(String *restrict str, u64 offset, u64 length);
  * @param offset
  * @param data
  */
-void string_insert(String *restrict str, u64 offset, char const *restrict data,
-                   u64 length);
+void string_insert(String *restrict str, u64 offset, StringView sv);
 
-void string_replace_extension(String *restrict p1, const char *restrict p2,
-                              u64 len);
+void string_replace_extension(String *restrict str, StringView ext);
 
 #endif // !EXP_UTILITY_STRING_H
