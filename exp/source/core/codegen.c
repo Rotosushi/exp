@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "backend/x64_allocator.h"
 #include "core/codegen.h"
 #include "core/directives.h"
 #include "utility/alloc.h"
@@ -28,548 +29,7 @@
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-/**
- * @brief General Purpose Register models which GPRs are available
- *
- */
-typedef enum X64GPR {
-  X64GPR_RAX,
-  X64GPR_RBX,
-  X64GPR_RCX,
-  X64GPR_RDX,
-  X64GPR_RBP,
-  X64GPR_RSI,
-  X64GPR_RDI,
-  X64GPR_RSP,
-  X64GPR_R8,
-  X64GPR_R9,
-  X64GPR_R10,
-  X64GPR_R11,
-  X64GPR_R12,
-  X64GPR_R13,
-  X64GPR_R14,
-  X64GPR_R15,
-} X64GPR;
-
-static StringView gpr_to_sv(X64GPR r) {
-  switch (r) {
-  case X64GPR_RAX:
-    return SV("rax");
-  case X64GPR_RBX:
-    return SV("rbx");
-  case X64GPR_RCX:
-    return SV("rcx");
-  case X64GPR_RDX:
-    return SV("rdx");
-  case X64GPR_RBP:
-    return SV("rbp");
-  case X64GPR_RSI:
-    return SV("rsi");
-  case X64GPR_RDI:
-    return SV("rdi");
-  case X64GPR_RSP:
-    return SV("rsp");
-  case X64GPR_R8:
-    return SV("r8");
-  case X64GPR_R9:
-    return SV("r9");
-  case X64GPR_R10:
-    return SV("r10");
-  case X64GPR_R11:
-    return SV("r11");
-  case X64GPR_R12:
-    return SV("r12");
-  case X64GPR_R13:
-    return SV("r13");
-  case X64GPR_R14:
-    return SV("r14");
-  case X64GPR_R15:
-    return SV("r15");
-  default:
-    unreachable();
-  }
-}
-
-/**
- * @brief General Purpose Register Pool keeps track of which
- * general purpose registers are currently allocated.
- *
- */
-typedef struct GPRP {
-  u16 bitset;
-} GPRP;
-
-static GPRP gprp_create() {
-  GPRP gprp = {.bitset = 0};
-  return gprp;
-}
-
-static void gprp_destroy(GPRP *restrict gprp) { gprp->bitset = 0; }
-
-#define SET_BIT(B, r) ((B) |= (u16)(1 << r))
-#define CLR_BIT(B, r) ((B) &= (u16)(~(1 << r)))
-#define CHK_BIT(B, r) (((B) >> r) & 1)
-
-/**
- * @brief force allocate the given register
- *
- * @param gprp
- * @param r
- */
-static void gprp_force(GPRP *restrict gprp, X64GPR r) {
-  SET_BIT(gprp->bitset, r);
-}
-
-static bool gprp_any_available(GPRP *restrict gprp, X64GPR *restrict r) {
-  for (u8 i = 0; i < 16; ++i) {
-    if (!CHK_BIT(gprp->bitset, i)) {
-      *r = (X64GPR)i;
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static bool gprp_any_available_other_than(GPRP *restrict gprp,
-                                          X64GPR *restrict r, X64GPR avoid) {
-  for (u8 i = 0; i < 16; ++i) {
-    if (!CHK_BIT(gprp->bitset, i) && (i != avoid)) {
-      *r = (X64GPR)i;
-      return 1;
-    }
-  }
-  return 0;
-}
-
-/**
- * @brief allocate the next available register
- *
- * @param[in] gprp
- * @param[out] r the allocated register
- * @return if a register could be allocated
- */
-static bool gprp_allocate(GPRP *restrict gprp, X64GPR *restrict r) {
-  if (gprp_any_available(gprp, r)) {
-    SET_BIT(gprp->bitset, *r);
-    return 1;
-  }
-
-  return 0;
-}
-
-static bool gprp_allocate_other_than(GPRP *restrict gprp, X64GPR *restrict r,
-                                     X64GPR avoid) {
-  if (gprp_any_available_other_than(gprp, r, avoid)) {
-    SET_BIT(gprp->bitset, *r);
-    return 1;
-  }
-
-  return 0;
-}
-
-static void gprp_release(GPRP *restrict gprp, X64GPR r) {
-  CLR_BIT(gprp->bitset, r);
-}
-
-// static bool gprp_check(GPRP *restrict gprp, X64GPR gpr) {
-//   return CHK_BIT(gprp->bitset, gpr);
-// }
-
-#undef SET_BIT
-#undef CLR_BIT
-#undef CHK_BIT
-
-/**
- * @brief represents the lifetime of a local variable in the function.
- *
- * @note due to SSA form there is no such this as a "lifetime hole"
- * so all lifetime information is guaranteed to be contiguous. thus
- * it is safe to represent Lifetime as a (first_use, last_use) pair.
- * and this captures all relevant lifetime information.
- * hmm, we want to store lifetime information
- * "sorted by increasing last use"
- *
- *
- */
-typedef struct Lifetime {
-  u16 first_use;
-  u16 last_use;
-} Lifetime;
-
-/**
- * @brief manages the lifetime information of all locals for a given
- * function.
- *
- * @note we don't need to dynamically grow this set because we already
- * know exactly how many SSA locals a function body uses.
- */
-typedef struct Lifetimes {
-  u16 count;
-  Lifetime *buffer;
-} Lifetimes;
-
-static Lifetimes li_create(u16 count) {
-  Lifetimes li = {.count = count, .buffer = callocate(count, sizeof(Lifetime))};
-  return li;
-}
-
-static void li_destroy(Lifetimes *restrict li) {
-  li->count = 0;
-  free(li->buffer);
-  li->buffer = NULL;
-}
-
-static Lifetime *li_at(Lifetimes *restrict li, u16 ssa) {
-  assert(ssa < li->count);
-  return li->buffer + ssa;
-}
-
-// walk the bytecode representing the function body.
-// if an instruction assigns a value to a SSA local
-// that is the first use of the SSA local.
-// The last use is the last instruction which uses
-// a SSA local as an operand.
-//
-// if we walk the bytecode in reverse, then we know
-// the last use is the first use we encounter, and
-// the first use is the instruction which defines
-// the local (has the local in operand A)
-static Lifetimes li_compute(FunctionBody *restrict body) {
-  Bytecode *bc = &body->bc;
-  Lifetimes li = li_create(body->ssa_count);
-
-  for (u16 i = bc->length; i > 0; --i) {
-    u16 inst      = i - 1;
-    Instruction I = bc->buffer[inst];
-    switch (I.I_format) {
-    case IFMT_B: {
-      if (I.B_format == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
-      }
-      break;
-    }
-
-    case IFMT_AB: {
-      u16 A         = I.A;
-      Lifetime *Al  = li_at(&li, A);
-      Al->first_use = inst;
-
-      if (I.B_format == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
-      }
-      break;
-    }
-
-    case IFMT_ABC: {
-      u16 A         = I.A;
-      Lifetime *Al  = li_at(&li, A);
-      Al->first_use = inst;
-
-      if (I.B_format == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
-      }
-
-      if (I.C_format == OPRFMT_SSA) {
-        Lifetime *Cl = li_at(&li, I.C);
-        if (inst > Cl->last_use) {
-          Cl->last_use = inst;
-        }
-      }
-      break;
-    }
-
-    default:
-      unreachable();
-    }
-  }
-
-  return li;
-}
-
-typedef enum AllocationKind {
-  ALLOC_GPR,
-  ALLOC_STACK,
-} AllocationKind;
-
-typedef struct Allocation {
-  AllocationKind kind;
-  union {
-    X64GPR gpr;
-    u16 offset;
-  };
-} Allocation;
-
-static Allocation alloc_reg(X64GPR gpr) {
-  Allocation a = {.kind = ALLOC_GPR, .gpr = gpr};
-  return a;
-}
-
-static Allocation alloc_stack(u16 offset) {
-  Allocation a = {.kind = ALLOC_STACK, .offset = offset};
-  return a;
-}
-
-typedef struct ActiveAllocation {
-  u16 ssa;
-  Lifetime lifetime;
-  Allocation allocation;
-} ActiveAllocation;
-
-typedef struct Active {
-  u16 stack_size;
-  u16 size;
-  u16 capacity;
-  ActiveAllocation *buffer;
-} Active;
-
-static Active active_create() {
-  Active a = {.stack_size = 0, .size = 0, .capacity = 0, .buffer = NULL};
-  return a;
-}
-
-static void active_destroy(Active *restrict a) {
-  a->stack_size = 0;
-  a->size       = 0;
-  a->capacity   = 0;
-  free(a->buffer);
-  a->buffer = NULL;
-}
-
-static bool active_full(Active *restrict a) {
-  return (a->size + 1) >= a->capacity;
-}
-
-static void active_grow(Active *restrict a) {
-  Growth g    = array_growth_u16(a->capacity, sizeof(ActiveAllocation));
-  a->buffer   = reallocate(a->buffer, g.alloc_size);
-  a->capacity = (u16)g.new_capacity;
-}
-
-static ActiveAllocation active_add(Active *restrict active, u16 ssa,
-                                   Lifetime lifetime, Allocation allocation) {
-  if (active_full(active)) {
-    active_grow(active);
-  }
-
-  // find the lifetime that ends later than the given lifetime
-  // and insert before it.
-  u16 i = 0;
-  for (; i < active->size; ++i) {
-    ActiveAllocation *al = active->buffer + i;
-    if (al->lifetime.last_use > lifetime.last_use) {
-      break;
-    }
-  }
-
-  // shift all lifetimes after idx forward one location
-  for (u16 j = active->size; j > i; --j) {
-    active->buffer[j] = active->buffer[j - 1];
-  }
-
-  ActiveAllocation *aa = active->buffer + i;
-  active->size += 1;
-
-  *aa = (ActiveAllocation){
-      .ssa = ssa, .lifetime = lifetime, .allocation = allocation};
-  return *aa;
-}
-
-static void active_erase(Active *restrict a, ActiveAllocation *restrict aa) {
-  u16 i = 0;
-  for (; i < a->size; ++i) {
-    ActiveAllocation *al = a->buffer + i;
-    if (al->ssa == aa->ssa) {
-      break;
-    }
-  }
-
-  // move all lifetimes after i backwards one location
-  for (u16 j = i; j < a->size; ++j) {
-    a->buffer[j] = a->buffer[j + 1];
-  }
-
-  a->size -= 1;
-}
-
-// static void active_erase_ssa(Active *restrict a, u16 ssa) {
-//   // find the index, i, of the ssa's lifetime
-//   u16 i = 0;
-//
-// }
-
-/**
- * @brief manages where SSA locals are allocated
- *
- * #TODO LocalAllocations can be refactored into a
- * simpler structure only containing (count, buffer)
- * and the structure containing all of these elements
- * can be renamed RegisterAllocator or something similar.
- *
- */
-typedef struct LocalAllocator {
-  GPRP gprp;
-  Lifetimes lifetimes;
-  Active active;
-  u16 stack_size;
-} LocalAllocator;
-
-static LocalAllocator la_create(FunctionBody *restrict body) {
-  LocalAllocator la = {.gprp       = gprp_create(),
-                       .lifetimes  = li_compute(body),
-                       .active     = active_create(),
-                       .stack_size = 0};
-  // reserve the stack pointer RSP
-  // and the frame pointer RBP
-  // such that locals do not get allocated to them.
-  gprp_force(&la.gprp, X64GPR_RSP);
-  gprp_force(&la.gprp, X64GPR_RBP);
-  return la;
-}
-
-static void la_destroy(LocalAllocator *restrict la) {
-  gprp_destroy(&la->gprp);
-  li_destroy(&la->lifetimes);
-  active_destroy(&la->active);
-  la->stack_size = 0;
-}
-
-static u16 la_bump_active_stack_size(LocalAllocator *restrict la) {
-  // #TODO: as a simplification we just use a full word to store each
-  // local on the stack.
-  la->active.stack_size += 8;
-
-  if (la->stack_size < la->active.stack_size) {
-    la->stack_size = la->active.stack_size;
-  }
-  return la->active.stack_size;
-}
-
-static void la_reduce_active_stack_size(LocalAllocator *restrict la) {
-  // #TODO similarly to the total stack size we don't take into
-  // account the size of the elements stored on the stack.
-  la->active.stack_size -= 8;
-}
-
-// static void la_force_allocate(LocalAllocations *restrict la, u16 ssa,
-//                               X64GPR gpr) {
-//   gprp_force(&la->gprp, gpr);
-//   la->buffer[ssa] = alloc_reg(gpr);
-// }
-
-static ActiveAllocation *la_allocation_of(LocalAllocator *restrict la,
-                                          u16 ssa) {
-  Active *active = &la->active;
-  for (u16 i = 0; i < active->size; ++i) {
-    ActiveAllocation *aa = active->buffer + i;
-    if (aa->ssa == ssa) {
-      return aa;
-    }
-  }
-  return NULL;
-}
-
-static ActiveAllocation *la_allocation_at(LocalAllocator *restrict la,
-                                          X64GPR gpr) {
-  Active *active = &la->active;
-  for (u16 i = 0; i < active->size; ++i) {
-    ActiveAllocation *aa = active->buffer + i;
-    if ((aa->allocation.kind == ALLOC_GPR) && (aa->allocation.gpr == gpr)) {
-      return aa;
-    }
-  }
-  return NULL;
-}
-
-/**
- * @brief look for any active lifetimes whose last use is
- * smaller than the current instruction index. i.e. their lifetime
- * has ended.
- *
- *
- * @param la
- * @param Idx
- */
-static void la_expire_old_lifetimes(LocalAllocator *restrict la, u16 Idx) {
-  Active *a  = &la->active;
-  GPRP *gprp = &la->gprp;
-  u16 end    = a->size;
-  for (u16 i = 0; i < end; ++i) {
-    // copy the active lifetime
-    ActiveAllocation *al = a->buffer + i;
-
-    // since we store active lifetimes in order
-    // of increasing last_use, if we find an
-    // active lifetime which ends later than
-    // the current instruction (Idx), we know that the rest
-    // of the active lifetimes also end later.
-    // thus we can exit early.
-    if (al->lifetime.last_use >= Idx) {
-      return;
-    }
-
-    if (al->allocation.kind == ALLOC_GPR) {
-      gprp_release(gprp, al->allocation.gpr);
-    } else {
-      la_reduce_active_stack_size(la);
-    }
-
-    active_erase(a, al);
-
-    // since we remove an element from active lifetimes
-    // we also have to update the end point, so we don't
-    // read garbage. I think this is okay because
-    // A - we don't try to access a lifetime after it is
-    //  removed
-    // B - we recompute the pointer on each iteration
-    // C - ActiveLifetimes keeps all elements stored
-    //  contiguously.
-    // D - since we decrement the end by one when we remove
-    //  one element, end stays lock-step with the size of
-    //  ActiveLifetimes.
-    // E - removing elements will never trigger a reallocation
-    //  of the memory allocated for the buffer of active lifetimes.
-    end -= 1;
-    // since we removed an element, the next active lifetime
-    // will be at the current index. so we update our index
-    // here to account for that.
-    i -= 1;
-  }
-}
-
-/**
- * @brief allocate the given SSA local
- *
- * @param la
- * @param Idx the index of the current instruction
- * @param ssa the 'label' of the ssa local
- * @return Allocation*
- */
-static ActiveAllocation la_allocate(LocalAllocator *restrict la, u16 Idx,
-                                    u16 ssa) {
-  X64GPR gpr         = 0;
-  Lifetime *lifetime = li_at(&la->lifetimes, ssa);
-
-  la_expire_old_lifetimes(la, Idx);
-
-  if (gprp_allocate(&la->gprp, &gpr)) {
-    return active_add(&la->active, ssa, *lifetime, alloc_reg(gpr));
-  }
-
-  // otherwise spill to the stack.
-  return active_add(&la->active, ssa, *lifetime,
-                    alloc_stack(la_bump_active_stack_size(la)));
-}
-
-static void codegen_alloc_operand(ActiveAllocation *restrict aa,
+static void codegen_alloc_operand(X64ActiveAllocation *restrict aa,
                                   String *restrict buffer) {
   switch (aa->allocation.kind) {
   case ALLOC_GPR: {
@@ -630,8 +90,8 @@ static void codegen_constant_operand(Value *restrict constant,
   codegen_immediate_operand(imm, buffer);
 }
 
-static void codegen_reallocate_gpr(LocalAllocator *restrict la,
-                                   ActiveAllocation *aa,
+static void codegen_reallocate_gpr(X64Allocator *restrict la,
+                                   X64ActiveAllocation *aa,
                                    String *restrict buffer) {
   X64GPR gpr = 0;
   if (gprp_allocate(&la->gprp, &gpr)) {
@@ -649,7 +109,7 @@ static void codegen_reallocate_gpr(LocalAllocator *restrict la,
   }
 
   // spill allocation to the stack
-  u16 offset = la_bump_active_stack_size(la);
+  u16 offset = x64allocator_bump_active_stack_size(la);
   string_append(buffer, SV("\tmov %"));
   string_append(buffer, gpr_to_sv(aa->allocation.gpr));
   string_append(buffer, SV(", -"));
@@ -660,8 +120,8 @@ static void codegen_reallocate_gpr(LocalAllocator *restrict la,
   aa->allocation.offset = offset;
 }
 
-static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
-                                                ActiveAllocation *aa,
+static void codegen_reallocate_local_other_than(X64Allocator *restrict la,
+                                                X64ActiveAllocation *aa,
                                                 X64GPR avoid,
                                                 String *restrict buffer) {
   X64GPR gpr = 0;
@@ -678,7 +138,7 @@ static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
   }
 
   // spill allocation to the stack
-  u16 offset = la_bump_active_stack_size(la);
+  u16 offset = x64allocator_bump_active_stack_size(la);
   string_append(buffer, SV("\tmov %"));
   string_append(buffer, gpr_to_sv(aa->allocation.gpr));
   string_append(buffer, SV(", -"));
@@ -698,9 +158,9 @@ static void codegen_reallocate_local_other_than(LocalAllocator *restrict la,
  * @param gpr
  * @param buffer
  */
-static void codegen_release_gpr(LocalAllocator *restrict la, X64GPR gpr,
+static void codegen_release_gpr(X64Allocator *restrict la, X64GPR gpr,
                                 String *restrict buffer) {
-  ActiveAllocation *aa = la_allocation_at(la, gpr);
+  X64ActiveAllocation *aa = x64allocator_allocation_at(la, gpr);
   if (aa == NULL) {
     return; // gpr is available.
   }
@@ -724,12 +184,12 @@ static void codegen_zero_gpr(X64GPR gpr, String *restrict buffer) {
  * @param buffer
  * @return X64GPR
  */
-static X64GPR codegen_release_any_gpr(LocalAllocator *restrict la, u16 Idx,
+static X64GPR codegen_release_any_gpr(X64Allocator *restrict la, u16 Idx,
                                       String *restrict buffer) {
   // attempt to release an old active allocation in a gpr.
   // this could release nothing, a gpr, or an old stack
   // allocation.
-  la_expire_old_lifetimes(la, Idx);
+  x64allocator_expire_old_lifetimes(la, Idx);
 
   X64GPR gpr = 0;
   if (gprp_any_available(&la->gprp, &gpr)) {
@@ -748,23 +208,23 @@ static X64GPR codegen_release_any_gpr(LocalAllocator *restrict la, u16 Idx,
   }
 }
 
-static ActiveAllocation codegen_allocate_gpr(LocalAllocator *restrict la,
-                                             X64GPR gpr, u16 ssa,
-                                             String *restrict buffer) {
+static X64ActiveAllocation codegen_allocate_gpr(X64Allocator *restrict la,
+                                                X64GPR gpr, u16 ssa,
+                                                String *restrict buffer) {
   codegen_release_gpr(la, gpr, buffer);
 
-  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                    alloc_reg(gpr));
+  return x64active_allocations_add(
+      &la->active, ssa, *li_at(&la->lifetimes, ssa), x64allocation_reg(gpr));
 }
 
-static Allocation
-codegen_create_temporary_from_immediate(LocalAllocator *restrict la, u16 Idx,
+static X64Allocation
+codegen_create_temporary_from_immediate(X64Allocator *restrict la, u16 Idx,
                                         i64 imm, X64GPR avoid,
                                         String *restrict buffer) {
   // attempt to release an old active allocation in a gpr.
   // this could release nothing, a gpr, or an old stack
   // allocation.
-  la_expire_old_lifetimes(la, Idx);
+  x64allocator_expire_old_lifetimes(la, Idx);
 
   X64GPR gpr = 0;
   if (gprp_any_available_other_than(&la->gprp, &gpr, avoid)) {
@@ -774,21 +234,21 @@ codegen_create_temporary_from_immediate(LocalAllocator *restrict la, u16 Idx,
     string_append(buffer, gpr_to_sv(gpr));
     string_append(buffer, SV("\n"));
 
-    return alloc_reg(gpr);
+    return x64allocation_reg(gpr);
   } else {
-    u16 offset = la_bump_active_stack_size(la);
+    u16 offset = x64allocator_bump_active_stack_size(la);
     string_append(buffer, SV("\tmov "));
     codegen_immediate_operand(imm, buffer);
     string_append(buffer, SV(", -"));
     string_append_u64(buffer, offset);
     string_append(buffer, SV("(%rbp)\n"));
 
-    return alloc_stack(offset);
+    return x64allocation_stack(offset);
   }
 }
 
-static Allocation
-codegen_create_temporary_from_constant(LocalAllocator *restrict la, u16 Idx,
+static X64Allocation
+codegen_create_temporary_from_constant(X64Allocator *restrict la, u16 Idx,
                                        Value *restrict constant, X64GPR avoid,
                                        String *restrict buffer) {
   switch (constant->kind) {
@@ -815,20 +275,20 @@ codegen_create_temporary_from_constant(LocalAllocator *restrict la, u16 Idx,
 
 /**
  * @brief Makes sure the value of <aa> is held in <gpr> associated with the
- * ActiveAllocation for the given <ssa> local. keeping <aa> alive if it's last
- * use is after the current instruction <Idx>
+ * X64ActiveAllocation for the given <ssa> local. keeping <aa> alive if it's
+ * last use is after the current instruction <Idx>
  *
  * @note i don't know what to call this, i just know i don't like the name.
  *
- * @param la the LocalAllocator
+ * @param la the X64Allocator
  * @param Idx the index of the current Instruction
- * @param aa the ActiveAllocation to copy into gpr
+ * @param aa the X64ActiveAllocation to copy into gpr
  * @param gpr the target register
  * @param buffer
  */
-static ActiveAllocation
-codegen_allocate_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
-                                   ActiveAllocation *restrict aa, X64GPR gpr,
+static X64ActiveAllocation
+codegen_allocate_gpr_from_existing(X64Allocator *restrict la, u16 Idx,
+                                   X64ActiveAllocation *restrict aa, X64GPR gpr,
                                    u16 ssa, String *restrict buffer) {
   if ((aa->allocation.kind == ALLOC_GPR) && (aa->allocation.gpr == gpr)) {
     if (aa->lifetime.last_use > Idx) {
@@ -837,14 +297,15 @@ codegen_allocate_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
       // however we know that the correct value is still in <gpr>,
       // so we can just start ssa's ActiveLifetime associated with <gpr>
       // as if we had allocated it there
-      return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                        alloc_reg(gpr));
+      return x64active_allocations_add(&la->active, ssa,
+                                       *li_at(&la->lifetimes, ssa),
+                                       x64allocation_reg(gpr));
     }
     // else we can remove the old lifetime
-    active_erase(&la->active, aa);
+    x64active_allocations_erase(&la->active, aa);
     // and add the new one
-    return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                      alloc_reg(gpr));
+    return x64active_allocations_add(
+        &la->active, ssa, *li_at(&la->lifetimes, ssa), x64allocation_reg(gpr));
   }
   // else (aa->allocation.kind != ALLOC_GPR) || (aa->allocation.gpr != gpr)
   // move the value of <aa> to the target register
@@ -856,15 +317,15 @@ codegen_allocate_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
 
   // if <aa> is old, we can remove it from active
   if (aa->lifetime.last_use <= Idx) {
-    active_erase(&la->active, aa);
+    x64active_allocations_erase(&la->active, aa);
   }
   // start the lifetime of ssa associated with gpr
-  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                    alloc_reg(gpr));
+  return x64active_allocations_add(
+      &la->active, ssa, *li_at(&la->lifetimes, ssa), x64allocation_reg(gpr));
 }
 
-static ActiveAllocation
-codegen_allocate_gpr_from_immediate(LocalAllocator *restrict la, i64 imm,
+static X64ActiveAllocation
+codegen_allocate_gpr_from_immediate(X64Allocator *restrict la, i64 imm,
                                     X64GPR gpr, u16 ssa,
                                     String *restrict buffer) {
   codegen_release_gpr(la, gpr, buffer);
@@ -875,14 +336,14 @@ codegen_allocate_gpr_from_immediate(LocalAllocator *restrict la, i64 imm,
   string_append(buffer, gpr_to_sv(gpr));
   string_append(buffer, SV("\n"));
 
-  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                    alloc_reg(gpr));
+  return x64active_allocations_add(
+      &la->active, ssa, *li_at(&la->lifetimes, ssa), x64allocation_reg(gpr));
 }
 
-static ActiveAllocation
-codegen_allocate_mem_from_immediate(LocalAllocator *restrict la, i64 imm,
-                                    u16 ssa, String *restrict buffer) {
-  u16 offset = la_bump_active_stack_size(la);
+static X64ActiveAllocation
+codegen_allocate_mem_from_immediate(X64Allocator *restrict la, i64 imm, u16 ssa,
+                                    String *restrict buffer) {
+  u16 offset = x64allocator_bump_active_stack_size(la);
 
   // initialize mem with imm
   string_append(buffer, SV("\tmov "));
@@ -891,12 +352,13 @@ codegen_allocate_mem_from_immediate(LocalAllocator *restrict la, i64 imm,
   string_append_u64(buffer, offset);
   string_append(buffer, SV("(%rbp)\n"));
 
-  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                    alloc_stack(offset));
+  return x64active_allocations_add(&la->active, ssa,
+                                   *li_at(&la->lifetimes, ssa),
+                                   x64allocation_stack(offset));
 }
 
-static ActiveAllocation
-codegen_allocate_gpr_from_constant(LocalAllocator *restrict la, Value *constant,
+static X64ActiveAllocation
+codegen_allocate_gpr_from_constant(X64Allocator *restrict la, Value *constant,
                                    X64GPR gpr, u16 ssa,
                                    String *restrict buffer) {
   switch (constant->kind) {
@@ -924,8 +386,8 @@ codegen_allocate_gpr_from_constant(LocalAllocator *restrict la, Value *constant,
   }
 }
 
-static ActiveAllocation
-codegen_allocate_mem_from_constant(LocalAllocator *restrict la, Value *constant,
+static X64ActiveAllocation
+codegen_allocate_mem_from_constant(X64Allocator *restrict la, Value *constant,
                                    u16 ssa, String *restrict buffer) {
   switch (constant->kind) {
   case VALUEKIND_UNINITIALIZED: {
@@ -961,18 +423,18 @@ codegen_allocate_mem_from_constant(LocalAllocator *restrict la, Value *constant,
  * @param aa
  * @param ssa
  * @param buffer
- * @return ActiveAllocation*
+ * @return X64ActiveAllocation*
  */
-static ActiveAllocation
-codegen_allocate_any_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
-                                       ActiveAllocation *restrict aa, u16 ssa,
-                                       String *restrict buffer) {
+static X64ActiveAllocation
+codegen_allocate_any_gpr_from_existing(X64Allocator *restrict la, u16 Idx,
+                                       X64ActiveAllocation *restrict aa,
+                                       u16 ssa, String *restrict buffer) {
   X64GPR gpr;
   if (gprp_any_available(&la->gprp, &gpr)) {
     // an available gpr is 'any' gpr
     return codegen_allocate_gpr_from_existing(la, Idx, aa, gpr, ssa, buffer);
   } else {
-    // if the existing ActiveAllocation is old, we can reuse it's gpr
+    // if the existing X64ActiveAllocation is old, we can reuse it's gpr
     if ((aa->lifetime.last_use <= Idx) && (aa->allocation.kind == ALLOC_GPR)) {
       return codegen_allocate_gpr_from_existing(la, Idx, aa, aa->allocation.gpr,
                                                 ssa, buffer);
@@ -992,10 +454,10 @@ codegen_allocate_any_gpr_from_existing(LocalAllocator *restrict la, u16 Idx,
  * @param aa
  * @param ssa
  * @param buffer
- * @return ActiveAllocation*
+ * @return X64ActiveAllocation*
  */
-static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_existing(
-    LocalAllocator *restrict la, u16 Idx, ActiveAllocation *restrict aa,
+static X64ActiveAllocation codegen_allocate_any_gpr_or_mem_from_existing(
+    X64Allocator *restrict la, u16 Idx, X64ActiveAllocation *restrict aa,
     u16 ssa, String *restrict buffer) {
   if (aa->allocation.kind == ALLOC_GPR) {
     return codegen_allocate_any_gpr_from_existing(la, Idx, aa, ssa, buffer);
@@ -1005,19 +467,20 @@ static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_existing(
 
   if (aa->lifetime.last_use <= Idx) {
     // we can allocate on top of the existing value
-    active_erase(&la->active, aa);
+    x64active_allocations_erase(&la->active, aa);
   } else {
     // we have to use a new stack slot.
-    offset = la_bump_active_stack_size(la);
+    offset = x64allocator_bump_active_stack_size(la);
   }
 
   // allocation the ssa
-  return active_add(&la->active, ssa, *li_at(&la->lifetimes, ssa),
-                    alloc_stack(offset));
+  return x64active_allocations_add(&la->active, ssa,
+                                   *li_at(&la->lifetimes, ssa),
+                                   x64allocation_stack(offset));
 }
 
-static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_immediate(
-    LocalAllocator *restrict la, i64 imm, u16 ssa, String *restrict buffer) {
+static X64ActiveAllocation codegen_allocate_any_gpr_or_mem_from_immediate(
+    X64Allocator *restrict la, i64 imm, u16 ssa, String *restrict buffer) {
   X64GPR gpr;
   if (gprp_any_available(&la->gprp, &gpr)) {
     return codegen_allocate_gpr_from_immediate(la, imm, gpr, ssa, buffer);
@@ -1026,8 +489,8 @@ static ActiveAllocation codegen_allocate_any_gpr_or_mem_from_immediate(
   }
 }
 
-static ActiveAllocation
-codegen_allocate_any_gpr_or_mem_from_constant(LocalAllocator *restrict la,
+static X64ActiveAllocation
+codegen_allocate_any_gpr_or_mem_from_constant(X64Allocator *restrict la,
                                               Value *constant, u16 ssa,
                                               String *restrict buffer) {
   X64GPR gpr;
@@ -1056,14 +519,14 @@ static void codegen_function_epilouge(String *restrict buffer) {
 // we need to ensure that the operand B is already
 // in the return register. and we need to emit the
 // function epilouge
-static void codegen_ret(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_ret(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, String *restrict buffer) {
   // - find out where operand B is
   u16 B = I.B;
   // - make sure B is stored in %rax
   switch (I.B_format) {
   case OPRFMT_SSA: {
-    ActiveAllocation *Balloc = la_allocation_of(la, B);
+    X64ActiveAllocation *Balloc = x64allocator_allocation_of(la, B);
     if ((Balloc->allocation.kind == ALLOC_GPR) &&
         (Balloc->allocation.gpr == X64GPR_RAX)) {
       break;
@@ -1115,17 +578,17 @@ static void codegen_ret(Context *restrict c, LocalAllocator *restrict la,
 //   AB -- R[A] = M[B]
 //
 // we just have to allocate A and move.
-static void codegen_mov(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_mov(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
 
-  u16 A                   = I.A;
-  u16 B                   = I.B;
-  ActiveAllocation Aalloc = la_allocate(la, Idx, A);
+  u16 A                      = I.A;
+  u16 B                      = I.B;
+  X64ActiveAllocation Aalloc = x64allocator_allocate(la, Idx, A);
   // - "mov <B>, <A>"
   switch (I.B_format) {
   // "mov <Balloc>, <A>"
   case OPRFMT_SSA: {
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
 
     // "mov -<B-offset>(%rbp), %<tmp-gpr>"
     // "mov %<tmp-gpr>, -<A-offset>(%rbp)"
@@ -1198,7 +661,7 @@ static void codegen_mov(Context *restrict c, LocalAllocator *restrict la,
 // we have to allocate A with the contents of B
 // and make sure B isn't overwritten if it is
 // used later.
-static void codegen_neg(LocalAllocator *restrict la, Instruction I, u16 Idx,
+static void codegen_neg(X64Allocator *restrict la, Instruction I, u16 Idx,
                         String *restrict buffer) {
   u16 A = I.A;
   u16 B = I.B;
@@ -1209,8 +672,8 @@ static void codegen_neg(LocalAllocator *restrict la, Instruction I, u16 Idx,
   // first, make sure that the operand A has the right value
   // and that we don't overwrite B if it is still used after
   // this instruction.
-  ActiveAllocation Balloc = *la_allocation_of(la, B);
-  ActiveAllocation Aalloc = codegen_allocate_any_gpr_or_mem_from_existing(
+  X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
+  X64ActiveAllocation Aalloc = codegen_allocate_any_gpr_or_mem_from_existing(
       la, Idx, &Balloc, A, buffer);
 
   // "neg <Aalloc>"
@@ -1240,22 +703,22 @@ static void codegen_neg(LocalAllocator *restrict la, Instruction I, u16 Idx,
 // we have to ensure that the previous value of
 // A isn't overwritten if it is needed after this
 // expression.
-static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_add(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
   u16 A = I.A;
   u16 B = I.B;
   u16 C = I.C;
 
-  ActiveAllocation Aalloc = {};
+  X64ActiveAllocation Aalloc = {};
   switch (I.B_format) {
   case OPRFMT_SSA: {
     // make sure the an operand is present in the destination register.
     // and create the allocation of A at the destrination register.
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
     switch (I.C_format) {
       // B and C are SSA
     case OPRFMT_SSA: {
-      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
 
       if (Balloc.allocation.kind == ALLOC_GPR) {
         // since we know B is in a register, we can use
@@ -1348,7 +811,7 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
   case OPRFMT_CONSTANT: {
     // assert that we don't generate trivially foldable instructions.
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
     // we can just embed B directly into the instruction.
     // first we have to start A's lifetime. using the value of C
     Aalloc =
@@ -1365,7 +828,7 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
   case OPRFMT_IMMEDIATE: {
     // assert that we don't generate trivially foldable instructions.
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
     // we can just embed B directly into the instruction.
     // first we have to start A's lifetime. using the value of C
     Aalloc =
@@ -1404,19 +867,19 @@ static void codegen_add(Context *restrict c, LocalAllocator *restrict la,
 // we have to ensure that the previous value of
 // A isn't overwritten if it is needed after this
 // expression.
-static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_sub(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
   u16 A = I.A;
   u16 B = I.B;
   u16 C = I.C;
 
-  ActiveAllocation Aalloc = {};
+  X64ActiveAllocation Aalloc = {};
   switch (I.B_format) {
   case OPRFMT_SSA: {
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
     switch (I.C_format) {
     case OPRFMT_SSA: {
-      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
 
       if ((Balloc.allocation.kind == ALLOC_GPR) ||
           (Calloc.allocation.kind == ALLOC_GPR)) {
@@ -1490,9 +953,9 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
   // register or stack slot as it's allocation.
   case OPRFMT_CONSTANT: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
-    Value *Bconst           = context_constants_at(c, B);
-    ActiveAllocation Aalloc =
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
+    Value *Bconst              = context_constants_at(c, B);
+    X64ActiveAllocation Aalloc =
         codegen_allocate_any_gpr_or_mem_from_constant(la, Bconst, A, buffer);
 
     string_append(buffer, SV("\tsub "));
@@ -1505,8 +968,8 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_IMMEDIATE: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
-    ActiveAllocation Aalloc =
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
+    X64ActiveAllocation Aalloc =
         codegen_allocate_any_gpr_or_mem_from_immediate(la, (i64)B, A, buffer);
 
     string_append(buffer, SV("\tsub "));
@@ -1547,24 +1010,24 @@ static void codegen_sub(Context *restrict c, LocalAllocator *restrict la,
 // allocated to RAX before the instruction.
 // we must also note that the result, A,
 // is allocated to RAX afterwords.
-static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_mul(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
-  u16 A                                    = I.A;
-  u16 B                                    = I.B;
-  u16 C                                    = I.C;
-  [[maybe_unused]] ActiveAllocation Aalloc = {};
+  u16 A                                       = I.A;
+  u16 B                                       = I.B;
+  u16 C                                       = I.C;
+  [[maybe_unused]] X64ActiveAllocation Aalloc = {};
   switch (I.B_format) {
   case OPRFMT_SSA: {
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
     // make sure the value of B is held in %rax, for the imul instruction.
     Aalloc = codegen_allocate_gpr_from_existing(la, Idx, &Balloc, X64GPR_RAX, A,
                                                 buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the imul instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     switch (I.C_format) {
     case OPRFMT_SSA: {
-      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
       // "imul <Calloc>"
       string_append(buffer, SV("\timul "));
       codegen_alloc_operand(&Calloc, buffer);
@@ -1610,12 +1073,12 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_CONSTANT: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
-    Value *Bconst           = context_constants_at(c, B);
-    // initialize A's ActiveAllocation with the value of B at %rax
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
+    Value *Bconst              = context_constants_at(c, B);
+    // initialize A's X64ActiveAllocation with the value of B at %rax
     Aalloc =
         codegen_allocate_gpr_from_constant(la, Bconst, X64GPR_RAX, A, buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the imul instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     string_append(buffer, SV("\timul "));
@@ -1626,10 +1089,10 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_IMMEDIATE: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
     Aalloc =
         codegen_allocate_gpr_from_immediate(la, (i64)B, X64GPR_RAX, A, buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the imul instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     string_append(buffer, SV("\timul "));
@@ -1668,25 +1131,25 @@ static void codegen_mul(Context *restrict c, LocalAllocator *restrict la,
 // before the instruction.
 // we must also note that the result, A, is
 // allocated to RAX afterwords.
-static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_div(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
-  u16 A                                    = I.A;
-  u16 B                                    = I.B;
-  u16 C                                    = I.C;
-  [[maybe_unused]] ActiveAllocation Aalloc = {};
+  u16 A                                       = I.A;
+  u16 B                                       = I.B;
+  u16 C                                       = I.C;
+  [[maybe_unused]] X64ActiveAllocation Aalloc = {};
   switch (I.B_format) {
   case OPRFMT_SSA: {
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
     // make sure the value of B is held in %rax, for the idiv instruction.
     Aalloc = codegen_allocate_gpr_from_existing(la, Idx, &Balloc, X64GPR_RAX, A,
                                                 buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the idiv instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
     switch (I.C_format) {
     case OPRFMT_SSA: {
-      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
 
       string_append(buffer, SV("\tidiv "));
       codegen_alloc_operand(&Calloc, buffer);
@@ -1698,8 +1161,8 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
       // so, we can't have an immediate as the operand to imul
       // or idiv. and %rdx is used as the upper bits of a the
       // dividend. so we have to use another temporary.
-      Value *Cconst  = context_constants_at(c, C);
-      Allocation tmp = codegen_create_temporary_from_constant(
+      Value *Cconst     = context_constants_at(c, C);
+      X64Allocation tmp = codegen_create_temporary_from_constant(
           la, Idx, Cconst, X64GPR_RDX, buffer);
 
       string_append(buffer, SV("\tidiv "));
@@ -1716,7 +1179,7 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
     }
 
     case OPRFMT_IMMEDIATE: {
-      Allocation tmp = codegen_create_temporary_from_immediate(
+      X64Allocation tmp = codegen_create_temporary_from_immediate(
           la, Idx, (i64)C, X64GPR_RDX, buffer);
 
       string_append(buffer, SV("\tidiv "));
@@ -1740,17 +1203,17 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_CONSTANT: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation *Calloc = la_allocation_of(la, C);
+    X64ActiveAllocation *Calloc = x64allocator_allocation_of(la, C);
     if ((Calloc->allocation.kind == ALLOC_GPR) &&
         (Calloc->allocation.gpr == X64GPR_RDX)) {
       codegen_reallocate_local_other_than(la, Calloc, X64GPR_RDX, buffer);
     }
 
     Value *Bconst = context_constants_at(c, B);
-    // initialize A's ActiveAllocation with the value of B at %rax
+    // initialize A's X64ActiveAllocation with the value of B at %rax
     Aalloc =
         codegen_allocate_gpr_from_constant(la, Bconst, X64GPR_RAX, A, buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the idiv instruction. and that rdx holds no erraneous
     // data
     codegen_release_gpr(la, X64GPR_RDX, buffer);
@@ -1764,7 +1227,7 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_IMMEDIATE: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation *Calloc = la_allocation_of(la, C);
+    X64ActiveAllocation *Calloc = x64allocator_allocation_of(la, C);
     if ((Calloc->allocation.kind == ALLOC_GPR) &&
         (Calloc->allocation.gpr == X64GPR_RDX)) {
       codegen_reallocate_local_other_than(la, Calloc, X64GPR_RDX, buffer);
@@ -1772,7 +1235,7 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
 
     Aalloc =
         codegen_allocate_gpr_from_immediate(la, (i64)B, X64GPR_RAX, A, buffer);
-    // make sure we are not overwriting an existing ActiveAllocation in %rdx
+    // make sure we are not overwriting an existing X64ActiveAllocation in %rdx
     // when we evaluate the idiv instruction.
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
@@ -1813,12 +1276,12 @@ static void codegen_div(Context *restrict c, LocalAllocator *restrict la,
 // allocated to RAX before the instruction.
 // we must also note that the result, A, is
 // allocated to RDX afterwords.
-static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_mod(Context *restrict c, X64Allocator *restrict la,
                         Instruction I, u16 Idx, String *restrict buffer) {
-  u16 A                                    = I.A;
-  u16 B                                    = I.B;
-  u16 C                                    = I.C;
-  [[maybe_unused]] ActiveAllocation Aalloc = {};
+  u16 A                                       = I.A;
+  u16 B                                       = I.B;
+  u16 C                                       = I.C;
+  [[maybe_unused]] X64ActiveAllocation Aalloc = {};
   switch (I.B_format) {
   case OPRFMT_SSA: {
     // we need to ensure that B is held in %rax.
@@ -1826,7 +1289,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     // allocate A where B is going, we instead want
     // A to be allocated in %rdx. C needs to go in
     // a register or in memory as it cannot be an immediate.
-    ActiveAllocation Balloc = *la_allocation_of(la, B);
+    X64ActiveAllocation Balloc = *x64allocator_allocation_of(la, B);
     if ((Balloc.allocation.kind != ALLOC_GPR) ||
         (Balloc.allocation.gpr != X64GPR_RAX)) {
       string_append(buffer, SV("\tmov "));
@@ -1836,7 +1299,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
       string_append(buffer, SV("\n"));
 
       if (Balloc.lifetime.last_use <= Idx) {
-        active_erase(&la->active, &Balloc);
+        x64active_allocations_erase(&la->active, &Balloc);
       }
     }
 
@@ -1846,7 +1309,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
 
     switch (I.C_format) {
     case OPRFMT_SSA: {
-      ActiveAllocation Calloc = *la_allocation_of(la, C);
+      X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
 
       string_append(buffer, SV("\tidiv "));
       codegen_alloc_operand(&Calloc, buffer);
@@ -1855,8 +1318,8 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     }
 
     case OPRFMT_CONSTANT: {
-      Value *Cconst  = context_constants_at(c, C);
-      Allocation tmp = codegen_create_temporary_from_constant(
+      Value *Cconst     = context_constants_at(c, C);
+      X64Allocation tmp = codegen_create_temporary_from_constant(
           la, Idx, Cconst, X64GPR_RAX, buffer);
 
       string_append(buffer, SV("\tidiv "));
@@ -1873,7 +1336,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
     }
 
     case OPRFMT_IMMEDIATE: {
-      Allocation tmp = codegen_create_temporary_from_immediate(
+      X64Allocation tmp = codegen_create_temporary_from_immediate(
           la, Idx, (i64)C, X64GPR_RAX, buffer);
 
       string_append(buffer, SV("\tidiv "));
@@ -1897,8 +1360,8 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_CONSTANT: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
-    Value *Bconst           = context_constants_at(c, B);
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
+    Value *Bconst              = context_constants_at(c, B);
 
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
@@ -1918,7 +1381,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
 
   case OPRFMT_IMMEDIATE: {
     assert(I.C_format == OPRFMT_SSA);
-    ActiveAllocation Calloc = *la_allocation_of(la, C);
+    X64ActiveAllocation Calloc = *x64allocator_allocation_of(la, C);
 
     codegen_release_gpr(la, X64GPR_RDX, buffer);
     codegen_zero_gpr(X64GPR_RDX, buffer);
@@ -1941,7 +1404,7 @@ static void codegen_mod(Context *restrict c, LocalAllocator *restrict la,
   }
 }
 
-static void codegen_bytecode(Context *restrict c, LocalAllocator *restrict la,
+static void codegen_bytecode(Context *restrict c, X64Allocator *restrict la,
                              Bytecode *restrict bc, String *restrict buffer) {
   Instruction *ip = bc->buffer;
   for (u16 idx = 0; idx < bc->length; ++idx) {
@@ -1994,7 +1457,7 @@ static void codegen_bytecode(Context *restrict c, LocalAllocator *restrict la,
   }
 }
 
-static void codegen_function_prolouge(LocalAllocator *restrict la,
+static void codegen_function_prolouge(X64Allocator *restrict la,
                                       StringView name,
                                       String *restrict buffer) {
   directive_text(buffer);
@@ -2014,7 +1477,7 @@ static void codegen_function_prolouge(LocalAllocator *restrict la,
 static void codegen_function(Context *restrict c, String *restrict buffer,
                              StringView name, FunctionBody *restrict body) {
   Bytecode *bc       = &body->bc;
-  LocalAllocator la  = la_create(body);
+  X64Allocator la    = x64allocator_create(body);
   String body_buffer = string_create();
 
   codegen_bytecode(c, &la, bc, &body_buffer);
@@ -2025,7 +1488,7 @@ static void codegen_function(Context *restrict c, String *restrict buffer,
 
   directive_size_label_relative(name, buffer);
 
-  la_destroy(&la);
+  x64allocator_destroy(&la);
   string_destroy(&body_buffer);
 }
 

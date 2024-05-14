@@ -4,6 +4,14 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
+  ${EXP_SOURCE_DIR}/backend/lifetimes.c
+  ${EXP_SOURCE_DIR}/backend/x64_allocator.c
+  ${EXP_SOURCE_DIR}/backend/x64_bytecode.c
+  ${EXP_SOURCE_DIR}/backend/x64_context.c
+  ${EXP_SOURCE_DIR}/backend/x64_gpr.c
+  ${EXP_SOURCE_DIR}/backend/x64_gprp.c
+  ${EXP_SOURCE_DIR}/backend/x64_instruction.c
+
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c
   ${EXP_SOURCE_DIR}/core/compile.c
