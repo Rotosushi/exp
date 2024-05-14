@@ -28,8 +28,14 @@ int subtraction([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
 
   result |= test_exp(
       source_path, "fn main() { const x = 3; const y = 3; return x - y; }", 0);
+
+  result |= test_exp(
+      source_path,
+      "fn main() { const x = 66100; const y = 66000; return x - y; }", 100);
+
   result |=
       test_exp(source_path, "fn main() { const x = 3; return x - 3; }", 0);
+
   result |=
       test_exp(source_path, "fn main() { const x = 3; return 3 - x; }", 0);
 

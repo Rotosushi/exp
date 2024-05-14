@@ -447,19 +447,19 @@ static ParserResult binop(Parser *restrict p, Context *restrict c,
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_nil());
-  return success(context_emit_move(c, idx));
+  return success(idx);
 }
 
 static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_boolean(1));
-  return success(context_emit_move(c, idx));
+  return success(idx);
 }
 
 static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_add(c, value_create_boolean(0));
-  return success(context_emit_move(c, idx));
+  return success(idx);
 }
 
 static ParserResult integer(Parser *restrict p, Context *restrict c) {
@@ -471,8 +471,7 @@ static ParserResult integer(Parser *restrict p, Context *restrict c) {
   if ((integer >= 0) && (integer < u16_MAX)) {
     B = opr_immediate((u16)integer);
   } else {
-    Operand index = context_constants_add(c, value_create_i64(integer));
-    B             = context_emit_move(c, index);
+    B = context_constants_add(c, value_create_i64(integer));
   }
 
   return success(B);

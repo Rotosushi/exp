@@ -51,14 +51,13 @@ u64 i64_safe_strlen(i64 value, Radix radix) {
     if (__builtin_add_overflow(result, number_length, &result)) {
       PANIC("value exceeds u64");
     }
-    return result;
   } else {
     u64 number_length = (u64)(ceil(log((double)value) / log((double)radix)));
     if (__builtin_add_overflow(result, number_length, &result)) {
       PANIC("value exceeds u64");
     }
-    return result;
   }
+  return result;
 }
 
 u64 u64_safe_strlen(u64 value, Radix radix) {
@@ -114,7 +113,7 @@ char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
 }
 
 void print_i64(i64 value, Radix radix, FILE *file) {
-  char buf[i64_safe_strlen(value, radix)];
+  char buf[i64_safe_strlen(value, radix) + 1];
   if (i64_to_str(value, buf, radix) == NULL) {
     PANIC("conversion failed");
   }
@@ -153,7 +152,7 @@ char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
 }
 
 void print_u64(u64 value, Radix radix, FILE *file) {
-  char buf[u64_safe_strlen(value, radix)];
+  char buf[u64_safe_strlen(value, radix) + 1];
   if (u64_to_str(value, buf, radix) == NULL) {
     PANIC("conversion failed");
   }
