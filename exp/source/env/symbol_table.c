@@ -52,8 +52,7 @@ symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
   u64 index = hash_cstring(name.ptr, name.length) % capacity;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
-    if ((element->name.ptr == NULL) ||
-        string_view_equality(name, element->name)) {
+    if ((element->name.ptr == NULL) || string_view_eq(name, element->name)) {
       return element;
     }
 

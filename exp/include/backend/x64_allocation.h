@@ -14,10 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_CODEGEN_H
-#define EXP_CODEGEN_CODEGEN_H
-#include "env/context.h"
+#ifndef EXP_BACKEND_X64_ALLOCATION_H
+#define EXP_BACKEND_X64_ALLOCATION_H
 
-void codegen(Context *restrict context);
+#include "backend/x64_gpr.h"
 
-#endif // !EXP_CODEGEN_CODEGEN_H
+typedef enum X64AllocationKind {
+  ALLOC_GPR,
+  ALLOC_STACK,
+} X64AllocationKind;
+
+typedef struct X64Allocation {
+  X64AllocationKind kind;
+  union {
+    X64GPR gpr;
+    u16 offset;
+  };
+} X64Allocation;
+
+X64Allocation x64allocation_reg(X64GPR gpr);
+X64Allocation x64allocation_stack(u16 offset);
+
+#endif // !EXP_BACKEND_X64_ALLOCATION_H

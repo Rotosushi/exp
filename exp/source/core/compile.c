@@ -36,9 +36,7 @@ static i32 compile_context(Context *restrict c) {
     return EXIT_FAILURE;
   }
 
-  if (codegen(c) == EXIT_FAILURE) {
-    return EXIT_FAILURE;
-  }
+  codegen(c);
 
   return EXIT_SUCCESS;
 }

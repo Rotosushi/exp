@@ -14,10 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_CODEGEN_H
-#define EXP_CODEGEN_CODEGEN_H
-#include "env/context.h"
+#ifndef EXP_BACKEND_X64_SYMBOLS_H
+#define EXP_BACKEND_X64_SYMBOLS_H
 
-void codegen(Context *restrict context);
+#include "backend/x64_function_body.h"
 
-#endif // !EXP_CODEGEN_CODEGEN_H
+typedef struct X64Symbol {
+  StringView name;
+  X64FunctionBody body;
+} X64Symbol;
+
+void x64symbol_destroy(X64Symbol *restrict symbol);
+
+typedef struct X64Symbols {
+  u64 count;
+  X64Symbol *buffer;
+} X64Symbols;
+
+X64Symbols x64symbols_create(u64 count);
+void x64symbols_destroy(X64Symbols *restrict symbols);
+X64Symbol *x64symbols_at(X64Symbols *restrict symbols, StringView name);
+
+#endif // !EXP_BACKEND_X64_SYMBOLS_H

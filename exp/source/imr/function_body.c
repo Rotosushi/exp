@@ -99,7 +99,7 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name) {
   for (u16 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
-    if (string_view_equality(var->name, name)) {
+    if (string_view_eq(var->name, name)) {
       return var;
     }
   }

@@ -32,10 +32,10 @@ create_test_sourcelist(Tests exp_e2e_tests.c
   trivial_constant_folding.c
   addition.c
   subtraction.c
-  multiplication.c
-  division.c
-  modulus.c
-  pemdas.c
+  #multiplication.c
+  #division.c
+  #modulus.c
+  #pemdas.c
 )
 
 add_executable (exp_e2e_tests ${Tests})

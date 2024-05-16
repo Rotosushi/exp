@@ -17,6 +17,17 @@
 #ifndef EXP_BACKEND_X64_CONTEXT_H
 #define EXP_BACKEND_X64_CONTEXT_H
 
-#include "backend/x64_allocator.h"
+#include "backend/x64_symbols.h"
+#include "env/context.h"
+
+typedef struct X64Context {
+  Context *context;
+  X64Symbols symbols;
+} X64Context;
+
+X64Context x64context_create(Context *restrict context);
+void x64context_destroy(X64Context *restrict context);
+
+X64Symbol *x64context_symbol(X64Context *restrict context, StringView name);
 
 #endif // !EXP_BACKEND_X64_CONTEXT_H

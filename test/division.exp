@@ -1,0 +1,1 @@
+fn main() { const x = 9; const y = 3; return x / y; }

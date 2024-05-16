@@ -17,7 +17,10 @@
 #ifndef EXP_BACKEND_X64_INSTRUCTION_H
 #define EXP_BACKEND_X64_INSTRUCTION_H
 
+#include "adt/string.h"
+#include "backend/x64_allocation.h"
 #include "backend/x64_gpr.h"
+#include "env/context.h"
 
 /*
   We want to model the x64 instructions we generate
@@ -65,33 +68,35 @@ typedef enum X64Opcode {
 */
 
 typedef enum X64OperandFormat {
-  X64OPRFMT_GPR       = 0x0,
-  X64OPRFMT_STACK     = 0x1,
-  X64OPRFMT_CONSTANT  = 0x2,
-  X64OPRFMT_IMMEDIATE = 0x3,
+  X64OPRFMT_GPR,
+  X64OPRFMT_STACK,
+  X64OPRFMT_CONSTANT,
+  X64OPRFMT_IMMEDIATE,
 } X64OperandFormat;
 
 typedef struct X64Operand {
-  unsigned format : 3;
-  unsigned common : 16;
+  X64OperandFormat format;
+  u16 common;
 } X64Operand;
 
 X64Operand x64opr_gpr(u16 gpr);
 X64Operand x64opr_stack(u16 offset);
+X64Operand x64opr_alloc(X64Allocation *alloc);
 X64Operand x64opr_constant(u16 idx);
 X64Operand x64opr_immediate(u16 n);
 
 typedef struct X64Instruction {
-  unsigned opcode : 8;
-  unsigned A_fmt  : 3;
-  unsigned B_fmt  : 3;
-  unsigned        : 2;
-  unsigned A      : 16;
-  unsigned B      : 16;
+  X64Opcode opcode;
+  X64Operand A;
+  X64Operand B;
 } X64Instruction;
 
 X64Instruction x64inst(X64Opcode opcode);
 X64Instruction x64inst_A(X64Opcode opcode, X64Operand A);
 X64Instruction x64inst_AB(X64Opcode opcode, X64Operand A, X64Operand B);
+
+void x64inst_emit(X64Instruction I,
+                  String *restrict buffer,
+                  Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

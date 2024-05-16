@@ -1,0 +1,57 @@
+/**
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ */
+#include <assert.h>
+
+#include "backend/x64_symbols.h"
+#include "utility/alloc.h"
+#include "utility/panic.h"
+
+void x64symbol_destroy(X64Symbol *restrict symbol) {
+  x64function_body_destroy(&symbol->body);
+}
+
+X64Symbols x64symbols_create(u64 count) {
+  X64Symbols symbols = {.count  = count,
+                        .buffer = callocate(count, sizeof(X64Symbol))};
+  return symbols;
+}
+
+void x64symbols_destroy(X64Symbols *restrict symbols) {
+  assert(symbols != NULL);
+  for (u64 i = 0; i < symbols->count; ++i) {
+    x64symbol_destroy(symbols->buffer + i);
+  }
+  symbols->count = 0;
+  free(symbols->buffer);
+  symbols->buffer = NULL;
+}
+
+X64Symbol *x64symbols_at(X64Symbols *restrict symbols, StringView name) {
+  assert(symbols != NULL);
+  for (u64 i = 0; i < symbols->count; ++i) {
+    X64Symbol *sym = symbols->buffer + i;
+    if (string_view_empty(sym->name)) {
+      sym->name = name;
+      return sym;
+    }
+
+    if (string_view_eq(sym->name, name)) { return sym; }
+  }
+  PANIC("unreachable");
+}

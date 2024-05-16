@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/directives.h"
+#include "backend/directives.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -101,25 +101,15 @@ void directive_type(StringView name, STT_Type kind, String *restrict str) {
   string_append(str, SV(", "));
 
   switch (kind) {
-  case STT_OBJECT:
-    string_append(str, SV("@object\n"));
-    break;
+  case STT_OBJECT: string_append(str, SV("@object\n")); break;
 
-  case STT_FUNC:
-    string_append(str, SV("@function\n"));
-    break;
+  case STT_FUNC: string_append(str, SV("@function\n")); break;
 
-  case STT_TLS:
-    string_append(str, SV("@tls_object\n"));
-    break;
+  case STT_TLS: string_append(str, SV("@tls_object\n")); break;
 
-  case STT_COMMON:
-    string_append(str, SV("@common\n"));
-    break;
+  case STT_COMMON: string_append(str, SV("@common\n")); break;
 
-  default:
-    PANIC("bad STT_Type");
-    break;
+  default: PANIC("bad STT_Type"); break;
   }
 }
 

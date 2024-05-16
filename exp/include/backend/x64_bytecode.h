@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_X64_BYTECODE_H
 #define EXP_BACKEND_X64_BYTECODE_H
 
+#include "adt/string.h"
 #include "backend/x64_instruction.h"
 
 typedef struct X64Bytecode {
@@ -28,15 +29,38 @@ typedef struct X64Bytecode {
 X64Bytecode x64bytecode_create();
 void x64bytecode_destroy(X64Bytecode *restrict bc);
 
-void x64bytecode_emit_ret(X64Bytecode *restrict bc);
+void x64bytecode_append_ret(X64Bytecode *restrict bc);
 
-void x64bytecode_emit_push(X64Bytecode *restrict bc, X64Operand A);
-void x64bytecode_emit_pop(X64Bytecode *restrict bc, X64Operand A);
+void x64bytecode_append_push(X64Bytecode *restrict bc, X64Operand A);
+void x64bytecode_prepend_push(X64Bytecode *restrict bc, X64Operand A);
 
-void x64bytecode_emit_mov(X64Bytecode *restrict bc, X64Operand A, X64Operand B);
+void x64bytecode_append_pop(X64Bytecode *restrict bc, X64Operand A);
 
-void x64bytecode_emit_add(X64Bytecode *restrict bc, X64Operand A, X64Operand B);
-void x64bytecode_emit_sub(X64Bytecode *restrict bc, X64Operand A, X64Operand B);
-void x64bytecode_emit_imul(X64Bytecode *restrict bc, X64Operand A);
-void x64bytecode_emit_idiv(X64Bytecode *restrict bc, X64Operand A);
+void x64bytecode_append_mov(X64Bytecode *restrict bc,
+                            X64Operand A,
+                            X64Operand B);
+void x64bytecode_prepend_mov(X64Bytecode *restrict bc,
+                             X64Operand A,
+                             X64Operand B);
+
+void x64bytecode_append_neg(X64Bytecode *restrict bc, X64Operand A);
+
+void x64bytecode_append_add(X64Bytecode *restrict bc,
+                            X64Operand A,
+                            X64Operand B);
+
+void x64bytecode_append_sub(X64Bytecode *restrict bc,
+                            X64Operand A,
+                            X64Operand B);
+void x64bytecode_prepend_sub(X64Bytecode *restrict bc,
+                             X64Operand A,
+                             X64Operand B);
+
+void x64bytecode_append_imul(X64Bytecode *restrict bc, X64Operand A);
+
+void x64bytecode_append_idiv(X64Bytecode *restrict bc, X64Operand A);
+
+void x64bytecode_emit(X64Bytecode *restrict bc,
+                      String *restrict buffer,
+                      Context *restrict context);
 #endif // !EXP_BACKEND_X64_BYTECODE_H

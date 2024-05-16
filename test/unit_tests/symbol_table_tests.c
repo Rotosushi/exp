@@ -30,7 +30,7 @@ bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
   if (element == NULL)
     return 1;
 
-  failure |= !string_view_equality(element->name, sv);
+  failure |= !string_view_eq(element->name, sv);
 
   return failure;
 }

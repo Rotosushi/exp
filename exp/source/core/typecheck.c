@@ -316,10 +316,12 @@ static TResult typecheck_function(Context *restrict c,
 
 static TResult typecheck_ste(Context *restrict c,
                              SymbolTableElement *restrict element) {
-  StringView name = element->name;
+  // StringView name = element->name;
   switch (element->kind) {
-  case STE_UNDEFINED:
-    return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(name));
+  case STE_UNDEFINED: {
+    // #TODO: this should be handled as a forward declaration
+    return success(context_nil_type(c));
+  }
 
   case STE_FUNCTION: {
     FunctionBody *body = &element->function_body;

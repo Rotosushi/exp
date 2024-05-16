@@ -24,19 +24,19 @@
  * general purpose registers are currently allocated.
  *
  */
-typedef struct GPRP {
+typedef struct X64GPRP {
   u16 bitset;
-} GPRP;
+} X64GPRP;
 
-GPRP gprp_create();
-void gprp_destroy(GPRP *restrict gprp);
-void gprp_force(GPRP *restrict gprp, X64GPR r);
-bool gprp_any_available(GPRP *restrict gprp, X64GPR *restrict r);
-bool gprp_any_available_other_than(GPRP *restrict gprp, X64GPR *restrict r,
-                                   X64GPR avoid);
-bool gprp_allocate(GPRP *restrict gprp, X64GPR *restrict r);
-bool gprp_allocate_other_than(GPRP *restrict gprp, X64GPR *restrict r,
-                              X64GPR avoid);
-void gprp_release(GPRP *restrict gprp, X64GPR r);
+X64GPRP x64gprp_create();
+void x64gprp_destroy(X64GPRP *restrict gprp);
+void x64gprp_force(X64GPRP *restrict gprp, X64GPR r);
+bool x64gprp_any_available(X64GPRP *restrict gprp, X64GPR *restrict r);
+bool x64gprp_any_available_other_than(X64GPRP *restrict gprp,
+                                      X64GPR *restrict r, X64GPR avoid);
+bool x64gprp_allocate(X64GPRP *restrict gprp, X64GPR *restrict r);
+bool x64gprp_allocate_other_than(X64GPRP *restrict gprp, X64GPR *restrict r,
+                                 X64GPR avoid);
+void x64gprp_release(X64GPRP *restrict gprp, X64GPR r);
 
 #endif // !EXP_BACKEND_X64_GPRP_H

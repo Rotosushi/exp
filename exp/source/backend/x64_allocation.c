@@ -16,24 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+#include "backend/x64_allocation.h"
 
-#include "backend/x64_context.h"
-
-X64Context x64context_create(Context *restrict context) {
-  assert(context != NULL);
-  X64Context x64context = {
-      .context = context,
-      .symbols = x64symbols_create(context->global_symbols.count)};
-  return x64context;
+X64Allocation x64allocation_reg(X64GPR gpr) {
+  X64Allocation a = {.kind = ALLOC_GPR, .gpr = gpr};
+  return a;
 }
 
-void x64context_destroy(X64Context *restrict context) {
-  assert(context != NULL);
-  x64symbols_destroy(&context->symbols);
-}
-
-X64Symbol *x64context_symbol(X64Context *restrict context, StringView name) {
-  assert(context != NULL);
-  return x64symbols_at(&context->symbols, name);
+X64Allocation x64allocation_stack(u16 offset) {
+  X64Allocation a = {.kind = ALLOC_STACK, .offset = offset};
+  return a;
 }

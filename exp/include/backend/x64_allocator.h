@@ -18,23 +18,9 @@
 #define EXP_BACKEND_X64_ALLOCATOR_H
 
 #include "backend/lifetimes.h"
+#include "backend/x64_allocation.h"
+#include "backend/x64_bytecode.h"
 #include "backend/x64_gprp.h"
-
-typedef enum X64AllocationKind {
-  ALLOC_GPR,
-  ALLOC_STACK,
-} X64AllocationKind;
-
-typedef struct X64Allocation {
-  X64AllocationKind kind;
-  union {
-    X64GPR gpr;
-    u16 offset;
-  };
-} X64Allocation;
-
-X64Allocation x64allocation_reg(X64GPR gpr);
-X64Allocation x64allocation_stack(u16 offset);
 
 typedef struct X64ActiveAllocation {
   u16 ssa;
@@ -52,8 +38,10 @@ typedef struct X64ActiveAllocations {
 X64ActiveAllocations x64active_allocations_create();
 void x64active_allocations_destroy(X64ActiveAllocations *restrict a);
 X64ActiveAllocation
-x64active_allocations_add(X64ActiveAllocations *restrict active, u16 ssa,
-                          Lifetime lifetime, X64Allocation allocation);
+x64active_allocations_add(X64ActiveAllocations *restrict active,
+                          u16 ssa,
+                          Lifetime lifetime,
+                          X64Allocation allocation);
 void x64active_allocations_erase(X64ActiveAllocations *restrict a,
                                  X64ActiveAllocation *restrict aa);
 
@@ -62,7 +50,7 @@ void x64active_allocations_erase(X64ActiveAllocations *restrict a,
  *
  */
 typedef struct X64Allocator {
-  GPRP gprp;
+  X64GPRP gprp;
   Lifetimes lifetimes;
   X64ActiveAllocations active;
   u16 stack_size;
@@ -76,8 +64,44 @@ X64ActiveAllocation *x64allocator_allocation_of(X64Allocator *restrict la,
                                                 u16 ssa);
 X64ActiveAllocation *x64allocator_allocation_at(X64Allocator *restrict la,
                                                 X64GPR gpr);
-void x64allocator_expire_old_lifetimes(X64Allocator *restrict la, u16 Idx);
-X64ActiveAllocation x64allocator_allocate(X64Allocator *restrict la, u16 Idx,
-                                          u16 ssa);
+
+void x64allocator_release_expired_lifetimes(X64Allocator *restrict la, u16 Idx);
+void x64allocator_release_gpr(X64Allocator *restrict allocator,
+                              X64GPR gpr,
+                              u16 Idx,
+                              X64Bytecode *restrict x64bc);
+
+X64ActiveAllocation x64allocator_allocate(X64Allocator *restrict la,
+                                          u16 Idx,
+                                          u16 ssa,
+                                          X64Bytecode *restrict x64bc);
+
+X64ActiveAllocation
+x64allocator_allocate_from_active(X64Allocator *restrict allocator,
+                                  u16 Idx,
+                                  u16 ssa,
+                                  X64ActiveAllocation *active,
+                                  X64Bytecode *restrict x64bc);
+
+X64ActiveAllocation
+x64allocator_allocate_to_gpr(X64Allocator *restrict allocator,
+                             X64GPR gpr,
+                             u16 Idx,
+                             u16 ssa,
+                             X64Bytecode *restrict x64bc);
+
+void x64allocator_reallocate_active(X64Allocator *restrict allocator,
+                                    X64ActiveAllocation *restrict active,
+                                    X64Bytecode *restrict x64bc);
+
+void x64allocator_spill_active(X64Allocator *restrict allocator,
+                               X64ActiveAllocation *restrict allocation,
+                               X64Bytecode *restrict x64bc);
+X64GPR x64allocator_spill_oldest_active(X64Allocator *restrict allocator,
+                                        X64Bytecode *restrict x64bc);
+
+X64GPR x64allocator_aquire_any_gpr(X64Allocator *restrict allocator,
+                                   u16 Idx,
+                                   X64Bytecode *restrict x64bc);
 
 #endif // !EXP_BACKEND_X64_ALLOCATOR_H

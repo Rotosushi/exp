@@ -16,6 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+#include <stddef.h>
+
 #include "backend/x64_instruction.h"
 
 X64Operand x64opr_gpr(u16 gpr) {
@@ -26,6 +29,20 @@ X64Operand x64opr_gpr(u16 gpr) {
 X64Operand x64opr_stack(u16 offset) {
   X64Operand opr = {.format = X64OPRFMT_STACK, .common = offset};
   return opr;
+}
+
+X64Operand x64opr_alloc(X64Allocation *alloc) {
+  switch (alloc->kind) {
+  case ALLOC_GPR: {
+    return x64opr_gpr(alloc->gpr);
+  }
+
+  case ALLOC_STACK: {
+    return x64opr_stack(alloc->offset);
+  }
+
+  default: unreachable();
+  }
 }
 
 X64Operand x64opr_constant(u16 idx) {
@@ -44,15 +61,113 @@ X64Instruction x64inst(X64Opcode opcode) {
 }
 
 X64Instruction x64inst_A(X64Opcode opcode, X64Operand A) {
-  X64Instruction I = {.opcode = opcode, .A_fmt = A.format, .A = A.common};
+  X64Instruction I = {.opcode = opcode, .A = A};
   return I;
 }
 
 X64Instruction x64inst_AB(X64Opcode opcode, X64Operand A, X64Operand B) {
-  X64Instruction I = {.opcode = opcode,
-                      .A_fmt  = A.format,
-                      .B_fmt  = B.format,
-                      .A      = A.common,
-                      .B      = B.common};
+  X64Instruction I = {.opcode = opcode, .A = A, .B = B};
   return I;
+}
+
+void x64opr_print(X64Operand opr,
+                  String *restrict buffer,
+                  Context *restrict context) {
+  switch (opr.format) {
+  case X64OPRFMT_GPR: {
+    string_append(buffer, SV("%"));
+    string_append(buffer, gpr_to_sv(opr.common));
+    break;
+  }
+
+  case X64OPRFMT_STACK: {
+    string_append(buffer, SV("-"));
+    string_append_u64(buffer, opr.common);
+    string_append(buffer, SV("(%rbp)"));
+    break;
+  }
+
+  case X64OPRFMT_CONSTANT: {
+    Value *constant = context_constants_at(context, opr.common);
+    assert(constant->kind == VALUEKIND_I64);
+    string_append(buffer, SV("$"));
+    string_append_i64(buffer, constant->integer);
+    break;
+  }
+
+  case X64OPRFMT_IMMEDIATE: {
+    string_append(buffer, SV("$"));
+    string_append_i64(buffer, opr.common);
+    break;
+  }
+
+  default: unreachable();
+  }
+}
+
+void x64inst_emit(X64Instruction I,
+                  String *restrict buffer,
+                  Context *restrict context) {
+  switch (I.opcode) {
+  case X64OPC_RET: {
+    string_append(buffer, SV("ret"));
+    break;
+  }
+
+  case X64OPC_PUSH: {
+    string_append(buffer, SV("push "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_POP: {
+    string_append(buffer, SV("pop "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_MOV: {
+    string_append(buffer, SV("mov "));
+    x64opr_print(I.B, buffer, context);
+    string_append(buffer, SV(", "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_NEG: {
+    string_append(buffer, SV("neg "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_ADD: {
+    string_append(buffer, SV("add "));
+    x64opr_print(I.B, buffer, context);
+    string_append(buffer, SV(", "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_SUB: {
+    string_append(buffer, SV("sub "));
+    x64opr_print(I.B, buffer, context);
+    string_append(buffer, SV(", "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_IMUL: {
+    string_append(buffer, SV("imul "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_IDIV: {
+    string_append(buffer, SV("idiv "));
+    x64opr_print(I.A, buffer, context);
+    break;
+  }
+
+  default: unreachable();
+  }
 }

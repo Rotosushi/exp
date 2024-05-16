@@ -29,7 +29,7 @@ AlignConsecutiveMacros:
   AlignCompound:   false
   PadOperators:    false
 AlignConsecutiveShortCaseStatements:
-  Enabled:         false
+  Enabled:         true
   AcrossEmptyLines: false
   AcrossComments:  false
   AlignCaseColons: false
@@ -40,11 +40,11 @@ AlignTrailingComments:
   OverEmptyLines:  0
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Never
-AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
@@ -53,8 +53,8 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: MultiLine
 AttributeMacros:
   - __capability
-BinPackArguments: true
-BinPackParameters: true
+BinPackArguments: false
+BinPackParameters: false
 BitFieldColonSpacing: Both
 BraceWrapping:
   AfterCaseLabel:  false
