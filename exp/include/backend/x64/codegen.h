@@ -14,34 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_GPR_H
-#define EXP_BACKEND_X64_GPR_H
+#ifndef EXP_BACKEND_X64_CODEGEN_H
+#define EXP_BACKEND_X64_CODEGEN_H
 
-#include "utility/string_view.h"
+#include "env/context.h"
 
-/**
- * @brief General Purpose Register
- *
- */
-typedef enum X64GPR {
-  X64GPR_RAX,
-  X64GPR_RBX,
-  X64GPR_RCX,
-  X64GPR_RDX,
-  X64GPR_RBP,
-  X64GPR_RSI,
-  X64GPR_RDI,
-  X64GPR_RSP,
-  X64GPR_R8,
-  X64GPR_R9,
-  X64GPR_R10,
-  X64GPR_R11,
-  X64GPR_R12,
-  X64GPR_R13,
-  X64GPR_R14,
-  X64GPR_R15,
-} X64GPR;
+void x64_codegen(Context *restrict context);
 
-StringView gpr_to_sv(X64GPR r);
-
-#endif // !EXP_BACKEND_X64_GPR_H
+#endif // !EXP_BACKEND_X64_CODEGEN_H

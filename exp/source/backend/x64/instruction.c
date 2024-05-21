@@ -19,69 +19,35 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "backend/x64_instruction.h"
+#include "backend/x64/instruction.h"
 
-X64Operand x64opr_gpr(u16 gpr) {
-  X64Operand opr = {.format = X64OPRFMT_GPR, .common = gpr};
-  return opr;
-}
-
-X64Operand x64opr_stack(u16 offset) {
-  X64Operand opr = {.format = X64OPRFMT_STACK, .common = offset};
-  return opr;
-}
-
-X64Operand x64opr_alloc(X64Allocation *alloc) {
-  switch (alloc->kind) {
-  case ALLOC_GPR: {
-    return x64opr_gpr(alloc->gpr);
-  }
-
-  case ALLOC_STACK: {
-    return x64opr_stack(alloc->offset);
-  }
-
-  default: unreachable();
-  }
-}
-
-X64Operand x64opr_constant(u16 idx) {
-  X64Operand opr = {.format = X64OPRFMT_CONSTANT, .common = idx};
-  return opr;
-}
-
-X64Operand x64opr_immediate(u16 n) {
-  X64Operand opr = {.format = X64OPRFMT_IMMEDIATE, .common = n};
-  return opr;
-}
-
-X64Instruction x64inst(X64Opcode opcode) {
-  X64Instruction I = {.opcode = opcode};
+x64_Instruction x64_inst(x64_Opcode opcode) {
+  x64_Instruction I = {.opcode = opcode};
   return I;
 }
 
-X64Instruction x64inst_A(X64Opcode opcode, X64Operand A) {
-  X64Instruction I = {.opcode = opcode, .Afmt = A.format, .A = A.common};
+x64_Instruction x64_inst_A(x64_Opcode opcode, x64_Operand A) {
+  x64_Instruction I = {.opcode = opcode, .Afmt = A.format, .A = A.common};
   return I;
 }
 
-X64Instruction x64inst_AB(X64Opcode opcode, X64Operand A, X64Operand B) {
-  X64Instruction I = {.opcode = opcode,
-                      .Afmt   = A.format,
-                      .A      = A.common,
-                      .Bfmt   = B.format,
-                      .B      = B.common};
+x64_Instruction x64_inst_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
+  x64_Instruction I = {.opcode = opcode,
+                       .Afmt   = A.format,
+                       .A      = A.common,
+                       .Bfmt   = B.format,
+                       .B      = B.common};
   return I;
 }
 
-void x64opr_print(X64OperandFormat fmt,
+void x64opr_print(x64_OperandFormat fmt,
                   u16 common,
                   String *restrict buffer,
                   Context *restrict context) {
   switch (fmt) {
   case X64OPRFMT_GPR: {
     string_append(buffer, SV("%"));
-    string_append(buffer, gpr_to_sv(common));
+    string_append(buffer, x64_gpr_to_sv(common));
     break;
   }
 
@@ -110,9 +76,9 @@ void x64opr_print(X64OperandFormat fmt,
   }
 }
 
-void x64inst_emit(X64Instruction I,
-                  String *restrict buffer,
-                  Context *restrict context) {
+void x64_inst_emit(x64_Instruction I,
+                   String *restrict buffer,
+                   Context *restrict context) {
   switch (I.opcode) {
   case X64OPC_RET: {
     string_append(buffer, SV("ret"));

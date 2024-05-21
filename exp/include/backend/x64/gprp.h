@@ -17,28 +17,28 @@
 #ifndef EXP_BACKEND_X64_GPRP_H
 #define EXP_BACKEND_X64_GPRP_H
 
-#include "backend/x64_gpr.h"
+#include "backend/x64/registers.h"
 
 /**
  * @brief General Purpose Register Pool keeps track of which
  * general purpose registers are currently allocated.
  *
  */
-typedef struct X64GPRP {
+typedef struct x64_GPRP {
   u16 bitset;
-} X64GPRP;
+} x64_GPRP;
 
-X64GPRP x64gprp_create();
-void x64gprp_destroy(X64GPRP *restrict gprp);
-void x64gprp_aquire(X64GPRP *restrict gprp, X64GPR r);
-bool x64gprp_any_available(X64GPRP *restrict gprp, X64GPR *restrict r);
-bool x64gprp_any_available_other_than(X64GPRP *restrict gprp,
-                                      X64GPR *restrict r,
-                                      X64GPR avoid);
-bool x64gprp_allocate(X64GPRP *restrict gprp, X64GPR *restrict r);
-bool x64gprp_allocate_other_than(X64GPRP *restrict gprp,
-                                 X64GPR *restrict r,
-                                 X64GPR avoid);
-void x64gprp_release(X64GPRP *restrict gprp, X64GPR r);
+x64_GPRP x64_gprp_create();
+void x64_gprp_destroy(x64_GPRP *restrict gprp);
+void x64_gprp_aquire(x64_GPRP *restrict gprp, x64_GPR r);
+bool x64_gprp_any_available(x64_GPRP *restrict gprp, x64_GPR *restrict r);
+bool x64_gprp_any_available_other_than(x64_GPRP *restrict gprp,
+                                       x64_GPR *restrict r,
+                                       x64_GPR avoid);
+bool x64_gprp_allocate(x64_GPRP *restrict gprp, x64_GPR *restrict r);
+bool x64_gprp_allocate_other_than(x64_GPRP *restrict gprp,
+                                  x64_GPR *restrict r,
+                                  x64_GPR avoid);
+void x64_gprp_release(x64_GPRP *restrict gprp, x64_GPR r);
 
 #endif // !EXP_BACKEND_X64_GPRP_H

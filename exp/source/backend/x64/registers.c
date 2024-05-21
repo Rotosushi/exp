@@ -18,9 +18,9 @@
  */
 #include <stddef.h>
 
-#include "backend/x64_gpr.h"
+#include "backend/x64/registers.h"
 
-StringView gpr_to_sv(X64GPR r) {
+StringView x64_gpr_to_sv(x64_GPR r) {
   switch (r) {
   case X64GPR_RAX: return SV("rax");
   case X64GPR_RBX: return SV("rbx");

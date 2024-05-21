@@ -14,25 +14,34 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_ALLOCATION_H
-#define EXP_BACKEND_X64_ALLOCATION_H
+#ifndef EXP_BACKEND_X64_GPR_H
+#define EXP_BACKEND_X64_GPR_H
 
-#include "backend/x64_gpr.h"
+#include "utility/string_view.h"
 
-typedef enum X64AllocationKind {
-  ALLOC_GPR,
-  ALLOC_STACK,
-} X64AllocationKind;
+/**
+ * @brief General Purpose Register
+ *
+ */
+typedef enum x64_GPR {
+  X64GPR_RAX,
+  X64GPR_RBX,
+  X64GPR_RCX,
+  X64GPR_RDX,
+  X64GPR_RBP,
+  X64GPR_RSI,
+  X64GPR_RDI,
+  X64GPR_RSP,
+  X64GPR_R8,
+  X64GPR_R9,
+  X64GPR_R10,
+  X64GPR_R11,
+  X64GPR_R12,
+  X64GPR_R13,
+  X64GPR_R14,
+  X64GPR_R15,
+} x64_GPR;
 
-typedef struct X64Allocation {
-  X64AllocationKind kind;
-  union {
-    X64GPR gpr;
-    u16 offset;
-  };
-} X64Allocation;
+StringView x64_gpr_to_sv(x64_GPR r);
 
-X64Allocation x64allocation_reg(X64GPR gpr);
-X64Allocation x64allocation_stack(u16 offset);
-
-#endif // !EXP_BACKEND_X64_ALLOCATION_H
+#endif // !EXP_BACKEND_X64_GPR_H

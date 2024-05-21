@@ -16,7 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
-#include "backend/x64/codegen.h"
+#include "backend/x64/location.h"
 
-void codegen(Context *restrict context) { x64_codegen(context); }
+x64_Location x64_location_reg(x64_GPR gpr) {
+  x64_Location a = {.kind = ALLOC_GPR, .gpr = gpr};
+  return a;
+}
+
+x64_Location x64_location_stack(u16 offset) {
+  x64_Location a = {.kind = ALLOC_STACK, .offset = offset};
+  return a;
+}

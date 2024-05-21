@@ -17,11 +17,11 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "backend/x64_emit.h"
+#include "backend/x64/emit.h"
 #include "backend/directives.h"
 #include "utility/config.h"
 
-static void emit_x64symbol(X64Symbol *restrict sym,
+static void emit_x64symbol(x64_Symbol *restrict sym,
                            String *restrict buffer,
                            Context *restrict context) {
   directive_text(buffer);
@@ -29,7 +29,7 @@ static void emit_x64symbol(X64Symbol *restrict sym,
   directive_type(sym->name, STT_FUNC, buffer);
   directive_label(sym->name, buffer);
 
-  x64bytecode_emit(&sym->body.bc, buffer, context);
+  x64_bytecode_emit(&sym->body.bc, buffer, context);
 
   directive_size_label_relative(sym->name, buffer);
 }
@@ -46,14 +46,14 @@ static void emit_file_epilouge(String *restrict buffer) {
   directive_noexecstack(buffer);
 }
 
-void x64emit(X64Context *restrict x64context) {
+void x64_emit(x64_Context *restrict x64context) {
   String buffer = string_create();
 
   emit_file_prolouge(x64context->context, &buffer);
 
-  X64Symbols *symbols = &x64context->symbols;
+  x64_SymbolTable *symbols = &x64context->symbols;
   for (u64 i = 0; i < symbols->count; ++i) {
-    X64Symbol *sym = symbols->buffer + i;
+    x64_Symbol *sym = symbols->buffer + i;
     emit_x64symbol(sym, &buffer, x64context->context);
   }
 

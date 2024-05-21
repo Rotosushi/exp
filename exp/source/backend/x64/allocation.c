@@ -16,14 +16,4 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "backend/x64_allocation.h"
-
-X64Allocation x64allocation_reg(X64GPR gpr) {
-  X64Allocation a = {.kind = ALLOC_GPR, .gpr = gpr};
-  return a;
-}
-
-X64Allocation x64allocation_stack(u16 offset) {
-  X64Allocation a = {.kind = ALLOC_STACK, .offset = offset};
-  return a;
-}
+#include "backend/x64/allocation.h"

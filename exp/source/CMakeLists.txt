@@ -6,17 +6,19 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/backend/directives.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
-  ${EXP_SOURCE_DIR}/backend/x64_allocation.c
-  ${EXP_SOURCE_DIR}/backend/x64_allocator.c
-  ${EXP_SOURCE_DIR}/backend/x64_bytecode.c
-  ${EXP_SOURCE_DIR}/backend/x64_codegen.c
-  ${EXP_SOURCE_DIR}/backend/x64_context.c
-  ${EXP_SOURCE_DIR}/backend/x64_emit.c
-  ${EXP_SOURCE_DIR}/backend/x64_function_body.c
-  ${EXP_SOURCE_DIR}/backend/x64_gpr.c
-  ${EXP_SOURCE_DIR}/backend/x64_gprp.c
-  ${EXP_SOURCE_DIR}/backend/x64_instruction.c
-  ${EXP_SOURCE_DIR}/backend/x64_symbols.c
+  ${EXP_SOURCE_DIR}/backend/x64/allocation.c
+  ${EXP_SOURCE_DIR}/backend/x64/allocator.c
+  ${EXP_SOURCE_DIR}/backend/x64/bytecode.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen.c
+  ${EXP_SOURCE_DIR}/backend/x64/context.c
+  ${EXP_SOURCE_DIR}/backend/x64/emit.c
+  ${EXP_SOURCE_DIR}/backend/x64/function_body.c
+  ${EXP_SOURCE_DIR}/backend/x64/gprp.c
+  ${EXP_SOURCE_DIR}/backend/x64/instruction.c
+  ${EXP_SOURCE_DIR}/backend/x64/location.c
+  ${EXP_SOURCE_DIR}/backend/x64/operand.c
+  ${EXP_SOURCE_DIR}/backend/x64/registers.c
+  ${EXP_SOURCE_DIR}/backend/x64/symbols.c
 
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c

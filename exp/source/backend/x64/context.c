@@ -18,22 +18,22 @@
  */
 #include <assert.h>
 
-#include "backend/x64_context.h"
+#include "backend/x64/context.h"
 
-X64Context x64context_create(Context *restrict context) {
+x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
-  X64Context x64context = {
+  x64_Context x64context = {
       .context = context,
-      .symbols = x64symbols_create(context->global_symbols.count)};
+      .symbols = x64_symbol_table_create(context->global_symbols.count)};
   return x64context;
 }
 
-void x64context_destroy(X64Context *restrict context) {
+void x64_context_destroy(x64_Context *restrict context) {
   assert(context != NULL);
-  x64symbols_destroy(&context->symbols);
+  x64_symbol_table_destroy(&context->symbols);
 }
 
-X64Symbol *x64context_symbol(X64Context *restrict context, StringView name) {
+x64_Symbol *x64_context_symbol(x64_Context *restrict context, StringView name) {
   assert(context != NULL);
-  return x64symbols_at(&context->symbols, name);
+  return x64_symbol_table_at(&context->symbols, name);
 }

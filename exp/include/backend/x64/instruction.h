@@ -18,8 +18,7 @@
 #define EXP_BACKEND_X64_INSTRUCTION_H
 
 #include "adt/string.h"
-#include "backend/x64_allocation.h"
-#include "backend/x64_gpr.h"
+#include "backend/x64/operand.h"
 #include "env/context.h"
 
 /*
@@ -46,7 +45,7 @@
 
 */
 
-typedef enum X64Opcode {
+typedef enum x64_Opcode {
   X64OPC_RET,
   X64OPC_PUSH,
   X64OPC_POP,
@@ -56,50 +55,23 @@ typedef enum X64Opcode {
   X64OPC_SUB,
   X64OPC_IMUL,
   X64OPC_IDIV,
-} X64Opcode;
+} x64_Opcode;
 
-/*
-  #TODO:
-  we need to specify memory operands more generally
-  to support pointers. however, a memory operand requires
-  more than one datum, the register holding the address
-  and the offset from that address. and more. this is
-  a complexity we are deliberately avoiding right now.
-*/
-
-typedef enum X64OperandFormat {
-  X64OPRFMT_GPR,
-  X64OPRFMT_STACK,
-  X64OPRFMT_CONSTANT,
-  X64OPRFMT_IMMEDIATE,
-} X64OperandFormat;
-
-typedef struct X64Operand {
-  unsigned format : 3;
-  unsigned common : 16;
-} X64Operand;
-
-X64Operand x64opr_gpr(u16 gpr);
-X64Operand x64opr_stack(u16 offset);
-X64Operand x64opr_alloc(X64Allocation *alloc);
-X64Operand x64opr_constant(u16 idx);
-X64Operand x64opr_immediate(u16 n);
-
-typedef struct X64Instruction {
+typedef struct x64_Instruction {
   unsigned opcode : 8;
   unsigned Afmt   : 3;
   unsigned Bfmt   : 3;
   unsigned        : 2;
   unsigned A      : 16;
   unsigned B      : 16;
-} X64Instruction;
+} x64_Instruction;
 
-X64Instruction x64inst(X64Opcode opcode);
-X64Instruction x64inst_A(X64Opcode opcode, X64Operand A);
-X64Instruction x64inst_AB(X64Opcode opcode, X64Operand A, X64Operand B);
+x64_Instruction x64_inst(x64_Opcode opcode);
+x64_Instruction x64_inst_A(x64_Opcode opcode, x64_Operand A);
+x64_Instruction x64_inst_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B);
 
-void x64inst_emit(X64Instruction I,
-                  String *restrict buffer,
-                  Context *restrict context);
+void x64_inst_emit(x64_Instruction I,
+                   String *restrict buffer,
+                   Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

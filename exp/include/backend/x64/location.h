@@ -14,20 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_CONTEXT_H
-#define EXP_BACKEND_X64_CONTEXT_H
+#ifndef EXP_BACKEND_X64_LOCATION_H
+#define EXP_BACKEND_X64_LOCATION_H
 
-#include "backend/x64_symbols.h"
-#include "env/context.h"
+#include "backend/x64/registers.h"
 
-typedef struct X64Context {
-  Context *context;
-  X64Symbols symbols;
-} X64Context;
+typedef enum x64_LocationKind {
+  ALLOC_GPR,
+  ALLOC_STACK,
+} x64_LocationKind;
 
-X64Context x64context_create(Context *restrict context);
-void x64context_destroy(X64Context *restrict context);
+typedef struct x64_Location {
+  x64_LocationKind kind;
+  union {
+    x64_GPR gpr;
+    u16 offset;
+  };
+} x64_Location;
 
-X64Symbol *x64context_symbol(X64Context *restrict context, StringView name);
+x64_Location x64_location_reg(x64_GPR gpr);
+x64_Location x64_location_stack(u16 offset);
 
-#endif // !EXP_BACKEND_X64_CONTEXT_H
+#endif // !EXP_BACKEND_X64_LOCATION_H
