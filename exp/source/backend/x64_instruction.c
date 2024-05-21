@@ -61,34 +61,39 @@ X64Instruction x64inst(X64Opcode opcode) {
 }
 
 X64Instruction x64inst_A(X64Opcode opcode, X64Operand A) {
-  X64Instruction I = {.opcode = opcode, .A = A};
+  X64Instruction I = {.opcode = opcode, .Afmt = A.format, .A = A.common};
   return I;
 }
 
 X64Instruction x64inst_AB(X64Opcode opcode, X64Operand A, X64Operand B) {
-  X64Instruction I = {.opcode = opcode, .A = A, .B = B};
+  X64Instruction I = {.opcode = opcode,
+                      .Afmt   = A.format,
+                      .A      = A.common,
+                      .Bfmt   = B.format,
+                      .B      = B.common};
   return I;
 }
 
-void x64opr_print(X64Operand opr,
+void x64opr_print(X64OperandFormat fmt,
+                  u16 common,
                   String *restrict buffer,
                   Context *restrict context) {
-  switch (opr.format) {
+  switch (fmt) {
   case X64OPRFMT_GPR: {
     string_append(buffer, SV("%"));
-    string_append(buffer, gpr_to_sv(opr.common));
+    string_append(buffer, gpr_to_sv(common));
     break;
   }
 
   case X64OPRFMT_STACK: {
     string_append(buffer, SV("-"));
-    string_append_u64(buffer, opr.common);
+    string_append_u64(buffer, common);
     string_append(buffer, SV("(%rbp)"));
     break;
   }
 
   case X64OPRFMT_CONSTANT: {
-    Value *constant = context_constants_at(context, opr.common);
+    Value *constant = context_constants_at(context, common);
     assert(constant->kind == VALUEKIND_I64);
     string_append(buffer, SV("$"));
     string_append_i64(buffer, constant->integer);
@@ -97,7 +102,7 @@ void x64opr_print(X64Operand opr,
 
   case X64OPRFMT_IMMEDIATE: {
     string_append(buffer, SV("$"));
-    string_append_i64(buffer, opr.common);
+    string_append_i64(buffer, common);
     break;
   }
 
@@ -116,55 +121,55 @@ void x64inst_emit(X64Instruction I,
 
   case X64OPC_PUSH: {
     string_append(buffer, SV("push "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_POP: {
     string_append(buffer, SV("pop "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_MOV: {
     string_append(buffer, SV("mov "));
-    x64opr_print(I.B, buffer, context);
+    x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_NEG: {
     string_append(buffer, SV("neg "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_ADD: {
     string_append(buffer, SV("add "));
-    x64opr_print(I.B, buffer, context);
+    x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_SUB: {
     string_append(buffer, SV("sub "));
-    x64opr_print(I.B, buffer, context);
+    x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IMUL: {
     string_append(buffer, SV("imul "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IDIV: {
     string_append(buffer, SV("idiv "));
-    x64opr_print(I.A, buffer, context);
+    x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 

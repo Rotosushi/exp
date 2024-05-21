@@ -29,7 +29,7 @@ void x64gprp_destroy(X64GPRP *restrict gprp) { gprp->bitset = 0; }
 #define CLR_BIT(B, r) ((B) &= (u16)(~(1 << r)))
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
-void x64gprp_force(X64GPRP *restrict gprp, X64GPR r) {
+void x64gprp_aquire(X64GPRP *restrict gprp, X64GPR r) {
   SET_BIT(gprp->bitset, r);
 }
 
@@ -44,7 +44,8 @@ bool x64gprp_any_available(X64GPRP *restrict gprp, X64GPR *restrict r) {
 }
 
 bool x64gprp_any_available_other_than(X64GPRP *restrict gprp,
-                                      X64GPR *restrict r, X64GPR avoid) {
+                                      X64GPR *restrict r,
+                                      X64GPR avoid) {
   for (u8 i = 0; i < 16; ++i) {
     if (!CHK_BIT(gprp->bitset, i) && (i != avoid)) {
       *r = (X64GPR)i;
@@ -63,7 +64,8 @@ bool x64gprp_allocate(X64GPRP *restrict gprp, X64GPR *restrict r) {
   return 0;
 }
 
-bool x64gprp_allocate_other_than(X64GPRP *restrict gprp, X64GPR *restrict r,
+bool x64gprp_allocate_other_than(X64GPRP *restrict gprp,
+                                 X64GPR *restrict r,
                                  X64GPR avoid) {
   if (x64gprp_any_available_other_than(gprp, r, avoid)) {
     SET_BIT(gprp->bitset, *r);

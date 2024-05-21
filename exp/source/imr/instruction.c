@@ -34,10 +34,8 @@ Operand opr_ssa(u16 ssa) {
 }
 
 Instruction inst_B(Opcode opcode, Operand B) {
-  Instruction I = {.opcode   = opcode,
-                   .I_format = IFMT_B,
-                   .B_format = B.format,
-                   .B        = B.common};
+  Instruction I = {
+      .opcode = opcode, .I_format = IFMT_B, .Bfmt = B.format, .B = B.common};
   return I;
 }
 
@@ -45,7 +43,7 @@ Instruction inst_AB(Opcode opcode, Operand A, Operand B) {
   Instruction I = {.opcode   = opcode,
                    .I_format = IFMT_AB,
                    .A        = A.common,
-                   .B_format = B.format,
+                   .Bfmt     = B.format,
                    .B        = B.common};
   return I;
 }
@@ -54,9 +52,9 @@ Instruction inst_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
   Instruction I = {.opcode   = opcode,
                    .I_format = IFMT_ABC,
                    .A        = A.common,
-                   .B_format = B.format,
+                   .Bfmt     = B.format,
                    .B        = B.common,
-                   .C_format = C.format,
+                   .Cfmt     = C.format,
                    .C        = C.common};
   return I;
 }

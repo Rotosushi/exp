@@ -101,8 +101,8 @@ X64Allocator x64allocator_create(FunctionBody *restrict body) {
   // reserve the stack pointer RSP
   // and the frame pointer RBP
   // such that locals do not get allocated to them.
-  x64gprp_force(&la.gprp, X64GPR_RSP);
-  x64gprp_force(&la.gprp, X64GPR_RBP);
+  x64gprp_aquire(&la.gprp, X64GPR_RSP);
+  x64gprp_aquire(&la.gprp, X64GPR_RBP);
   return la;
 }
 
@@ -224,10 +224,31 @@ void x64allocator_release_gpr(X64Allocator *restrict allocator,
                               u16 Idx,
                               X64Bytecode *restrict x64bc) {
   X64ActiveAllocation *active = x64allocator_allocation_at(allocator, gpr);
-  if (active == NULL) { return; }
+  if (active == NULL) {
+    x64gprp_release(&allocator->gprp, gpr);
+    return;
+  }
 
   if (active->lifetime.last_use <= Idx) {
     x64gprp_release(&allocator->gprp, active->allocation.gpr);
+    x64active_allocations_erase(&allocator->active, active);
+    return;
+  }
+
+  x64allocator_reallocate_active(allocator, active, x64bc);
+}
+
+void x64allocator_aquire_gpr(X64Allocator *restrict allocator,
+                             X64GPR gpr,
+                             u16 Idx,
+                             X64Bytecode *restrict x64bc) {
+  X64ActiveAllocation *active = x64allocator_allocation_at(allocator, gpr);
+  if (active == NULL) {
+    x64gprp_aquire(&allocator->gprp, gpr);
+    return;
+  }
+
+  if (active->lifetime.last_use <= Idx) {
     x64active_allocations_erase(&allocator->active, active);
     return;
   }
@@ -322,7 +343,7 @@ x64allocator_allocate_to_gpr(X64Allocator *restrict allocator,
                              X64Bytecode *restrict x64bc) {
   x64allocator_release_gpr(allocator, gpr, Idx, x64bc);
 
-  x64gprp_force(&allocator->gprp, gpr);
+  x64gprp_aquire(&allocator->gprp, gpr);
   Lifetime lifetime = *li_at(&allocator->lifetimes, ssa);
 
   return x64active_allocations_add(
@@ -340,6 +361,11 @@ void x64allocator_reallocate_active(X64Allocator *restrict allocator,
         x64bc, x64opr_gpr(gpr), x64opr_gpr(active->allocation.gpr));
     x64gprp_release(&allocator->gprp, active->allocation.gpr);
     active->allocation.gpr = gpr;
+
+    // update the held allocation
+    X64ActiveAllocation *held =
+        x64allocator_allocation_of(allocator, active->ssa);
+    *held = *active;
   } else {
     x64allocator_spill_active(allocator, active, x64bc);
   }
@@ -357,6 +383,11 @@ void x64allocator_spill_active(X64Allocator *restrict allocator,
   x64bytecode_append_mov(
       x64bc, x64opr_stack(allocation->allocation.offset), x64opr_gpr(gpr));
   x64gprp_release(&allocator->gprp, gpr);
+
+  // update the held allocation
+  X64ActiveAllocation *held =
+      x64allocator_allocation_of(allocator, allocation->ssa);
+  *held = *allocation;
 }
 
 X64GPR x64allocator_spill_oldest_active(X64Allocator *restrict allocator,

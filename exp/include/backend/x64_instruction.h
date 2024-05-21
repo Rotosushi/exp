@@ -75,8 +75,8 @@ typedef enum X64OperandFormat {
 } X64OperandFormat;
 
 typedef struct X64Operand {
-  X64OperandFormat format;
-  u16 common;
+  unsigned format : 3;
+  unsigned common : 16;
 } X64Operand;
 
 X64Operand x64opr_gpr(u16 gpr);
@@ -86,9 +86,12 @@ X64Operand x64opr_constant(u16 idx);
 X64Operand x64opr_immediate(u16 n);
 
 typedef struct X64Instruction {
-  X64Opcode opcode;
-  X64Operand A;
-  X64Operand B;
+  unsigned opcode : 8;
+  unsigned Afmt   : 3;
+  unsigned Bfmt   : 3;
+  unsigned        : 2;
+  unsigned A      : 16;
+  unsigned B      : 16;
 } X64Instruction;
 
 X64Instruction x64inst(X64Opcode opcode);

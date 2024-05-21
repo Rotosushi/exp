@@ -1149,7 +1149,7 @@ void codegen(Context *restrict context) { x64codegen(context); }
 // // to the 1 operand x64 instruction
 // //   div B
 // // where:
-// //   B -- RAX = RAX / R[B], RDX = RAX % R[B]
+// //   B -- RAX = RDX:RAX / R[B], RDX = RDX:RAX % R[B]
 // //
 // // we have to ensure that the previous value of
 // // RAX and RDX isn't overwritten if either is needed

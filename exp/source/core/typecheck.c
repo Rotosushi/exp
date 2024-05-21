@@ -35,9 +35,7 @@ typedef struct TResult {
 } TResult;
 
 static void tresult_destroy(TResult *restrict tr) {
-  if (tr->has_error) {
-    error_destroy(&tr->error);
-  }
+  if (tr->has_error) { error_destroy(&tr->error); }
 }
 
 static TResult error(ErrorCode code, String msg) {
@@ -78,15 +76,15 @@ static void lt_set(LocalTypes *restrict lt, u16 local, Type *type) {
   Type *decl = NULL;                                                           \
   {                                                                            \
     TResult result = call;                                                     \
-    if (result.has_error) {                                                    \
-      return result;                                                           \
-    }                                                                          \
+    if (result.has_error) { return result; }                                   \
     decl = result.type;                                                        \
   }                                                                            \
   assert(decl != NULL)
 
-static TResult typecheck_operand(Context *restrict c, LocalTypes *restrict lt,
-                                 OperandFormat fmt, u16 operand) {
+static TResult typecheck_operand(Context *restrict c,
+                                 LocalTypes *restrict lt,
+                                 OperandFormat fmt,
+                                 u16 operand) {
   switch (fmt) {
   case OPRFMT_SSA: {
     Type *t = lt_at(lt, operand);
@@ -106,24 +104,23 @@ static TResult typecheck_operand(Context *restrict c, LocalTypes *restrict lt,
     return success(context_i64_type(c));
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 }
 
-static TResult typecheck_move(Context *restrict c, LocalTypes *restrict lt,
-                              Instruction I) {
-  return typecheck_operand(c, lt, I.B_format, I.B);
+static TResult
+typecheck_move(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  return typecheck_operand(c, lt, I.Bfmt, I.B);
 }
 
-static TResult typecheck_ret(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  return typecheck_operand(c, lt, I.B_format, I.B);
+static TResult
+typecheck_ret(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  return typecheck_operand(c, lt, I.Bfmt, I.B);
 }
 
-static TResult typecheck_neg(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
+static TResult
+typecheck_neg(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -134,31 +131,11 @@ static TResult typecheck_neg(Context *restrict c, LocalTypes *restrict lt,
   return success(Bty);
 }
 
-static TResult typecheck_add(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
+static TResult
+typecheck_add(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
 
-  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
-
-  Type *i64ty = context_i64_type(c);
-  if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
-  }
-
-  if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
-  }
-
-  return success(Bty);
-}
-
-static TResult typecheck_sub(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
-
-  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
+  try(Cty, typecheck_operand(c, lt, I.Cfmt, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -174,31 +151,11 @@ static TResult typecheck_sub(Context *restrict c, LocalTypes *restrict lt,
   return success(Bty);
 }
 
-static TResult typecheck_mul(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
+static TResult
+typecheck_sub(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
 
-  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
-
-  Type *i64ty = context_i64_type(c);
-  if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
-  }
-
-  if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
-  }
-
-  return success(Bty);
-}
-
-static TResult typecheck_div(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
-
-  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
+  try(Cty, typecheck_operand(c, lt, I.Cfmt, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -214,11 +171,51 @@ static TResult typecheck_div(Context *restrict c, LocalTypes *restrict lt,
   return success(Bty);
 }
 
-static TResult typecheck_mod(Context *restrict c, LocalTypes *restrict lt,
-                             Instruction I) {
-  try(Bty, typecheck_operand(c, lt, I.B_format, I.B));
+static TResult
+typecheck_mul(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
 
-  try(Cty, typecheck_operand(c, lt, I.C_format, I.C));
+  try(Cty, typecheck_operand(c, lt, I.Cfmt, I.C));
+
+  Type *i64ty = context_i64_type(c);
+  if (!type_equality(i64ty, Bty)) {
+    StringView sv = string_view_from_string("", 0);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+  }
+
+  if (!type_equality(Bty, Cty)) {
+    StringView sv = string_view_from_string("", 0);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+  }
+
+  return success(Bty);
+}
+
+static TResult
+typecheck_div(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
+
+  try(Cty, typecheck_operand(c, lt, I.Cfmt, I.C));
+
+  Type *i64ty = context_i64_type(c);
+  if (!type_equality(i64ty, Bty)) {
+    StringView sv = string_view_from_string("", 0);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+  }
+
+  if (!type_equality(Bty, Cty)) {
+    StringView sv = string_view_from_string("", 0);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+  }
+
+  return success(Bty);
+}
+
+static TResult
+typecheck_mod(Context *restrict c, LocalTypes *restrict lt, Instruction I) {
+  try(Bty, typecheck_operand(c, lt, I.Bfmt, I.B));
+
+  try(Cty, typecheck_operand(c, lt, I.Cfmt, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
@@ -305,8 +302,7 @@ static TResult typecheck_function(Context *restrict c,
       break;
     }
 
-    default:
-      unreachable();
+    default: unreachable();
     }
   }
 
@@ -337,8 +333,7 @@ static TResult typecheck_ste(Context *restrict c,
     return success(type_of_function(body, c));
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 }
 

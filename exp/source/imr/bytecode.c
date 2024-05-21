@@ -56,9 +56,7 @@ static void bytecode_grow(Bytecode *restrict bytecode) {
 
 static void bytecode_emit_instruction(Bytecode *restrict bytecode,
                                       Instruction I) {
-  if (bytecode_full(bytecode)) {
-    bytecode_grow(bytecode);
-  }
+  if (bytecode_full(bytecode)) { bytecode_grow(bytecode); }
 
   bytecode->buffer[bytecode->length] = I;
   bytecode->length += 1;
@@ -189,23 +187,16 @@ static void print_immediate(u16 v, FILE *restrict file) {
   print_i64((i16)v, RADIX_DECIMAL, file);
 }
 
-static void print_operand(OperandFormat format, u16 value,
-                          FILE *restrict file) {
+static void
+print_operand(OperandFormat format, u16 value, FILE *restrict file) {
   switch (format) {
-  case OPRFMT_SSA:
-    print_local(value, file);
-    break;
+  case OPRFMT_SSA: print_local(value, file); break;
 
-  case OPRFMT_CONSTANT:
-    print_constant(value, file);
-    break;
+  case OPRFMT_CONSTANT: print_constant(value, file); break;
 
-  case OPRFMT_IMMEDIATE:
-    print_immediate(value, file);
-    break;
+  case OPRFMT_IMMEDIATE: print_immediate(value, file); break;
 
-  default:
-    file_write("undefined", file);
+  default: file_write("undefined", file);
   }
 }
 
@@ -214,11 +205,11 @@ static void print_operand_A(Instruction I, FILE *restrict file) {
 }
 
 static void print_operand_B(Instruction I, FILE *restrict file) {
-  print_operand(I.B_format, I.B, file);
+  print_operand(I.Bfmt, I.B, file);
 }
 
 static void print_operand_C(Instruction I, FILE *restrict file) {
-  print_operand(I.C_format, I.C, file);
+  print_operand(I.Cfmt, I.C, file);
 }
 
 // "move L[<A>], <B>"
@@ -295,41 +286,23 @@ static void print_ret(Instruction I, FILE *restrict file) {
 
 static void print_instruction(Instruction I, FILE *restrict file) {
   switch (I.opcode) {
-  case OPC_MOVE:
-    print_move(I, file);
-    break;
+  case OPC_MOVE: print_move(I, file); break;
 
-  case OPC_NEG:
-    print_neg(I, file);
-    break;
+  case OPC_NEG: print_neg(I, file); break;
 
-  case OPC_ADD:
-    print_add(I, file);
-    break;
+  case OPC_ADD: print_add(I, file); break;
 
-  case OPC_SUB:
-    print_sub(I, file);
-    break;
+  case OPC_SUB: print_sub(I, file); break;
 
-  case OPC_MUL:
-    print_mul(I, file);
-    break;
+  case OPC_MUL: print_mul(I, file); break;
 
-  case OPC_DIV:
-    print_div(I, file);
-    break;
+  case OPC_DIV: print_div(I, file); break;
 
-  case OPC_MOD:
-    print_mod(I, file);
-    break;
+  case OPC_MOD: print_mod(I, file); break;
 
-  case OPC_RET:
-    print_ret(I, file);
-    break;
+  case OPC_RET: print_ret(I, file); break;
 
-  default:
-    file_write("undefined", file);
-    break;
+  default: file_write("undefined", file); break;
   }
 }
 

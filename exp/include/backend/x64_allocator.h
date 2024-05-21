@@ -71,6 +71,11 @@ void x64allocator_release_gpr(X64Allocator *restrict allocator,
                               u16 Idx,
                               X64Bytecode *restrict x64bc);
 
+void x64allocator_aquire_gpr(X64Allocator *restrict allocator,
+                             X64GPR gpr,
+                             u16 Idx,
+                             X64Bytecode *restrict x64bc);
+
 X64ActiveAllocation x64allocator_allocate(X64Allocator *restrict la,
                                           u16 Idx,
                                           u16 ssa,

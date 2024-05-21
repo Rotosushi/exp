@@ -169,8 +169,8 @@ Operand opr_ssa(u16 ssa);
 typedef struct Instruction {
   unsigned opcode   : 8;
   unsigned I_format : 2;
-  unsigned B_format : 2;
-  unsigned C_format : 2;
+  unsigned Bfmt     : 2;
+  unsigned Cfmt     : 2;
   unsigned          : 2;
   unsigned A        : 16;
   unsigned B        : 16;

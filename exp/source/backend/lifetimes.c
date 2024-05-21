@@ -57,11 +57,9 @@ Lifetimes li_compute(FunctionBody *restrict body) {
     Instruction I = bc->buffer[inst];
     switch (I.I_format) {
     case IFMT_B: {
-      if (I.B_format == OPRFMT_SSA) {
+      if (I.Bfmt == OPRFMT_SSA) {
         Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
+        if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
     }
@@ -71,11 +69,9 @@ Lifetimes li_compute(FunctionBody *restrict body) {
       Lifetime *Al  = li_at(&li, A);
       Al->first_use = inst;
 
-      if (I.B_format == OPRFMT_SSA) {
+      if (I.Bfmt == OPRFMT_SSA) {
         Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
+        if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
     }
@@ -85,24 +81,19 @@ Lifetimes li_compute(FunctionBody *restrict body) {
       Lifetime *Al  = li_at(&li, A);
       Al->first_use = inst;
 
-      if (I.B_format == OPRFMT_SSA) {
+      if (I.Bfmt == OPRFMT_SSA) {
         Lifetime *Bl = li_at(&li, I.B);
-        if (inst > Bl->last_use) {
-          Bl->last_use = inst;
-        }
+        if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
 
-      if (I.C_format == OPRFMT_SSA) {
+      if (I.Cfmt == OPRFMT_SSA) {
         Lifetime *Cl = li_at(&li, I.C);
-        if (inst > Cl->last_use) {
-          Cl->last_use = inst;
-        }
+        if (inst > Cl->last_use) { Cl->last_use = inst; }
       }
       break;
     }
 
-    default:
-      unreachable();
+    default: unreachable();
     }
   }
 
