@@ -32,30 +32,23 @@
 #define LOG_STATUS_MSG    "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
 
-void log_message(LogLevel level, const char *restrict file, u64 line,
-                 const char *restrict message, FILE *restrict stream) {
+void log_message(LogLevel level,
+                 const char *restrict file,
+                 u64 line,
+                 const char *restrict message,
+                 FILE *restrict stream) {
   file_write("[", stream);
 
   switch (level) {
-  case LOG_FATAL:
-    file_write(LOG_FATAL_MSG, stream);
-    break;
+  case LOG_FATAL: file_write(LOG_FATAL_MSG, stream); break;
 
-  case LOG_ERROR:
-    file_write(LOG_ERROR_MSG, stream);
-    break;
+  case LOG_ERROR: file_write(LOG_ERROR_MSG, stream); break;
 
-  case LOG_WARNING:
-    file_write(LOG_WARNING_MSG, stream);
-    break;
+  case LOG_WARNING: file_write(LOG_WARNING_MSG, stream); break;
 
-  case LOG_STATUS:
-    file_write(LOG_STATUS_MSG, stream);
-    break;
+  case LOG_STATUS: file_write(LOG_STATUS_MSG, stream); break;
 
-  default:
-    file_write(BAD_LOG_LEVEL_MSG, stream);
-    abort();
+  default: file_write(BAD_LOG_LEVEL_MSG, stream); abort();
   }
 
   if (file != NULL) {

@@ -39,13 +39,9 @@ StringView string_view_from_cstring(char const *cstring) {
 }
 
 bool string_view_eq(StringView sv1, StringView sv2) {
-  if (sv1.length != sv2.length) {
-    return 0;
-  }
+  if (sv1.length != sv2.length) { return 0; }
 
-  if (sv1.ptr == sv2.ptr) {
-    return 1;
-  }
+  if (sv1.ptr == sv2.ptr) { return 1; }
 
   return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
 }
@@ -54,8 +50,6 @@ bool string_view_empty(StringView sv) { return sv.length == 0; }
 
 void print_string_view(StringView sv, FILE *restrict file) {
   for (u64 i = 0; i < sv.length; ++i) {
-    if (fputc(sv.ptr[i], file) == EOF) {
-      PANIC_ERRNO("fputc failed");
-    }
+    if (fputc(sv.ptr[i], file) == EOF) { PANIC_ERRNO("fputc failed"); }
   }
 }

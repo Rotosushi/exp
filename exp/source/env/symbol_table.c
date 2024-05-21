@@ -46,9 +46,8 @@ void symbol_table_destroy(SymbolTable *restrict st) {
   st->elements = NULL;
 }
 
-static SymbolTableElement *
-symbol_table_find(SymbolTableElement *restrict elements, u64 capacity,
-                  StringView name) {
+static SymbolTableElement *symbol_table_find(
+    SymbolTableElement *restrict elements, u64 capacity, StringView name) {
   u64 index = hash_cstring(name.ptr, name.length) % capacity;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
@@ -68,9 +67,7 @@ static void symbol_table_grow(SymbolTable *restrict st) {
   if (st->elements != NULL) {
     for (u64 i = 0; i < st->capacity; ++i) {
       SymbolTableElement *element = &(st->elements[i]);
-      if (element->name.ptr == NULL) {
-        continue;
-      }
+      if (element->name.ptr == NULL) { continue; }
 
       SymbolTableElement *dest =
           symbol_table_find(elements, g.new_capacity, element->name);
@@ -95,9 +92,7 @@ static bool symbol_table_full(SymbolTable *restrict st) {
 SymbolTableElement *symbol_table_at(SymbolTable *restrict st, StringView name) {
   assert(st != NULL);
 
-  if (symbol_table_full(st)) {
-    symbol_table_grow(st);
-  }
+  if (symbol_table_full(st)) { symbol_table_grow(st); }
 
   SymbolTableElement *element =
       symbol_table_find(st->elements, st->capacity, name);

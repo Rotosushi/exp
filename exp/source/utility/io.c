@@ -28,38 +28,28 @@ FILE *file_open(char const *restrict path, char const *restrict modes) {
   assert(path != NULL);
   assert(modes != NULL);
   FILE *file = fopen(path, modes);
-  if (file == NULL) {
-    PANIC_ERRNO("fopen failed");
-  }
+  if (file == NULL) { PANIC_ERRNO("fopen failed"); }
   return file;
 }
 
 void file_close(FILE *restrict file) {
   assert(file != NULL);
-  if (fclose(file) == EOF) {
-    PANIC_ERRNO("fclose failed");
-  }
+  if (fclose(file) == EOF) { PANIC_ERRNO("fclose failed"); }
 }
 
 void file_remove(char const *restrict path) {
-  if (remove(path)) {
-    PANIC_ERRNO("remove failed");
-  }
+  if (remove(path)) { PANIC_ERRNO("remove failed"); }
 }
 
 void file_write(const char *restrict buffer, FILE *restrict stream) {
   i32 code = fputs(buffer, stream);
-  if ((code == EOF) && (ferror(stream))) {
-    PANIC_ERRNO("fputs failed");
-  }
+  if ((code == EOF) && (ferror(stream))) { PANIC_ERRNO("fputs failed"); }
 }
 
 u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
   u64 count = fread(buffer, sizeof(*buffer), length, stream);
   int error = ferror(stream);
-  if (error != 0) {
-    PANIC(strerror(error));
-  }
+  if (error != 0) { PANIC(strerror(error)); }
 
   return count;
 }
@@ -73,23 +63,17 @@ u64 file_length(FILE *restrict file) {
   i32 fd = fileno(file);
 
   struct stat info;
-  if (fstat(fd, &info) != 0) {
-    PANIC_ERRNO("fstat failed");
-  }
+  if (fstat(fd, &info) != 0) { PANIC_ERRNO("fstat failed"); }
 
   return (u64)info.st_size;
 }
 
 #else
 u64 file_length(FILE *restrict file) {
-  if (fseek(file, 0L, SEEK_END) != 0) {
-    PANIC_ERRNO("fseek failed");
-  }
+  if (fseek(file, 0L, SEEK_END) != 0) { PANIC_ERRNO("fseek failed"); }
 
   i64 size = ftell(file);
-  if (size == -1L) {
-    PANIC_ERRNO("ftell failed");
-  }
+  if (size == -1L) { PANIC_ERRNO("ftell failed"); }
 
   rewind(file);
   return (u64)size;

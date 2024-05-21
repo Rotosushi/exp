@@ -43,21 +43,15 @@ void argument_types_destroy(ArgumentTypes *restrict a) {
 bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2) {
   assert(a1 != NULL);
   assert(a2 != NULL);
-  if (a1 == a2) {
-    return 1;
-  }
+  if (a1 == a2) { return 1; }
 
-  if (a1->size != a2->size) {
-    return 0;
-  }
+  if (a1->size != a2->size) { return 0; }
 
   for (u64 i = 0; i < a1->size; ++i) {
     Type *t1 = a1->types[i];
     Type *t2 = a2->types[i];
 
-    if (!type_equality(t1, t2)) {
-      return 0;
-    }
+    if (!type_equality(t1, t2)) { return 0; }
   }
 
   return 1;
@@ -87,9 +81,7 @@ static void argument_types_grow(ArgumentTypes *restrict a) {
 void argument_types_append(ArgumentTypes *restrict a, Type *type) {
   assert(a != NULL);
 
-  if (argument_types_full(a)) {
-    argument_types_grow(a);
-  }
+  if (argument_types_full(a)) { argument_types_grow(a); }
 
   a->types[a->size] = type;
   a->size += 1;
@@ -98,13 +90,9 @@ void argument_types_append(ArgumentTypes *restrict a, Type *type) {
 bool function_type_equality(FunctionType const *f1, FunctionType const *f2) {
   assert(f1 != NULL);
   assert(f2 != NULL);
-  if (f1 == f2) {
-    return 1;
-  }
+  if (f1 == f2) { return 1; }
 
-  if (!type_equality(f1->return_type, f2->return_type)) {
-    return 0;
-  }
+  if (!type_equality(f1->return_type, f2->return_type)) { return 0; }
 
   return argument_types_equality(&f1->argument_types, &f2->argument_types);
 }
@@ -144,23 +132,19 @@ void type_destroy(Type *type) {
     break;
 
   // #NOTE: no other types dynamically allocate
-  default:
-    break;
+  default: break;
   }
 }
 
 bool type_equality(Type const *t1, Type const *t2) {
-  if (t1->kind != t2->kind) {
-    return 0;
-  }
+  if (t1->kind != t2->kind) { return 0; }
 
   switch (t1->kind) {
   case TYPEKIND_FUNCTION:
     return function_type_equality(&t1->function_type, &t2->function_type);
 
   // #NOTE: scalar types are equal when their kinds are equal
-  default:
-    return 1;
+  default: return 1;
   }
 }
 
@@ -171,9 +155,7 @@ static void print_function_type(FunctionType const *restrict ft,
   for (u64 i = 0; i < a->size; ++i) {
     print_type(a->types[i], file);
 
-    if (i < (a->size - 1)) {
-      file_write(", ", file);
-    }
+    if (i < (a->size - 1)) { file_write(", ", file); }
   }
 
   file_write(") -> ", file);
@@ -182,23 +164,14 @@ static void print_function_type(FunctionType const *restrict ft,
 
 void print_type(Type const *restrict t, FILE *restrict file) {
   switch (t->kind) {
-  case TYPEKIND_NIL:
-    file_write("nil", file);
-    break;
+  case TYPEKIND_NIL: file_write("nil", file); break;
 
-  case TYPEKIND_BOOLEAN:
-    file_write("bool", file);
-    break;
+  case TYPEKIND_BOOLEAN: file_write("bool", file); break;
 
-  case TYPEKIND_I64:
-    file_write("i64", file);
-    break;
+  case TYPEKIND_I64: file_write("i64", file); break;
 
-  case TYPEKIND_FUNCTION:
-    print_function_type(&t->function_type, file);
-    break;
+  case TYPEKIND_FUNCTION: print_function_type(&t->function_type, file); break;
 
-  default:
-    file_write("undefined", file);
+  default: file_write("undefined", file);
   }
 }

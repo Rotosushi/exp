@@ -98,11 +98,12 @@ Type *context_i64_type(Context *restrict context) {
   return type_interner_i64_type(&(context->type_interner));
 }
 
-Type *context_function_type(Context *restrict context, Type *return_type,
+Type *context_function_type(Context *restrict context,
+                            Type *return_type,
                             ArgumentTypes argument_types) {
   assert(context != NULL);
-  return type_interner_function_type(&context->type_interner, return_type,
-                                     argument_types);
+  return type_interner_function_type(
+      &context->type_interner, return_type, argument_types);
 }
 
 SymbolTableElement *context_global_symbols_at(Context *restrict context,
@@ -172,9 +173,7 @@ static FoldResult error(ErrorCode code, StringView sv) {
 }
 
 void fresult_destroy(FoldResult *restrict fr) {
-  if (fr->has_error) {
-    error_destroy(&fr->error);
-  }
+  if (fr->has_error) { error_destroy(&fr->error); }
 }
 
 void context_emit_return(Context *restrict c, Operand B) {
@@ -225,8 +224,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
   return success(A);
 }
@@ -260,8 +258,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   switch (C.format) {
@@ -286,8 +283,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   if (__builtin_add_overflow(x, y, &z)) {
@@ -331,8 +327,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   switch (C.format) {
@@ -357,8 +352,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   if (__builtin_sub_overflow(x, y, &z)) {
@@ -402,8 +396,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   switch (C.format) {
@@ -428,8 +421,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   if (__builtin_mul_overflow(x, y, &z)) {
@@ -473,8 +465,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   switch (C.format) {
@@ -499,8 +490,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   z = x / y;
@@ -542,8 +532,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   switch (C.format) {
@@ -568,8 +557,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
     break;
   }
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 
   z = x % y;

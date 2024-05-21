@@ -21,24 +21,18 @@
 
 void *allocate(u64 size) {
   void *result = malloc(size);
-  if (result == NULL) {
-    PANIC_ERRNO("malloc failed");
-  }
+  if (result == NULL) { PANIC_ERRNO("malloc failed"); }
   return result;
 }
 
 void *callocate(u64 num, u64 size) {
   void *result = calloc(num, size);
-  if (result == NULL) {
-    PANIC_ERRNO("calloc failed");
-  }
+  if (result == NULL) { PANIC_ERRNO("calloc failed"); }
   return result;
 }
 
 void *reallocate(void *ptr, u64 size) {
   void *result = realloc(ptr, size);
-  if (result == NULL) {
-    PANIC_ERRNO("reallocate failed.");
-  }
+  if (result == NULL) { PANIC_ERRNO("reallocate failed."); }
   return result;
 }

@@ -69,7 +69,8 @@ Type *context_boolean_type(Context *restrict context);
 
 Type *context_i64_type(Context *restrict context);
 
-Type *context_function_type(Context *restrict context, Type *return_type,
+Type *context_function_type(Context *restrict context,
+                            Type *return_type,
                             ArgumentTypes argument_types);
 
 // symbol table functions

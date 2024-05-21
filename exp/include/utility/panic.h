@@ -22,7 +22,7 @@
 [[noreturn]] void panic(const char *msg, const char *file, i32 line);
 [[noreturn]] void panic_errno(const char *msg, const char *file, i32 line);
 
-#define PANIC(msg) panic(msg, __FILE__, __LINE__)
+#define PANIC(msg)       panic(msg, __FILE__, __LINE__)
 #define PANIC_ERRNO(msg) panic_errno(msg, __FILE__, __LINE__)
 
 #endif // !EXP_UTILITY_PANIC_H

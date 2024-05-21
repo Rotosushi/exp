@@ -28,7 +28,8 @@ typedef struct FunctionTypes {
 
 FunctionTypes function_types_create();
 void function_types_destroy(FunctionTypes *restrict f);
-Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
+Type *function_types_append(FunctionTypes *restrict f,
+                            Type *return_type,
                             ArgumentTypes argument_types);
 
 /**

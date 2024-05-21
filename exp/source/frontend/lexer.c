@@ -85,9 +85,7 @@ static char lexer_next(Lexer *restrict lexer) {
 static char lexer_peek(Lexer *restrict lexer) { return *lexer->cursor; }
 
 static char lexer_peek_next(Lexer *restrict lexer) {
-  if (lexer_at_end(lexer)) {
-    return '\0';
-  }
+  if (lexer_at_end(lexer)) { return '\0'; }
 
   return lexer->cursor[1];
 }
@@ -101,9 +99,7 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
       [[fallthrough]];
     case ' ':
     case '\r':
-    case '\t':
-      lexer_next(lexer);
-      break;
+    case '\t': lexer_next(lexer); break;
 
     case '/':
       if (lexer_peek_next(lexer) == '/') {
@@ -112,20 +108,15 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
         }
         break;
       }
-    default:
-      return;
+    default: return;
     }
   }
 }
 
 static bool lexer_match(Lexer *restrict lexer, char c) {
-  if (lexer_at_end(lexer)) {
-    return 0;
-  }
+  if (lexer_at_end(lexer)) { return 0; }
 
-  if (lexer_peek(lexer) != c) {
-    return 0;
-  }
+  if (lexer_peek(lexer) != c) { return 0; }
 
   lexer->column++;
   lexer->cursor++;
@@ -140,8 +131,11 @@ static Token lexer_integer(Lexer *restrict lexer) {
   return TOK_INTEGER;
 }
 
-static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
-                                 const char *rest, Token keyword) {
+static Token lexer_check_keyword(Lexer *restrict lexer,
+                                 u64 begin,
+                                 u64 length,
+                                 const char *rest,
+                                 Token keyword) {
   if ((lexer_current_text_length(lexer) == (begin + length)) &&
       (memcmp(lexer->token + begin, rest, length) == 0)) {
     return keyword;
@@ -152,36 +146,25 @@ static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
 
 static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
   switch (lexer->token[0]) {
-  case 'b':
-    return lexer_check_keyword(lexer, 1, 3, "ool", TOK_TYPE_BOOL);
-  case 'c':
-    return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
+  case 'b': return lexer_check_keyword(lexer, 1, 3, "ool", TOK_TYPE_BOOL);
+  case 'c': return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
   case 'f':
     if (lexer_current_text_length(lexer) > 1) {
       switch (lexer->token[1]) {
-      case 'a':
-        return lexer_check_keyword(lexer, 2, 3, "lse", TOK_FALSE);
-      case 'n':
-        return lexer_check_keyword(lexer, 2, 0, "", TOK_FN);
-      default:
-        break;
+      case 'a': return lexer_check_keyword(lexer, 2, 3, "lse", TOK_FALSE);
+      case 'n': return lexer_check_keyword(lexer, 2, 0, "", TOK_FN);
+      default:  break;
       }
     }
     break;
 
-  case 'i':
-    return lexer_check_keyword(lexer, 1, 2, "64", TOK_TYPE_I64);
-  case 'n':
-    return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
-  case 'r':
-    return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
-  case 't':
-    return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
-  case 'v':
-    return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
+  case 'i': return lexer_check_keyword(lexer, 1, 2, "64", TOK_TYPE_I64);
+  case 'n': return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
+  case 'r': return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
+  case 't': return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
+  case 'v': return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
 
-  default:
-    break;
+  default: break;
   }
 
   return TOK_IDENTIFIER;
@@ -195,9 +178,7 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
     lexer_next(lexer);
 
     // unmatched '"' in token stream.
-    if (lexer_at_end(lexer)) {
-      return TOK_ERROR_UNMATCHED_DOUBLE_QUOTE;
-    }
+    if (lexer_at_end(lexer)) { return TOK_ERROR_UNMATCHED_DOUBLE_QUOTE; }
   }
   // eat the '"'
   lexer->column++;
@@ -216,64 +197,39 @@ static Token lexer_identifier(Lexer *restrict lexer) {
 
 Token lexer_scan(Lexer *restrict lexer) {
   assert(lexer != NULL);
-  if (lexer_at_end(lexer)) {
-    return TOK_END;
-  }
+  if (lexer_at_end(lexer)) { return TOK_END; }
 
   lexer_skip_whitespace(lexer);
   lexer->token = lexer->cursor;
 
-  if (lexer_at_end(lexer)) {
-    return TOK_END;
-  }
+  if (lexer_at_end(lexer)) { return TOK_END; }
 
   char c = lexer_next(lexer);
   switch (c) {
-  case '(':
-    return lexer_match(lexer, ')') ? TOK_NIL : TOK_BEGIN_PAREN;
-  case ')':
-    return TOK_END_PAREN;
-  case '{':
-    return TOK_BEGIN_BRACE;
-  case '}':
-    return TOK_END_BRACE;
-  case ';':
-    return TOK_SEMICOLON;
-  case ':':
-    return TOK_COLON;
-  case ',':
-    return TOK_COMMA;
-  case '.':
-    return TOK_DOT;
+  case '(': return lexer_match(lexer, ')') ? TOK_NIL : TOK_BEGIN_PAREN;
+  case ')': return TOK_END_PAREN;
+  case '{': return TOK_BEGIN_BRACE;
+  case '}': return TOK_END_BRACE;
+  case ';': return TOK_SEMICOLON;
+  case ':': return TOK_COLON;
+  case ',': return TOK_COMMA;
+  case '.': return TOK_DOT;
 
-  case '-':
-    return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
-  case '+':
-    return TOK_PLUS;
-  case '/':
-    return TOK_SLASH;
-  case '*':
-    return TOK_STAR;
-  case '%':
-    return TOK_PERCENT;
+  case '-': return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
+  case '+': return TOK_PLUS;
+  case '/': return TOK_SLASH;
+  case '*': return TOK_STAR;
+  case '%': return TOK_PERCENT;
 
-  case '!':
-    return lexer_match(lexer, '=') ? TOK_BANG_EQUAL : TOK_BANG;
-  case '=':
-    return lexer_match(lexer, '=') ? TOK_EQUAL_EQUAL : TOK_EQUAL;
-  case '<':
-    return lexer_match(lexer, '=') ? TOK_LESS_EQUAL : TOK_LESS;
-  case '>':
-    return lexer_match(lexer, '=') ? TOK_GREATER_EQUAL : TOK_GREATER;
-  case '&':
-    return TOK_AND;
-  case '|':
-    return TOK_OR;
-  case '^':
-    return TOK_XOR;
+  case '!': return lexer_match(lexer, '=') ? TOK_BANG_EQUAL : TOK_BANG;
+  case '=': return lexer_match(lexer, '=') ? TOK_EQUAL_EQUAL : TOK_EQUAL;
+  case '<': return lexer_match(lexer, '=') ? TOK_LESS_EQUAL : TOK_LESS;
+  case '>': return lexer_match(lexer, '=') ? TOK_GREATER_EQUAL : TOK_GREATER;
+  case '&': return TOK_AND;
+  case '|': return TOK_OR;
+  case '^': return TOK_XOR;
 
-  case '"':
-    return lexer_string_literal(lexer);
+  case '"': return lexer_string_literal(lexer);
 
   case '0':
   case '1':
@@ -284,8 +240,7 @@ Token lexer_scan(Lexer *restrict lexer) {
   case '6':
   case '7':
   case '8':
-  case '9':
-    return lexer_integer(lexer);
+  case '9': return lexer_integer(lexer);
 
   case '_':
   case 'a':
@@ -339,10 +294,8 @@ Token lexer_scan(Lexer *restrict lexer) {
   case 'W':
   case 'X':
   case 'Y':
-  case 'Z':
-    return lexer_identifier(lexer);
+  case 'Z': return lexer_identifier(lexer);
 
-  default:
-    return TOK_ERROR_UNEXPECTED_CHAR;
+  default: return TOK_ERROR_UNEXPECTED_CHAR;
   }
 }

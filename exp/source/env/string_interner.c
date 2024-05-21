@@ -56,14 +56,12 @@ void string_interner_destroy(StringInterner *restrict si) {
   si->buffer = NULL;
 }
 
-static String *string_interner_find(String *restrict strings, u64 capacity,
-                                    StringView sv) {
+static String *
+string_interner_find(String *restrict strings, u64 capacity, StringView sv) {
   u64 index = hash_cstring(sv.ptr, sv.length) % capacity;
   while (1) {
     String *element = &(strings[index]);
-    if ((string_empty(element)) || (string_eq(element, sv))) {
-      return element;
-    }
+    if ((string_empty(element)) || (string_eq(element, sv))) { return element; }
 
     index = (index + 1) % capacity;
   }
@@ -78,12 +76,10 @@ static void string_interner_grow(StringInterner *restrict si) {
   if (si->buffer != NULL) {
     for (u64 i = 0; i < si->capacity; ++i) {
       String *element = &(si->buffer[i]);
-      if (string_empty(element)) {
-        continue;
-      }
+      if (string_empty(element)) { continue; }
 
-      String *dest = string_interner_find(elements, g.new_capacity,
-                                          string_to_view(element));
+      String *dest = string_interner_find(
+          elements, g.new_capacity, string_to_view(element));
       string_assign_string(dest, element);
     }
     // this is allowed because we move all of the strings
@@ -102,14 +98,10 @@ static bool string_interner_full(StringInterner *restrict si) {
 
 StringView string_interner_insert(StringInterner *restrict si, StringView sv) {
   assert(si != NULL);
-  if (string_interner_full(si)) {
-    string_interner_grow(si);
-  }
+  if (string_interner_full(si)) { string_interner_grow(si); }
 
   String *element = string_interner_find(si->buffer, si->capacity, sv);
-  if (!string_empty(element)) {
-    return string_to_view(element);
-  }
+  if (!string_empty(element)) { return string_to_view(element); }
 
   si->count++;
   string_assign(element, sv);

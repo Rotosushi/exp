@@ -40,7 +40,8 @@ X64FormalArgument *x64formal_arguments_at(X64FormalArguments *restrict args,
   return args->buffer + idx;
 }
 
-void x64formal_arguments_assign(X64FormalArguments *restrict args, u8 idx,
+void x64formal_arguments_assign(X64FormalArguments *restrict args,
+                                u8 idx,
                                 X64Allocation allocation) {
   assert(args != NULL);
   X64FormalArgument *arg = x64formal_arguments_at(args, idx);

@@ -61,20 +61,14 @@ Operand constants_add(Constants *restrict c, Value value) {
   for (u64 i = 0; i < c->length; ++i) {
     Value *v = c->buffer + i;
     if (value_equality(v, &value)) {
-      if (i > u16_MAX) {
-        PANIC("constant index out of bounds");
-      }
+      if (i > u16_MAX) { PANIC("constant index out of bounds"); }
       return opr_constant((u16)i);
     }
   }
 
-  if (constants_full(c)) {
-    constants_grow(c);
-  }
+  if (constants_full(c)) { constants_grow(c); }
 
-  if (c->length == u16_MAX) {
-    PANIC("constant index out of bounds");
-  }
+  if (c->length == u16_MAX) { PANIC("constant index out of bounds"); }
 
   u16 index            = c->length;
   c->buffer[c->length] = value;

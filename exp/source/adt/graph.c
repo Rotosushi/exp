@@ -60,9 +60,7 @@ void graph_destroy(Graph *restrict g) {
 
   for (u64 i = 0; i < g->length; ++i) {
     Edge *edge = g->list[i];
-    if (edge != NULL) {
-      edge_destroy(edge);
-    }
+    if (edge != NULL) { edge_destroy(edge); }
   }
 
   g->length   = 0;
@@ -84,9 +82,7 @@ static void graph_grow(Graph *restrict graph) {
 u64 graph_add_vertex(Graph *restrict graph) {
   assert(graph != NULL);
 
-  if (graph_full(graph)) {
-    graph_grow(graph);
-  }
+  if (graph_full(graph)) { graph_grow(graph); }
 
   u64 vertex          = graph->length;
   graph->list[vertex] = NULL;
@@ -133,9 +129,7 @@ static void vertex_list_grow(VertexList *restrict vl) {
 }
 
 static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
-  if (vertex_list_full(vl)) {
-    vertex_list_grow(vl);
-  }
+  if (vertex_list_full(vl)) { vertex_list_grow(vl); }
 
   vl->list[vl->count] = vertex;
   vl->count += 1;
@@ -156,9 +150,7 @@ VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex) {
 
 static bool list_contains_vertex(Edge *edge, u64 vertex) {
   while (edge != NULL) {
-    if (edge->target == vertex) {
-      return 1;
-    }
+    if (edge->target == vertex) { return 1; }
     edge = edge->next;
   }
   return 0;

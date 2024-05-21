@@ -25,14 +25,10 @@ u64 size_of(Type *restrict type) {
   assert(type != NULL);
 
   switch (type->kind) {
-  case TYPEKIND_NIL:
-    return 1;
-  case TYPEKIND_BOOLEAN:
-    return 1;
-  case TYPEKIND_I64:
-    return 8;
+  case TYPEKIND_NIL:     return 1;
+  case TYPEKIND_BOOLEAN: return 1;
+  case TYPEKIND_I64:     return 8;
 
-  default:
-    PANIC("bad TYPEKIND");
+  default: PANIC("bad TYPEKIND");
   }
 }

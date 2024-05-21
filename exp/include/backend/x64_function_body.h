@@ -32,7 +32,8 @@ typedef struct X64FormalArguments {
 X64FormalArguments x64formal_arguments_create(u8 size);
 X64FormalArgument *x64formal_arguments_at(X64FormalArguments *restrict args,
                                           u8 idx);
-void x64formal_arguments_assign(X64FormalArguments *restrict args, u8 idx,
+void x64formal_arguments_assign(X64FormalArguments *restrict args,
+                                u8 idx,
                                 X64Allocation allocation);
 
 typedef struct X64FunctionBody {

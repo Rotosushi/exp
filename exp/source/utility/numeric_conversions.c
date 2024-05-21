@@ -94,9 +94,7 @@ char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
   } while (value);
 
   // append the sign
-  if (tmp_value < 0) {
-    *ptr1++ = '-';
-  }
+  if (tmp_value < 0) { *ptr1++ = '-'; }
   // null terminate
   ptr2    = buffer;
   buffer  = ptr1;
@@ -114,9 +112,7 @@ char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
 
 void print_i64(i64 value, Radix radix, FILE *file) {
   char buf[i64_safe_strlen(value, radix) + 1];
-  if (i64_to_str(value, buf, radix) == NULL) {
-    PANIC("conversion failed");
-  }
+  if (i64_to_str(value, buf, radix) == NULL) { PANIC("conversion failed"); }
   fputs(buf, file);
 }
 
@@ -153,9 +149,7 @@ char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
 
 void print_u64(u64 value, Radix radix, FILE *file) {
   char buf[u64_safe_strlen(value, radix) + 1];
-  if (u64_to_str(value, buf, radix) == NULL) {
-    PANIC("conversion failed");
-  }
+  if (u64_to_str(value, buf, radix) == NULL) { PANIC("conversion failed"); }
   fputs(buf, file);
 }
 
@@ -222,14 +216,12 @@ i64 str_to_i64(char const *restrict buffer, u64 length, Radix radix) {
   assert(buffer != NULL);
 
   switch (radix) {
-  case RADIX_DECIMAL:
-    return base10_stoi64(buffer, length);
+  case RADIX_DECIMAL: return base10_stoi64(buffer, length);
 
   case RADIX_BINARY:
   case RADIX_OCTAL:
   case RADIX_HEXADECIMAL:
-  default:
-    PANIC("unsupported radix");
+  default:                PANIC("unsupported radix");
   }
 
   return 0;
@@ -240,13 +232,11 @@ u64 str_to_u64(char const *restrict buffer, u64 length, Radix radix) {
   assert(buffer != NULL);
 
   switch (radix) {
-  case RADIX_DECIMAL:
-    return base10_stou64(buffer, length);
+  case RADIX_DECIMAL: return base10_stou64(buffer, length);
 
   case RADIX_BINARY:
   case RADIX_OCTAL:
   case RADIX_HEXADECIMAL:
-  default:
-    PANIC("unsupported radix");
+  default:                PANIC("unsupported radix");
   }
 }

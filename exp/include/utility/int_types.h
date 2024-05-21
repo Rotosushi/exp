@@ -40,7 +40,7 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-#define u8_MAX UINT8_MAX
+#define u8_MAX  UINT8_MAX
 #define u16_MAX UINT16_MAX
 #define u32_MAX UINT32_MAX
 #define u64_MAX UINT64_MAX

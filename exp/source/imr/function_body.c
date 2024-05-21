@@ -56,9 +56,7 @@ void formal_argument_list_append(FormalArgumentList *restrict fal,
                                  FormalArgument arg) {
   assert(fal != NULL);
 
-  if (formal_argument_list_full(fal)) {
-    formal_argument_list_grow(fal);
-  }
+  if (formal_argument_list_full(fal)) { formal_argument_list_grow(fal); }
 
   fal->list[fal->size] = arg;
   fal->size += 1;
@@ -87,9 +85,7 @@ static void local_variables_grow(LocalVariables *restrict lv) {
 }
 
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
-  if (local_variables_full(lv)) {
-    local_variables_grow(lv);
-  }
+  if (local_variables_full(lv)) { local_variables_grow(lv); }
 
   lv->buffer[lv->size] = var;
   lv->size += 1;
@@ -99,9 +95,7 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name) {
   for (u16 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
-    if (string_view_eq(var->name, name)) {
-      return var;
-    }
+    if (string_view_eq(var->name, name)) { return var; }
   }
   return NULL;
 }
@@ -137,9 +131,7 @@ void print_function_body(FunctionBody const *restrict f, FILE *restrict file) {
   for (u8 i = 0; i < args->size; ++i) {
     print_formal_argument(args->list + i, file);
 
-    if (i < (u8)(args->size - 1)) {
-      file_write(", ", file);
-    }
+    if (i < (u8)(args->size - 1)) { file_write(", ", file); }
   }
   file_write(")\n", file);
   print_bytecode(&f->bc, file);

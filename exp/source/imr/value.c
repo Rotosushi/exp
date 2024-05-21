@@ -50,9 +50,7 @@ Value value_create_i64(i64 i) {
 }
 
 void value_assign(Value *dest, Value *source) {
-  if (dest == source) {
-    return;
-  }
+  if (dest == source) { return; }
 
   /*
     since values are "POD" it is valid to use
@@ -63,56 +61,39 @@ void value_assign(Value *dest, Value *source) {
 }
 
 bool value_equality(Value *v1, Value *v2) {
-  if (v1 == v2) {
-    return 1;
-  }
+  if (v1 == v2) { return 1; }
 
   switch (v1->kind) {
-  case VALUEKIND_UNINITIALIZED:
-    return v2->kind == VALUEKIND_UNINITIALIZED;
+  case VALUEKIND_UNINITIALIZED: return v2->kind == VALUEKIND_UNINITIALIZED;
 
-  case VALUEKIND_NIL:
-    return v2->kind == VALUEKIND_NIL;
+  case VALUEKIND_NIL: return v2->kind == VALUEKIND_NIL;
 
   case VALUEKIND_BOOLEAN:
-    if (v2->kind != VALUEKIND_BOOLEAN) {
-      return 0;
-    }
+    if (v2->kind != VALUEKIND_BOOLEAN) { return 0; }
 
     return v1->boolean == v2->boolean;
 
   case VALUEKIND_I64:
-    if (v2->kind != VALUEKIND_I64) {
-      return 0;
-    }
+    if (v2->kind != VALUEKIND_I64) { return 0; }
 
     return v1->integer == v2->integer;
 
-  default:
-    PANIC("bad VALUEKIND");
+  default: PANIC("bad VALUEKIND");
   }
 }
 
 void print_value(Value const *restrict v, FILE *restrict file) {
   switch (v->kind) {
   case VALUEKIND_UNINITIALIZED:
-  case VALUEKIND_NIL:
-    file_write("()", file);
-    break;
+  case VALUEKIND_NIL:           file_write("()", file); break;
 
   case VALUEKIND_BOOLEAN:
-    if (v->boolean)
-      file_write("true", file);
-    else
-      file_write("false", file);
+    if (v->boolean) file_write("true", file);
+    else file_write("false", file);
     break;
 
-  case VALUEKIND_I64:
-    print_i64(v->integer, RADIX_DECIMAL, file);
-    break;
+  case VALUEKIND_I64: print_i64(v->integer, RADIX_DECIMAL, file); break;
 
-  default:
-    file_write("undefined", file);
-    break;
+  default: file_write("undefined", file); break;
   }
 }

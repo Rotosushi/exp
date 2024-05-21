@@ -26,7 +26,11 @@ i32 assemble(Context *restrict context) {
   StringView obj_path = context_object_path(context);
 
   char const *args[] = {
-      "as", asm_path.ptr, "-o", obj_path.ptr, NULL,
+      "as",
+      asm_path.ptr,
+      "-o",
+      obj_path.ptr,
+      NULL,
   };
 
   return process("as", args);

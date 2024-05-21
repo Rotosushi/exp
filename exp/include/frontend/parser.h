@@ -60,7 +60,8 @@
  * @param context the context to parse within
  * @return i32 EXIT_FAILURE or EXIT_SUCCESS
  */
-i32 parse_buffer(char const *restrict buffer, u64 length,
+i32 parse_buffer(char const *restrict buffer,
+                 u64 length,
                  Context *restrict context);
 
 i32 parse_source(Context *restrict context);

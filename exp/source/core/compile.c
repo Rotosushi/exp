@@ -28,13 +28,9 @@
 #include "frontend/parser.h"
 
 static i32 compile_context(Context *restrict c) {
-  if (parse_source(c) == EXIT_FAILURE) {
-    return EXIT_FAILURE;
-  }
+  if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-  if (typecheck(c) == EXIT_FAILURE) {
-    return EXIT_FAILURE;
-  }
+  if (typecheck(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
   codegen(c);
 

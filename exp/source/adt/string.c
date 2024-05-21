@@ -114,9 +114,7 @@ bool string_empty(String const *restrict string) {
 
 bool string_eq(String const *restrict str, StringView sv) {
   assert(str != NULL);
-  if (str->length != sv.length) {
-    return 0;
-  }
+  if (str->length != sv.length) { return 0; }
 
   if (string_small(str)) {
     return strncmp(str->buffer, sv.ptr, sv.length) == 0;
@@ -143,9 +141,7 @@ void string_resize(String *restrict str, u64 capacity) {
 }
 
 void string_append(String *restrict str, StringView sv) {
-  if (sv.length == 0) {
-    return;
-  }
+  if (sv.length == 0) { return; }
 
   if ((str->length + sv.length) >= str->capacity) {
     Growth g = array_growth_u64(str->capacity + sv.length, sizeof(char));
@@ -173,9 +169,7 @@ void string_append_i64(String *restrict str, i64 i) {
   u64 len = i64_safe_strlen(i, RADIX_DECIMAL);
   char buf[len + 1];
   char *r = i64_to_str(i, buf, RADIX_DECIMAL);
-  if (r == NULL) {
-    PANIC("conversion failed");
-  }
+  if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
   string_append(str, string_view_from_string(buf, len));
 }
@@ -184,9 +178,7 @@ void string_append_u64(String *restrict str, u64 u) {
   u64 len = u64_safe_strlen(u, RADIX_DECIMAL);
   char buf[len + 1];
   char *r = u64_to_str(u, buf, RADIX_DECIMAL);
-  if (r == NULL) {
-    PANIC("conversion failed");
-  }
+  if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
   string_append(str, string_view_from_string(buf, len));
 }
@@ -295,14 +287,10 @@ void string_replace_extension(String *restrict str, StringView ext) {
   }
 
   // set the cursor to the first char in the filename
-  if (buffer[cursor] == '/') {
-    ++cursor;
-  }
+  if (buffer[cursor] == '/') { ++cursor; }
 
   // if the first character in the path is '.' ignore it
-  if (buffer[cursor] == '.') {
-    ++cursor;
-  }
+  if (buffer[cursor] == '.') { ++cursor; }
 
   // find the beginning of the extension
   // or the end of the filename

@@ -54,7 +54,8 @@ static void function_types_grow(FunctionTypes *restrict f) {
   f->capacity = g.new_capacity;
 }
 
-Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
+Type *function_types_append(FunctionTypes *restrict f,
+                            Type *return_type,
                             ArgumentTypes argument_types) {
   assert(f != NULL);
 
@@ -68,9 +69,7 @@ Type *function_types_append(FunctionTypes *restrict f, Type *return_type,
     }
   }
 
-  if (function_types_full(f)) {
-    function_types_grow(f);
-  }
+  if (function_types_full(f)) { function_types_grow(f); }
 
   Type *new_type = &f->types[f->size];
   *new_type      = function_type;
@@ -112,6 +111,6 @@ Type *type_interner_function_type(TypeInterner *restrict type_interner,
                                   Type *return_type,
                                   ArgumentTypes argument_types) {
   assert(type_interner != NULL);
-  return function_types_append(&type_interner->function_types, return_type,
-                               argument_types);
+  return function_types_append(
+      &type_interner->function_types, return_type, argument_types);
 }

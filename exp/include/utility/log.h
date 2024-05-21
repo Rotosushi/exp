@@ -40,7 +40,10 @@ typedef enum LogLevel {
  * @param message the message to print
  * @param stream the stream to write to
  */
-void log_message(LogLevel level, const char *restrict file, u64 line,
-                 const char *restrict message, FILE *restrict stream);
+void log_message(LogLevel level,
+                 const char *restrict file,
+                 u64 line,
+                 const char *restrict message,
+                 FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

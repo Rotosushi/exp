@@ -21,38 +21,27 @@
 
 StringView error_code_sv(ErrorCode code) {
   switch (code) {
-  case ERROR_NONE:
-    return SV("none");
+  case ERROR_NONE: return SV("none");
 
   case ERROR_LEXER_ERROR_UNEXPECTED_CHAR:
     return SV("Unexcepted char in stream: ");
   case ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE:
     return SV("missing '\"' to end string literal.");
 
-  case ERROR_PARSER_INTEGER_TO_LARGE:
-    return SV("Integer literal too large.");
+  case ERROR_PARSER_INTEGER_TO_LARGE: return SV("Integer literal too large.");
 
-  case ERROR_PARSER_EXPECTED_BEGIN_BRACE:
-    return SV("Expected: [{]. Found: ");
-  case ERROR_PARSER_EXPECTED_END_BRACE:
-    return SV("Expected: [}]. Found: ");
-  case ERROR_PARSER_EXPECTED_BEGIN_PAREN:
-    return SV("Expected: [(]. Found: ");
-  case ERROR_PARSER_EXPECTED_END_PAREN:
-    return SV("Expected: [)]. Found: ");
-  case ERROR_PARSER_EXPECTED_RIGHT_ARROW:
-    return SV("Expected: [->]. Found: ");
-  case ERROR_PARSER_EXPECTED_SEMICOLON:
-    return SV("Expected: [;]. Found: ");
-  case ERROR_PARSER_EXPECTED_COLON:
-    return SV("Expected: [:]. Found: ");
-  case ERROR_PARSER_EXPECTED_EQUAL:
-    return SV("Expected: [=]. Found: ");
+  case ERROR_PARSER_EXPECTED_BEGIN_BRACE: return SV("Expected: [{]. Found: ");
+  case ERROR_PARSER_EXPECTED_END_BRACE:   return SV("Expected: [}]. Found: ");
+  case ERROR_PARSER_EXPECTED_BEGIN_PAREN: return SV("Expected: [(]. Found: ");
+  case ERROR_PARSER_EXPECTED_END_PAREN:   return SV("Expected: [)]. Found: ");
+  case ERROR_PARSER_EXPECTED_RIGHT_ARROW: return SV("Expected: [->]. Found: ");
+  case ERROR_PARSER_EXPECTED_SEMICOLON:   return SV("Expected: [;]. Found: ");
+  case ERROR_PARSER_EXPECTED_COLON:       return SV("Expected: [:]. Found: ");
+  case ERROR_PARSER_EXPECTED_EQUAL:       return SV("Expected: [=]. Found: ");
 
   case ERROR_PARSER_EXPECTED_KEYWORD_CONST:
     return SV("Expected: [const]. Found: ");
-  case ERROR_PARSER_EXPECTED_KEYWORD_FN:
-    return SV("Expected: [Fn]. Found: ");
+  case ERROR_PARSER_EXPECTED_KEYWORD_FN: return SV("Expected: [Fn]. Found: ");
 
   case ERROR_PARSER_EXPECTED_EXPRESSION:
     return SV("Expected an Expression. Found: ");
@@ -61,17 +50,14 @@ StringView error_code_sv(ErrorCode code) {
   case ERROR_PARSER_EXPECTED_IDENTIFIER:
     return SV("Expected an Identifier. Found: ");
 
-  case ERROR_PARSER_UNEXPECTED_TOKEN:
-    return SV("Unexpected Token: ");
+  case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
 
-  case ERROR_TYPECHECK_UNDEFINED_SYMBOL:
-    return SV("Symbol Undefined: ");
+  case ERROR_TYPECHECK_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
 
   case ERROR_TYPECHECK_TYPE_MISMATCH:
     return SV("Expected Type does not match Actual Type: ");
 
-  default:
-    PANIC("bad ErrorCode");
+  default: PANIC("bad ErrorCode");
   }
 }
 

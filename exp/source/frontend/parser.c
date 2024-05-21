@@ -41,9 +41,7 @@ typedef struct ParserResult {
 } ParserResult;
 
 static void parser_result_destroy(ParserResult *restrict pr) {
-  if (pr->has_error) {
-    error_destroy(&pr->error);
-  }
+  if (pr->has_error) { error_destroy(&pr->error); }
 }
 
 static ParserResult error(Parser *restrict p, ErrorCode code) {
@@ -90,7 +88,8 @@ typedef enum Precedence {
 } Precedence;
 
 typedef ParserResult (*PrefixFunction)(Parser *restrict p, Context *restrict c);
-typedef ParserResult (*InfixFunction)(Parser *restrict p, Context *restrict c,
+typedef ParserResult (*InfixFunction)(Parser *restrict p,
+                                      Context *restrict c,
                                       Operand left);
 
 typedef struct ParseRule {
@@ -106,8 +105,8 @@ static Parser parser_create() {
   return parser;
 }
 
-static void parser_set_view(Parser *restrict parser, char const *buffer,
-                            u64 length) {
+static void
+parser_set_view(Parser *restrict parser, char const *buffer, u64 length) {
   assert(parser != NULL);
   assert(buffer != NULL);
   lexer_set_view(&(parser->lexer), buffer, length);
@@ -148,34 +147,28 @@ static bool expect(Parser *restrict parser, Token token) {
 
 static ParseRule *get_rule(Token token);
 static ParserResult expression(Parser *restrict p, Context *restrict c);
-static ParserResult parse_precedence(Parser *restrict p, Context *restrict c,
+static ParserResult parse_precedence(Parser *restrict p,
+                                     Context *restrict c,
                                      Precedence precedence);
 
-static ParserResult parse_scalar_type(Parser *restrict p, Context *restrict c,
-                                      Type **type) {
+static ParserResult
+parse_scalar_type(Parser *restrict p, Context *restrict c, Type **type) {
   switch (p->curtok) {
-  case TOK_TYPE_NIL:
-    *type = context_nil_type(c);
-    break;
+  case TOK_TYPE_NIL: *type = context_nil_type(c); break;
 
-  case TOK_TYPE_BOOL:
-    *type = context_boolean_type(c);
-    break;
+  case TOK_TYPE_BOOL: *type = context_boolean_type(c); break;
 
-  case TOK_TYPE_I64:
-    *type = context_i64_type(c);
-    break;
+  case TOK_TYPE_I64: *type = context_i64_type(c); break;
 
-  default:
-    return error(p, ERROR_PARSER_EXPECTED_TYPE);
+  default: return error(p, ERROR_PARSER_EXPECTED_TYPE);
   }
 
   nexttok(p); // eat <scalar-type>
   return success(zero());
 }
 
-static ParserResult parse_type(Parser *restrict p, Context *restrict c,
-                               Type **type) {
+static ParserResult
+parse_type(Parser *restrict p, Context *restrict c, Type **type) {
   // #TODO: handle composite types
   return parse_scalar_type(p, c, type);
 }
@@ -190,15 +183,11 @@ static ParserResult parse_formal_argument(Parser *restrict p,
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
 
-  if (!expect(p, TOK_COLON)) {
-    return error(p, ERROR_PARSER_EXPECTED_COLON);
-  }
+  if (!expect(p, TOK_COLON)) { return error(p, ERROR_PARSER_EXPECTED_COLON); }
 
   Type *type         = NULL;
   ParserResult maybe = parse_type(p, c, &type);
-  if (maybe.has_error) {
-    return maybe;
-  }
+  if (maybe.has_error) { return maybe; }
   assert(type != NULL);
 
   arg->name = name;
@@ -221,9 +210,7 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
   FormalArgumentList *args = &body->arguments;
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
-  if (expect(p, TOK_NIL)) {
-    return success(zero());
-  }
+  if (expect(p, TOK_NIL)) { return success(zero()); }
 
   if (!expect(p, TOK_BEGIN_PAREN)) {
     return error(p, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
@@ -234,9 +221,7 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
       FormalArgument arg;
 
       ParserResult maybe = parse_formal_argument(p, c, &arg);
-      if (maybe.has_error) {
-        return maybe;
-      }
+      if (maybe.has_error) { return maybe; }
 
       formal_argument_list_append(args, arg);
     } while (!expect(p, TOK_END_PAREN));
@@ -255,14 +240,10 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
 
-  if (!expect(p, TOK_EQUAL)) {
-    return error(p, ERROR_PARSER_EXPECTED_EQUAL);
-  }
+  if (!expect(p, TOK_EQUAL)) { return error(p, ERROR_PARSER_EXPECTED_EQUAL); }
 
   ParserResult maybe = expression(p, c);
-  if (maybe.has_error) {
-    return maybe;
-  }
+  if (maybe.has_error) { return maybe; }
 
   if (!expect(p, TOK_SEMICOLON)) {
     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
@@ -279,9 +260,7 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat "return"
 
   ParserResult maybe = expression(p, c);
-  if (maybe.has_error) {
-    return maybe;
-  }
+  if (maybe.has_error) { return maybe; }
 
   if (!expect(p, TOK_SEMICOLON)) {
     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
@@ -293,17 +272,13 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
 
 static ParserResult statement(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
-  case TOK_RETURN:
-    return return_(p, c);
+  case TOK_RETURN: return return_(p, c);
 
-  case TOK_CONST:
-    return constant(p, c);
+  case TOK_CONST: return constant(p, c);
 
   default: {
     ParserResult result = expression(p, c);
-    if (result.has_error) {
-      return result;
-    }
+    if (result.has_error) { return result; }
 
     if (!expect(p, TOK_SEMICOLON)) {
       return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
@@ -321,9 +296,7 @@ static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
 
   while (!expect(p, TOK_END_BRACE)) {
     ParserResult maybe = statement(p, c);
-    if (maybe.has_error) {
-      return maybe;
-    }
+    if (maybe.has_error) { return maybe; }
   }
 
   return success(zero());
@@ -343,16 +316,12 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
   {
     ParserResult maybe = parse_formal_argument_list(p, c, body);
-    if (maybe.has_error) {
-      return maybe;
-    }
+    if (maybe.has_error) { return maybe; }
   }
 
   {
     ParserResult maybe = parse_block(p, c);
-    if (maybe.has_error) {
-      return maybe;
-    }
+    if (maybe.has_error) { return maybe; }
   }
 
   context_leave_function(c);
@@ -369,11 +338,9 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
 static ParserResult definition(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
-  case TOK_FN:
-    return function(p, c);
+  case TOK_FN: return function(p, c);
 
-  default:
-    return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
+  default: return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
   }
 }
 
@@ -381,9 +348,7 @@ static ParserResult parens(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat '('
 
   ParserResult result = expression(p, c);
-  if (result.has_error) {
-    return result;
-  }
+  if (result.has_error) { return result; }
 
   if (!expect(p, TOK_END_PAREN)) {
     return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
@@ -397,50 +362,38 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
   nexttok(p);
 
   ParserResult maybe = parse_precedence(p, c, PREC_UNARY);
-  if (maybe.has_error) {
-    return maybe;
-  }
+  if (maybe.has_error) { return maybe; }
 
   switch (op) {
-  case TOK_MINUS:
-    return from_fold(context_emit_neg(c, maybe.result));
+  case TOK_MINUS: return from_fold(context_emit_neg(c, maybe.result));
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 }
 
-static ParserResult binop(Parser *restrict p, Context *restrict c,
-                          Operand left) {
+static ParserResult
+binop(Parser *restrict p, Context *restrict c, Operand left) {
   Token op        = p->curtok;
   ParseRule *rule = get_rule(op);
   nexttok(p); // eat the operator
 
   ParserResult maybe =
       parse_precedence(p, c, (Precedence)(rule->precedence + 1));
-  if (maybe.has_error) {
-    return maybe;
-  }
+  if (maybe.has_error) { return maybe; }
   Operand right = maybe.result;
 
   switch (op) {
-  case TOK_PLUS:
-    return from_fold(context_emit_add(c, left, right));
+  case TOK_PLUS: return from_fold(context_emit_add(c, left, right));
 
-  case TOK_MINUS:
-    return from_fold(context_emit_sub(c, left, right));
+  case TOK_MINUS: return from_fold(context_emit_sub(c, left, right));
 
-  case TOK_STAR:
-    return from_fold(context_emit_mul(c, left, right));
+  case TOK_STAR: return from_fold(context_emit_mul(c, left, right));
 
-  case TOK_SLASH:
-    return from_fold(context_emit_div(c, left, right));
+  case TOK_SLASH: return from_fold(context_emit_div(c, left, right));
 
-  case TOK_PERCENT:
-    return from_fold(context_emit_mod(c, left, right));
+  case TOK_PERCENT: return from_fold(context_emit_mod(c, left, right));
 
-  default:
-    unreachable();
+  default: unreachable();
   }
 }
 
@@ -481,9 +434,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
   LocalVariable *var = context_lookup_local(c, name);
-  if (var == NULL) {
-    return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
-  }
+  if (var == NULL) { return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL); }
 
   return success(opr_ssa(var->ssa));
 }
@@ -492,7 +443,8 @@ static ParserResult expression(Parser *restrict p, Context *restrict c) {
   return parse_precedence(p, c, PREC_ASSIGNMENT);
 }
 
-static ParserResult parse_precedence(Parser *restrict p, Context *restrict c,
+static ParserResult parse_precedence(Parser *restrict p,
+                                     Context *restrict c,
                                      Precedence precedence) {
   ParseRule *rule = get_rule(p->curtok);
   if (rule->prefix == NULL) {
@@ -500,21 +452,15 @@ static ParserResult parse_precedence(Parser *restrict p, Context *restrict c,
   }
 
   ParserResult result = rule->prefix(p, c);
-  if (result.has_error) {
-    return result;
-  }
+  if (result.has_error) { return result; }
 
   while (1) {
     ParseRule *rule = get_rule(p->curtok);
 
-    if (precedence > rule->precedence) {
-      break;
-    }
+    if (precedence > rule->precedence) { break; }
 
     ParserResult maybe = rule->infix(p, c, result.result);
-    if (maybe.has_error) {
-      return maybe;
-    }
+    if (maybe.has_error) { return maybe; }
 
     // when we loop again, the current result becomes the next
     // infix expressions left hand side.

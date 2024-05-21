@@ -23,20 +23,15 @@
 
 Type *type_of(Value *restrict value, Context *restrict context) {
   switch (value->kind) {
-  case VALUEKIND_UNINITIALIZED:
-    return context_nil_type(context);
+  case VALUEKIND_UNINITIALIZED: return context_nil_type(context);
 
-  case VALUEKIND_NIL:
-    return context_nil_type(context);
+  case VALUEKIND_NIL: return context_nil_type(context);
 
-  case VALUEKIND_BOOLEAN:
-    return context_boolean_type(context);
+  case VALUEKIND_BOOLEAN: return context_boolean_type(context);
 
-  case VALUEKIND_I64:
-    return context_i64_type(context);
+  case VALUEKIND_I64: return context_i64_type(context);
 
-  default:
-    PANIC("bad VALUEKIND");
+  default: PANIC("bad VALUEKIND");
   }
 }
 
