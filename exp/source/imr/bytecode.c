@@ -40,7 +40,7 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
   assert(bytecode != NULL);
   bytecode->length   = 0;
   bytecode->capacity = 0;
-  free(bytecode->buffer);
+  deallocate(bytecode->buffer);
   bytecode->buffer = NULL;
 }
 

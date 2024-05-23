@@ -31,13 +31,13 @@ x64_Operand x64_opr_stack(u16 offset) {
 }
 
 x64_Operand x64_opr_alloc(x64_Allocation *alloc) {
-  switch (alloc->allocation.kind) {
+  switch (alloc->location.kind) {
   case ALLOC_GPR: {
-    return x64_opr_gpr(alloc->allocation.gpr);
+    return x64_opr_gpr(alloc->location.gpr);
   }
 
   case ALLOC_STACK: {
-    return x64_opr_stack(alloc->allocation.offset);
+    return x64_opr_stack(alloc->location.offset);
   }
 
   default: unreachable();

@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stdlib.h>
+
 #include "utility/alloc.h"
 #include "utility/panic.h"
 
@@ -36,3 +38,5 @@ void *reallocate(void *ptr, u64 size) {
   if (result == NULL) { PANIC_ERRNO("reallocate failed."); }
   return result;
 }
+
+void deallocate(void *ptr) { free(ptr); }

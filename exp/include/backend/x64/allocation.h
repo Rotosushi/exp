@@ -23,7 +23,7 @@
 typedef struct x64_Allocation {
   u16 ssa;
   Lifetime lifetime;
-  x64_Location allocation;
+  x64_Location location;
 } x64_Allocation;
 
 #endif // !EXP_BACKEND_X64_ALLOCATION_H

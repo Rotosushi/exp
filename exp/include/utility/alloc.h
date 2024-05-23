@@ -16,7 +16,6 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_ALLOC_H
 #define EXP_UTILITY_ALLOC_H
-#include <stdlib.h>
 
 #include "utility/int_types.h"
 
@@ -45,5 +44,12 @@ void *callocate(u64 num, u64 size);
  * @return * void*
  */
 void *reallocate(void *ptr, u64 size);
+
+/**
+ * @brief wraps a call to free
+ *
+ * @param ptr
+ */
+void deallocate(void *ptr);
 
 #endif // !EXP_UTILITY_ALLOC_H

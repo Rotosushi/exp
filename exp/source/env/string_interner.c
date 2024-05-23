@@ -52,7 +52,7 @@ void string_interner_destroy(StringInterner *restrict si) {
 
   si->capacity = 0;
   si->count    = 0;
-  free(si->buffer);
+  deallocate(si->buffer);
   si->buffer = NULL;
 }
 
@@ -84,7 +84,7 @@ static void string_interner_grow(StringInterner *restrict si) {
     }
     // this is allowed because we move all of the strings
     // to the new buffer.
-    free(si->buffer);
+    deallocate(si->buffer);
   }
 
   si->capacity = g.new_capacity;

@@ -36,8 +36,8 @@ set(EXP_LIB_DIR "${PROJECT_BINARY_DIR}/libexp")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_SAN -fsanitize=address,undefined,leak)
-set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_SAN})
-set(EXP_LINK_OPTIONS ${EXP_SAN})
+set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} )
+set(EXP_LINK_OPTIONS )
 
 execute_process(
   COMMAND git rev-parse HEAD 

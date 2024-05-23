@@ -29,7 +29,7 @@ x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
 
 static void x64formal_arguments_destroy(x64_FormalArgumentList *restrict args) {
   args->size = 0;
-  free(args->buffer);
+  deallocate(args->buffer);
   args->buffer = NULL;
 }
 

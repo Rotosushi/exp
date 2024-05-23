@@ -21,215 +21,239 @@
 #include "backend/x64/allocator.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/minmax.h"
 
-X64ActiveAllocations x64active_allocations_create() {
-  X64ActiveAllocations a = {
-      .stack_size = 0, .size = 0, .capacity = 0, .buffer = NULL};
-  return a;
+// X64ActiveAllocations x64active_allocations_create() {
+//   X64ActiveAllocations a = {
+//       .stack_size = 0, .size = 0, .capacity = 0, .buffer = NULL};
+//   return a;
+// }
+
+// void x64active_allocations_destroy(X64ActiveAllocations *restrict a) {
+//   a->stack_size = 0;
+//   a->size       = 0;
+//   a->capacity   = 0;
+//   free(a->buffer);
+//   a->buffer = NULL;
+// }
+
+// static bool x64active_allocations_full(X64ActiveAllocations *restrict a) {
+//   return (a->size + 1) >= a->capacity;
+// }
+
+// static void x64active_allocations_grow(X64ActiveAllocations *restrict a) {
+//   Growth g    = array_growth_u16(a->capacity, sizeof(x64_Allocation));
+//   a->buffer   = reallocate(a->buffer, g.alloc_size);
+//   a->capacity = (u16)g.new_capacity;
+// }
+
+// x64_Allocation x64active_allocations_add(X64ActiveAllocations *restrict
+// active,
+//                                          u16 ssa,
+//                                          Lifetime lifetime,
+//                                          x64_Location allocation) {
+//   if (x64active_allocations_full(active)) {
+//     x64active_allocations_grow(active);
+//   }
+
+//   // find the lifetime that ends later than the given lifetime
+//   // and insert before it.
+//   u16 i = 0;
+//   for (; i < active->size; ++i) {
+//     x64_Allocation *al = active->buffer + i;
+//     if (al->lifetime.last_use > lifetime.last_use) { break; }
+//   }
+
+//   // shift all lifetimes after idx forward one location
+//   for (u16 j = active->size; j > i; --j) {
+//     active->buffer[j] = active->buffer[j - 1];
+//   }
+
+//   x64_Allocation *aa = active->buffer + i;
+//   active->size += 1;
+
+//   *aa = (x64_Allocation){
+//       .ssa = ssa, .lifetime = lifetime, .allocation = allocation};
+//   return *aa;
+// }
+
+// void x64active_allocations_erase(X64ActiveAllocations *restrict a,
+//                                  x64_Allocation *restrict aa) {
+//   u16 i = 0;
+//   for (; i < a->size; ++i) {
+//     x64_Allocation *al = a->buffer + i;
+//     if (al->ssa == aa->ssa) { break; }
+//   }
+
+//   // move all lifetimes after i backwards one location
+//   for (u16 j = i; j < a->size; ++j) {
+//     a->buffer[j] = a->buffer[j + 1];
+//   }
+
+//   a->size -= 1;
+// }
+
+x64_StackAllocations x64_stack_allocations_create() {
+  x64_StackAllocations stack_allocations = {
+      .active_stack_size = 0,
+      .total_stack_size  = 0,
+      .count             = 0,
+      .capacity          = 0,
+      .buffer            = NULL,
+  };
+  return stack_allocations;
 }
 
-void x64active_allocations_destroy(X64ActiveAllocations *restrict a) {
-  a->stack_size = 0;
-  a->size       = 0;
-  a->capacity   = 0;
-  free(a->buffer);
-  a->buffer = NULL;
-}
-
-static bool x64active_allocations_full(X64ActiveAllocations *restrict a) {
-  return (a->size + 1) >= a->capacity;
-}
-
-static void x64active_allocations_grow(X64ActiveAllocations *restrict a) {
-  Growth g    = array_growth_u16(a->capacity, sizeof(x64_Allocation));
-  a->buffer   = reallocate(a->buffer, g.alloc_size);
-  a->capacity = (u16)g.new_capacity;
-}
-
-x64_Allocation x64active_allocations_add(X64ActiveAllocations *restrict active,
-                                         u16 ssa,
-                                         Lifetime lifetime,
-                                         x64_Location allocation) {
-  if (x64active_allocations_full(active)) {
-    x64active_allocations_grow(active);
+void x64_stack_allocations_destroy(
+    x64_StackAllocations *restrict stack_allocations) {
+  if (stack_allocations->buffer != NULL) {
+    for (u16 i = 0; i < 16; ++i) {
+      deallocate(stack_allocations->buffer[i]);
+    }
+    deallocate(stack_allocations->buffer);
   }
 
-  // find the lifetime that ends later than the given lifetime
-  // and insert before it.
+  stack_allocations->count             = 0;
+  stack_allocations->capacity          = 0;
+  stack_allocations->active_stack_size = 0;
+  stack_allocations->total_stack_size  = 0;
+}
+
+static bool
+stack_allocations_full(x64_StackAllocations *restrict stack_allocations) {
+  return (stack_allocations->count + 1) >= stack_allocations->capacity;
+}
+
+static void
+stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
+  Growth g =
+      array_growth_u16(stack_allocations->capacity, sizeof(x64_Allocation *));
+  stack_allocations->buffer =
+      reallocate(stack_allocations->buffer, g.alloc_size);
+  stack_allocations->capacity = (u16)g.new_capacity;
+}
+
+void x64_stack_allocations_allocate(
+    x64_StackAllocations *restrict stack_allocations,
+    x64_Allocation *restrict allocation) {
+  // #TODO as a simplification we currently allocate a
+  // word for each local variable on the stack.
+  // we need to take into account the size of the
+  // local variable.
+  stack_allocations->active_stack_size += 8;
+  stack_allocations->total_stack_size =
+      (u16)umax(stack_allocations->active_stack_size,
+                stack_allocations->total_stack_size);
+
+  if (stack_allocations_full(stack_allocations)) {
+    stack_allocations_grow(stack_allocations);
+  }
+
+  allocation->location =
+      x64_location_stack(stack_allocations->active_stack_size);
+  stack_allocations->buffer[stack_allocations->count] = allocation;
+  stack_allocations->count += 1;
+}
+
+void x64_stack_allocations_erase(
+    x64_StackAllocations *restrict stack_allocations,
+    x64_Allocation *restrict allocation) {
   u16 i = 0;
-  for (; i < active->size; ++i) {
-    x64_Allocation *al = active->buffer + i;
-    if (al->lifetime.last_use > lifetime.last_use) { break; }
+  for (; i < stack_allocations->count; ++i) {
+    x64_Allocation *cursor = stack_allocations->buffer[i];
+    if (cursor == allocation) { break; }
   }
 
-  // shift all lifetimes after idx forward one location
-  for (u16 j = active->size; j > i; --j) {
-    active->buffer[j] = active->buffer[j - 1];
+  if (i == stack_allocations->count) { return; }
+
+  for (; i < stack_allocations->count; ++i) {
+    stack_allocations->buffer[i] = stack_allocations->buffer[i + 1];
   }
 
-  x64_Allocation *aa = active->buffer + i;
-  active->size += 1;
-
-  *aa = (x64_Allocation){
-      .ssa = ssa, .lifetime = lifetime, .allocation = allocation};
-  return *aa;
+  stack_allocations->count -= 1;
 }
 
-void x64active_allocations_erase(X64ActiveAllocations *restrict a,
-                                 x64_Allocation *restrict aa) {
-  u16 i = 0;
-  for (; i < a->size; ++i) {
-    x64_Allocation *al = a->buffer + i;
-    if (al->ssa == aa->ssa) { break; }
+void x64_stack_allocations_release_expired_allocations(
+    x64_StackAllocations *restrict stack_allocations, u16 Idx) {
+  for (u16 i = 0; i < stack_allocations->count; ++i) {
+    x64_Allocation *cursor = stack_allocations->buffer[i];
+    if (cursor->lifetime.last_use <= Idx) {
+      x64_stack_allocations_erase(stack_allocations, cursor);
+      --i;
+    }
   }
+}
 
-  // move all lifetimes after i backwards one location
-  for (u16 j = i; j < a->size; ++j) {
-    a->buffer[j] = a->buffer[j + 1];
+x64_Allocation *
+x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
+                         u16 ssa) {
+  for (u16 i = 0; i < stack_allocations->count; ++i) {
+    x64_Allocation *cursor = stack_allocations->buffer[i];
+    if (cursor->ssa == ssa) { return cursor; }
   }
-
-  a->size -= 1;
+  return NULL;
 }
 
 x64_Allocator x64_allocator_create(FunctionBody *restrict body) {
-  x64_Allocator la = {.gprp       = x64_gprp_create(),
-                      .lifetimes  = li_compute(body),
-                      .active     = x64active_allocations_create(),
-                      .stack_size = 0};
-  // reserve the stack pointer RSP
-  // and the frame pointer RBP
-  // such that locals do not get allocated to them.
-  x64_gprp_aquire(&la.gprp, X64GPR_RSP);
-  x64_gprp_aquire(&la.gprp, X64GPR_RBP);
-  return la;
+  x64_Allocator allocator = {
+      .gprp              = x64_gprp_create(),
+      .stack_allocations = x64_stack_allocations_create(),
+      .lifetimes         = li_compute(body),
+  };
+  x64_gprp_aquire(&allocator.gprp, X64GPR_RSP);
+  x64_gprp_aquire(&allocator.gprp, X64GPR_RBP);
+  return allocator;
 }
 
-void x64_allocator_destroy(x64_Allocator *restrict la) {
-  x64_gprp_destroy(&la->gprp);
-  li_destroy(&la->lifetimes);
-  x64active_allocations_destroy(&la->active);
-  la->stack_size = 0;
+void x64_allocator_destroy(x64_Allocator *restrict allocator) {
+  x64_gprp_destroy(&allocator->gprp);
+  x64_stack_allocations_destroy(&allocator->stack_allocations);
+  li_destroy(&allocator->lifetimes);
 }
 
-u16 x64_allocator_bump_active_stack_size(x64_Allocator *restrict la) {
-  // #TODO: as a simplification we just use a full word to store each
-  // local on the stack.
-  la->active.stack_size += 8;
-
-  if (la->stack_size < la->active.stack_size) {
-    la->stack_size = la->active.stack_size;
-  }
-  return la->active.stack_size;
+bool x64_allocator_uses_stack(x64_Allocator *restrict allocator) {
+  return allocator->stack_allocations.total_stack_size > 0;
 }
 
-void x64_allocator_reduce_active_stack_size(x64_Allocator *restrict la) {
-  // #TODO similarly to the total stack size we don't take into
-  // account the size of the elements stored on the stack.
-  la->active.stack_size -= 8;
+u16 x64_allocator_total_stack_size(x64_Allocator *restrict allocator) {
+  return allocator->stack_allocations.total_stack_size;
 }
 
-x64_Allocation *x64_allocator_allocation_of(x64_Allocator *restrict la,
+static void
+x64_allocator_release_expired_lifetimes(x64_Allocator *restrict allocator,
+                                        u16 Idx) {
+  x64_stack_allocations_release_expired_allocations(
+      &allocator->stack_allocations, Idx);
+  x64_gprp_release_expired_allocations(&allocator->gprp, Idx);
+}
+
+static void x64_allocator_spill_allocation(x64_Allocator *restrict allocator,
+                                           x64_Allocation *restrict allocation,
+                                           x64_Bytecode *restrict x64bc) {
+  assert(allocation->location.kind == ALLOC_GPR);
+  x64_GPR gpr = allocation->location.gpr;
+  x64_gprp_release(&allocator->gprp, gpr);
+  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+
+  x64_bytecode_append_mov(
+      x64bc, x64_opr_stack(allocation->location.offset), x64_opr_gpr(gpr));
+}
+
+x64_Allocation *x64_allocator_allocation_of(x64_Allocator *restrict allocator,
                                             u16 ssa) {
-  X64ActiveAllocations *active = &la->active;
-  for (u16 i = 0; i < active->size; ++i) {
-    x64_Allocation *aa = active->buffer + i;
-    if (aa->ssa == ssa) { return aa; }
-  }
-  return NULL;
-}
+  x64_Allocation *allocation = x64_gprp_allocation_of(&allocator->gprp, ssa);
+  if (allocation != NULL) { return allocation; }
 
-x64_Allocation *x64_allocator_allocation_at(x64_Allocator *restrict la,
-                                            x64_GPR gpr) {
-  X64ActiveAllocations *active = &la->active;
-  for (u16 i = 0; i < active->size; ++i) {
-    x64_Allocation *aa = active->buffer + i;
-    if ((aa->allocation.kind == ALLOC_GPR) && (aa->allocation.gpr == gpr)) {
-      return aa;
-    }
-  }
-  return NULL;
-}
-
-static x64_Allocation *
-x64allocator_oldest_active_gpr(x64_Allocator *restrict allocator) {
-  x64_Allocation *oldest = NULL;
-  u16 i                  = 0;
-  // find the first active allocation in a gpr
-  for (; i < allocator->active.size; ++i) {
-    oldest = allocator->active.buffer + i;
-    if (oldest->allocation.kind == ALLOC_GPR) { break; }
-  }
-
-  // find the active allocation in a gpr with the longest lifetime
-  for (; i < allocator->active.size; ++i) {
-    x64_Allocation *cursor = allocator->active.buffer + i;
-    if ((cursor->allocation.kind == ALLOC_GPR) &&
-        (oldest->lifetime.last_use < cursor->lifetime.last_use)) {
-      oldest = cursor;
-    }
-  }
-  return oldest;
-}
-
-void x64_allocator_release_expired_lifetimes(x64_Allocator *restrict la,
-                                             u16 Idx) {
-  X64ActiveAllocations *a = &la->active;
-  x64_GPRP *gprp          = &la->gprp;
-  u16 end                 = a->size;
-  for (u16 i = 0; i < end; ++i) {
-    // copy the active lifetime
-    x64_Allocation *al = a->buffer + i;
-
-    // since we store active lifetimes in order
-    // of increasing last_use, if we find an
-    // active lifetime which ends later than
-    // the current instruction (Idx), we know that the rest
-    // of the active lifetimes also end later.
-    // thus we can exit early.
-    if (al->lifetime.last_use >= Idx) { return; }
-
-    if (al->allocation.kind == ALLOC_GPR) {
-      x64_gprp_release(gprp, al->allocation.gpr);
-    } else {
-      x64_allocator_reduce_active_stack_size(la);
-    }
-
-    x64active_allocations_erase(a, al);
-
-    // since we remove an element from active lifetimes
-    // we also have to update the end point, so we don't
-    // read garbage. I think this is okay because
-    // A - we don't try to access a lifetime after it is
-    //  removed
-    // B - we recompute the pointer on each iteration
-    // C - ActiveLifetimes keeps all elements stored
-    //  contiguously.
-    // D - since we decrement the end by one when we remove
-    //  one element, end stays lock-step with the size of
-    //  ActiveLifetimes.
-    // E - removing elements will never trigger a reallocation
-    //  of the memory allocated for the buffer of active lifetimes.
-    end -= 1;
-    // since we removed an element, the next active lifetime
-    // will be at the current index. so we update our index
-    // here to account for that.
-    i -= 1;
-  }
+  return x64_stack_allocations_of(&allocator->stack_allocations, ssa);
 }
 
 void x64_allocator_release_gpr(x64_Allocator *restrict allocator,
                                x64_GPR gpr,
                                u16 Idx,
                                x64_Bytecode *restrict x64bc) {
-  x64_Allocation *active = x64_allocator_allocation_at(allocator, gpr);
-  if (active == NULL) {
+  x64_Allocation *active = x64_gprp_allocation_at(&allocator->gprp, gpr);
+  if ((active == NULL) || active->lifetime.last_use <= Idx) {
     x64_gprp_release(&allocator->gprp, gpr);
-    return;
-  }
-
-  if (active->lifetime.last_use <= Idx) {
-    x64_gprp_release(&allocator->gprp, active->allocation.gpr);
-    x64active_allocations_erase(&allocator->active, active);
     return;
   }
 
@@ -240,50 +264,50 @@ void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
                               x64_GPR gpr,
                               u16 Idx,
                               x64_Bytecode *restrict x64bc) {
-  x64_Allocation *active = x64_allocator_allocation_at(allocator, gpr);
+  x64_Allocation *active = x64_gprp_allocation_at(&allocator->gprp, gpr);
   if (active == NULL) {
     x64_gprp_aquire(&allocator->gprp, gpr);
     return;
   }
 
   if (active->lifetime.last_use <= Idx) {
-    x64active_allocations_erase(&allocator->active, active);
+    x64_gprp_release(&allocator->gprp, gpr);
+    x64_gprp_aquire(&allocator->gprp, gpr);
     return;
   }
 
   x64_allocator_reallocate_active(allocator, active, x64bc);
 }
 
-x64_Allocation x64_allocator_allocate(x64_Allocator *restrict la,
-                                      u16 Idx,
-                                      u16 ssa,
-                                      x64_Bytecode *restrict x64bc) {
-  x64_GPR gpr        = 0;
-  Lifetime *lifetime = li_at(&la->lifetimes, ssa);
+static x64_Allocation *x64_allocation_allocate(u16 ssa, Lifetime *lifetime) {
+  x64_Allocation *allocation = allocate(sizeof(x64_Allocation));
+  allocation->ssa            = ssa;
+  allocation->lifetime       = *lifetime;
+  return allocation;
+}
+
+x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
+                                       u16 Idx,
+                                       u16 ssa,
+                                       x64_Bytecode *restrict x64bc) {
+  Lifetime *lifetime         = li_at(&la->lifetimes, ssa);
+  x64_Allocation *allocation = x64_allocation_allocate(ssa, lifetime);
 
   x64_allocator_release_expired_lifetimes(la, Idx);
 
-  if (x64_gprp_allocate(&la->gprp, &gpr)) {
-    return x64active_allocations_add(
-        &la->active, ssa, *lifetime, x64_location_reg(gpr));
-  }
+  if (x64_gprp_allocate(&la->gprp, allocation)) { return allocation; }
 
   // otherwise spill the oldest active allocation to the stack.
-  x64_Allocation *oldest_active = x64allocator_oldest_active_gpr(la);
+  x64_Allocation *oldest_active = x64_gprp_oldest_allocation(&la->gprp);
 
   if (oldest_active->lifetime.last_use > lifetime->last_use) {
-    x64_GPR gpr = oldest_active->allocation.gpr;
-    x64_allocator_spill_active(la, oldest_active, x64bc);
-
-    return x64active_allocations_add(
-        &la->active, ssa, *lifetime, x64_location_reg(gpr));
+    x64_allocator_spill_allocation(la, oldest_active, x64bc);
+    x64_gprp_allocate(&la->gprp, allocation);
+  } else {
+    x64_stack_allocations_allocate(&la->stack_allocations, allocation);
   }
 
-  return x64active_allocations_add(
-      &la->active,
-      ssa,
-      *lifetime,
-      x64_location_stack(x64_allocator_bump_active_stack_size(la)));
+  return allocation;
 }
 
 /**
@@ -297,98 +321,74 @@ x64_Allocation x64_allocator_allocate(x64_Allocator *restrict la,
  * @param x64bc
  * @return x64_Allocation
  */
-x64_Allocation
+x64_Allocation *
 x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
                                    u16 Idx,
                                    u16 ssa,
                                    x64_Allocation *active,
                                    x64_Bytecode *restrict x64bc) {
-  Lifetime lifetime = *li_at(&allocator->lifetimes, ssa);
+  Lifetime *lifetime = li_at(&allocator->lifetimes, ssa);
 
   if (active->lifetime.last_use <= Idx) {
-    // we can reuse the existing allocation
-    x64_Location allocation = active->allocation;
-    x64active_allocations_erase(&allocator->active, active);
-    return x64active_allocations_add(
-        &allocator->active, ssa, lifetime, allocation);
+    // we can reuse the existing allocation treating
+    // it as the new ssa local allocation.
+    active->ssa      = ssa;
+    active->lifetime = *lifetime;
+    return active;
   }
 
   // we have to keep the existing allocation around
-  x64_Allocation new = x64_allocator_allocate(allocator, Idx, ssa, x64bc);
+  x64_Allocation *new = x64_allocator_allocate(allocator, Idx, ssa, x64bc);
 
   // initialize the new allocation
-  if ((active->allocation.kind == ALLOC_STACK) &&
-      (new.allocation.kind == ALLOC_STACK)) {
+  if ((active->location.kind == ALLOC_STACK) &&
+      (new->location.kind == ALLOC_STACK)) {
     x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(gpr), x64_opr_stack(active->allocation.offset));
+        x64bc, x64_opr_gpr(gpr), x64_opr_stack(active->location.offset));
     x64_bytecode_append_mov(
-        x64bc, x64_opr_stack(new.allocation.offset), x64_opr_gpr(gpr));
+        x64bc, x64_opr_stack(new->location.offset), x64_opr_gpr(gpr));
   } else {
-    x64_bytecode_append_mov(x64bc, x64_opr_alloc(&new), x64_opr_alloc(active));
+    x64_bytecode_append_mov(x64bc, x64_opr_alloc(new), x64_opr_alloc(active));
   }
 
   return new;
 }
 
-x64_Allocation x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
-                                             x64_GPR gpr,
-                                             u16 Idx,
-                                             u16 ssa,
-                                             x64_Bytecode *restrict x64bc) {
+x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
+                                              x64_GPR gpr,
+                                              u16 Idx,
+                                              u16 ssa,
+                                              x64_Bytecode *restrict x64bc) {
   x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
 
   x64_gprp_aquire(&allocator->gprp, gpr);
-  Lifetime lifetime = *li_at(&allocator->lifetimes, ssa);
+  Lifetime *lifetime         = li_at(&allocator->lifetimes, ssa);
+  x64_Allocation *allocation = x64_allocation_allocate(ssa, lifetime);
 
-  return x64active_allocations_add(
-      &allocator->active, ssa, lifetime, x64_location_reg(gpr));
+  x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
+  return allocation;
 }
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,
                                      x64_Bytecode *restrict x64bc) {
-  if (active->allocation.kind == ALLOC_STACK) { return; }
+  if (active->location.kind == ALLOC_STACK) { return; }
 
-  x64_GPR gpr = 0;
-  if (x64_gprp_allocate(&allocator->gprp, &gpr)) {
+  x64_GPR prev_gpr = active->location.gpr;
+  if (x64_gprp_reallocate(&allocator->gprp, active)) {
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(gpr), x64_opr_gpr(active->allocation.gpr));
-    x64_gprp_release(&allocator->gprp, active->allocation.gpr);
-    active->allocation.gpr = gpr;
-
-    // update the held allocation
-    x64_Allocation *held = x64_allocator_allocation_of(allocator, active->ssa);
-    *held                = *active;
+        x64bc, x64_opr_gpr(active->location.gpr), x64_opr_gpr(prev_gpr));
   } else {
-    x64_allocator_spill_active(allocator, active, x64bc);
+    x64_allocator_spill_allocation(allocator, active, x64bc);
   }
-}
-
-void x64_allocator_spill_active(x64_Allocator *restrict allocator,
-                                x64_Allocation *restrict allocation,
-                                x64_Bytecode *restrict x64bc) {
-  x64_GPR gpr = allocation->allocation.gpr;
-
-  allocation->allocation.kind = ALLOC_STACK;
-  allocation->allocation.offset =
-      x64_allocator_bump_active_stack_size(allocator);
-
-  x64_bytecode_append_mov(
-      x64bc, x64_opr_stack(allocation->allocation.offset), x64_opr_gpr(gpr));
-  x64_gprp_release(&allocator->gprp, gpr);
-
-  // update the held allocation
-  x64_Allocation *held =
-      x64_allocator_allocation_of(allocator, allocation->ssa);
-  *held = *allocation;
 }
 
 x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                           x64_Bytecode *restrict x64bc) {
-  x64_Allocation *oldest = x64allocator_oldest_active_gpr(allocator);
-  x64_GPR gpr            = oldest->allocation.gpr;
-  x64_allocator_spill_active(allocator, oldest, x64bc);
+  x64_Allocation *oldest = x64_gprp_oldest_allocation(&allocator->gprp);
+  x64_GPR gpr            = oldest->location.gpr;
+  x64_allocator_spill_allocation(allocator, oldest, x64bc);
   return gpr;
 }
 
@@ -398,7 +398,7 @@ x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
   x64_allocator_release_expired_lifetimes(allocator, Idx);
 
   x64_GPR gpr = 0;
-  if (x64_gprp_allocate(&allocator->gprp, &gpr)) { return gpr; }
+  if (x64_gprp_any_available(&allocator->gprp, &gpr)) { return gpr; }
 
   gpr = x64_allocator_spill_oldest_active(allocator, x64bc);
   return gpr;

@@ -40,7 +40,7 @@ void function_types_destroy(FunctionTypes *restrict f) {
 
   f->capacity = 0;
   f->size     = 0;
-  free(f->types);
+  deallocate(f->types);
   f->types = NULL;
 }
 

@@ -36,7 +36,7 @@ void argument_types_destroy(ArgumentTypes *restrict a) {
   assert(a != NULL);
   a->capacity = 0;
   a->size     = 0;
-  free(a->types);
+  deallocate(a->types);
   a->types = NULL;
 }
 

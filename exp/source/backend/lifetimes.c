@@ -29,7 +29,7 @@ Lifetimes li_create(u16 count) {
 
 void li_destroy(Lifetimes *restrict li) {
   li->count = 0;
-  free(li->buffer);
+  deallocate(li->buffer);
   li->buffer = NULL;
 }
 

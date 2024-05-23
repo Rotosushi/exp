@@ -37,7 +37,7 @@ void constants_destroy(Constants *restrict constants) {
   assert(constants != NULL);
   constants->length   = 0;
   constants->capacity = 0;
-  free(constants->buffer);
+  deallocate(constants->buffer);
   constants->buffer = NULL;
 }
 

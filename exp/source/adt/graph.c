@@ -37,9 +37,9 @@ static void edge_destroy(Edge *restrict edge) {
   while (edge->next != NULL) {
     tmp        = edge->next;
     edge->next = tmp->next;
-    free(tmp);
+    deallocate(tmp);
   }
-  free(edge);
+  deallocate(edge);
 }
 
 static void edge_prepend(Edge *restrict edge, u64 target) {
@@ -65,7 +65,7 @@ void graph_destroy(Graph *restrict g) {
 
   g->length   = 0;
   g->capacity = 0;
-  free(g->list);
+  deallocate(g->list);
   g->list = NULL;
 }
 
@@ -106,7 +106,7 @@ void graph_add_edge(Graph *restrict graph, u64 source, u64 target) {
 void vertex_list_destroy(VertexList *restrict vl) {
   vl->capacity = 0;
   vl->count    = 0;
-  free(vl->list);
+  deallocate(vl->list);
   vl->list = NULL;
 }
 

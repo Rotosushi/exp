@@ -43,7 +43,7 @@ static bool string_small(String const *restrict str) {
 void string_destroy(String *restrict str) {
   assert(str != NULL);
   if (!string_small(str)) {
-    free(str->ptr);
+    deallocate(str->ptr);
     str->ptr = NULL;
   }
   str->length   = 0;

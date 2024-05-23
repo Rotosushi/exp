@@ -42,7 +42,7 @@ void symbol_table_destroy(SymbolTable *restrict st) {
 
   st->count    = 0;
   st->capacity = 0;
-  free(st->elements);
+  deallocate(st->elements);
   st->elements = NULL;
 }
 
@@ -77,7 +77,7 @@ static void symbol_table_grow(SymbolTable *restrict st) {
 
     // we can avoid freeing each element because we
     // move the data to the new allocation.
-    free(st->elements);
+    deallocate(st->elements);
   }
 
   st->capacity = g.new_capacity;

@@ -60,7 +60,7 @@ static LocalTypes lt_create(u16 count) {
 
 static void lt_destroy(LocalTypes *restrict lt) {
   lt->count = 0;
-  free(lt->buffer);
+  deallocate(lt->buffer);
   lt->buffer = NULL;
 }
 

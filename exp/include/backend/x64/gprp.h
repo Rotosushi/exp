@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_X64_GPRP_H
 #define EXP_BACKEND_X64_GPRP_H
 
+#include "backend/x64/allocation.h"
 #include "backend/x64/registers.h"
 
 /**
@@ -26,19 +27,25 @@
  */
 typedef struct x64_GPRP {
   u16 bitset;
+  x64_Allocation **buffer;
 } x64_GPRP;
 
 x64_GPRP x64_gprp_create();
 void x64_gprp_destroy(x64_GPRP *restrict gprp);
-void x64_gprp_aquire(x64_GPRP *restrict gprp, x64_GPR r);
 bool x64_gprp_any_available(x64_GPRP *restrict gprp, x64_GPR *restrict r);
-bool x64_gprp_any_available_other_than(x64_GPRP *restrict gprp,
-                                       x64_GPR *restrict r,
-                                       x64_GPR avoid);
-bool x64_gprp_allocate(x64_GPRP *restrict gprp, x64_GPR *restrict r);
-bool x64_gprp_allocate_other_than(x64_GPRP *restrict gprp,
-                                  x64_GPR *restrict r,
-                                  x64_GPR avoid);
+void x64_gprp_aquire(x64_GPRP *restrict gprp, x64_GPR r);
 void x64_gprp_release(x64_GPRP *restrict gprp, x64_GPR r);
+bool x64_gprp_allocate(x64_GPRP *restrict gprp,
+                       x64_Allocation *restrict allocation);
+void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
+                              x64_GPR gpr,
+                              x64_Allocation *restrict allocation);
+bool x64_gprp_reallocate(x64_GPRP *restrict gprp,
+                         x64_Allocation *restrict allocation);
+x64_Allocation *x64_gprp_allocation_at(x64_GPRP *restrict gprp, x64_GPR gpr);
+x64_Allocation *x64_gprp_allocation_of(x64_GPRP *restrict gprp, u16 ssa);
+x64_Allocation *x64_gprp_oldest_allocation(x64_GPRP *restrict gprp);
+
+void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp, u16 Idx);
 
 #endif // !EXP_BACKEND_X64_GPRP_H

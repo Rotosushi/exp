@@ -31,7 +31,7 @@ void x64_bytecode_destroy(x64_Bytecode *restrict bc) {
   assert(bc != NULL);
   bc->length   = 0;
   bc->capacity = 0;
-  free(bc->buffer);
+  deallocate(bc->buffer);
   bc->buffer = NULL;
 }
 

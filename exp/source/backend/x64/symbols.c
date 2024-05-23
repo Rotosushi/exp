@@ -38,7 +38,7 @@ void x64_symbol_table_destroy(x64_SymbolTable *restrict symbols) {
     x64_symbol_destroy(symbols->buffer + i);
   }
   symbols->count = 0;
-  free(symbols->buffer);
+  deallocate(symbols->buffer);
   symbols->buffer = NULL;
 }
 

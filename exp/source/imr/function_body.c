@@ -38,7 +38,7 @@ void formal_argument_list_destroy(FormalArgumentList *restrict fal) {
   assert(fal != NULL);
   fal->capacity = 0;
   fal->size     = 0;
-  free(fal->list);
+  deallocate(fal->list);
   fal->list = NULL;
 }
 
@@ -70,7 +70,7 @@ LocalVariables local_variables_create() {
 static void local_variables_destroy(LocalVariables *restrict lv) {
   lv->size     = 0;
   lv->capacity = 0;
-  free(lv->buffer);
+  deallocate(lv->buffer);
   lv->buffer = NULL;
 }
 
