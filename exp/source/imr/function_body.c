@@ -100,6 +100,15 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
   return NULL;
 }
 
+LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
+                                          u16 ssa) {
+  for (u16 i = 0; i < lv->size; ++i) {
+    LocalVariable *var = lv->buffer + i;
+    if (var->ssa == ssa) { return var; }
+  }
+  return NULL;
+}
+
 FunctionBody function_body_create() {
   FunctionBody function;
   function.arguments   = formal_argument_list_create();
@@ -117,6 +126,22 @@ void function_body_destroy(FunctionBody *restrict function) {
   bytecode_destroy(&function->bc);
   function->return_type = NULL;
   function->ssa_count   = 0;
+}
+
+void function_body_new_local(FunctionBody *restrict function,
+                             StringView name,
+                             u16 ssa) {
+  assert(function != NULL);
+  LocalVariable local = {.name = name, .type = NULL, .ssa = ssa};
+  local_variables_append(&function->locals, local);
+}
+
+Operand function_body_new_ssa(FunctionBody *restrict function) {
+  assert(function != NULL);
+  LocalVariable local = {
+      .name = SV(""), .type = NULL, .ssa = function->ssa_count++};
+  local_variables_append(&function->locals, local);
+  return opr_ssa(local.ssa);
 }
 
 static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {

@@ -64,11 +64,8 @@ StringView context_intern(Context *restrict context, StringView sv);
 
 // type interner functions
 Type *context_nil_type(Context *restrict context);
-
 Type *context_boolean_type(Context *restrict context);
-
 Type *context_i64_type(Context *restrict context);
-
 Type *context_function_type(Context *restrict context,
                             Type *return_type,
                             ArgumentTypes argument_types);
@@ -81,9 +78,12 @@ SymbolTableIterator context_global_symbol_iterator(Context *restrict context);
 
 // function functions
 FunctionBody *context_enter_function(Context *restrict c, StringView name);
+FunctionBody *context_current_function(Context *restrict c);
+Bytecode *context_active_bytecode(Context *restrict c);
 
 void context_new_local(Context *restrict c, StringView name, u16 ssa);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
+LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
 
 void context_leave_function(Context *restrict c);
 

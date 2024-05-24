@@ -290,6 +290,19 @@ x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
                                        u16 Idx,
                                        u16 ssa,
                                        x64_Bytecode *restrict x64bc) {
+  /*
+    #TODO: in order to support assignment we are going to have to allocate
+    local variables into a stack slot. this has a lot of knock on effects.
+    for one the way we select instructions might need to change to be more
+    aware of this fact.
+    for another we need some way of associating a local variable with a stack
+    allocation, and a register allocation, and being able to mark the register
+    allocation as out of date, and the stack allocation as out of date.
+    (the register allocation acts sort of like a cache; though luckily the only
+    time a register allocation becomes out of date is after an assignment
+    expression.)
+
+  */
   Lifetime *lifetime         = li_at(&la->lifetimes, ssa);
   x64_Allocation *allocation = x64_allocation_allocate(ssa, lifetime);
 

@@ -120,31 +120,37 @@ SymbolTableIterator context_global_symbol_iterator(Context *restrict context) {
 FunctionBody *context_enter_function(Context *restrict c, StringView name) {
   assert(c != NULL);
   SymbolTableElement *element = symbol_table_at(&c->global_symbols, name);
-  element->kind               = STE_FUNCTION;
-  c->current_function         = &element->function_body;
+  if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
+
+  c->current_function = &element->function_body;
   return c->current_function;
 }
 
-static Bytecode *context_active_bytecode(Context *restrict c) {
+FunctionBody *context_current_function(Context *restrict c) {
+  assert(c != NULL);
   assert(c->current_function != NULL);
-  return &c->current_function->bc;
+  return c->current_function;
 }
 
-static Operand context_new_ssa(Context *restrict c) {
-  assert(c->current_function != NULL);
-  return opr_ssa(c->current_function->ssa_count++);
+Bytecode *context_active_bytecode(Context *restrict c) {
+  return &(context_current_function(c)->bc);
+}
+
+Operand context_new_ssa(Context *restrict c) {
+  return function_body_new_ssa(context_current_function(c));
 }
 
 void context_new_local(Context *restrict c, StringView name, u16 ssa) {
-  assert(c != NULL);
-  LocalVariable lv = {.name = name, .ssa = ssa};
-  local_variables_append(&c->current_function->locals, lv);
+  function_body_new_local(context_current_function(c), name, ssa);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
-  assert(c != NULL);
-  assert(c->current_function != NULL);
-  return local_variables_lookup(&c->current_function->locals, name);
+  return local_variables_lookup(&(context_current_function(c)->locals), name);
+}
+
+LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa) {
+  return local_variables_lookup_ssa(&(context_current_function(c)->locals),
+                                    ssa);
 }
 
 void context_leave_function(Context *restrict c) {

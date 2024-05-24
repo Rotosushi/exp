@@ -38,6 +38,7 @@ void formal_argument_list_append(FormalArgumentList *restrict fal,
 
 typedef struct LocalVariable {
   StringView name;
+  Type *type;
   u16 ssa;
 } LocalVariable;
 
@@ -50,6 +51,7 @@ typedef struct LocalVariables {
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
+LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
 
 typedef struct FunctionBody {
   FormalArgumentList arguments;
@@ -61,6 +63,11 @@ typedef struct FunctionBody {
 
 FunctionBody function_body_create();
 void function_body_destroy(FunctionBody *restrict function);
+
+void function_body_new_local(FunctionBody *restrict function,
+                             StringView name,
+                             u16 ssa);
+Operand function_body_new_ssa(FunctionBody *restrict function);
 
 void print_function_body(FunctionBody const *restrict f, FILE *restrict file);
 
