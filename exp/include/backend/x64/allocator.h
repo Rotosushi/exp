@@ -93,12 +93,14 @@ void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
 x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
                                        u16 Idx,
                                        u16 ssa,
+                                       Type *type,
                                        x64_Bytecode *restrict x64bc);
 
 x64_Allocation *
 x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
                                    u16 Idx,
                                    u16 ssa,
+                                   Type *type,
                                    x64_Allocation *active,
                                    x64_Bytecode *restrict x64bc);
 
@@ -106,6 +108,7 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
                                               x64_GPR gpr,
                                               u16 Idx,
                                               u16 ssa,
+                                              Type *type,
                                               x64_Bytecode *restrict x64bc);
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,

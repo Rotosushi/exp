@@ -19,11 +19,13 @@
 
 #include "backend/lifetimes.h"
 #include "backend/x64/location.h"
+#include "imr/type.h"
 
 typedef struct x64_Allocation {
   u16 ssa;
   Lifetime lifetime;
   x64_Location location;
+  Type *type;
 } x64_Allocation;
 
 #endif // !EXP_BACKEND_X64_ALLOCATION_H

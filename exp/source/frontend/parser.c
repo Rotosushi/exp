@@ -383,14 +383,10 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   Operand right = maybe.result;
 
   switch (op) {
-  case TOK_PLUS: return from_fold(context_emit_add(c, left, right));
-
-  case TOK_MINUS: return from_fold(context_emit_sub(c, left, right));
-
-  case TOK_STAR: return from_fold(context_emit_mul(c, left, right));
-
-  case TOK_SLASH: return from_fold(context_emit_div(c, left, right));
-
+  case TOK_PLUS:    return from_fold(context_emit_add(c, left, right));
+  case TOK_MINUS:   return from_fold(context_emit_sub(c, left, right));
+  case TOK_STAR:    return from_fold(context_emit_mul(c, left, right));
+  case TOK_SLASH:   return from_fold(context_emit_div(c, left, right));
   case TOK_PERCENT: return from_fold(context_emit_mod(c, left, right));
 
   default: unreachable();
