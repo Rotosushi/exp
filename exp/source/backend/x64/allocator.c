@@ -218,8 +218,7 @@ x64_allocation_allocate(u16 ssa, Lifetime *lifetime, Type *type) {
 
 x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
                                        u16 Idx,
-                                       u16 ssa,
-                                       Type *type,
+                                       LocalVariable *local,
                                        x64_Bytecode *restrict x64bc) {
   /*
     #TODO: in order to support assignment we are going to have to allocate
@@ -233,8 +232,9 @@ x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
      value.)
 
   */
-  Lifetime *lifetime         = li_at(&la->lifetimes, ssa);
-  x64_Allocation *allocation = x64_allocation_allocate(ssa, lifetime, type);
+  Lifetime *lifetime = li_at(&la->lifetimes, local->ssa);
+  x64_Allocation *allocation =
+      x64_allocation_allocate(local->ssa, lifetime, local->type);
 
   x64_allocator_release_expired_lifetimes(la, Idx);
 
@@ -261,23 +261,21 @@ x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
 x64_Allocation *
 x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
                                    u16 Idx,
-                                   u16 ssa,
-                                   Type *type,
+                                   LocalVariable *local,
                                    x64_Allocation *active,
                                    x64_Bytecode *restrict x64bc) {
-  Lifetime *lifetime = li_at(&allocator->lifetimes, ssa);
+  Lifetime *lifetime = li_at(&allocator->lifetimes, local->ssa);
 
   if (active->lifetime.last_use <= Idx) {
     // we can reuse the existing allocation treating
     // it as the new ssa local allocation.
-    active->ssa      = ssa;
+    active->ssa      = local->ssa;
     active->lifetime = *lifetime;
     return active;
   }
 
   // we have to keep the existing allocation around
-  x64_Allocation *new =
-      x64_allocator_allocate(allocator, Idx, ssa, type, x64bc);
+  x64_Allocation *new = x64_allocator_allocate(allocator, Idx, local, x64bc);
 
   // initialize the new allocation
   if ((active->location.kind == ALLOC_STACK) &&
@@ -297,13 +295,13 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
 x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
                                               x64_GPR gpr,
                                               u16 Idx,
-                                              u16 ssa,
-                                              Type *type,
+                                              LocalVariable *local,
                                               x64_Bytecode *restrict x64bc) {
   x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
 
-  Lifetime *lifetime         = li_at(&allocator->lifetimes, ssa);
-  x64_Allocation *allocation = x64_allocation_allocate(ssa, lifetime, type);
+  Lifetime *lifetime = li_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation =
+      x64_allocation_allocate(local->ssa, lifetime, local->type);
 
   x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
   return allocation;

@@ -70,8 +70,7 @@ static void x64gen_move(Instruction I,
                         LocalVariables *restrict locals,
                         x64_Allocator *restrict allocator) {
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  x64_Allocation *A =
-      x64_allocator_allocate(allocator, Idx, I.A, local->type, x64bc);
+  x64_Allocation *A    = x64_allocator_allocate(allocator, Idx, local, x64bc);
   switch (I.Bfmt) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
@@ -111,8 +110,8 @@ static void x64gen_neg(Instruction I,
   assert(I.Bfmt == OPRFMT_SSA);
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   x64_Allocation *B    = x64_allocator_allocation_of(allocator, I.B);
-  x64_Allocation *A    = x64_allocator_allocate_from_active(
-      allocator, Idx, I.A, local->type, B, x64bc);
+  x64_Allocation *A =
+      x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
   x64_bytecode_append_neg(x64bc, x64_opr_alloc(A));
 }
@@ -133,24 +132,24 @@ static void x64gen_add(Instruction I,
       // and the destination operand of the x64 add instruction.
       // this is to try and keep the result, A, in a register.
       if (B->location.kind == ALLOC_GPR) {
-        x64_Allocation *A = x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, B, x64bc);
+        x64_Allocation *A =
+            x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
         x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
         return;
       }
 
       if (C->location.kind == ALLOC_GPR) {
-        x64_Allocation *A = x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, C, x64bc);
+        x64_Allocation *A =
+            x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
         x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
         return;
       }
 
       // since B and C are memory operands we have to move B or C
       // to a reg and then add.
-      x64_GPR gpr       = x64_allocator_spill_oldest_active(allocator, x64bc);
-      x64_Allocation *A = x64_allocator_allocate_to_gpr(
-          allocator, gpr, Idx, I.A, local->type, x64bc);
+      x64_GPR gpr = x64_allocator_spill_oldest_active(allocator, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
       // we use the huristic of longest lifetime to choose
       // which of B and C to move into A's gpr.
@@ -165,16 +164,16 @@ static void x64gen_add(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
-      x64_Allocation *A = x64_allocator_allocate_from_active(
-          allocator, Idx, I.A, local->type, B, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
       x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_constant(I.C));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
-      x64_Allocation *A = x64_allocator_allocate_from_active(
-          allocator, Idx, I.A, local->type, B, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
       x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.C));
       break;
@@ -188,8 +187,8 @@ static void x64gen_add(Instruction I,
   case OPRFMT_CONSTANT: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_Allocation *A = x64_allocator_allocate_from_active(
-        allocator, Idx, I.A, local->type, C, x64bc);
+    x64_Allocation *A =
+        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
     x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_constant(I.B));
     break;
@@ -198,8 +197,8 @@ static void x64gen_add(Instruction I,
   case OPRFMT_IMMEDIATE: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_Allocation *A = x64_allocator_allocate_from_active(
-        allocator, Idx, I.A, local->type, C, x64bc);
+    x64_Allocation *A =
+        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
     x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.B));
     break;
@@ -224,8 +223,8 @@ static void x64gen_sub(Instruction I,
       // since subtraction is not commutative we have to allocate A from B
       // regardless of which of B or C is in a register.
       if ((B->location.kind == ALLOC_GPR) || (C->location.kind == ALLOC_GPR)) {
-        x64_Allocation *A = x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, B, x64bc);
+        x64_Allocation *A =
+            x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
         return;
@@ -245,9 +244,9 @@ static void x64gen_sub(Instruction I,
         that a future usage of A will result in emitting a mov instruction.
         I don't know, something to ponder.
       */
-      x64_GPR gpr       = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_Allocation *A = x64_allocator_allocate_to_gpr(
-          allocator, gpr, Idx, I.A, local->type, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
       x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
 
@@ -256,16 +255,16 @@ static void x64gen_sub(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
-      x64_Allocation *A = x64_allocator_allocate_from_active(
-          allocator, Idx, I.A, local->type, B, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
       x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_constant(I.C));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
-      x64_Allocation *A = x64_allocator_allocate_from_active(
-          allocator, Idx, I.A, local->type, B, x64bc);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
       x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.C));
       break;
@@ -301,8 +300,8 @@ static void x64gen_sub(Instruction I,
 
     x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
     x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_constant(I.B));
-    x64_Allocation *A = x64_allocator_allocate_to_gpr(
-        allocator, gpr, Idx, I.A, local->type, x64bc);
+    x64_Allocation *A =
+        x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
     x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
     break;
@@ -314,8 +313,8 @@ static void x64gen_sub(Instruction I,
 
     x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
     x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_immediate(I.B));
-    x64_Allocation *A = x64_allocator_allocate_to_gpr(
-        allocator, gpr, Idx, I.A, local->type, x64bc);
+    x64_Allocation *A =
+        x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
     x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
     break;
@@ -343,8 +342,7 @@ static void x64gen_mul(Instruction I,
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
       if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, B, x64bc);
+        x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
@@ -353,8 +351,7 @@ static void x64gen_mul(Instruction I,
       }
 
       if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, C, x64bc);
+        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
@@ -362,8 +359,7 @@ static void x64gen_mul(Instruction I,
         break;
       }
 
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       if ((B->lifetime.last_use <= C->lifetime.last_use)) {
         x64_bytecode_append_mov(
@@ -378,8 +374,7 @@ static void x64gen_mul(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
           x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.C));
@@ -388,8 +383,7 @@ static void x64gen_mul(Instruction I,
     }
 
     case OPRFMT_IMMEDIATE: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
           x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.C));
@@ -405,8 +399,7 @@ static void x64gen_mul(Instruction I,
   case OPRFMT_CONSTANT: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
     x64_bytecode_append_mov(
@@ -418,8 +411,7 @@ static void x64gen_mul(Instruction I,
   case OPRFMT_IMMEDIATE: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
     x64_bytecode_append_mov(
@@ -445,8 +437,7 @@ static void x64gen_div(Instruction I,
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
       if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_from_active(
-            allocator, Idx, I.A, local->type, B, x64bc);
+        x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
@@ -458,8 +449,7 @@ static void x64gen_div(Instruction I,
       }
 
       if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_to_gpr(
-            allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+        x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
@@ -475,8 +465,7 @@ static void x64gen_div(Instruction I,
         break;
       }
 
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
@@ -490,8 +479,7 @@ static void x64gen_div(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -508,8 +496,7 @@ static void x64gen_div(Instruction I,
     }
 
     case OPRFMT_IMMEDIATE: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -541,8 +528,7 @@ static void x64gen_div(Instruction I,
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
         x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
@@ -563,8 +549,7 @@ static void x64gen_div(Instruction I,
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
         x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
@@ -591,8 +576,7 @@ static void x64gen_mod(Instruction I,
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
       if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_to_gpr(
-            allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+        x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
         x64_bytecode_append_mov(
             x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
 
@@ -601,8 +585,7 @@ static void x64gen_mod(Instruction I,
       }
 
       if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-        x64_allocator_allocate_to_gpr(
-            allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+        x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
 
         x64_allocator_reallocate_active(allocator, C, x64bc);
 
@@ -614,8 +597,7 @@ static void x64gen_mod(Instruction I,
         break;
       }
 
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
       x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
 
@@ -624,8 +606,7 @@ static void x64gen_mod(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
       x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
 
@@ -637,8 +618,7 @@ static void x64gen_mod(Instruction I,
     }
 
     case OPRFMT_IMMEDIATE: {
-      x64_allocator_allocate_to_gpr(
-          allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
       x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
 
@@ -655,8 +635,7 @@ static void x64gen_mod(Instruction I,
   }
 
   case OPRFMT_CONSTANT: {
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
     x64_bytecode_append_mov(
         x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
 
@@ -666,8 +645,7 @@ static void x64gen_mod(Instruction I,
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
         x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
@@ -676,8 +654,7 @@ static void x64gen_mod(Instruction I,
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RDX, Idx, I.A, local->type, x64bc);
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
     x64_bytecode_append_mov(
         x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
 
