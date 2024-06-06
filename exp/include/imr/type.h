@@ -113,6 +113,8 @@ void type_destroy(Type *type);
  */
 bool type_equality(Type const *t1, Type const *t2);
 
+bool type_is_scalar(Type const *t);
+
 void print_type(Type const *restrict t, FILE *restrict file);
 
 #endif // !EXP_IMR_TYPE_H

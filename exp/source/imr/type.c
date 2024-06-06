@@ -148,6 +148,16 @@ bool type_equality(Type const *t1, Type const *t2) {
   }
 }
 
+bool type_is_scalar(Type const *t) {
+  switch (t->kind) {
+  case TYPEKIND_NIL:
+  case TYPEKIND_BOOLEAN:
+  case TYPEKIND_I64:     return 1;
+
+  default: return 0;
+  }
+}
+
 static void print_function_type(FunctionType const *restrict ft,
                                 FILE *restrict file) {
   file_write("fn (", file);

@@ -81,14 +81,14 @@ FunctionBody *context_enter_function(Context *restrict c, StringView name);
 FunctionBody *context_current_function(Context *restrict c);
 Bytecode *context_active_bytecode(Context *restrict c);
 
-void context_new_local(Context *restrict c, StringView name, u16 ssa);
+void context_def_const(Context *restrict c, StringView name, Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
 LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
 
 void context_leave_function(Context *restrict c);
 
 // Constants functions
-Operand context_constants_add(Context *restrict context, Value value);
+Operand context_constants_append(Context *restrict context, Value value);
 
 Value *context_constants_at(Context *restrict context, u16 index);
 

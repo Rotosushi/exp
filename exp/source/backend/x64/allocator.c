@@ -38,7 +38,7 @@ x64_StackAllocations x64_stack_allocations_create() {
 void x64_stack_allocations_destroy(
     x64_StackAllocations *restrict stack_allocations) {
   if (stack_allocations->buffer != NULL) {
-    for (u16 i = 0; i < 16; ++i) {
+    for (u16 i = 0; i < stack_allocations->count; ++i) {
       deallocate(stack_allocations->buffer[i]);
     }
     deallocate(stack_allocations->buffer);
@@ -208,7 +208,7 @@ void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
 }
 
 static x64_Allocation *
-x64_allocation_allocate(u16 ssa, Lifetime *lifetime, Type *type) {
+x64_allocation_construct(u16 ssa, Lifetime *lifetime, Type *type) {
   x64_Allocation *allocation = allocate(sizeof(x64_Allocation));
   allocation->ssa            = ssa;
   allocation->lifetime       = *lifetime;
@@ -216,38 +216,43 @@ x64_allocation_allocate(u16 ssa, Lifetime *lifetime, Type *type) {
   return allocation;
 }
 
-x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict la,
+static void x64_allocator_stack_allocate(x64_Allocator *restrict allocator,
+                                         x64_Allocation *restrict allocation) {
+  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+}
+
+static void x64_allocator_register_allocate(x64_Allocator *restrict allocator,
+                                            u16 Idx,
+                                            x64_Allocation *restrict allocation,
+                                            x64_Bytecode *restrict x64bc) {
+  x64_allocator_release_expired_lifetimes(allocator, Idx);
+
+  if (x64_gprp_allocate(&allocator->gprp, allocation)) { return; }
+
+  // otherwise spill the oldest active allocation to the stack.
+  x64_Allocation *oldest_active = x64_gprp_oldest_allocation(&allocator->gprp);
+
+  if (oldest_active->lifetime.last_use > allocation->lifetime.last_use) {
+    x64_allocator_spill_allocation(allocator, oldest_active, x64bc);
+    x64_gprp_allocate(&allocator->gprp, allocation);
+  } else {
+    x64_allocator_stack_allocate(allocator, allocation);
+  }
+}
+
+x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict allocator,
                                        u16 Idx,
                                        LocalVariable *local,
                                        x64_Bytecode *restrict x64bc) {
-  /*
-    #TODO: in order to support assignment we are going to have to allocate
-    local variables into a stack slot. this has a lot of knock on effects.
-    for one the way we select instructions might need to change to be more
-    aware of this fact.
-    for another we need some way of associating a local variable with a stack
-    allocation, and a register allocation, and being able to mark the register
-    allocation as out of date, and the stack allocation as out of date.
-    (the register allocation acts sort of like a cache for the stack allocated
-     value.)
-
-  */
-  Lifetime *lifetime = li_at(&la->lifetimes, local->ssa);
+  Lifetime *lifetime = li_at(&allocator->lifetimes, local->ssa);
   x64_Allocation *allocation =
-      x64_allocation_allocate(local->ssa, lifetime, local->type);
+      x64_allocation_construct(local->ssa, lifetime, local->type);
 
-  x64_allocator_release_expired_lifetimes(la, Idx);
-
-  if (x64_gprp_allocate(&la->gprp, allocation)) { return allocation; }
-
-  // otherwise spill the oldest active allocation to the stack.
-  x64_Allocation *oldest_active = x64_gprp_oldest_allocation(&la->gprp);
-
-  if (oldest_active->lifetime.last_use > lifetime->last_use) {
-    x64_allocator_spill_allocation(la, oldest_active, x64bc);
-    x64_gprp_allocate(&la->gprp, allocation);
+  // if the local is unnamed and scalar, attempt register allocation
+  if (string_view_empty(local->name) && type_is_scalar(local->type)) {
+    x64_allocator_register_allocate(allocator, Idx, allocation, x64bc);
   } else {
-    x64_stack_allocations_allocate(&la->stack_allocations, allocation);
+    x64_allocator_stack_allocate(allocator, allocation);
   }
 
   return allocation;
@@ -301,7 +306,7 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
 
   Lifetime *lifetime = li_at(&allocator->lifetimes, local->ssa);
   x64_Allocation *allocation =
-      x64_allocation_allocate(local->ssa, lifetime, local->type);
+      x64_allocation_construct(local->ssa, lifetime, local->type);
 
   x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
   return allocation;
@@ -324,9 +329,12 @@ void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
 x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                           x64_Bytecode *restrict x64bc) {
   x64_Allocation *oldest = x64_gprp_oldest_allocation(&allocator->gprp);
-  x64_GPR gpr            = oldest->location.gpr;
-  x64_allocator_spill_allocation(allocator, oldest, x64bc);
-  return gpr;
+  if (oldest != NULL) {
+    x64_GPR gpr = oldest->location.gpr;
+    x64_allocator_spill_allocation(allocator, oldest, x64bc);
+    return gpr;
+  }
+  assert(0);
 }
 
 x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,

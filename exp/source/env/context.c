@@ -140,8 +140,9 @@ Operand context_new_ssa(Context *restrict c) {
   return function_body_new_ssa(context_current_function(c));
 }
 
-void context_new_local(Context *restrict c, StringView name, u16 ssa) {
-  function_body_new_local(context_current_function(c), name, ssa);
+void context_def_const(Context *restrict c, StringView name, Operand value) {
+  Operand A = context_emit_move(c, value);
+  function_body_new_local(context_current_function(c), name, A.common);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
@@ -158,7 +159,7 @@ void context_leave_function(Context *restrict c) {
   c->current_function = NULL;
 }
 
-Operand context_constants_add(Context *restrict context, Value value) {
+Operand context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
   return constants_add(&(context->constants), value);
 }
@@ -213,7 +214,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
     Value *v = context_constants_at(c, B.common);
     if (v->kind == VALUEKIND_I64) {
       i64 n = -(v->integer);
-      A     = context_constants_add(c, value_create_i64(n));
+      A     = context_constants_append(c, value_create_i64(n));
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -225,7 +226,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
     if (in_range(n)) {
       A = opr_immediate((u16)n);
     } else {
-      A = context_constants_add(c, value_create_i64(n));
+      A = context_constants_append(c, value_create_i64(n));
     }
     break;
   }
@@ -299,7 +300,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   if (in_range(z)) {
     A = opr_immediate((u16)z);
   } else {
-    A = context_constants_add(c, value_create_i64(z));
+    A = context_constants_append(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -368,7 +369,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   if (in_range(z)) {
     A = opr_immediate((u16)z);
   } else {
-    A = context_constants_add(c, value_create_i64(z));
+    A = context_constants_append(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -437,7 +438,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   if (in_range(z)) {
     A = opr_immediate((u16)z);
   } else {
-    A = context_constants_add(c, value_create_i64(z));
+    A = context_constants_append(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -504,7 +505,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   if (in_range(z)) {
     A = opr_immediate((u16)z);
   } else {
-    A = context_constants_add(c, value_create_i64(z));
+    A = context_constants_append(c, value_create_i64(z));
   }
   return success(A);
 }
@@ -571,7 +572,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   if (in_range(z)) {
     A = opr_immediate((u16)z);
   } else {
-    A = context_constants_add(c, value_create_i64(z));
+    A = context_constants_append(c, value_create_i64(z));
   }
   return success(A);
 }

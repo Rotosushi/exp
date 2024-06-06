@@ -28,4 +28,7 @@ typedef struct x64_Allocation {
   Type *type;
 } x64_Allocation;
 
+bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
+                                x64_Location location);
+
 #endif // !EXP_BACKEND_X64_ALLOCATION_H

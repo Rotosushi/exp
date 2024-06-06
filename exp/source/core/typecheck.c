@@ -48,30 +48,6 @@ static TResult success(Type *type) {
   return result;
 }
 
-// typedef struct LocalTypes {
-//   u16 count;
-//   Type **buffer;
-// } LocalTypes;
-
-// static LocalTypes lt_create(u16 count) {
-//   LocalTypes lt = {.count = count, .buffer = callocate(count, sizeof(Type
-//   *))}; return lt;
-// }
-
-// static void lt_destroy(LocalTypes *restrict lt) {
-//   lt->count = 0;
-//   deallocate(lt->buffer);
-//   lt->buffer = NULL;
-// }
-
-// static Type *lt_at(LocalTypes *restrict lt, u16 local) {
-//   return lt->buffer[local];
-// }
-
-// static void lt_set(LocalTypes *restrict lt, u16 local, Type *type) {
-//   lt->buffer[local] = type;
-// }
-
 #define try(decl, call)                                                        \
   Type *decl = NULL;                                                           \
   {                                                                            \
@@ -88,7 +64,7 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
     LocalVariable *local = context_lookup_ssa(c, operand);
     Type *type           = local->type;
     if (type == NULL) {
-      StringView sv = string_view_from_string("", 0);
+      StringView sv = string_view_from_str("", 0);
       return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(sv));
     }
 
@@ -124,7 +100,7 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -140,12 +116,12 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -161,12 +137,12 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -182,12 +158,12 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -203,12 +179,12 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -224,12 +200,12 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_string("", 0);
+    StringView sv = string_view_from_str("", 0);
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
   }
 
@@ -286,7 +262,7 @@ static TResult typecheck_function(Context *restrict c) {
       try(Bty, typecheck_ret(c, I));
 
       if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-        StringView sv = string_view_from_string("", 0);
+        StringView sv = string_view_from_str("", 0);
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
       }
 

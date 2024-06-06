@@ -30,10 +30,10 @@ int multiplication([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
       source_path, "fn main() { const x = 3; const y = 3; return x * y; }", 9);
 
   result |=
-      test_exp(source_path, "fn main() { const x = 3; return x * 3; }", 9);
+      test_exp(source_path, "fn main() { const x = 2; return x * 3; }", 6);
 
   result |=
-      test_exp(source_path, "fn main() { const x = 3; return 3 * x; }", 9);
+      test_exp(source_path, "fn main() { const x = 3; return 1 * x; }", 3);
 
   return result;
 }

@@ -37,7 +37,7 @@
  * AB  -> [opcode(u8)][format(u8)][A(u16)][B(u16)][reserved(u16)]
  * ABC -> [opcode(u8)][format(u8)][A(u16)][B(u16)][C(u16)]
  *
- * // #TODO: add extended instruction formats
+ * // #TODO: add extended instruction formats?
  * ABx -> [opcode(u8)][format(u8)][A(u16)][Bx(u32)]
  * Bx  -> [opcode(u8)][format(u8)][reserved(u16)][Bx(u32)]
  *
@@ -48,20 +48,11 @@
  * format states what format the instruction is in, and
  *  what format the operands are in.
  *
- * A  is operand 1
- * Ax is operand 1, this is A e[x]tended
- * B  is operand 2
- * Bx is operand 2, this is B e[x]tended
- * C  is operand 3
- *
- *
  * format:
  *    8 7        6 5  4 3  2 1
  *  [reserved]   [C]  [B]  [I]
  *
- * I is the Instruction Format
- * B is how to interpret operand 2
- * C is how to interpret operand 3
+ * (I is the Instruction Format)
  *
  */
 

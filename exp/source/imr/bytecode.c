@@ -81,6 +81,7 @@ void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
   Instruction I = inst_AB(OPC_MOVE, A, B);
   bytecode_emit_instruction(bc, I);
 }
+
 // AB  -- L[A] = -(B)
 // AB  -- L[A] = -(C[B])
 // AB  -- L[A] = -(L[B])

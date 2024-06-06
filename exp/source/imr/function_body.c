@@ -91,6 +91,18 @@ void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
   lv->size += 1;
 }
 
+static void local_variables_name_ssa(LocalVariables *restrict lv,
+                                     u16 ssa,
+                                     StringView name) {
+  for (u16 i = 0; i < lv->size; ++i) {
+    LocalVariable *var = lv->buffer + i;
+    if (var->ssa == ssa) {
+      var->name = name;
+      return;
+    }
+  }
+}
+
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name) {
   for (u16 i = 0; i < lv->size; ++i) {
@@ -132,8 +144,7 @@ void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
                              u16 ssa) {
   assert(function != NULL);
-  LocalVariable local = {.name = name, .type = NULL, .ssa = ssa};
-  local_variables_append(&function->locals, local);
+  local_variables_name_ssa(&function->locals, ssa, name);
 }
 
 Operand function_body_new_ssa(FunctionBody *restrict function) {

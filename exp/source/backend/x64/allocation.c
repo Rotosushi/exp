@@ -16,4 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stddef.h>
+
 #include "backend/x64/allocation.h"
+
+bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
+                                x64_Location location) {
+  if (location.kind != allocation->location.kind) { return 0; }
+
+  switch (location.kind) {
+  case ALLOC_GPR:   return location.gpr == allocation->location.gpr;
+  case ALLOC_STACK: return location.offset == allocation->location.offset;
+  default:          unreachable();
+  }
+}

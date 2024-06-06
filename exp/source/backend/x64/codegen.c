@@ -147,7 +147,7 @@ static void x64gen_add(Instruction I,
 
       // since B and C are memory operands we have to move B or C
       // to a reg and then add.
-      x64_GPR gpr = x64_allocator_spill_oldest_active(allocator, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
       x64_Allocation *A =
           x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
@@ -374,19 +374,37 @@ static void x64gen_mul(Instruction I,
     }
 
     case OPRFMT_CONSTANT: {
+      if (x64_allocation_location_eq(B, x64_location_reg(X64GPR_RAX))) {
+        x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
+
+        x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+        x64_bytecode_append_mov(
+            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.C));
+        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+        break;
+      }
+
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.C));
+          x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.C));
       x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
+      if (x64_allocation_location_eq(B, x64_location_reg(X64GPR_RAX))) {
+        x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
+
+        x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+        x64_bytecode_append_mov(
+            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.C));
+        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+        break;
+      }
+
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.C));
+          x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.C));
       x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
       break;
     }
@@ -399,11 +417,19 @@ static void x64gen_mul(Instruction I,
   case OPRFMT_CONSTANT: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-    x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+    if (x64_allocation_location_eq(C, x64_location_reg(X64GPR_RAX))) {
+      x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append_mov(
+          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.B));
+      x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+      break;
+    }
+
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.B));
+        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
     x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
     break;
   }
@@ -411,11 +437,19 @@ static void x64gen_mul(Instruction I,
   case OPRFMT_IMMEDIATE: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-    x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append_mov(
+          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.B));
+      x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+      break;
+    }
+
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.B));
+        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
     x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
     break;
   }

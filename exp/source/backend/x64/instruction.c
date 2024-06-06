@@ -86,19 +86,19 @@ void x64_inst_emit(x64_Instruction I,
   }
 
   case X64OPC_PUSH: {
-    string_append(buffer, SV("push "));
+    string_append(buffer, SV("pushq "));
     x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_POP: {
-    string_append(buffer, SV("pop "));
+    string_append(buffer, SV("popq "));
     x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_MOV: {
-    string_append(buffer, SV("mov "));
+    string_append(buffer, SV("movq "));
     x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
     x64opr_print(I.Afmt, I.A, buffer, context);
@@ -106,13 +106,13 @@ void x64_inst_emit(x64_Instruction I,
   }
 
   case X64OPC_NEG: {
-    string_append(buffer, SV("neg "));
+    string_append(buffer, SV("negq "));
     x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_ADD: {
-    string_append(buffer, SV("add "));
+    string_append(buffer, SV("addq "));
     x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
     x64opr_print(I.Afmt, I.A, buffer, context);
@@ -120,7 +120,7 @@ void x64_inst_emit(x64_Instruction I,
   }
 
   case X64OPC_SUB: {
-    string_append(buffer, SV("sub "));
+    string_append(buffer, SV("subq "));
     x64opr_print(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
     x64opr_print(I.Afmt, I.A, buffer, context);
@@ -128,13 +128,13 @@ void x64_inst_emit(x64_Instruction I,
   }
 
   case X64OPC_IMUL: {
-    string_append(buffer, SV("imul "));
+    string_append(buffer, SV("imulq "));
     x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IDIV: {
-    string_append(buffer, SV("idiv "));
+    string_append(buffer, SV("idivq "));
     x64opr_print(I.Afmt, I.A, buffer, context);
     break;
   }

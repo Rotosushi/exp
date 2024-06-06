@@ -249,9 +249,7 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
   }
 
-  Operand A = context_emit_move(c, maybe.result);
-  assert(A.format == OPRFMT_SSA);
-  context_new_local(c, name, A.common);
+  context_def_const(c, name, maybe.result);
   return success(zero());
 }
 
@@ -395,19 +393,19 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_add(c, value_create_nil());
+  Operand idx = context_constants_append(c, value_create_nil());
   return success(idx);
 }
 
 static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_add(c, value_create_boolean(1));
+  Operand idx = context_constants_append(c, value_create_boolean(1));
   return success(idx);
 }
 
 static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_add(c, value_create_boolean(0));
+  Operand idx = context_constants_append(c, value_create_boolean(0));
   return success(idx);
 }
 
@@ -420,7 +418,7 @@ static ParserResult integer(Parser *restrict p, Context *restrict c) {
   if ((integer >= 0) && (integer < u16_MAX)) {
     B = opr_immediate((u16)integer);
   } else {
-    B = context_constants_add(c, value_create_i64(integer));
+    B = context_constants_append(c, value_create_i64(integer));
   }
 
   return success(B);
