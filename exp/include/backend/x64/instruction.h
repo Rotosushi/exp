@@ -43,6 +43,10 @@
   so we are simplifying this for now, just to represent
   what we need to. all operands are going to be 64 bit.
 
+  #TODO emiting instructions needs to take into account the size of
+  their operands, such that we can append the correct mnemonic
+  suffix to the x64 assembly instruction.
+
 */
 
 typedef enum x64_Opcode {

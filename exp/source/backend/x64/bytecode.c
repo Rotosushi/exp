@@ -133,7 +133,7 @@ void x64_bytecode_prepend_sub(x64_Bytecode *restrict bc,
                               x64_Operand B) {
   assert(bc != NULL);
   x64_Instruction I = x64_inst_AB(X64OPC_SUB, A, B);
-  x64bytecode_append_instruction(bc, I);
+  x64bytecode_prepend_instruction(bc, I);
 }
 
 void x64_bytecode_append_imul(x64_Bytecode *restrict bc, x64_Operand A) {

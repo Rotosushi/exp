@@ -25,7 +25,9 @@
 #include "backend/x64/emit.h"
 
 static void x64gen_ret(Instruction I,
+                       [[maybe_unused]] u16 Idx,
                        x64_Bytecode *restrict x64bc,
+                       [[maybe_unused]] LocalVariables *restrict locals,
                        x64_Allocator *restrict allocator) {
   // since we are returning, we know by definition
   // that lifetimes are ending. thus we can just emit
@@ -717,7 +719,7 @@ static void x64gen_bytecode(Bytecode *restrict bc,
 
     switch (I.opcode) {
     case OPC_RET: {
-      x64gen_ret(I, x64bc, allocator);
+      x64gen_ret(I, idx, x64bc, locals, allocator);
       break;
     }
 
@@ -759,16 +761,6 @@ static void x64gen_bytecode(Bytecode *restrict bc,
     default: unreachable();
     }
   }
-
-  x64_bytecode_prepend_mov(
-      x64bc, x64_opr_gpr(X64GPR_RBP), x64_opr_gpr(X64GPR_RSP));
-  x64_bytecode_prepend_push(x64bc, x64_opr_gpr(X64GPR_RBP));
-  if (x64_allocator_uses_stack(allocator)) {
-    x64_bytecode_prepend_sub(
-        x64bc,
-        x64_opr_gpr(X64GPR_RSP),
-        x64_opr_immediate(x64_allocator_total_stack_size(allocator)));
-  }
 }
 
 static void x64gen_function(FunctionBody *restrict body,
@@ -779,7 +771,18 @@ static void x64gen_function(FunctionBody *restrict body,
   x64_Allocator allocator = x64_allocator_create(body);
 
   x64gen_bytecode(bc, x64bc, locals, &allocator);
+
   x64body->stack_size = x64_allocator_total_stack_size(&allocator);
+
+  if (x64_allocator_uses_stack(&allocator)) {
+    x64_bytecode_prepend_sub(
+        x64bc,
+        x64_opr_gpr(X64GPR_RSP),
+        x64_opr_immediate(x64_allocator_total_stack_size(&allocator)));
+  }
+  x64_bytecode_prepend_mov(
+      x64bc, x64_opr_gpr(X64GPR_RBP), x64_opr_gpr(X64GPR_RSP));
+  x64_bytecode_prepend_push(x64bc, x64_opr_gpr(X64GPR_RBP));
 
   x64_allocator_destroy(&allocator);
 }

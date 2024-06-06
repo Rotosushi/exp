@@ -40,10 +40,34 @@ x64_Instruction x64_inst_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
   return I;
 }
 
-void x64opr_print(x64_OperandFormat fmt,
-                  u16 common,
-                  String *restrict buffer,
-                  Context *restrict context) {
+static void x64_emit_mnemonic(StringView mnemonic,
+                              [[maybe_unused]] x64_Instruction I,
+                              String *restrict buffer,
+                              [[maybe_unused]] Context *restrict context) {
+  string_append(buffer, mnemonic);
+  // if either operand is a register then it is a 64 bit GPR, so we
+  // know we need the 'q' suffix. because, as a simplification, we
+  // only support the 64 bit GPRs.
+  //
+  // as a simplification, we always allocate a 64 bit word for each
+  // type we currently support, so we can safely always emit the 'q'
+  // suffix to handle any type residing on the stack,
+  // (in order to properly handle this we need to get the size
+  // of the type that the operand is representing.)
+  //
+  // if the operand is an immediate then we know it must be either
+  // a single byte 'b' or a single word 'w'. whereas a constant operand
+  // can need the suffix 'b', 'w', 'l', or 'q'.
+  //
+  // however, relying on the above simplification, we always load/store
+  // a quad word, so we can always emit the 'q' suffix.
+  string_append(buffer, SV("q "));
+}
+
+static void x64_emit_opr(x64_OperandFormat fmt,
+                         u16 common,
+                         String *restrict buffer,
+                         Context *restrict context) {
   switch (fmt) {
   case X64OPRFMT_GPR: {
     string_append(buffer, SV("%"));
@@ -86,56 +110,56 @@ void x64_inst_emit(x64_Instruction I,
   }
 
   case X64OPC_PUSH: {
-    string_append(buffer, SV("pushq "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_mnemonic(SV("push"), I, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_POP: {
-    string_append(buffer, SV("popq "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_mnemonic(SV("pop"), I, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_MOV: {
-    string_append(buffer, SV("movq "));
-    x64opr_print(I.Bfmt, I.B, buffer, context);
+    x64_emit_mnemonic(SV("mov"), I, buffer, context);
+    x64_emit_opr(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_NEG: {
-    string_append(buffer, SV("negq "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_mnemonic(SV("neg"), I, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_ADD: {
-    string_append(buffer, SV("addq "));
-    x64opr_print(I.Bfmt, I.B, buffer, context);
+    x64_emit_mnemonic(SV("add"), I, buffer, context);
+    x64_emit_opr(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_SUB: {
-    string_append(buffer, SV("subq "));
-    x64opr_print(I.Bfmt, I.B, buffer, context);
+    x64_emit_mnemonic(SV("sub"), I, buffer, context);
+    x64_emit_opr(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IMUL: {
-    string_append(buffer, SV("imulq "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_mnemonic(SV("imul"), I, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IDIV: {
-    string_append(buffer, SV("idivq "));
-    x64opr_print(I.Afmt, I.A, buffer, context);
+    x64_emit_mnemonic(SV("idiv"), I, buffer, context);
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 

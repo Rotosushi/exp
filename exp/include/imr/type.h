@@ -62,6 +62,12 @@ bool function_type_equality(FunctionType const *f1, FunctionType const *f2);
 /**
  * @brief represents Types in the compiler
  *
+ * type attributes, something like u16::max, could work in the same way that
+ * struct members work, there is also no reason we cannot bind a function ptr
+ * there as well, giving type "member" functions. except not tied to a specific
+ * instance of that type. I think we can leverage such a mechanism for type
+ * introspection if we implicitly fill in the member details when we create the
+ * type.
  */
 typedef struct Type {
   TypeKind kind;

@@ -32,6 +32,7 @@ static void emit_x64symbol(x64_Symbol *restrict sym,
   x64_bytecode_emit(&sym->body.bc, buffer, context);
 
   directive_size_label_relative(sym->name, buffer);
+  string_append(buffer, SV("\n"));
 }
 
 static void emit_file_prolouge(Context *restrict context,
