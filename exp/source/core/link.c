@@ -27,6 +27,9 @@ i32 link(Context *restrict context) {
   StringView out_path = context_output_path(context);
 
   // #TODO place our target libraries into one of ld's standard search locations
+  // on install.
+  // #TODO figure out CPACK to create .deb files for installing/uninstalling exp
+  // from a host system.
   char const *args[] = {
       "ld",
       "-o",

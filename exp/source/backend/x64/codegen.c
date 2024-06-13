@@ -31,7 +31,7 @@ static void x64gen_ret(Instruction I,
                        x64_Allocator *restrict allocator) {
   // since we are returning, we know by definition
   // that lifetimes are ending. thus we can just emit
-  // mov's if necessary.
+  // mov's where necessary.
   switch (I.Bfmt) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
@@ -66,7 +66,7 @@ static void x64gen_ret(Instruction I,
   x64_bytecode_append_ret(x64bc);
 }
 
-static void x64gen_move(Instruction I,
+static void x64gen_load(Instruction I,
                         u16 Idx,
                         x64_Bytecode *restrict x64bc,
                         LocalVariables *restrict locals,
@@ -723,8 +723,8 @@ static void x64gen_bytecode(Bytecode *restrict bc,
       break;
     }
 
-    case OPC_MOVE: {
-      x64gen_move(I, idx, x64bc, locals, allocator);
+    case OPC_LOAD: {
+      x64gen_load(I, idx, x64bc, locals, allocator);
       break;
     }
 
@@ -763,6 +763,19 @@ static void x64gen_bytecode(Bytecode *restrict bc,
   }
 }
 
+static void x64gen_function_header(x64_Allocator *restrict allocator,
+                                   x64_Bytecode *restrict x64bc) {
+  if (x64_allocator_uses_stack(allocator)) {
+    x64_bytecode_prepend_sub(
+        x64bc,
+        x64_opr_gpr(X64GPR_RSP),
+        x64_opr_immediate(x64_allocator_total_stack_size(allocator)));
+  }
+  x64_bytecode_prepend_mov(
+      x64bc, x64_opr_gpr(X64GPR_RBP), x64_opr_gpr(X64GPR_RSP));
+  x64_bytecode_prepend_push(x64bc, x64_opr_gpr(X64GPR_RBP));
+}
+
 static void x64gen_function(FunctionBody *restrict body,
                             x64_FunctionBody *restrict x64body) {
   LocalVariables *locals  = &body->locals;
@@ -773,16 +786,7 @@ static void x64gen_function(FunctionBody *restrict body,
   x64gen_bytecode(bc, x64bc, locals, &allocator);
 
   x64body->stack_size = x64_allocator_total_stack_size(&allocator);
-
-  if (x64_allocator_uses_stack(&allocator)) {
-    x64_bytecode_prepend_sub(
-        x64bc,
-        x64_opr_gpr(X64GPR_RSP),
-        x64_opr_immediate(x64_allocator_total_stack_size(&allocator)));
-  }
-  x64_bytecode_prepend_mov(
-      x64bc, x64_opr_gpr(X64GPR_RBP), x64_opr_gpr(X64GPR_RSP));
-  x64_bytecode_prepend_push(x64bc, x64_opr_gpr(X64GPR_RBP));
+  x64gen_function_header(&allocator, x64bc);
 
   x64_allocator_destroy(&allocator);
 }

@@ -249,7 +249,7 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
   }
 
-  context_def_const(c, name, maybe.result);
+  context_def_local_const(c, name, maybe.result);
   return success(zero());
 }
 
@@ -391,6 +391,44 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   }
 }
 
+static ParserResult
+parse_actual_argument_list(Parser *restrict p,
+                           Context *restrict c,
+                           ActualArgumentList *restrict list) {
+  // #note: the nil literal is spelled "()", which is
+  // lexically identical to an empty argument list
+  if (expect(p, TOK_NIL)) { return success(zero()); }
+
+  nexttok(p); // eat '('
+
+  if (!expect(p, TOK_END_PAREN)) {
+    do {
+      ParserResult maybe = expression(p, c);
+      if (maybe.has_error) { return maybe; }
+
+      actual_argument_list_append(list, maybe.result);
+    } while (expect(p, TOK_COMMA));
+
+    if (!expect(p, TOK_END_PAREN)) {
+      return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
+    }
+  }
+
+  return success(zero());
+}
+
+static ParserResult
+call(Parser *restrict p, Context *restrict c, Operand left) {
+  CallPair pair = context_new_call(c);
+
+  {
+    ParserResult maybe = parse_actual_argument_list(p, c, pair.list);
+    if (maybe.has_error) { return maybe; }
+  }
+
+  return success(context_emit_call(c, left, opr_ssa(pair.index)));
+}
+
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand idx = context_constants_append(c, value_create_nil());
@@ -478,7 +516,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_ERROR_UNEXPECTED_CHAR]        = {         NULL,  NULL,   PREC_NONE},
       [TOK_ERROR_UNMATCHED_DOUBLE_QUOTE] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_BEGIN_PAREN] = {       parens,  NULL,   PREC_NONE},
+      [TOK_BEGIN_PAREN] = {       parens,  call,   PREC_NONE},
       [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
       [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
@@ -509,7 +547,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
       [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_NIL]            = {          nil,  NULL,   PREC_NONE},
+      [TOK_NIL]            = {          nil,  call,   PREC_NONE},
       [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
       [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
       [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},

@@ -33,7 +33,9 @@ Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
 void bytecode_emit_return(Bytecode *restrict bc, Operand B);
-void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B);
+void bytecode_emit_call(Bytecode *restrict bc, Operand A, Operand B, Operand C);
+
+void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B);
 
 void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B);
 void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C);

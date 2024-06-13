@@ -150,12 +150,22 @@ Bytecode *context_active_bytecode(Context *restrict c) {
   return &(context_current_function(c)->bc);
 }
 
-Operand context_new_ssa(Context *restrict c) {
+static Operand context_new_ssa(Context *restrict c) {
   return function_body_new_ssa(context_current_function(c));
 }
 
-void context_def_const(Context *restrict c, StringView name, Operand value) {
-  Operand A = context_emit_move(c, value);
+CallPair context_new_call(Context *restrict c) {
+  return function_body_new_call(context_current_function(c));
+}
+
+ActualArgumentList *context_call_at(Context *restrict c, u16 idx) {
+  return function_body_call_at(context_current_function(c), idx);
+}
+
+void context_def_local_const(Context *restrict c,
+                             StringView name,
+                             Operand value) {
+  Operand A = context_emit_load(c, value);
   function_body_new_local(context_current_function(c), name, A.common);
 }
 
@@ -193,7 +203,7 @@ static FoldResult error(ErrorCode code, StringView sv) {
   return result;
 }
 
-void fresult_destroy(FoldResult *restrict fr) {
+void fold_result_destroy(FoldResult *restrict fr) {
   if (fr->has_error) { error_destroy(&fr->error); }
 }
 
@@ -203,11 +213,19 @@ void context_emit_return(Context *restrict c, Operand B) {
   bytecode_emit_return(bc, B);
 }
 
-Operand context_emit_move(Context *restrict c, Operand B) {
+Operand context_emit_call(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_emit_move(bc, A, B);
+  bytecode_emit_call(bc, A, B, C);
+  return A;
+}
+
+Operand context_emit_load(Context *restrict c, Operand B) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_ssa(c);
+  bytecode_emit_load(bc, A, B);
   return A;
 }
 

@@ -174,12 +174,9 @@ static void print_function_type(FunctionType const *restrict ft,
 
 void print_type(Type const *restrict t, FILE *restrict file) {
   switch (t->kind) {
-  case TYPEKIND_NIL: file_write("nil", file); break;
-
-  case TYPEKIND_BOOLEAN: file_write("bool", file); break;
-
-  case TYPEKIND_I64: file_write("i64", file); break;
-
+  case TYPEKIND_NIL:      file_write("nil", file); break;
+  case TYPEKIND_BOOLEAN:  file_write("bool", file); break;
+  case TYPEKIND_I64:      file_write("i64", file); break;
   case TYPEKIND_FUNCTION: print_function_type(&t->function_type, file); break;
 
   default: file_write("undefined", file);

@@ -53,8 +53,29 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
 
+typedef struct ActualArgumentList {
+  Operand *list;
+  u8 size;
+  u8 capacity;
+} ActualArgumentList;
+
+void actual_argument_list_append(ActualArgumentList *restrict aal,
+                                 Operand operand);
+
+typedef struct CallList {
+  ActualArgumentList *list;
+  u16 size;
+  u16 capacity;
+} CallList;
+
+typedef struct CallPair {
+  u16 index;
+  ActualArgumentList *list;
+} CallPair;
+
 typedef struct FunctionBody {
   FormalArgumentList arguments;
+  CallList calls;
   LocalVariables locals;
   Type *return_type;
   u16 ssa_count;
@@ -63,6 +84,10 @@ typedef struct FunctionBody {
 
 FunctionBody function_body_create();
 void function_body_destroy(FunctionBody *restrict function);
+
+CallPair function_body_new_call(FunctionBody *restrict function);
+ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
+                                          u16 idx);
 
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,

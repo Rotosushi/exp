@@ -95,7 +95,7 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
   }
 }
 
-static TResult typecheck_move(Context *restrict c, Instruction I) {
+static TResult typecheck_load(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.Bfmt, I.B));
   local->type = Bty;
@@ -104,6 +104,36 @@ static TResult typecheck_move(Context *restrict c, Instruction I) {
 
 static TResult typecheck_ret(Context *restrict c, Instruction I) {
   return typecheck_operand(c, I.Bfmt, I.B);
+}
+
+static TResult typecheck_call(Context *restrict c, Instruction I) {
+  LocalVariable *local = context_lookup_ssa(c, I.A);
+  try(Bty, typecheck_operand(c, I.Bfmt, I.B));
+
+  if (Bty->kind != TYPEKIND_FUNCTION) {
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+  }
+
+  FunctionType *function_type     = &Bty->function_type;
+  ArgumentTypes *formal_types     = &function_type->argument_types;
+  ActualArgumentList *actual_args = context_call_at(c, I.C);
+
+  if (formal_types->size != actual_args->size) {
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+  }
+
+  for (u8 i = 0; i < actual_args->size; ++i) {
+    Type *formal_type = formal_types->types[i];
+    Operand operand   = actual_args->list[i];
+    try(actual_type, typecheck_operand(c, operand.format, operand.common));
+
+    if (!type_equality(actual_type, formal_type)) {
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+    }
+  }
+
+  local->type = function_type->return_type;
+  return success(function_type->return_type);
 }
 
 static TResult typecheck_neg(Context *restrict c, Instruction I) {
@@ -235,8 +265,25 @@ static TResult typecheck_function(Context *restrict c) {
   for (u16 idx = 0; idx < bc->length; ++idx) {
     Instruction I = ip[idx];
     switch (I.opcode) {
-    case OPC_MOVE: {
-      try(Bty, typecheck_move(c, I));
+    case OPC_RET: {
+      try(Bty, typecheck_ret(c, I));
+
+      if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
+        StringView sv = string_view_from_str("", 0);
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+      }
+
+      return_type = Bty;
+      break;
+    }
+
+    case OPC_CALL: {
+      try(Aty, typecheck_call(c, I));
+      break;
+    }
+
+    case OPC_LOAD: {
+      try(Bty, typecheck_load(c, I));
       break;
     }
 
@@ -267,18 +314,6 @@ static TResult typecheck_function(Context *restrict c) {
 
     case OPC_MOD: {
       try(Aty, typecheck_mod(c, I));
-      break;
-    }
-
-    case OPC_RET: {
-      try(Bty, typecheck_ret(c, I));
-
-      if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-        StringView sv = string_view_from_str("", 0);
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
-      }
-
-      return_type = Bty;
       break;
     }
 

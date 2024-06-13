@@ -89,7 +89,12 @@ FunctionBody *context_enter_function(Context *restrict c, StringView name);
 FunctionBody *context_current_function(Context *restrict c);
 Bytecode *context_active_bytecode(Context *restrict c);
 
-void context_def_const(Context *restrict c, StringView name, Operand value);
+CallPair context_new_call(Context *restrict c);
+ActualArgumentList *context_call_at(Context *restrict c, u16 idx);
+
+void context_def_local_const(Context *restrict c,
+                             StringView name,
+                             Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
 LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
 
@@ -109,10 +114,12 @@ typedef struct FoldResult {
   };
 } FoldResult;
 
-void fresult_destroy(FoldResult *restrict fr);
+void fold_result_destroy(FoldResult *restrict fr);
 
 void context_emit_return(Context *restrict c, Operand B);
-Operand context_emit_move(Context *restrict c, Operand B);
+Operand context_emit_call(Context *restrict c, Operand B, Operand C);
+
+Operand context_emit_load(Context *restrict c, Operand B);
 
 FoldResult context_emit_neg(Context *restrict c, Operand B);
 FoldResult context_emit_add(Context *restrict c, Operand B, Operand C);

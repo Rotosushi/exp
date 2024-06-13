@@ -67,19 +67,23 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 // B -- L[R] = L[B], <return>
 void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
   assert(bc != NULL);
+  bytecode_emit_instruction(bc, inst_B(OPC_RET, B));
+}
 
-  Instruction I = inst_B(OPC_RET, B);
-  bytecode_emit_instruction(bc, I);
+void bytecode_emit_call(Bytecode *restrict bc,
+                        Operand A,
+                        Operand B,
+                        Operand C) {
+  assert(bc != NULL);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_CALL, A, B, C));
 }
 
 // AB -- L[A] = B
 // AB -- L[A] = C[B]
 // AB -- L[A] = L[B]
-void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
+void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
-
-  Instruction I = inst_AB(OPC_MOVE, A, B);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_AB(OPC_LOAD, A, B));
 }
 
 // AB  -- L[A] = -(B)
@@ -87,9 +91,7 @@ void bytecode_emit_move(Bytecode *restrict bc, Operand A, Operand B) {
 // AB  -- L[A] = -(L[B])
 void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
-
-  Instruction I = inst_AB(OPC_NEG, A, B);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_AB(OPC_NEG, A, B));
 }
 
 // ABC -- L[A] = L[B] + L[C]
@@ -103,9 +105,7 @@ void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
 // ABC -- L[A] = B    + C
 void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-
-  Instruction I = inst_ABC(OPC_ADD, A, B, C);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_ADD, A, B, C));
 }
 
 // ABC -- L[A] = L[B] - L[C]
@@ -119,9 +119,7 @@ void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    - C
 void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-
-  Instruction I = inst_ABC(OPC_SUB, A, B, C);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_SUB, A, B, C));
 }
 
 // ABC -- L[A] = L[B] * L[C]
@@ -135,9 +133,7 @@ void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    * C
 void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-
-  Instruction I = inst_ABC(OPC_MUL, A, B, C);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_MUL, A, B, C));
 }
 
 // ABC -- L[A] = L[B] / L[C]
@@ -151,9 +147,7 @@ void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    / C
 void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-
-  Instruction I = inst_ABC(OPC_DIV, A, B, C);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_DIV, A, B, C));
 }
 
 // ABC -- L[A] = L[B] % L[C]
@@ -167,19 +161,17 @@ void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    % C
 void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-
-  Instruction I = inst_ABC(OPC_MOD, A, B, C);
-  bytecode_emit_instruction(bc, I);
+  bytecode_emit_instruction(bc, inst_ABC(OPC_MOD, A, B, C));
 }
 
 static void print_local(u16 v, FILE *restrict file) {
-  file_write("L[", file);
+  file_write("SSA[", file);
   print_u64(v, RADIX_DECIMAL, file);
   file_write("]", file);
 }
 
 static void print_constant(u16 v, FILE *restrict file) {
-  file_write("C[", file);
+  file_write("Constant[", file);
   print_u64(v, RADIX_DECIMAL, file);
   file_write("]", file);
 }
@@ -188,120 +180,106 @@ static void print_immediate(u16 v, FILE *restrict file) {
   print_i64((i16)v, RADIX_DECIMAL, file);
 }
 
+static void print_global(u16 v, FILE *restrict file) {
+  file_write("GlobalSymbol[", file);
+  print_u64(v, RADIX_DECIMAL, file);
+  file_write("]", file);
+}
+
 static void
 print_operand(OperandFormat format, u16 value, FILE *restrict file) {
   switch (format) {
-  case OPRFMT_SSA: print_local(value, file); break;
-
-  case OPRFMT_CONSTANT: print_constant(value, file); break;
-
+  case OPRFMT_SSA:       print_local(value, file); break;
+  case OPRFMT_CONSTANT:  print_constant(value, file); break;
   case OPRFMT_IMMEDIATE: print_immediate(value, file); break;
+  case OPRFMT_GLOBAL:    print_global(value, file); break;
 
   default: file_write("undefined", file);
   }
 }
 
-static void print_operand_A(Instruction I, FILE *restrict file) {
-  print_operand(OPRFMT_SSA, I.A, file);
-}
-
-static void print_operand_B(Instruction I, FILE *restrict file) {
+static void
+print_B(char const *restrict inst, Instruction I, FILE *restrict file) {
+  file_write(inst, file);
+  file_write(" ", file);
   print_operand(I.Bfmt, I.B, file);
 }
 
-static void print_operand_C(Instruction I, FILE *restrict file) {
+static void
+print_AB(char const *restrict inst, Instruction I, FILE *restrict file) {
+  file_write(inst, file);
+  file_write(" ", file);
+  print_operand(OPRFMT_SSA, I.A, file);
+  file_write(", ", file);
+  print_operand(I.Bfmt, I.B, file);
+}
+
+static void
+print_ABC(char const *restrict inst, Instruction I, FILE *restrict file) {
+  file_write(inst, file);
+  file_write(" ", file);
+  print_operand(OPRFMT_SSA, I.A, file);
+  file_write(", ", file);
+  print_operand(I.Bfmt, I.B, file);
+  file_write(", ", file);
   print_operand(I.Cfmt, I.C, file);
 }
 
-// "move L[<A>], <B>"
-static void print_move(Instruction I, FILE *restrict file) {
-  file_write("move ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
+// "load L[<A>], <B>"
+static void print_load(Instruction I, FILE *restrict file) {
+  print_AB("load", I, file);
 }
 
 // "neg L[<A>], <B>"
 static void print_neg(Instruction I, FILE *restrict file) {
-  file_write("neg ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
+  print_AB("neg", I, file);
 }
 
 // "add L[<A>], <B>, <C>"
 static void print_add(Instruction I, FILE *restrict file) {
-  file_write("add ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
-  file_write(", ", file);
-  print_operand_C(I, file);
+  print_ABC("add", I, file);
 }
 
 // "sub L[<A>], <B>, <C>"
 static void print_sub(Instruction I, FILE *restrict file) {
-  file_write("sub ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
-  file_write(", ", file);
-  print_operand_C(I, file);
+  print_ABC("sub", I, file);
 }
 
 // "mul L[<A>], <B>, <C>"
 static void print_mul(Instruction I, FILE *restrict file) {
-  file_write("mul ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
-  file_write(", ", file);
-  print_operand_C(I, file);
+  print_ABC("mul", I, file);
 }
 
 // "div L[<A>], <B>, <C>"
 static void print_div(Instruction I, FILE *restrict file) {
-  file_write("div ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
-  file_write(", ", file);
-  print_operand_C(I, file);
+  print_ABC("div", I, file);
 }
 
 // "mod L[<A>], <B>, <C>"
 static void print_mod(Instruction I, FILE *restrict file) {
-  file_write("mod ", file);
-  print_operand_A(I, file);
-  file_write(", ", file);
-  print_operand_B(I, file);
-  file_write(", ", file);
-  print_operand_C(I, file);
+  print_ABC("mod", I, file);
 }
 
 // "ret <B>"
 static void print_ret(Instruction I, FILE *restrict file) {
-  file_write("ret ", file);
-  print_operand_B(I, file);
+  print_B("ret", I, file);
+}
+
+static void print_call(Instruction I, FILE *restrict file) {
+  print_ABC("call", I, file);
 }
 
 static void print_instruction(Instruction I, FILE *restrict file) {
   switch (I.opcode) {
-  case OPC_MOVE: print_move(I, file); break;
-
-  case OPC_NEG: print_neg(I, file); break;
-
-  case OPC_ADD: print_add(I, file); break;
-
-  case OPC_SUB: print_sub(I, file); break;
-
-  case OPC_MUL: print_mul(I, file); break;
-
-  case OPC_DIV: print_div(I, file); break;
-
-  case OPC_MOD: print_mod(I, file); break;
-
-  case OPC_RET: print_ret(I, file); break;
+  case OPC_RET:  print_ret(I, file); break;
+  case OPC_CALL: print_call(I, file); break;
+  case OPC_LOAD: print_load(I, file); break;
+  case OPC_NEG:  print_neg(I, file); break;
+  case OPC_ADD:  print_add(I, file); break;
+  case OPC_SUB:  print_sub(I, file); break;
+  case OPC_MUL:  print_mul(I, file); break;
+  case OPC_DIV:  print_div(I, file); break;
+  case OPC_MOD:  print_mod(I, file); break;
 
   default: file_write("undefined", file); break;
   }
