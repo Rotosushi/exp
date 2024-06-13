@@ -133,25 +133,27 @@ typedef enum Opcode {
 } Opcode;
 
 typedef enum InstructionFormat {
-  IFMT_B   = 0x0,
-  IFMT_AB  = 0x1,
-  IFMT_ABC = 0x2,
+  IFMT_B,
+  IFMT_AB,
+  IFMT_ABC,
 } InstructionFormat;
 
 typedef enum OperandFormat {
-  OPRFMT_SSA       = 0x0,
-  OPRFMT_CONSTANT  = 0x1,
-  OPRFMT_IMMEDIATE = 0x2,
+  OPRFMT_SSA,
+  OPRFMT_CONSTANT,
+  OPRFMT_IMMEDIATE,
+  OPRFMT_GLOBAL,
 } OperandFormat;
 
 typedef struct Operand {
-  unsigned format : 2;
+  unsigned format : 3;
   unsigned common : 16;
 } Operand;
 
 Operand opr_constant(u16 index);
 Operand opr_immediate(u16 imm);
 Operand opr_ssa(u16 ssa);
+Operand opr_global(u16 idx);
 
 /**
  * @brief represents a bytecode instruction
@@ -160,9 +162,8 @@ Operand opr_ssa(u16 ssa);
 typedef struct Instruction {
   unsigned opcode   : 8;
   unsigned I_format : 2;
-  unsigned Bfmt     : 2;
-  unsigned Cfmt     : 2;
-  unsigned          : 2;
+  unsigned Bfmt     : 3;
+  unsigned Cfmt     : 3;
   unsigned A        : 16;
   unsigned B        : 16;
   unsigned C        : 16;

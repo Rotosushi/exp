@@ -813,7 +813,7 @@ static void x64gen_ste(SymbolTableElement *restrict ste,
 void x64_codegen(Context *restrict context) {
   x64_Context x64context = x64_context_create(context);
 
-  SymbolTableIterator iter = context_global_symbol_iterator(context);
+  SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
   while (!symbol_table_iterator_done(&iter)) {
     x64gen_ste(iter.element, &x64context);

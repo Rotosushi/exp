@@ -19,17 +19,22 @@
 #include "imr/instruction.h"
 
 Operand opr_constant(u16 index) {
-  Operand opr = {.format = (u8)OPRFMT_CONSTANT, .common = index};
+  Operand opr = {.format = OPRFMT_CONSTANT, .common = index};
   return opr;
 }
 
 Operand opr_immediate(u16 imm) {
-  Operand opr = {.format = (u8)OPRFMT_IMMEDIATE, .common = imm};
+  Operand opr = {.format = OPRFMT_IMMEDIATE, .common = imm};
   return opr;
 }
 
 Operand opr_ssa(u16 ssa) {
-  Operand opr = {.format = (u8)OPRFMT_SSA, .common = ssa};
+  Operand opr = {.format = OPRFMT_SSA, .common = ssa};
+  return opr;
+}
+
+Operand opr_global(u16 idx) {
+  Operand opr = {.format = OPRFMT_GLOBAL, .common = idx};
   return opr;
 }
 

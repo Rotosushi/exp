@@ -24,7 +24,7 @@ x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
   x64_Context x64context = {
       .context = context,
-      .symbols = x64_symbol_table_create(context->global_symbols.count)};
+      .symbols = x64_symbol_table_create(context->global_symbol_table.count)};
   return x64context;
 }
 

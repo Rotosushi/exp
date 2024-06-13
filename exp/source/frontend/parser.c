@@ -427,10 +427,17 @@ static ParserResult integer(Parser *restrict p, Context *restrict c) {
 static ParserResult identifier(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   nexttok(p);
-  LocalVariable *var = context_lookup_local(c, name);
-  if (var == NULL) { return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL); }
 
-  return success(opr_ssa(var->ssa));
+  LocalVariable *var = context_lookup_local(c, name);
+  if (var != NULL) { return success(opr_ssa(var->ssa)); }
+
+  SymbolTableElement *global = context_global_symbol_table_at(c, name);
+  if (string_view_empty(global->name)) {
+    return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
+  }
+
+  u16 idx = context_global_symbols_insert(c, name);
+  return success(opr_global(idx));
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {

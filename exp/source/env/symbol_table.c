@@ -67,7 +67,7 @@ static void symbol_table_grow(SymbolTable *restrict st) {
   if (st->elements != NULL) {
     for (u64 i = 0; i < st->capacity; ++i) {
       SymbolTableElement *element = &(st->elements[i]);
-      if (element->name.ptr == NULL) { continue; }
+      if (string_view_empty(element->name)) { continue; }
 
       SymbolTableElement *dest =
           symbol_table_find(elements, g.new_capacity, element->name);

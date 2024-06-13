@@ -79,6 +79,18 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
     return success(context_i64_type(c));
   }
 
+  case OPRFMT_GLOBAL: {
+    StringView name            = context_global_symbols_at(c, operand);
+    SymbolTableElement *global = context_global_symbol_table_at(c, name);
+    Type *type                 = global->type;
+    if (type == NULL) {
+      StringView sv = string_view_from_str("", 0);
+      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(sv));
+    }
+
+    return success(type);
+  }
+
   default: unreachable();
   }
 }
@@ -308,7 +320,7 @@ static TResult typecheck_ste(Context *restrict c,
 
 i32 typecheck(Context *restrict context) {
   i32 result               = EXIT_SUCCESS;
-  SymbolTableIterator iter = context_global_symbol_iterator(context);
+  SymbolTableIterator iter = context_global_symbol_table_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
     TResult tr = typecheck_ste(context, iter.element);
     if (tr.has_error) {

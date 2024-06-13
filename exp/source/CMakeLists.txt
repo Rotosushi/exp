@@ -31,6 +31,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
+  ${EXP_SOURCE_DIR}/env/global_symbols.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c

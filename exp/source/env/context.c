@@ -26,11 +26,12 @@
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
-  Context context = {.options         = context_options_create(options),
-                     .string_interner = string_interner_create(),
-                     .type_interner   = type_interner_create(),
-                     .global_symbols  = symbol_table_create(),
-                     .constants       = constants_create()};
+  Context context = {.options             = context_options_create(options),
+                     .string_interner     = string_interner_create(),
+                     .type_interner       = type_interner_create(),
+                     .global_symbol_table = symbol_table_create(),
+                     .global_symbols      = global_symbols_create(),
+                     .constants           = constants_create()};
   return context;
 }
 
@@ -39,7 +40,8 @@ void context_destroy(Context *restrict context) {
   context_options_destroy(&(context->options));
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
-  symbol_table_destroy(&(context->global_symbols));
+  symbol_table_destroy(&(context->global_symbol_table));
+  global_symbols_destroy(&(context->global_symbols));
   constants_destroy(&(context->constants));
 }
 
@@ -106,20 +108,32 @@ Type *context_function_type(Context *restrict context,
       &context->type_interner, return_type, argument_types);
 }
 
-SymbolTableElement *context_global_symbols_at(Context *restrict context,
-                                              StringView name) {
+u16 context_global_symbols_insert(Context *restrict context,
+                                  StringView symbol) {
   assert(context != NULL);
-  return symbol_table_at(&context->global_symbols, name);
+  return global_symbols_insert(&context->global_symbols, symbol);
 }
 
-SymbolTableIterator context_global_symbol_iterator(Context *restrict context) {
+StringView context_global_symbols_at(Context *restrict context, u16 idx) {
   assert(context != NULL);
-  return symbol_table_iterator_create(&context->global_symbols);
+  return global_symbols_at(&context->global_symbols, idx);
+}
+
+SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
+                                                   StringView name) {
+  assert(context != NULL);
+  return symbol_table_at(&context->global_symbol_table, name);
+}
+
+SymbolTableIterator
+context_global_symbol_table_iterator(Context *restrict context) {
+  assert(context != NULL);
+  return symbol_table_iterator_create(&context->global_symbol_table);
 }
 
 FunctionBody *context_enter_function(Context *restrict c, StringView name) {
   assert(c != NULL);
-  SymbolTableElement *element = symbol_table_at(&c->global_symbols, name);
+  SymbolTableElement *element = symbol_table_at(&c->global_symbol_table, name);
   if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
 
   c->current_function = &element->function_body;

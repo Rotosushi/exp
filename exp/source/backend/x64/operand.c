@@ -49,7 +49,7 @@ x64_Operand x64_opr_constant(u16 idx) {
   return opr;
 }
 
-x64_Operand x64_opr_immediate(u16 n) {
-  x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .common = n};
+x64_Operand x64_opr_immediate(u16 value) {
+  x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .common = value};
   return opr;
 }
