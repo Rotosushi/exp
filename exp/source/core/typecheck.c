@@ -57,6 +57,9 @@ static TResult success(Type *type) {
   }                                                                            \
   assert(decl != NULL)
 
+static TResult typecheck_global(Context *restrict c,
+                                SymbolTableElement *restrict element);
+
 static TResult
 typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
   switch (fmt) {
@@ -84,8 +87,8 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
     SymbolTableElement *global = context_global_symbol_table_at(c, name);
     Type *type                 = global->type;
     if (type == NULL) {
-      StringView sv = string_view_from_str("", 0);
-      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(sv));
+      try(Gty, typecheck_global(c, global));
+      type = Gty;
     }
 
     return success(type);
@@ -324,17 +327,27 @@ static TResult typecheck_function(Context *restrict c) {
   return success(return_type);
 }
 
-static TResult typecheck_ste(Context *restrict c,
-                             SymbolTableElement *restrict element) {
-  // StringView name = element->name;
+static TResult typecheck_global(Context *restrict c,
+                                SymbolTableElement *restrict element) {
+  if (element->type != NULL) { return success(element->type); }
+
   switch (element->kind) {
   case STE_UNDEFINED: {
     // #TODO: this should be handled as a forward declaration
+    // but only if the type exists.
     return success(context_nil_type(c));
   }
 
   case STE_FUNCTION: {
+    // we want to avoid infinite recursion. but we also need to
+    // handle the fact that functions are going to be typechecked
+    // in an indeterminite order. the natural solution is to type
+    // the dependencies of a function body as those are used within
+    // the function body. This only breaks when we have mutual recursion,
+    // otherwise, when the global is successfully typed.
+    // the question is, how do we accomplish this?
     FunctionBody *body = context_enter_function(c, element->name);
+
     try(Rty, typecheck_function(c));
     context_leave_function(c);
 
@@ -343,8 +356,10 @@ static TResult typecheck_ste(Context *restrict c,
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_create());
     }
 
-    body->return_type = Rty;
-    return success(type_of_function(body, c));
+    body->return_type   = Rty;
+    Type *function_type = type_of_function(body, c);
+    element->type       = function_type;
+    return success(function_type);
   }
 
   default: unreachable();
@@ -357,7 +372,7 @@ i32 typecheck(Context *restrict context) {
   i32 result               = EXIT_SUCCESS;
   SymbolTableIterator iter = context_global_symbol_table_iterator(context);
   while (!symbol_table_iterator_done(&iter)) {
-    TResult tr = typecheck_ste(context, iter.element);
+    TResult tr = typecheck_global(context, iter.element);
     if (tr.has_error) {
       error_print(&tr.error, context_source_path(context), 0);
       tresult_destroy(&tr);

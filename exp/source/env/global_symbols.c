@@ -48,6 +48,11 @@ u16 global_symbols_insert(GlobalSymbols *restrict symbols, StringView symbol) {
 
   if (global_symbols_full(symbols)) { global_symbols_grow(symbols); }
 
+  for (u16 i = 0; i < symbols->size; ++i) {
+    StringView s = symbols->buffer[i];
+    if (string_view_eq(s, symbol)) { return i; }
+  }
+
   u16 idx              = symbols->size;
   symbols->buffer[idx] = symbol;
   symbols->size += 1;

@@ -13,7 +13,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/context.c
   ${EXP_SOURCE_DIR}/backend/x64/emit.c
   ${EXP_SOURCE_DIR}/backend/x64/function_body.c
-  ${EXP_SOURCE_DIR}/backend/x64/gprp.c
   ${EXP_SOURCE_DIR}/backend/x64/instruction.c
   ${EXP_SOURCE_DIR}/backend/x64/location.c
   ${EXP_SOURCE_DIR}/backend/x64/operand.c

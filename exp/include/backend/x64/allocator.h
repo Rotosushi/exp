@@ -19,24 +19,16 @@
 
 #include "backend/x64/allocation.h"
 #include "backend/x64/bytecode.h"
-#include "backend/x64/gprp.h"
+#include "backend/x64/registers.h"
 
-// typedef struct X64ActiveAllocations {
-//   u16 stack_size;
-//   u16 size;
-//   u16 capacity;
-//   x64_Allocation *buffer;
-// } X64ActiveAllocations;
-
-// X64ActiveAllocations x64active_allocations_create();
-// void x64active_allocations_destroy(X64ActiveAllocations *restrict a);
-// x64_Allocation x64active_allocations_add(X64ActiveAllocations *restrict
-// active,
-//                                          u16 ssa,
-//                                          Lifetime lifetime,
-//                                          x64_Location location);
-// void x64active_allocations_erase(X64ActiveAllocations *restrict a,
-//                                  x64_Allocation *restrict aa);
+/**
+ * @brief General Purpose Register Pool
+ *
+ */
+typedef struct x64_GPRP {
+  u16 bitset;
+  x64_Allocation **buffer;
+} x64_GPRP;
 
 typedef struct x64_StackAllocations {
   u16 active_stack_size;
@@ -45,21 +37,6 @@ typedef struct x64_StackAllocations {
   u16 capacity;
   x64_Allocation **buffer;
 } x64_StackAllocations;
-
-x64_StackAllocations x64_stack_allocations_create();
-void x64_stack_allocations_destroy(
-    x64_StackAllocations *restrict stack_allocations);
-void x64_stack_allocations_allocate(
-    x64_StackAllocations *restrict stack_allocations,
-    x64_Allocation *restrict allocation);
-void x64_stack_allocations_erase(
-    x64_StackAllocations *restrict stack_allocations,
-    x64_Allocation *restrict allocation);
-void x64_stack_allocations_release_expired_allocations(
-    x64_StackAllocations *restrict stack_allocations, u16 Idx);
-x64_Allocation *
-x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
-                         u16 ssa);
 
 /**
  * @brief manages where SSA locals are allocated
@@ -104,6 +81,11 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
 
 x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
                                               x64_GPR gpr,
+                                              u16 Idx,
+                                              LocalVariable *local,
+                                              x64_Bytecode *restrict x64bc);
+
+x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
                                               u16 Idx,
                                               LocalVariable *local,
                                               x64_Bytecode *restrict x64bc);

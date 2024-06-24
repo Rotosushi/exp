@@ -96,6 +96,12 @@ static void x64_emit_opr(x64_OperandFormat fmt,
     break;
   }
 
+  case X64OPRFMT_LABEL: {
+    StringView name = context_global_symbols_at(context, common);
+    string_append(buffer, name);
+    break;
+  }
+
   default: unreachable();
   }
 }
@@ -106,6 +112,12 @@ void x64_inst_emit(x64_Instruction I,
   switch (I.opcode) {
   case X64OPC_RET: {
     string_append(buffer, SV("ret"));
+    break;
+  }
+
+  case X64OPC_CALL: {
+    string_append(buffer, SV("call "));
+    x64_emit_opr(I.Afmt, I.A, buffer, context);
     break;
   }
 

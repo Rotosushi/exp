@@ -24,7 +24,124 @@
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
 
-x64_StackAllocations x64_stack_allocations_create() {
+static x64_GPRP x64_gprp_create() {
+  x64_GPRP gprp = {.bitset = 0,
+                   .buffer = callocate(16, sizeof(x64_Allocation *))};
+  return gprp;
+}
+
+static void x64_gprp_destroy(x64_GPRP *restrict gprp) {
+  gprp->bitset = 0;
+  for (u8 i = 0; i < 16; ++i) {
+    deallocate(gprp->buffer[i]);
+  }
+  deallocate(gprp->buffer);
+}
+
+#define SET_BIT(B, r) ((B) |= (u16)(1 << r))
+#define CLR_BIT(B, r) ((B) &= (u16)(~(1 << r)))
+#define CHK_BIT(B, r) (((B) >> r) & 1)
+
+static void x64_gprp_aquire(x64_GPRP *restrict gprp, x64_GPR r) {
+  SET_BIT(gprp->bitset, r);
+}
+
+static void x64_gprp_release(x64_GPRP *restrict gprp, x64_GPR r) {
+  CLR_BIT(gprp->bitset, r);
+  gprp->buffer[r] = NULL;
+}
+
+static bool x64_gprp_any_available(x64_GPRP *restrict gprp,
+                                   x64_GPR *restrict r) {
+  for (u8 i = 0; i < 16; ++i) {
+    if (!CHK_BIT(gprp->bitset, i)) {
+      *r = (x64_GPR)i;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
+                                     x64_GPR gpr,
+                                     x64_Allocation *restrict allocation) {
+  SET_BIT(gprp->bitset, gpr);
+  gprp->buffer[gpr]    = allocation;
+  allocation->location = x64_location_reg(gpr);
+}
+
+static bool x64_gprp_allocate(x64_GPRP *restrict gprp,
+                              x64_Allocation *restrict allocation) {
+  x64_GPR gpr;
+  if (x64_gprp_any_available(gprp, &gpr)) {
+    x64_gprp_allocate_to_gpr(gprp, gpr, allocation);
+    return 1;
+  }
+
+  return 0;
+}
+
+static bool x64_gprp_reallocate(x64_GPRP *restrict gprp,
+                                x64_Allocation *restrict allocation) {
+  assert(allocation->location.kind == ALLOC_GPR);
+  x64_GPR gpr;
+  if (x64_gprp_any_available(gprp, &gpr)) {
+    x64_gprp_release(gprp, allocation->location.gpr);
+    x64_gprp_allocate_to_gpr(gprp, gpr, allocation);
+    return 1;
+  }
+  return 0;
+}
+
+static x64_Allocation *x64_gprp_allocation_at(x64_GPRP *restrict gprp,
+                                              x64_GPR gpr) {
+  return gprp->buffer[gpr];
+}
+
+static x64_Allocation *x64_gprp_allocation_of(x64_GPRP *restrict gprp,
+                                              u16 ssa) {
+  for (u8 i = 0; i < 16; ++i) {
+    x64_Allocation *cursor = gprp->buffer[i];
+    if (cursor == NULL) { continue; }
+    if (cursor->ssa == ssa) { return cursor; }
+  }
+
+  return NULL;
+}
+
+static x64_Allocation *x64_gprp_oldest_allocation(x64_GPRP *restrict gprp) {
+  x64_Allocation *oldest = NULL;
+
+  for (u8 i = 0; i < 16; ++i) {
+    x64_Allocation *cursor = gprp->buffer[i];
+    if (cursor == NULL) { continue; }
+
+    if ((oldest == NULL) ||
+        (oldest->lifetime.last_use < cursor->lifetime.last_use)) {
+      oldest = cursor;
+    }
+  }
+  return oldest;
+}
+
+static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
+                                                 u16 Idx) {
+  for (u8 i = 0; i < 16; ++i) {
+    x64_Allocation *cursor = gprp->buffer[i];
+    if (cursor == NULL) { continue; }
+
+    if (cursor->lifetime.last_use <= Idx) {
+      deallocate(cursor);
+      x64_gprp_release(gprp, i);
+    }
+  }
+}
+
+#undef SET_BIT
+#undef CLR_BIT
+#undef CHK_BIT
+
+static x64_StackAllocations x64_stack_allocations_create() {
   x64_StackAllocations stack_allocations = {
       .active_stack_size = 0,
       .total_stack_size  = 0,
@@ -35,7 +152,7 @@ x64_StackAllocations x64_stack_allocations_create() {
   return stack_allocations;
 }
 
-void x64_stack_allocations_destroy(
+static void x64_stack_allocations_destroy(
     x64_StackAllocations *restrict stack_allocations) {
   if (stack_allocations->buffer != NULL) {
     for (u16 i = 0; i < stack_allocations->count; ++i) {
@@ -64,9 +181,9 @@ stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
   stack_allocations->capacity = (u16)g.new_capacity;
 }
 
-void x64_stack_allocations_allocate(
-    x64_StackAllocations *restrict stack_allocations,
-    x64_Allocation *restrict allocation) {
+static void
+x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
+                               x64_Allocation *restrict allocation) {
   stack_allocations->active_stack_size +=
       (u16)ulmax(8UL, size_of(allocation->type));
   stack_allocations->total_stack_size =
@@ -83,9 +200,9 @@ void x64_stack_allocations_allocate(
   stack_allocations->count += 1;
 }
 
-void x64_stack_allocations_erase(
-    x64_StackAllocations *restrict stack_allocations,
-    x64_Allocation *restrict allocation) {
+static void
+x64_stack_allocations_erase(x64_StackAllocations *restrict stack_allocations,
+                            x64_Allocation *restrict allocation) {
   u16 i = 0;
   for (; i < stack_allocations->count; ++i) {
     x64_Allocation *cursor = stack_allocations->buffer[i];
@@ -101,7 +218,7 @@ void x64_stack_allocations_erase(
   stack_allocations->count -= 1;
 }
 
-void x64_stack_allocations_release_expired_allocations(
+static void x64_stack_allocations_release_expired_allocations(
     x64_StackAllocations *restrict stack_allocations, u16 Idx) {
   for (u16 i = 0; i < stack_allocations->count; ++i) {
     x64_Allocation *cursor = stack_allocations->buffer[i];
@@ -112,7 +229,7 @@ void x64_stack_allocations_release_expired_allocations(
   }
 }
 
-x64_Allocation *
+static x64_Allocation *
 x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
                          u16 ssa) {
   for (u16 i = 0; i < stack_allocations->count; ++i) {
@@ -309,6 +426,28 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
       x64_allocation_construct(local->ssa, lifetime, local->type);
 
   x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
+  return allocation;
+}
+
+x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
+                                              u16 Idx,
+                                              LocalVariable *local,
+                                              x64_Bytecode *restrict x64bc) {
+  if (type_is_scalar(local->type)) {
+    return x64_allocator_allocate_to_gpr(
+        allocator, X64GPR_RAX, Idx, local, x64bc);
+  }
+
+  // #TODO while this is correct, we have to allocate the result of a call
+  // onto the stack when it is too big to fit in %rax. We still have to
+  // let the callee know where it's result is stored. We can use a hidden
+  // first parameter which is a pointer to the result. But we don't support
+  // types which don't fit in %rax yet. so this is fine for now.
+  Lifetime *lifetime = li_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation =
+      x64_allocation_construct(local->ssa, lifetime, local->type);
+
+  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
   return allocation;
 }
 

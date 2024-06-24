@@ -66,6 +66,52 @@ static void x64gen_ret(Instruction I,
   x64_bytecode_append_ret(x64bc);
 }
 
+static void x64gen_arg(Operand arg,
+                       [[maybe_unused]] u8 arg_idx,
+                       [[maybe_unused]] u16 Idx,
+                       [[maybe_unused]] x64_Bytecode *restrict x64bc,
+                       [[maybe_unused]] LocalVariables *restrict locals,
+                       [[maybe_unused]] x64_Allocator *restrict allocator,
+                       [[maybe_unused]] x64_Context *restrict context) {
+  switch (arg.format) {
+  case OPRFMT_SSA: {
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    break;
+  }
+
+  case OPRFMT_GLOBAL: {
+    break;
+  }
+
+  default: unreachable();
+  }
+}
+
+static void x64gen_call(Instruction I,
+                        u16 Idx,
+                        x64_Bytecode *restrict x64bc,
+                        LocalVariables *restrict locals,
+                        x64_Allocator *restrict allocator,
+                        x64_Context *restrict context) {
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
+  x64_allocator_allocate_result(allocator, Idx, local, x64bc);
+
+  ActualArgumentList *args = x64_context_call_at(context, I.C);
+  for (u8 i = 0; i < args->size; ++i) {
+    Operand arg = args->list[i];
+    x64gen_arg(arg, i, Idx, x64bc, locals, allocator, context);
+  }
+
+  x64_bytecode_append_call(x64bc, x64_opr_label(I.B));
+}
+
 static void x64gen_load(Instruction I,
                         u16 Idx,
                         x64_Bytecode *restrict x64bc,
@@ -713,13 +759,19 @@ static void x64gen_mod(Instruction I,
 static void x64gen_bytecode(Bytecode *restrict bc,
                             x64_Bytecode *restrict x64bc,
                             LocalVariables *restrict locals,
-                            x64_Allocator *restrict allocator) {
+                            x64_Allocator *restrict allocator,
+                            x64_Context *restrict context) {
   for (u16 idx = 0; idx < bc->length; ++idx) {
     Instruction I = bc->buffer[idx];
 
     switch (I.opcode) {
     case OPC_RET: {
       x64gen_ret(I, idx, x64bc, locals, allocator);
+      break;
+    }
+
+    case OPC_CALL: {
+      x64gen_call(I, idx, x64bc, locals, allocator, context);
       break;
     }
 
@@ -777,13 +829,14 @@ static void x64gen_function_header(x64_Allocator *restrict allocator,
 }
 
 static void x64gen_function(FunctionBody *restrict body,
-                            x64_FunctionBody *restrict x64body) {
+                            x64_FunctionBody *restrict x64body,
+                            x64_Context *restrict context) {
   LocalVariables *locals  = &body->locals;
   Bytecode *bc            = &body->bc;
   x64_Bytecode *x64bc     = &x64body->bc;
   x64_Allocator allocator = x64_allocator_create(body);
 
-  x64gen_bytecode(bc, x64bc, locals, &allocator);
+  x64gen_bytecode(bc, x64bc, locals, &allocator, context);
 
   x64body->stack_size = x64_allocator_total_stack_size(&allocator);
   x64gen_function_header(&allocator, x64bc);
@@ -792,9 +845,9 @@ static void x64gen_function(FunctionBody *restrict body,
 }
 
 static void x64gen_ste(SymbolTableElement *restrict ste,
-                       x64_Context *restrict x64context) {
-  StringView name       = ste->name;
-  x64_Symbol *x64symbol = x64_context_symbol(x64context, name);
+                       x64_Context *restrict context) {
+  StringView name    = ste->name;
+  x64_Symbol *symbol = x64_context_symbol(context, name);
 
   switch (ste->kind) {
   case STE_UNDEFINED: {
@@ -803,10 +856,12 @@ static void x64gen_ste(SymbolTableElement *restrict ste,
   }
 
   case STE_FUNCTION: {
+    x64_context_enter_function(context, name);
     FunctionBody *body        = &ste->function_body;
-    x64_FunctionBody *x64body = &x64symbol->body;
+    x64_FunctionBody *x64body = &symbol->body;
     *x64body                  = x64_function_body_create(body->arguments.size);
-    x64gen_function(body, x64body);
+    x64gen_function(body, x64body, context);
+    x64_context_leave_function(context);
     break;
   }
 

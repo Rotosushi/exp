@@ -51,6 +51,7 @@
 
 typedef enum x64_Opcode {
   X64OPC_RET,
+  X64OPC_CALL,
   X64OPC_PUSH,
   X64OPC_POP,
   X64OPC_MOV,

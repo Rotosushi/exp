@@ -48,6 +48,7 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   failure |= test_parse("fn f() { return 0; }");
   failure |= test_parse("fn f() { return 3 + 3; }");
   failure |= test_parse("fn f() { return 3 - 5 * 9; }");
+  failure |= test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
 
   if (failure) {
     return EXIT_FAILURE;

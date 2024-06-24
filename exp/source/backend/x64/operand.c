@@ -53,3 +53,8 @@ x64_Operand x64_opr_immediate(u16 value) {
   x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .common = value};
   return opr;
 }
+
+x64_Operand x64_opr_label(u16 idx) {
+  x64_Operand opr = {.format = X64OPRFMT_LABEL, .common = idx};
+  return opr;
+}

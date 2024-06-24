@@ -30,6 +30,7 @@ x64_Bytecode x64_bytecode_create();
 void x64_bytecode_destroy(x64_Bytecode *restrict bc);
 
 void x64_bytecode_append_ret(x64_Bytecode *restrict bc);
+void x64_bytecode_append_call(x64_Bytecode *restrict bc, x64_Operand A);
 
 void x64_bytecode_append_push(x64_Bytecode *restrict bc, x64_Operand A);
 void x64_bytecode_prepend_push(x64_Bytecode *restrict bc, x64_Operand A);

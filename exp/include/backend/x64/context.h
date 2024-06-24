@@ -28,6 +28,15 @@ typedef struct x64_Context {
 x64_Context x64_context_create(Context *restrict context);
 void x64_context_destroy(x64_Context *restrict context);
 
+StringView x64_context_global_symbols_at(x64_Context *restrict context,
+                                         u16 idx);
+
+FunctionBody *x64_context_enter_function(x64_Context *restrict context,
+                                         StringView name);
+void x64_context_leave_function(x64_Context *restrict context);
+
+ActualArgumentList *x64_context_call_at(x64_Context *restrict context, u16 idx);
+
 x64_Symbol *x64_context_symbol(x64_Context *restrict context, StringView name);
 
 #endif // !EXP_BACKEND_X64_CONTEXT_H

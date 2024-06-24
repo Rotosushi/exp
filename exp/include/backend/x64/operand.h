@@ -33,6 +33,7 @@ typedef enum x64_OperandFormat {
   X64OPRFMT_STACK,
   X64OPRFMT_CONSTANT,
   X64OPRFMT_IMMEDIATE,
+  X64OPRFMT_LABEL,
 } x64_OperandFormat;
 
 typedef struct x64_Operand {
@@ -45,5 +46,6 @@ x64_Operand x64_opr_stack(u16 offset);
 x64_Operand x64_opr_alloc(x64_Allocation *alloc);
 x64_Operand x64_opr_constant(u16 idx);
 x64_Operand x64_opr_immediate(u16 value);
+x64_Operand x64_opr_label(u16 idx);
 
 #endif // !EXP_BACKEND_X64_OPERAND_H

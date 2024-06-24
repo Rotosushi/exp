@@ -139,9 +139,9 @@ static bool actual_argument_list_full(ActualArgumentList *restrict list) {
 }
 
 static void actual_argument_list_grow(ActualArgumentList *restrict list) {
-  Growth g       = array_growth_u16(list->capacity, sizeof(Operand));
+  Growth g       = array_growth_u8(list->capacity, sizeof(Operand));
   list->list     = reallocate(list->list, g.alloc_size);
-  list->capacity = g.new_capacity;
+  list->capacity = (u8)g.new_capacity;
 }
 
 void actual_argument_list_append(ActualArgumentList *restrict list,
@@ -176,7 +176,7 @@ static bool call_list_full(CallList *restrict list) {
 static void call_list_grow(CallList *restrict list) {
   Growth g       = array_growth_u16(list->capacity, sizeof(ActualArgumentList));
   list->list     = reallocate(list->list, g.alloc_size);
-  list->capacity = g.new_capacity;
+  list->capacity = (u16)g.new_capacity;
 }
 
 static CallPair call_pair(u16 idx, ActualArgumentList *list) {
@@ -188,12 +188,15 @@ static CallPair call_list_new_call(CallList *restrict list) {
   assert(list != NULL);
   if (call_list_full(list)) { call_list_grow(list); }
 
-  CallPair pair = call_pair(list->size, list->list + list->size);
+  ActualArgumentList *call = list->list + list->size;
+  *call                    = actual_argument_list_create();
+
+  CallPair pair = call_pair(list->size, call);
   list->size += 1;
   return pair;
 }
 
-[[mayb_unused]] static bool index_inbounds(CallList *restrict list, u16 idx) {
+[[maybe_unused]] static bool index_inbounds(CallList *restrict list, u16 idx) {
   return idx < list->size;
 }
 

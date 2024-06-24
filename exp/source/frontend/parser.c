@@ -317,6 +317,11 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
     if (maybe.has_error) { return maybe; }
   }
 
+  if (expect(p, TOK_RIGHT_ARROW)) {
+    ParserResult maybe = parse_type(p, c, &body->return_type);
+    if (maybe.has_error) { return maybe; }
+  }
+
   {
     ParserResult maybe = parse_block(p, c);
     if (maybe.has_error) { return maybe; }
@@ -516,7 +521,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_ERROR_UNEXPECTED_CHAR]        = {         NULL,  NULL,   PREC_NONE},
       [TOK_ERROR_UNMATCHED_DOUBLE_QUOTE] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_BEGIN_PAREN] = {       parens,  call,   PREC_NONE},
+      [TOK_BEGIN_PAREN] = {       parens,  call,   PREC_CALL},
       [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
       [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
@@ -547,7 +552,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
       [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_NIL]            = {          nil,  call,   PREC_NONE},
+      [TOK_NIL]            = {          nil,  call,   PREC_CALL},
       [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
       [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
       [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},

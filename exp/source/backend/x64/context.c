@@ -33,6 +33,29 @@ void x64_context_destroy(x64_Context *restrict context) {
   x64_symbol_table_destroy(&context->symbols);
 }
 
+StringView x64_context_global_symbols_at(x64_Context *restrict context,
+                                         u16 idx) {
+  assert(context != NULL);
+  return context_global_symbols_at(context->context, idx);
+}
+
+FunctionBody *x64_context_enter_function(x64_Context *restrict context,
+                                         StringView name) {
+  assert(context != NULL);
+  return context_enter_function(context->context, name);
+}
+
+void x64_context_leave_function(x64_Context *restrict context) {
+  assert(context != NULL);
+  context_leave_function(context->context);
+}
+
+ActualArgumentList *x64_context_call_at(x64_Context *restrict context,
+                                        u16 idx) {
+  assert(context != NULL);
+  return context_call_at(context->context, idx);
+}
+
 x64_Symbol *x64_context_symbol(x64_Context *restrict context, StringView name) {
   assert(context != NULL);
   return x64_symbol_table_at(&context->symbols, name);
