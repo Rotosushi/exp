@@ -24,22 +24,22 @@
 #include "utility/log.h"
 #include "utility/panic.h"
 
-[[noreturn]] void panic(const char *msg, const char *file, i32 line) {
+[[noreturn]] void panic(StringView msg, const char *file, i32 line) {
   EXP_BREAK()
 
-  log_message(LOG_FATAL, file, (u64)line, msg, stderr);
+  log_message(LOG_FATAL, file, (u64)line, msg.ptr, stderr);
   exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void panic_errno(const char *msg, const char *file, i32 line) {
+[[noreturn]] void panic_errno(StringView msg, const char *file, i32 line) {
   EXP_BREAK()
 
   static char const *text = " errno: ";
   char const *errmsg      = strerror(errno);
-  u64 msglen = strlen(msg), errmsglen = strlen(errmsg), textlen = strlen(text),
+  u64 msglen = msg.length, errmsglen = strlen(errmsg), textlen = strlen(text),
       buflen = msglen + errmsglen + textlen;
   char buf[buflen + 1];
-  memcpy(buf, msg, msglen);
+  memcpy(buf, msg.ptr, msglen);
   memcpy(buf + msglen, text, textlen);
   memcpy(buf + msglen + textlen, errmsg, errmsglen);
   buf[buflen] = '\0';

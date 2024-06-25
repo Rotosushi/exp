@@ -16,16 +16,16 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #include <assert.h>
 
-#include "env/global_symbols.h"
+#include "env/global_labels.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 
-GlobalSymbols global_symbols_create() {
-  GlobalSymbols symbols = {.size = 0, .capacity = 0, .buffer = NULL};
+GlobalLabels global_labels_create() {
+  GlobalLabels symbols = {.size = 0, .capacity = 0, .buffer = NULL};
   return symbols;
 }
 
-void global_symbols_destroy(GlobalSymbols *restrict symbols) {
+void global_labels_destroy(GlobalLabels *restrict symbols) {
   assert(symbols != NULL);
   deallocate(symbols->buffer);
   symbols->buffer   = NULL;
@@ -33,20 +33,20 @@ void global_symbols_destroy(GlobalSymbols *restrict symbols) {
   symbols->capacity = 0;
 }
 
-static bool global_symbols_full(GlobalSymbols *restrict symbols) {
+static bool global_labels_full(GlobalLabels *restrict symbols) {
   return (symbols->size + 1) >= symbols->capacity;
 }
 
-static void global_symbols_grow(GlobalSymbols *restrict symbols) {
+static void global_labels_grow(GlobalLabels *restrict symbols) {
   Growth g          = array_growth_u16(symbols->capacity, sizeof(StringView));
   symbols->buffer   = reallocate(symbols->buffer, g.alloc_size);
   symbols->capacity = (u16)g.new_capacity;
 }
 
-u16 global_symbols_insert(GlobalSymbols *restrict symbols, StringView symbol) {
+u16 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
   assert(symbols != NULL);
 
-  if (global_symbols_full(symbols)) { global_symbols_grow(symbols); }
+  if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
   for (u16 i = 0; i < symbols->size; ++i) {
     StringView s = symbols->buffer[i];
@@ -59,7 +59,7 @@ u16 global_symbols_insert(GlobalSymbols *restrict symbols, StringView symbol) {
   return idx;
 }
 
-StringView global_symbols_at(GlobalSymbols *restrict symbols, u16 idx) {
+StringView global_labels_at(GlobalLabels *restrict symbols, u16 idx) {
   assert(symbols != NULL);
   assert(idx < symbols->size);
   return symbols->buffer[idx];

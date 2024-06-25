@@ -88,8 +88,8 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
     return success(arg->type);
   }
 
-  case OPRFMT_GLOBAL: {
-    StringView name            = context_global_symbols_at(c, operand);
+  case OPRFMT_LABEL: {
+    StringView name            = context_global_labels_at(c, operand);
     SymbolTableElement *global = context_global_symbol_table_at(c, name);
     Type *type                 = global->type;
     if (type == NULL) {

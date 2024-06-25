@@ -192,7 +192,7 @@ print_operand(OperandFormat format, u16 value, FILE *restrict file) {
   case OPRFMT_SSA:       print_local(value, file); break;
   case OPRFMT_CONSTANT:  print_constant(value, file); break;
   case OPRFMT_IMMEDIATE: print_immediate(value, file); break;
-  case OPRFMT_GLOBAL:    print_global(value, file); break;
+  case OPRFMT_LABEL:     print_global(value, file); break;
 
   default: file_write("undefined", file);
   }

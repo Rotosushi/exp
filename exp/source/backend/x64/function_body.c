@@ -43,19 +43,19 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
 
 void x64_formal_argument_list_assign(x64_FormalArgumentList *restrict args,
                                      u8 idx,
-                                     x64_Location allocation,
+                                     x64_Location location,
                                      Type *type) {
   assert(args != NULL);
   x64_FormalArgument *arg = x64_formal_argument_list_at(args, idx);
-  arg->allocation         = allocation;
+  arg->location           = location;
   arg->type               = type;
 }
 
 x64_FunctionBody x64_function_body_create(u8 arg_count) {
   x64_FunctionBody x64body = {.arguments =
                                   x64_formal_argument_list_create(arg_count),
-                              .return_allocation = x64_location_reg(X64GPR_RAX),
-                              .bc                = x64_bytecode_create()};
+                              .return_location = x64_location_reg(X64GPR_RAX),
+                              .bc              = x64_bytecode_create()};
   return x64body;
 }
 

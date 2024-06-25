@@ -20,7 +20,7 @@
 #include "env/constants.h"
 #include "env/context_options.h"
 #include "env/error.h"
-#include "env/global_symbols.h"
+#include "env/global_labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
@@ -35,7 +35,7 @@ typedef struct Context {
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbol_table;
-  GlobalSymbols global_symbols;
+  GlobalLabels global_labels;
   FunctionBody *current_function;
   Constants constants;
 } Context;
@@ -72,10 +72,10 @@ Type *context_function_type(Context *restrict context,
                             Type *return_type,
                             ArgumentTypes argument_types);
 
-// global symbols functions
-u16 context_global_symbols_insert(Context *restrict context, StringView symbol);
+// global labels functions
+u16 context_global_labels_insert(Context *restrict context, StringView symbol);
 
-StringView context_global_symbols_at(Context *restrict context, u16 idx);
+StringView context_global_labels_at(Context *restrict context, u16 idx);
 
 // symbol table functions
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,

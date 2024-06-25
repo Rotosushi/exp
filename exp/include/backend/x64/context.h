@@ -25,18 +25,27 @@ typedef struct x64_Context {
   x64_SymbolTable symbols;
 } x64_Context;
 
+// x64 context functions
 x64_Context x64_context_create(Context *restrict context);
-void x64_context_destroy(x64_Context *restrict context);
+void x64_context_destroy(x64_Context *restrict x64_context);
 
-StringView x64_context_global_symbols_at(x64_Context *restrict context,
+// context functions
+// context global symbol table functions
+StringView x64_context_global_symbols_at(x64_Context *restrict x64_context,
                                          u16 idx);
 
-FunctionBody *x64_context_enter_function(x64_Context *restrict context,
+// context function functions
+FunctionBody *x64_context_enter_function(x64_Context *restrict x64_context,
                                          StringView name);
 void x64_context_leave_function(x64_Context *restrict context);
 
-ActualArgumentList *x64_context_call_at(x64_Context *restrict context, u16 idx);
+ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
+                                        u16 idx);
+FormalArgument *x64_context_argument_at(x64_Context *restrict x64_context,
+                                        u8 index);
 
-x64_Symbol *x64_context_symbol(x64_Context *restrict context, StringView name);
+// x64 symbol table functions
+x64_Symbol *x64_context_symbol(x64_Context *restrict x64_context,
+                               StringView name);
 
 #endif // !EXP_BACKEND_X64_CONTEXT_H

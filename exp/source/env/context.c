@@ -30,7 +30,7 @@ Context context_create(CLIOptions *restrict options) {
                      .string_interner     = string_interner_create(),
                      .type_interner       = type_interner_create(),
                      .global_symbol_table = symbol_table_create(),
-                     .global_symbols      = global_symbols_create(),
+                     .global_labels       = global_labels_create(),
                      .constants           = constants_create()};
   return context;
 }
@@ -41,7 +41,7 @@ void context_destroy(Context *restrict context) {
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbol_table));
-  global_symbols_destroy(&(context->global_symbols));
+  global_labels_destroy(&(context->global_labels));
   constants_destroy(&(context->constants));
 }
 
@@ -108,15 +108,14 @@ Type *context_function_type(Context *restrict context,
       &context->type_interner, return_type, argument_types);
 }
 
-u16 context_global_symbols_insert(Context *restrict context,
-                                  StringView symbol) {
+u16 context_global_labels_insert(Context *restrict context, StringView symbol) {
   assert(context != NULL);
-  return global_symbols_insert(&context->global_symbols, symbol);
+  return global_labels_insert(&context->global_labels, symbol);
 }
 
-StringView context_global_symbols_at(Context *restrict context, u16 idx) {
+StringView context_global_labels_at(Context *restrict context, u16 idx) {
   assert(context != NULL);
-  return global_symbols_at(&context->global_symbols, idx);
+  return global_labels_at(&context->global_labels, idx);
 }
 
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,

@@ -473,8 +473,8 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
   }
 
-  u16 idx = context_global_symbols_insert(c, name);
-  return success(operand_global(idx));
+  u16 idx = context_global_labels_insert(c, name);
+  return success(operand_label(idx));
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {

@@ -30,18 +30,22 @@ x64_Operand x64_operand_stack(u16 offset) {
   return opr;
 }
 
-x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
-  switch (alloc->location.kind) {
+x64_Operand x64_operand_location(x64_Location location) {
+  switch (location.kind) {
   case ALLOC_GPR: {
-    return x64_operand_gpr(alloc->location.gpr);
+    return x64_operand_gpr(location.gpr);
   }
 
   case ALLOC_STACK: {
-    return x64_operand_stack(alloc->location.offset);
+    return x64_operand_stack(location.offset);
   }
 
   default: unreachable();
   }
+}
+
+x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
+  return x64_operand_location(alloc->location);
 }
 
 x64_Operand x64_operand_constant(u16 idx) {

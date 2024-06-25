@@ -145,6 +145,7 @@ void x64_bytecode_emit(x64_Bytecode *restrict bc,
                        String *restrict buffer,
                        Context *restrict context) {
   for (u16 i = 0; i < bc->length; ++i) {
+    string_append(buffer, SV("\t"));
     x64_instruction_emit(bc->buffer[i], buffer, context);
     string_append(buffer, SV("\n"));
   }

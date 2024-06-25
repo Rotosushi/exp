@@ -17,12 +17,12 @@
 #ifndef EXP_UTILITY_PANIC_H
 #define EXP_UTILITY_PANIC_H
 
-#include "utility/int_types.h"
+#include "utility/string_view.h"
 
-[[noreturn]] void panic(const char *msg, const char *file, i32 line);
-[[noreturn]] void panic_errno(const char *msg, const char *file, i32 line);
+[[noreturn]] void panic(StringView msg, const char *file, i32 line);
+[[noreturn]] void panic_errno(StringView msg, const char *file, i32 line);
 
-#define PANIC(msg)       panic(msg, __FILE__, __LINE__)
-#define PANIC_ERRNO(msg) panic_errno(msg, __FILE__, __LINE__)
+#define PANIC(msg)       panic(SV(msg), __FILE__, __LINE__)
+#define PANIC_ERRNO(msg) panic_errno(SV(msg), __FILE__, __LINE__)
 
 #endif // !EXP_UTILITY_PANIC_H

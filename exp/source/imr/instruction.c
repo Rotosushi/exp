@@ -38,8 +38,8 @@ Operand operand_argument(u16 index) {
   return opr;
 }
 
-Operand operand_global(u16 idx) {
-  Operand opr = {.format = OPRFMT_GLOBAL, .common = idx};
+Operand operand_label(u16 idx) {
+  Operand opr = {.format = OPRFMT_LABEL, .common = idx};
   return opr;
 }
 

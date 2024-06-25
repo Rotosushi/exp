@@ -21,7 +21,7 @@
 #include "backend/x64/location.h"
 
 typedef struct x64_FormalArgument {
-  x64_Location allocation;
+  x64_Location location;
   Type *type;
 } x64_FormalArgument;
 
@@ -35,12 +35,12 @@ x64_FormalArgument *
 x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
 void x64_formal_argument_list_assign(x64_FormalArgumentList *restrict args,
                                      u8 idx,
-                                     x64_Location allocation,
+                                     x64_Location location,
                                      Type *type);
 
 typedef struct x64_FunctionBody {
   x64_FormalArgumentList arguments;
-  x64_Location return_allocation;
+  x64_Location return_location;
   u16 stack_size;
   x64_Bytecode bc;
 } x64_FunctionBody;

@@ -18,16 +18,16 @@
 #define EXP_ENV_GLOBAL_SYMBOLS_H
 #include "utility/string_view.h"
 
-typedef struct GlobalSymbols {
+typedef struct GlobalLabels {
   u16 size;
   u16 capacity;
   StringView *buffer;
-} GlobalSymbols;
+} GlobalLabels;
 
-GlobalSymbols global_symbols_create();
-void global_symbols_destroy(GlobalSymbols *restrict symbols);
+GlobalLabels global_labels_create();
+void global_labels_destroy(GlobalLabels *restrict symbols);
 
-u16 global_symbols_insert(GlobalSymbols *restrict symbols, StringView symbol);
-StringView global_symbols_at(GlobalSymbols *restrict symbols, u16 idx);
+u16 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol);
+StringView global_labels_at(GlobalLabels *restrict symbols, u16 idx);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

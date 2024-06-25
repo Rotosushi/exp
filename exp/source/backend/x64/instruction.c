@@ -53,22 +53,29 @@ static void x64_emit_mnemonic(StringView mnemonic,
   // as a simplification, we always allocate a 64 bit word for each
   // type we currently support, so we can safely always emit the 'q'
   // suffix to handle any type residing on the stack,
-  // (in order to properly handle this we need to get the size
-  // of the type that the operand is representing.)
   //
-  // if the operand is an immediate then we know it must be either
-  // a single byte 'b' or a single word 'w'. whereas a constant operand
-  // can need the suffix 'b', 'w', 'l', or 'q'.
+  // #TODO:
+  // we need to get the size of the type that the operand is representing
+  // and choose the correct mnemonic suffix accordingly.
+  // 'b' -> u8
+  // 'w' -> u16
+  // 'l' -> u32
+  // 'q' -> u64
   //
-  // however, relying on the above simplification, we always load/store
+  // additionally
+  // 's' -> f32
+  // 'l' -> f64
+  // 't' -> f80
+  //
+  // however, relying on the above simplifications, we always load/store
   // a quad word, so we can always emit the 'q' suffix.
-  string_append(buffer, SV("q "));
+  string_append(buffer, SV("q\t"));
 }
 
-static void x64_emit_opr(x64_OperandFormat fmt,
-                         u16 common,
-                         String *restrict buffer,
-                         Context *restrict context) {
+static void x64_emit_operand(x64_OperandFormat fmt,
+                             u16 common,
+                             String *restrict buffer,
+                             Context *restrict context) {
   switch (fmt) {
   case X64OPRFMT_GPR: {
     string_append(buffer, SV("%"));
@@ -98,7 +105,7 @@ static void x64_emit_opr(x64_OperandFormat fmt,
   }
 
   case X64OPRFMT_LABEL: {
-    StringView name = context_global_symbols_at(context, common);
+    StringView name = context_global_labels_at(context, common);
     string_append(buffer, name);
     break;
   }
@@ -117,62 +124,62 @@ void x64_instruction_emit(x64_Instruction I,
   }
 
   case X64OPC_CALL: {
-    string_append(buffer, SV("call "));
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    string_append(buffer, SV("call\t"));
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_PUSH: {
     x64_emit_mnemonic(SV("push"), I, buffer, context);
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_POP: {
     x64_emit_mnemonic(SV("pop"), I, buffer, context);
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_MOV: {
     x64_emit_mnemonic(SV("mov"), I, buffer, context);
-    x64_emit_opr(I.Bfmt, I.B, buffer, context);
+    x64_emit_operand(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_NEG: {
     x64_emit_mnemonic(SV("neg"), I, buffer, context);
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_ADD: {
     x64_emit_mnemonic(SV("add"), I, buffer, context);
-    x64_emit_opr(I.Bfmt, I.B, buffer, context);
+    x64_emit_operand(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_SUB: {
     x64_emit_mnemonic(SV("sub"), I, buffer, context);
-    x64_emit_opr(I.Bfmt, I.B, buffer, context);
+    x64_emit_operand(I.Bfmt, I.B, buffer, context);
     string_append(buffer, SV(", "));
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IMUL: {
     x64_emit_mnemonic(SV("imul"), I, buffer, context);
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 
   case X64OPC_IDIV: {
     x64_emit_mnemonic(SV("idiv"), I, buffer, context);
-    x64_emit_opr(I.Afmt, I.A, buffer, context);
+    x64_emit_operand(I.Afmt, I.A, buffer, context);
     break;
   }
 

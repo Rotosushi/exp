@@ -43,6 +43,7 @@ typedef struct x64_Operand {
 
 x64_Operand x64_operand_gpr(u16 gpr);
 x64_Operand x64_operand_stack(u16 offset);
+x64_Operand x64_operand_location(x64_Location location);
 x64_Operand x64_operand_alloc(x64_Allocation *alloc);
 x64_Operand x64_operand_constant(u16 idx);
 x64_Operand x64_operand_immediate(u16 value);
