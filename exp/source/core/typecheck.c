@@ -73,6 +73,7 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
 
     return success(type);
   }
+
   case OPRFMT_CONSTANT: {
     Value *value = context_constants_at(c, operand);
     return success(type_of(value, c));
@@ -80,6 +81,11 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
 
   case OPRFMT_IMMEDIATE: {
     return success(context_i64_type(c));
+  }
+
+  case OPRFMT_ARGUMENT: {
+    FormalArgument *arg = context_argument_at(c, (u8)operand);
+    return success(arg->type);
   }
 
   case OPRFMT_GLOBAL: {
@@ -259,7 +265,6 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_function(Context *restrict c) {
-
   Type *return_type  = NULL;
   FunctionBody *body = context_current_function(c);
   Bytecode *bc       = &body->bc;

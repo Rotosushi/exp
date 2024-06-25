@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string.h>
-
 #include "utility/hash.h"
 
 // non-crypto hash algorithm based on djb2
@@ -30,7 +28,7 @@ u64 hash_cstring(char const *restrict string, u64 length) {
 
   u64 hash = 5381;
   for (u64 i = 0; i < length; ++i)
-    hash = (LARGE_PRIME * hash) + (unsigned char)(string[i]);
+    hash = (LARGE_PRIME * hash) + (u8)(string[i]);
   return hash;
 
 #undef LARGE_PRIME

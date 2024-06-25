@@ -48,9 +48,9 @@ typedef struct Lifetimes {
   Lifetime *buffer;
 } Lifetimes;
 
-Lifetimes li_create(u16 count);
-void li_destroy(Lifetimes *restrict li);
-Lifetime *li_at(Lifetimes *restrict li, u16 ssa);
-Lifetimes li_compute(FunctionBody *restrict body);
+Lifetimes lifetimes_create(u16 count);
+void lifetimes_destroy(Lifetimes *restrict li);
+Lifetime *lifetimes_at(Lifetimes *restrict li, u16 ssa);
+Lifetimes lifetimes_compute(FunctionBody *restrict body);
 
 #endif // !EXP_BACKEND_LIFETIMES_H

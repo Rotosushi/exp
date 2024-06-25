@@ -30,30 +30,30 @@
 #define STRING_INTERNER_MAX_LOAD 0.75
 
 StringInterner string_interner_create() {
-  StringInterner si;
-  si.count    = 0;
-  si.capacity = 0;
-  si.buffer   = NULL;
-  return si;
+  StringInterner string_interner;
+  string_interner.count    = 0;
+  string_interner.capacity = 0;
+  string_interner.buffer   = NULL;
+  return string_interner;
 }
 
-void string_interner_destroy(StringInterner *restrict si) {
-  assert(si != NULL);
+void string_interner_destroy(StringInterner *restrict string_interner) {
+  assert(string_interner != NULL);
 
-  if (si->buffer == NULL) {
-    si->capacity = 0;
-    si->count    = 0;
+  if (string_interner->buffer == NULL) {
+    string_interner->capacity = 0;
+    string_interner->count    = 0;
     return;
   }
 
-  for (u64 i = 0; i < si->capacity; ++i) {
-    string_destroy(si->buffer + i);
+  for (u64 i = 0; i < string_interner->capacity; ++i) {
+    string_destroy(string_interner->buffer + i);
   }
 
-  si->capacity = 0;
-  si->count    = 0;
-  deallocate(si->buffer);
-  si->buffer = NULL;
+  string_interner->capacity = 0;
+  string_interner->count    = 0;
+  deallocate(string_interner->buffer);
+  string_interner->buffer = NULL;
 }
 
 static String *
@@ -67,15 +67,15 @@ string_interner_find(String *restrict strings, u64 capacity, StringView sv) {
   }
 }
 
-static void string_interner_grow(StringInterner *restrict si) {
-  Growth g         = array_growth_u64(si->capacity, sizeof(String));
+static void string_interner_grow(StringInterner *restrict string_interner) {
+  Growth g         = array_growth_u64(string_interner->capacity, sizeof(String));
   String *elements = callocate(g.new_capacity, sizeof(String));
 
   // if the buffer isn't empty, we need to reinsert
   // all existing elements into the new buffer.
-  if (si->buffer != NULL) {
-    for (u64 i = 0; i < si->capacity; ++i) {
-      String *element = &(si->buffer[i]);
+  if (string_interner->buffer != NULL) {
+    for (u64 i = 0; i < string_interner->capacity; ++i) {
+      String *element = &(string_interner->buffer[i]);
       if (string_empty(element)) { continue; }
 
       String *dest = string_interner_find(
@@ -84,26 +84,26 @@ static void string_interner_grow(StringInterner *restrict si) {
     }
     // this is allowed because we move all of the strings
     // to the new buffer.
-    deallocate(si->buffer);
+    deallocate(string_interner->buffer);
   }
 
-  si->capacity = g.new_capacity;
-  si->buffer   = elements;
+  string_interner->capacity = g.new_capacity;
+  string_interner->buffer   = elements;
 }
 
-static bool string_interner_full(StringInterner *restrict si) {
-  u64 load_limit = (u64)floor((double)si->capacity * STRING_INTERNER_MAX_LOAD);
-  return (si->count + 1) >= load_limit;
+static bool string_interner_full(StringInterner *restrict string_interner) {
+  u64 load_limit = (u64)floor((double)string_interner->capacity * STRING_INTERNER_MAX_LOAD);
+  return (string_interner->count + 1) >= load_limit;
 }
 
-StringView string_interner_insert(StringInterner *restrict si, StringView sv) {
-  assert(si != NULL);
-  if (string_interner_full(si)) { string_interner_grow(si); }
+StringView string_interner_insert(StringInterner *restrict string_interner, StringView sv) {
+  assert(string_interner != NULL);
+  if (string_interner_full(string_interner)) { string_interner_grow(string_interner); }
 
-  String *element = string_interner_find(si->buffer, si->capacity, sv);
+  String *element = string_interner_find(string_interner->buffer, string_interner->capacity, sv);
   if (!string_empty(element)) { return string_to_view(element); }
 
-  si->count++;
+  string_interner->count++;
   string_assign(element, sv);
   return string_to_view(element);
 }

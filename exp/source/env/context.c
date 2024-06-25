@@ -178,6 +178,16 @@ LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa) {
                                     ssa);
 }
 
+FormalArgument *context_lookup_argument(Context *restrict c, StringView name) {
+  return formal_argument_list_lookup(&(context_current_function(c)->arguments),
+                                     name);
+}
+
+FormalArgument *context_argument_at(Context *restrict c, u8 index) {
+  return formal_argument_list_at(&(context_current_function(c)->arguments),
+                                 index);
+}
+
 void context_leave_function(Context *restrict c) {
   assert(c != NULL);
   c->current_function = NULL;
@@ -256,7 +266,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
   case OPRFMT_IMMEDIATE: {
     i64 n = -((i64)(B.common));
     if (in_range(n)) {
-      A = opr_immediate((u16)n);
+      A = operand_immediate((u16)n);
     } else {
       A = context_constants_append(c, value_create_i64(n));
     }
@@ -326,11 +336,11 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   }
 
   if (__builtin_add_overflow(x, y, &z)) {
-    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
   }
 
   if (in_range(z)) {
-    A = opr_immediate((u16)z);
+    A = operand_immediate((u16)z);
   } else {
     A = context_constants_append(c, value_create_i64(z));
   }
@@ -395,11 +405,11 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   }
 
   if (__builtin_sub_overflow(x, y, &z)) {
-    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
   }
 
   if (in_range(z)) {
-    A = opr_immediate((u16)z);
+    A = operand_immediate((u16)z);
   } else {
     A = context_constants_append(c, value_create_i64(z));
   }
@@ -464,11 +474,11 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   }
 
   if (__builtin_mul_overflow(x, y, &z)) {
-    return error(ERROR_PARSER_INTEGER_TO_LARGE, string_view_from_cstring(""));
+    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
   }
 
   if (in_range(z)) {
-    A = opr_immediate((u16)z);
+    A = operand_immediate((u16)z);
   } else {
     A = context_constants_append(c, value_create_i64(z));
   }
@@ -535,7 +545,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   z = x / y;
 
   if (in_range(z)) {
-    A = opr_immediate((u16)z);
+    A = operand_immediate((u16)z);
   } else {
     A = context_constants_append(c, value_create_i64(z));
   }
@@ -602,7 +612,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   z = x % y;
 
   if (in_range(z)) {
-    A = opr_immediate((u16)z);
+    A = operand_immediate((u16)z);
   } else {
     A = context_constants_append(c, value_create_i64(z));
   }

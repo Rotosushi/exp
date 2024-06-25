@@ -71,12 +71,13 @@ typedef struct x64_Instruction {
   unsigned B      : 16;
 } x64_Instruction;
 
-x64_Instruction x64_inst(x64_Opcode opcode);
-x64_Instruction x64_inst_A(x64_Opcode opcode, x64_Operand A);
-x64_Instruction x64_inst_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B);
+x64_Instruction x64_instruction(x64_Opcode opcode);
+x64_Instruction x64_instruction_A(x64_Opcode opcode, x64_Operand A);
+x64_Instruction
+x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B);
 
-void x64_inst_emit(x64_Instruction I,
-                   String *restrict buffer,
-                   Context *restrict context);
+void x64_instruction_emit(x64_Instruction I,
+                          String *restrict buffer,
+                          Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

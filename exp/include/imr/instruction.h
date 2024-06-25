@@ -137,6 +137,7 @@ typedef enum OperandFormat {
   OPRFMT_SSA,
   OPRFMT_CONSTANT,
   OPRFMT_IMMEDIATE,
+  OPRFMT_ARGUMENT,
   OPRFMT_GLOBAL,
 } OperandFormat;
 
@@ -145,10 +146,11 @@ typedef struct Operand {
   unsigned common : 16;
 } Operand;
 
-Operand opr_constant(u16 index);
-Operand opr_immediate(u16 imm);
-Operand opr_ssa(u16 ssa);
-Operand opr_global(u16 idx);
+Operand operand_ssa(u16 ssa);
+Operand operand_constant(u16 index);
+Operand operand_immediate(u16 imm);
+Operand operand_argument(u16 index);
+Operand operand_global(u16 idx);
 
 /*
   #TODO if we ever need to store more than
@@ -161,17 +163,17 @@ Operand opr_global(u16 idx);
  * @brief represents a bytecode instruction
  */
 typedef struct Instruction {
-  unsigned opcode   : 7;
-  unsigned I_format : 3;
-  unsigned Bfmt     : 3;
-  unsigned Cfmt     : 3;
-  unsigned A        : 16;
-  unsigned B        : 16;
-  unsigned C        : 16;
+  unsigned opcode : 7;
+  unsigned Ifmt   : 3;
+  unsigned Bfmt   : 3;
+  unsigned Cfmt   : 3;
+  unsigned A      : 16;
+  unsigned B      : 16;
+  unsigned C      : 16;
 } Instruction;
 
-Instruction inst_B(Opcode opcode, Operand B);
-Instruction inst_AB(Opcode opcode, Operand A, Operand B);
-Instruction inst_ABC(Opcode opcode, Operand A, Operand B, Operand C);
+Instruction instruction_B(Opcode opcode, Operand B);
+Instruction instruction_AB(Opcode opcode, Operand A, Operand B);
+Instruction instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C);
 
 #endif // !EXP_IMR_INSTRUCTION_H

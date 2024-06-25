@@ -22,20 +22,21 @@
 #include "backend/lifetimes.h"
 #include "utility/alloc.h"
 
-Lifetimes li_create(u16 count) {
-  Lifetimes li = {.count = count, .buffer = callocate(count, sizeof(Lifetime))};
-  return li;
+Lifetimes lifetimes_create(u16 count) {
+  Lifetimes lifetiems = {.count  = count,
+                         .buffer = callocate(count, sizeof(Lifetime))};
+  return lifetiems;
 }
 
-void li_destroy(Lifetimes *restrict li) {
-  li->count = 0;
-  deallocate(li->buffer);
-  li->buffer = NULL;
+void lifetimes_destroy(Lifetimes *restrict lifetiems) {
+  lifetiems->count = 0;
+  deallocate(lifetiems->buffer);
+  lifetiems->buffer = NULL;
 }
 
-Lifetime *li_at(Lifetimes *restrict li, u16 ssa) {
-  assert(ssa < li->count);
-  return li->buffer + ssa;
+Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u16 ssa) {
+  assert(ssa < lifetiems->count);
+  return lifetiems->buffer + ssa;
 }
 
 // walk the bytecode representing the function body.
@@ -48,17 +49,17 @@ Lifetime *li_at(Lifetimes *restrict li, u16 ssa) {
 // the last use is the first use we encounter, and
 // the first use is the instruction which defines
 // the local (has the local in operand A)
-Lifetimes li_compute(FunctionBody *restrict body) {
-  Bytecode *bc = &body->bc;
-  Lifetimes li = li_create(body->ssa_count);
+Lifetimes lifetimes_compute(FunctionBody *restrict body) {
+  Bytecode *bc        = &body->bc;
+  Lifetimes lifetiems = lifetimes_create(body->ssa_count);
 
   for (u16 i = bc->length; i > 0; --i) {
     u16 inst      = i - 1;
     Instruction I = bc->buffer[inst];
-    switch (I.I_format) {
+    switch (I.Ifmt) {
     case IFMT_B: {
       if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
@@ -66,11 +67,11 @@ Lifetimes li_compute(FunctionBody *restrict body) {
 
     case IFMT_AB: {
       u16 A         = I.A;
-      Lifetime *Al  = li_at(&li, A);
+      Lifetime *Al  = lifetimes_at(&lifetiems, A);
       Al->first_use = inst;
 
       if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
@@ -78,16 +79,16 @@ Lifetimes li_compute(FunctionBody *restrict body) {
 
     case IFMT_ABC: {
       u16 A         = I.A;
-      Lifetime *Al  = li_at(&li, A);
+      Lifetime *Al  = lifetimes_at(&lifetiems, A);
       Al->first_use = inst;
 
       if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = li_at(&li, I.B);
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
 
       if (I.Cfmt == OPRFMT_SSA) {
-        Lifetime *Cl = li_at(&li, I.C);
+        Lifetime *Cl = lifetimes_at(&lifetiems, I.C);
         if (inst > Cl->last_use) { Cl->last_use = inst; }
       }
       break;
@@ -97,5 +98,5 @@ Lifetimes li_compute(FunctionBody *restrict body) {
     }
   }
 
-  return li;
+  return lifetiems;
 }

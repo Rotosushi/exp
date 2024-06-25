@@ -24,56 +24,56 @@
 #include "utility/array_growth.h"
 
 FunctionTypes function_types_create() {
-  FunctionTypes f;
-  f.capacity = 0;
-  f.size     = 0;
-  f.types    = NULL;
-  return f;
+  FunctionTypes function_types;
+  function_types.capacity = 0;
+  function_types.size     = 0;
+  function_types.types    = NULL;
+  return function_types;
 }
 
-void function_types_destroy(FunctionTypes *restrict f) {
-  assert(f != NULL);
+void function_types_destroy(FunctionTypes *restrict function_types) {
+  assert(function_types != NULL);
 
-  for (u64 i = 0; i < f->size; ++i) {
-    type_destroy(&f->types[i]);
+  for (u64 i = 0; i < function_types->size; ++i) {
+    type_destroy(&function_types->types[i]);
   }
 
-  f->capacity = 0;
-  f->size     = 0;
-  deallocate(f->types);
-  f->types = NULL;
+  function_types->capacity = 0;
+  function_types->size     = 0;
+  deallocate(function_types->types);
+  function_types->types = NULL;
 }
 
-static bool function_types_full(FunctionTypes *restrict f) {
-  return (f->size + 1) >= f->capacity;
+static bool function_types_full(FunctionTypes *restrict function_types) {
+  return (function_types->size + 1) >= function_types->capacity;
 }
 
-static void function_types_grow(FunctionTypes *restrict f) {
-  Growth g    = array_growth_u64(f->capacity, sizeof(Type *));
-  f->types    = reallocate(f->types, g.alloc_size);
-  f->capacity = g.new_capacity;
+static void function_types_grow(FunctionTypes *restrict function_types) {
+  Growth g    = array_growth_u64(function_types->capacity, sizeof(Type *));
+  function_types->types    = reallocate(function_types->types, g.alloc_size);
+  function_types->capacity = g.new_capacity;
 }
 
-Type *function_types_append(FunctionTypes *restrict f,
+Type *function_types_append(FunctionTypes *restrict function_types,
                             Type *return_type,
                             ArgumentTypes argument_types) {
-  assert(f != NULL);
+  assert(function_types != NULL);
 
   Type function_type = type_create_function(return_type, argument_types);
 
-  for (u64 i = 0; i < f->size; ++i) {
-    Type *t = &f->types[i];
+  for (u64 i = 0; i < function_types->size; ++i) {
+    Type *t = &function_types->types[i];
     if (type_equality(&function_type, t)) {
       argument_types_destroy(&argument_types);
       return t;
     }
   }
 
-  if (function_types_full(f)) { function_types_grow(f); }
+  if (function_types_full(function_types)) { function_types_grow(function_types); }
 
-  Type *new_type = &f->types[f->size];
+  Type *new_type = &function_types->types[function_types->size];
   *new_type      = function_type;
-  f->size += 1;
+  function_types->size += 1;
   return new_type;
 }
 

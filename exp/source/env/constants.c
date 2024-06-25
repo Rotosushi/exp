@@ -62,7 +62,7 @@ Operand constants_add(Constants *restrict c, Value value) {
     Value *v = c->buffer + i;
     if (value_equality(v, &value)) {
       if (i > u16_MAX) { PANIC("constant index out of bounds"); }
-      return opr_constant((u16)i);
+      return operand_constant((u16)i);
     }
   }
 
@@ -74,7 +74,7 @@ Operand constants_add(Constants *restrict c, Value value) {
   c->buffer[c->length] = value;
   c->length += 1;
 
-  return opr_constant(index);
+  return operand_constant(index);
 }
 
 Value *constants_at(Constants *restrict c, u16 i) {

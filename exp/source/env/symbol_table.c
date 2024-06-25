@@ -26,24 +26,24 @@
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
 SymbolTable symbol_table_create() {
-  SymbolTable st;
-  st.capacity = st.count = 0;
-  st.elements            = NULL;
-  return st;
+  SymbolTable symbol_table;
+  symbol_table.capacity = symbol_table.count = 0;
+  symbol_table.elements                      = NULL;
+  return symbol_table;
 }
 
-void symbol_table_destroy(SymbolTable *restrict st) {
-  assert(st != NULL);
+void symbol_table_destroy(SymbolTable *restrict symbol_table) {
+  assert(symbol_table != NULL);
 
-  for (u64 i = 0; i < st->capacity; ++i) {
-    SymbolTableElement *element = st->elements + i;
+  for (u64 i = 0; i < symbol_table->capacity; ++i) {
+    SymbolTableElement *element = symbol_table->elements + i;
     function_body_destroy(&element->function_body);
   }
 
-  st->count    = 0;
-  st->capacity = 0;
-  deallocate(st->elements);
-  st->elements = NULL;
+  symbol_table->count    = 0;
+  symbol_table->capacity = 0;
+  deallocate(symbol_table->elements);
+  symbol_table->elements = NULL;
 }
 
 static SymbolTableElement *symbol_table_find(
@@ -59,14 +59,15 @@ static SymbolTableElement *symbol_table_find(
   }
 }
 
-static void symbol_table_grow(SymbolTable *restrict st) {
-  Growth g = array_growth_u64(st->capacity, sizeof(SymbolTableElement));
+static void symbol_table_grow(SymbolTable *restrict symbol_table) {
+  Growth g =
+      array_growth_u64(symbol_table->capacity, sizeof(SymbolTableElement));
   SymbolTableElement *elements =
       callocate(g.new_capacity, sizeof(SymbolTableElement));
 
-  if (st->elements != NULL) {
-    for (u64 i = 0; i < st->capacity; ++i) {
-      SymbolTableElement *element = &(st->elements[i]);
+  if (symbol_table->elements != NULL) {
+    for (u64 i = 0; i < symbol_table->capacity; ++i) {
+      SymbolTableElement *element = &(symbol_table->elements[i]);
       if (string_view_empty(element->name)) { continue; }
 
       SymbolTableElement *dest =
@@ -77,28 +78,30 @@ static void symbol_table_grow(SymbolTable *restrict st) {
 
     // we can avoid freeing each element because we
     // move the data to the new allocation.
-    deallocate(st->elements);
+    deallocate(symbol_table->elements);
   }
 
-  st->capacity = g.new_capacity;
-  st->elements = elements;
+  symbol_table->capacity = g.new_capacity;
+  symbol_table->elements = elements;
 }
 
-static bool symbol_table_full(SymbolTable *restrict st) {
-  u64 load_limit = (u64)floor((double)st->capacity * SYMBOL_TABLE_MAX_LOAD);
-  return (st->count + 1) >= load_limit;
+static bool symbol_table_full(SymbolTable *restrict symbol_table) {
+  u64 load_limit =
+      (u64)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
+  return (symbol_table->count + 1) >= load_limit;
 }
 
-SymbolTableElement *symbol_table_at(SymbolTable *restrict st, StringView name) {
-  assert(st != NULL);
+SymbolTableElement *symbol_table_at(SymbolTable *restrict symbol_table,
+                                    StringView name) {
+  assert(symbol_table != NULL);
 
-  if (symbol_table_full(st)) { symbol_table_grow(st); }
+  if (symbol_table_full(symbol_table)) { symbol_table_grow(symbol_table); }
 
   SymbolTableElement *element =
-      symbol_table_find(st->elements, st->capacity, name);
+      symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
   if (element->name.ptr == NULL) {
     element->name = name;
-    st->count += 1;
+    symbol_table->count += 1;
   }
 
   return element;

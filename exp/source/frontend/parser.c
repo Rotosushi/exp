@@ -198,18 +198,9 @@ static ParserResult parse_formal_argument(Parser *restrict p,
 static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                Context *restrict c,
                                                FunctionBody *body) {
-  // we have to add arguments to the local frame,
-  // pretty sure we can just
-  // reserve the first n locals for the first n arguments.
-  // The issue is how do we associate identifiers
-  // with local slots. such that identifiers can be
-  // used which will refer to the correct local slot.
-  // And this solution will probably
-  // carry over to how local definitions are handled.
-  // for now we don't support function arguments.
   FormalArgumentList *args = &body->arguments;
   // #note: the nil literal is spelled "()", which is
-  // lexically identical to an empty argument list
+  // lexically identical to an empty argument list. so we parse it as such
   if (expect(p, TOK_NIL)) { return success(zero()); }
 
   if (!expect(p, TOK_BEGIN_PAREN)) {
@@ -431,7 +422,7 @@ call(Parser *restrict p, Context *restrict c, Operand left) {
     if (maybe.has_error) { return maybe; }
   }
 
-  return success(context_emit_call(c, left, opr_ssa(pair.index)));
+  return success(context_emit_call(c, left, operand_ssa(pair.index)));
 }
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
@@ -459,7 +450,7 @@ static ParserResult integer(Parser *restrict p, Context *restrict c) {
   nexttok(p);
   Operand B;
   if ((integer >= 0) && (integer < u16_MAX)) {
-    B = opr_immediate((u16)integer);
+    B = operand_immediate((u16)integer);
   } else {
     B = context_constants_append(c, value_create_i64(integer));
   }
@@ -472,7 +463,10 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
   nexttok(p);
 
   LocalVariable *var = context_lookup_local(c, name);
-  if (var != NULL) { return success(opr_ssa(var->ssa)); }
+  if (var != NULL) { return success(operand_ssa(var->ssa)); }
+
+  FormalArgument *arg = context_lookup_argument(c, name);
+  if (var != NULL) { return success(operand_argument(arg->index)); }
 
   SymbolTableElement *global = context_global_symbol_table_at(c, name);
   if (string_view_empty(global->name)) {
@@ -480,7 +474,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
   }
 
   u16 idx = context_global_symbols_insert(c, name);
-  return success(opr_global(idx));
+  return success(operand_global(idx));
 }
 
 static ParserResult expression(Parser *restrict p, Context *restrict c) {

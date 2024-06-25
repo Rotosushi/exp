@@ -58,8 +58,28 @@ void formal_argument_list_append(FormalArgumentList *restrict fal,
 
   if (formal_argument_list_full(fal)) { formal_argument_list_grow(fal); }
 
+  arg.index            = fal->size;
   fal->list[fal->size] = arg;
   fal->size += 1;
+}
+
+FormalArgument *formal_argument_list_at(FormalArgumentList *restrict fal,
+                                        u8 index) {
+  assert(fal != NULL);
+  assert(index < fal->size);
+  return fal->list + index;
+}
+
+FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
+                                            StringView name) {
+  assert(fal != NULL);
+
+  for (u8 i = 0; i < fal->size; ++i) {
+    FormalArgument *arg = fal->list + i;
+    if (string_view_eq(arg->name, name)) { return arg; }
+  }
+
+  return NULL;
 }
 
 LocalVariables local_variables_create() {
@@ -250,7 +270,7 @@ Operand function_body_new_ssa(FunctionBody *restrict function) {
   LocalVariable local = {
       .name = SV(""), .type = NULL, .ssa = function->ssa_count++};
   local_variables_append(&function->locals, local);
-  return opr_ssa(local.ssa);
+  return operand_ssa(local.ssa);
 }
 
 static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {

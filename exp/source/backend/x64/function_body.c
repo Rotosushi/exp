@@ -27,7 +27,8 @@ x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
   return args;
 }
 
-static void x64formal_arguments_destroy(x64_FormalArgumentList *restrict args) {
+static void
+x64_formal_arguments_destroy(x64_FormalArgumentList *restrict args) {
   args->size = 0;
   deallocate(args->buffer);
   args->buffer = NULL;
@@ -42,10 +43,12 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
 
 void x64_formal_argument_list_assign(x64_FormalArgumentList *restrict args,
                                      u8 idx,
-                                     x64_Location allocation) {
+                                     x64_Location allocation,
+                                     Type *type) {
   assert(args != NULL);
   x64_FormalArgument *arg = x64_formal_argument_list_at(args, idx);
   arg->allocation         = allocation;
+  arg->type               = type;
 }
 
 x64_FunctionBody x64_function_body_create(u8 arg_count) {
@@ -58,6 +61,6 @@ x64_FunctionBody x64_function_body_create(u8 arg_count) {
 
 void x64_function_body_destroy(x64_FunctionBody *restrict body) {
   assert(body != NULL);
-  x64formal_arguments_destroy(&body->arguments);
+  x64_formal_arguments_destroy(&body->arguments);
   x64_bytecode_destroy(&body->bc);
 }

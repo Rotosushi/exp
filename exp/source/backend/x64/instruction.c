@@ -21,17 +21,18 @@
 
 #include "backend/x64/instruction.h"
 
-x64_Instruction x64_inst(x64_Opcode opcode) {
+x64_Instruction x64_instruction(x64_Opcode opcode) {
   x64_Instruction I = {.opcode = opcode};
   return I;
 }
 
-x64_Instruction x64_inst_A(x64_Opcode opcode, x64_Operand A) {
+x64_Instruction x64_instruction_A(x64_Opcode opcode, x64_Operand A) {
   x64_Instruction I = {.opcode = opcode, .Afmt = A.format, .A = A.common};
   return I;
 }
 
-x64_Instruction x64_inst_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
+x64_Instruction
+x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
   x64_Instruction I = {.opcode = opcode,
                        .Afmt   = A.format,
                        .A      = A.common,
@@ -106,9 +107,9 @@ static void x64_emit_opr(x64_OperandFormat fmt,
   }
 }
 
-void x64_inst_emit(x64_Instruction I,
-                   String *restrict buffer,
-                   Context *restrict context) {
+void x64_instruction_emit(x64_Instruction I,
+                          String *restrict buffer,
+                          Context *restrict context) {
   switch (I.opcode) {
   case X64OPC_RET: {
     string_append(buffer, SV("ret"));

@@ -97,6 +97,8 @@ void context_def_local_const(Context *restrict c,
                              Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
 LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
+FormalArgument *context_lookup_argument(Context *restrict c, StringView name);
+FormalArgument *context_argument_at(Context *restrict c, u8 index);
 
 void context_leave_function(Context *restrict c);
 

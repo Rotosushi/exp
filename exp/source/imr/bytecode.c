@@ -67,7 +67,7 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
 // B -- L[R] = L[B], <return>
 void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_B(OPC_RET, B));
+  bytecode_emit_instruction(bc, instruction_B(OPC_RET, B));
 }
 
 void bytecode_emit_call(Bytecode *restrict bc,
@@ -75,7 +75,7 @@ void bytecode_emit_call(Bytecode *restrict bc,
                         Operand B,
                         Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_CALL, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_CALL, A, B, C));
 }
 
 // AB -- L[A] = B
@@ -83,7 +83,7 @@ void bytecode_emit_call(Bytecode *restrict bc,
 // AB -- L[A] = L[B]
 void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_AB(OPC_LOAD, A, B));
+  bytecode_emit_instruction(bc, instruction_AB(OPC_LOAD, A, B));
 }
 
 // AB  -- L[A] = -(B)
@@ -91,7 +91,7 @@ void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B) {
 // AB  -- L[A] = -(L[B])
 void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_AB(OPC_NEG, A, B));
+  bytecode_emit_instruction(bc, instruction_AB(OPC_NEG, A, B));
 }
 
 // ABC -- L[A] = L[B] + L[C]
@@ -105,7 +105,7 @@ void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
 // ABC -- L[A] = B    + C
 void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_ADD, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_ADD, A, B, C));
 }
 
 // ABC -- L[A] = L[B] - L[C]
@@ -119,7 +119,7 @@ void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    - C
 void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_SUB, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_SUB, A, B, C));
 }
 
 // ABC -- L[A] = L[B] * L[C]
@@ -133,7 +133,7 @@ void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    * C
 void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_MUL, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_MUL, A, B, C));
 }
 
 // ABC -- L[A] = L[B] / L[C]
@@ -147,7 +147,7 @@ void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    / C
 void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_DIV, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_DIV, A, B, C));
 }
 
 // ABC -- L[A] = L[B] % L[C]
@@ -161,7 +161,7 @@ void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 // ABC -- L[A] = B    % C
 void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   assert(bc != NULL);
-  bytecode_emit_instruction(bc, inst_ABC(OPC_MOD, A, B, C));
+  bytecode_emit_instruction(bc, instruction_ABC(OPC_MOD, A, B, C));
 }
 
 static void print_local(u16 v, FILE *restrict file) {

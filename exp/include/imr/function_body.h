@@ -25,6 +25,7 @@
 typedef struct FormalArgument {
   StringView name;
   Type *type;
+  u8 index;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -35,6 +36,10 @@ typedef struct FormalArgumentList {
 
 void formal_argument_list_append(FormalArgumentList *restrict fal,
                                  FormalArgument arg);
+FormalArgument *formal_argument_list_at(FormalArgumentList *restrict fal,
+                                        u8 index);
+FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
+                                            StringView name);
 
 typedef struct LocalVariable {
   StringView name;

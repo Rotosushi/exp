@@ -22,6 +22,7 @@
 
 typedef struct x64_FormalArgument {
   x64_Location allocation;
+  Type *type;
 } x64_FormalArgument;
 
 typedef struct x64_FormalArgumentList {
@@ -34,7 +35,8 @@ x64_FormalArgument *
 x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
 void x64_formal_argument_list_assign(x64_FormalArgumentList *restrict args,
                                      u8 idx,
-                                     x64_Location allocation);
+                                     x64_Location allocation,
+                                     Type *type);
 
 typedef struct x64_FunctionBody {
   x64_FormalArgumentList arguments;

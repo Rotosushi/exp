@@ -18,48 +18,53 @@
  */
 #include "imr/instruction.h"
 
-Operand opr_constant(u16 index) {
-  Operand opr = {.format = OPRFMT_CONSTANT, .common = index};
-  return opr;
-}
-
-Operand opr_immediate(u16 imm) {
-  Operand opr = {.format = OPRFMT_IMMEDIATE, .common = imm};
-  return opr;
-}
-
-Operand opr_ssa(u16 ssa) {
+Operand operand_ssa(u16 ssa) {
   Operand opr = {.format = OPRFMT_SSA, .common = ssa};
   return opr;
 }
 
-Operand opr_global(u16 idx) {
+Operand operand_constant(u16 index) {
+  Operand opr = {.format = OPRFMT_CONSTANT, .common = index};
+  return opr;
+}
+
+Operand operand_immediate(u16 imm) {
+  Operand opr = {.format = OPRFMT_IMMEDIATE, .common = imm};
+  return opr;
+}
+
+Operand operand_argument(u16 index) {
+  Operand opr = {.format = OPRFMT_ARGUMENT, .common = index};
+  return opr;
+}
+
+Operand operand_global(u16 idx) {
   Operand opr = {.format = OPRFMT_GLOBAL, .common = idx};
   return opr;
 }
 
-Instruction inst_B(Opcode opcode, Operand B) {
+Instruction instruction_B(Opcode opcode, Operand B) {
   Instruction I = {
-      .opcode = opcode, .I_format = IFMT_B, .Bfmt = B.format, .B = B.common};
+      .opcode = opcode, .Ifmt = IFMT_B, .Bfmt = B.format, .B = B.common};
   return I;
 }
 
-Instruction inst_AB(Opcode opcode, Operand A, Operand B) {
-  Instruction I = {.opcode   = opcode,
-                   .I_format = IFMT_AB,
-                   .A        = A.common,
-                   .Bfmt     = B.format,
-                   .B        = B.common};
+Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
+  Instruction I = {.opcode = opcode,
+                   .Ifmt   = IFMT_AB,
+                   .A      = A.common,
+                   .Bfmt   = B.format,
+                   .B      = B.common};
   return I;
 }
 
-Instruction inst_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
-  Instruction I = {.opcode   = opcode,
-                   .I_format = IFMT_ABC,
-                   .A        = A.common,
-                   .Bfmt     = B.format,
-                   .B        = B.common,
-                   .Cfmt     = C.format,
-                   .C        = C.common};
+Instruction instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
+  Instruction I = {.opcode = opcode,
+                   .Ifmt   = IFMT_ABC,
+                   .A      = A.common,
+                   .Bfmt   = B.format,
+                   .B      = B.common,
+                   .Cfmt   = C.format,
+                   .C      = C.common};
   return I;
 }

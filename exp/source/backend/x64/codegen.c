@@ -41,19 +41,30 @@ static void x64gen_ret(Instruction I,
       break;
     }
 
-    x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
     break;
   }
 
   case OPRFMT_CONSTANT: {
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
+    break;
+  }
+
+  case OPRFMT_ARGUMENT: {
+    // #TODO
+    break;
+  }
+
+  case OPRFMT_GLOBAL: {
+    // #TODO
     break;
   }
 
@@ -61,8 +72,8 @@ static void x64gen_ret(Instruction I,
   }
 
   x64_bytecode_append_mov(
-      x64bc, x64_opr_gpr(X64GPR_RSP), x64_opr_gpr(X64GPR_RBP));
-  x64_bytecode_append_pop(x64bc, x64_opr_gpr(X64GPR_RBP));
+      x64bc, x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP));
+  x64_bytecode_append_pop(x64bc, x64_operand_gpr(X64GPR_RBP));
   x64_bytecode_append_ret(x64bc);
 }
 
@@ -83,6 +94,10 @@ static void x64gen_arg(Operand arg,
   }
 
   case OPRFMT_IMMEDIATE: {
+    break;
+  }
+
+  case OPRFMT_ARGUMENT: {
     break;
   }
 
@@ -109,7 +124,7 @@ static void x64gen_call(Instruction I,
     x64gen_arg(arg, i, Idx, x64bc, locals, allocator, context);
   }
 
-  x64_bytecode_append_call(x64bc, x64_opr_label(I.B));
+  x64_bytecode_append_call(x64bc, x64_operand_label(I.B));
 }
 
 static void x64gen_load(Instruction I,
@@ -126,22 +141,31 @@ static void x64gen_load(Instruction I,
         (B->location.kind == ALLOC_STACK)) {
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
 
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_alloc(B));
-      x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_gpr(gpr));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(gpr), x64_operand_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_alloc(A), x64_operand_gpr(gpr));
       break;
     }
 
-    x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
+    x64_bytecode_append_mov(x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
     break;
   }
 
   case OPRFMT_CONSTANT: {
-    x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_constant(I.B));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_alloc(A), x64_operand_constant(I.B));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.B));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_alloc(A), x64_operand_immediate(I.B));
+    break;
+  }
+
+  case OPRFMT_ARGUMENT: {
+    // #TODO
     break;
   }
 
@@ -161,7 +185,7 @@ static void x64gen_neg(Instruction I,
   x64_Allocation *A =
       x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-  x64_bytecode_append_neg(x64bc, x64_opr_alloc(A));
+  x64_bytecode_append_neg(x64bc, x64_operand_alloc(A));
 }
 
 static void x64gen_add(Instruction I,
@@ -182,14 +206,16 @@ static void x64gen_add(Instruction I,
       if (B->location.kind == ALLOC_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-        x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+        x64_bytecode_append_add(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
         return;
       }
 
       if (C->location.kind == ALLOC_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
-        x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
+        x64_bytecode_append_add(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
         return;
       }
 
@@ -202,11 +228,15 @@ static void x64gen_add(Instruction I,
       // we use the huristic of longest lifetime to choose
       // which of B and C to move into A's gpr.
       if (B->lifetime.last_use <= C->lifetime.last_use) {
-        x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
-        x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
+        x64_bytecode_append_mov(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
+        x64_bytecode_append_add(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
       } else {
-        x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
-        x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+        x64_bytecode_append_mov(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
+        x64_bytecode_append_add(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
       }
       break;
     }
@@ -215,7 +245,8 @@ static void x64gen_add(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_constant(I.C));
+      x64_bytecode_append_add(
+          x64bc, x64_operand_alloc(A), x64_operand_constant(I.C));
       break;
     }
 
@@ -223,7 +254,8 @@ static void x64gen_add(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.C));
+      x64_bytecode_append_add(
+          x64bc, x64_operand_alloc(A), x64_operand_immediate(I.C));
       break;
     }
 
@@ -238,7 +270,8 @@ static void x64gen_add(Instruction I,
     x64_Allocation *A =
         x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-    x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_constant(I.B));
+    x64_bytecode_append_add(
+        x64bc, x64_operand_alloc(A), x64_operand_constant(I.B));
     break;
   }
 
@@ -248,7 +281,8 @@ static void x64gen_add(Instruction I,
     x64_Allocation *A =
         x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-    x64_bytecode_append_add(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.B));
+    x64_bytecode_append_add(
+        x64bc, x64_operand_alloc(A), x64_operand_immediate(I.B));
     break;
   }
 
@@ -268,37 +302,26 @@ static void x64gen_sub(Instruction I,
     switch (I.Cfmt) {
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      // since subtraction is not commutative we have to allocate A from B
+      // #NOTE since subtraction is not commutative we have to allocate A from B
       // regardless of which of B or C is in a register.
       if ((B->location.kind == ALLOC_GPR) || (C->location.kind == ALLOC_GPR)) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-        x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+        x64_bytecode_append_sub(
+            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
         return;
       }
 
-      /*
-        #NOTE there is no sub instruction which takes two memory operands.
-        so we have to emit a mov to get either B or C into a register
-        then emit a sub instruction.
-        we choose to move B into a register, simply because it makes it
-        easy to reuse exising allocator functions.
-
-        we can alternatively move C into a register and allocate A from B.
-        but when would we want to do this? This doesn't avoid a mov.
-        (that could only be accomplished be allocating B or C differently)
-        it leaves the result in memory, which makes it much more likely
-        that a future usage of A will result in emitting a mov instruction.
-        I don't know, something to ponder.
-      */
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
       x64_Allocation *A =
           x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-      x64_bytecode_append_mov(x64bc, x64_opr_alloc(A), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
 
-      x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+      x64_bytecode_append_sub(
+          x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
       break;
     }
 
@@ -306,7 +329,8 @@ static void x64gen_sub(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_constant(I.C));
+      x64_bytecode_append_sub(
+          x64bc, x64_operand_alloc(A), x64_operand_constant(I.C));
       break;
     }
 
@@ -314,7 +338,8 @@ static void x64gen_sub(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_immediate(I.C));
+      x64_bytecode_append_sub(
+          x64bc, x64_operand_alloc(A), x64_operand_immediate(I.C));
       break;
     }
 
@@ -347,11 +372,12 @@ static void x64gen_sub(Instruction I,
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
 
     x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-    x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_constant(I.B));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.B));
     x64_Allocation *A =
         x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-    x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+    x64_bytecode_append_sub(x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
     break;
   }
 
@@ -360,11 +386,12 @@ static void x64gen_sub(Instruction I,
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
 
     x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-    x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_immediate(I.B));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.B));
     x64_Allocation *A =
         x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-    x64_bytecode_append_sub(x64bc, x64_opr_alloc(A), x64_opr_alloc(C));
+    x64_bytecode_append_sub(x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
     break;
   }
 
@@ -394,7 +421,7 @@ static void x64gen_mul(Instruction I,
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
         break;
       }
 
@@ -403,7 +430,7 @@ static void x64gen_mul(Instruction I,
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
         break;
       }
 
@@ -411,12 +438,12 @@ static void x64gen_mul(Instruction I,
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       if ((B->lifetime.last_use <= C->lifetime.last_use)) {
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
       } else {
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(C));
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(C));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
       }
       break;
     }
@@ -427,15 +454,15 @@ static void x64gen_mul(Instruction I,
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.C));
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_constant(I.C));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.C));
-      x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.C));
+      x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
       break;
     }
 
@@ -445,15 +472,15 @@ static void x64gen_mul(Instruction I,
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.C));
-        x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(I.C));
+        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.C));
-      x64_bytecode_append_imul(x64bc, x64_opr_alloc(B));
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.C));
+      x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
       break;
     }
 
@@ -470,15 +497,15 @@ static void x64gen_mul(Instruction I,
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_constant(I.B));
-      x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_constant(I.B));
+      x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
       break;
     }
 
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
-    x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
+    x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
     break;
   }
 
@@ -490,15 +517,15 @@ static void x64gen_mul(Instruction I,
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(I.B));
-      x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(I.B));
+      x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
       break;
     }
 
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
-    x64_bytecode_append_imul(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
+    x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
     break;
   }
 
@@ -523,9 +550,9 @@ static void x64gen_div(Instruction I,
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
-        x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         break;
       }
@@ -535,14 +562,14 @@ static void x64gen_div(Instruction I,
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
         x64_allocator_reallocate_active(allocator, C, x64bc);
 
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
-        x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         break;
       }
@@ -551,27 +578,30 @@ static void x64gen_div(Instruction I,
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+      x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       break;
     }
 
     case OPRFMT_CONSTANT: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_constant(I.C));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.C));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_gpr(gpr));
+      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       break;
@@ -579,16 +609,18 @@ static void x64gen_div(Instruction I,
 
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       x64_bytecode_append_mov(
-          x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_immediate(I.C));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.C));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_gpr(gpr));
+      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       break;
@@ -602,7 +634,7 @@ static void x64gen_div(Instruction I,
   case OPRFMT_CONSTANT: {
     x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
@@ -613,8 +645,8 @@ static void x64gen_div(Instruction I,
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
+    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
 
     x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
     break;
@@ -623,7 +655,7 @@ static void x64gen_div(Instruction I,
   case OPRFMT_IMMEDIATE: {
     x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
@@ -634,8 +666,8 @@ static void x64gen_div(Instruction I,
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
+    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
 
     x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
     break;
@@ -660,9 +692,9 @@ static void x64gen_mod(Instruction I,
       if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
-        x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
         break;
       }
 
@@ -673,41 +705,46 @@ static void x64gen_mod(Instruction I,
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
         x64_bytecode_append_mov(
-            x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
-        x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+      x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
       break;
     }
 
     case OPRFMT_CONSTANT: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_constant(I.C));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.C));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_gpr(gpr));
+      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_alloc(B));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(x64bc, x64_opr_gpr(gpr), x64_opr_immediate(I.C));
+      x64_bytecode_append_mov(
+          x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.C));
 
-      x64_bytecode_append_idiv(x64bc, x64_opr_gpr(gpr));
+      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
       break;
     }
 
@@ -719,7 +756,7 @@ static void x64gen_mod(Instruction I,
   case OPRFMT_CONSTANT: {
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
@@ -730,15 +767,15 @@ static void x64gen_mod(Instruction I,
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_constant(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
+    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
     x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RDX), x64_opr_immediate(0));
+        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
@@ -747,8 +784,8 @@ static void x64gen_mod(Instruction I,
     }
 
     x64_bytecode_append_mov(
-        x64bc, x64_opr_gpr(X64GPR_RAX), x64_opr_immediate(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_opr_alloc(C));
+        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
+    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
     break;
   }
 
@@ -820,12 +857,12 @@ static void x64gen_function_header(x64_Allocator *restrict allocator,
   if (x64_allocator_uses_stack(allocator)) {
     x64_bytecode_prepend_sub(
         x64bc,
-        x64_opr_gpr(X64GPR_RSP),
-        x64_opr_immediate(x64_allocator_total_stack_size(allocator)));
+        x64_operand_gpr(X64GPR_RSP),
+        x64_operand_immediate(x64_allocator_total_stack_size(allocator)));
   }
   x64_bytecode_prepend_mov(
-      x64bc, x64_opr_gpr(X64GPR_RBP), x64_opr_gpr(X64GPR_RSP));
-  x64_bytecode_prepend_push(x64bc, x64_opr_gpr(X64GPR_RBP));
+      x64bc, x64_operand_gpr(X64GPR_RBP), x64_operand_gpr(X64GPR_RSP));
+  x64_bytecode_prepend_push(x64bc, x64_operand_gpr(X64GPR_RBP));
 }
 
 static void x64gen_function(FunctionBody *restrict body,
