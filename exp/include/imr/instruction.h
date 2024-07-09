@@ -137,7 +137,6 @@ typedef enum OperandFormat {
   OPRFMT_SSA,
   OPRFMT_CONSTANT,
   OPRFMT_IMMEDIATE,
-  OPRFMT_ARGUMENT,
   OPRFMT_LABEL,
 } OperandFormat;
 
@@ -149,7 +148,6 @@ typedef struct Operand {
 Operand operand_ssa(u16 ssa);
 Operand operand_constant(u16 index);
 Operand operand_immediate(u16 imm);
-Operand operand_argument(u16 index);
 Operand operand_label(u16 idx);
 
 /*

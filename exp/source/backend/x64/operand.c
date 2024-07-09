@@ -25,8 +25,8 @@ x64_Operand x64_operand_gpr(u16 gpr) {
   return opr;
 }
 
-x64_Operand x64_operand_stack(u16 offset) {
-  x64_Operand opr = {.format = X64OPRFMT_STACK, .common = offset};
+x64_Operand x64_operand_stack(i16 offset) {
+  x64_Operand opr = {.format = X64OPRFMT_STACK, .offset = offset};
   return opr;
 }
 

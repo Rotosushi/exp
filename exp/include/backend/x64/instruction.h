@@ -67,8 +67,14 @@ typedef struct x64_Instruction {
   unsigned Afmt   : 3;
   unsigned Bfmt   : 3;
   unsigned        : 2;
-  unsigned A      : 16;
-  unsigned B      : 16;
+  union {
+    unsigned Acommon : 16;
+    signed Aoffset   : 16;
+  };
+  union {
+    unsigned Bcommon : 16;
+    signed Boffset   : 16;
+  };
 } x64_Instruction;
 
 x64_Instruction x64_instruction(x64_Opcode opcode);

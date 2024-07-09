@@ -154,11 +154,9 @@ static ParserResult parse_precedence(Parser *restrict p,
 static ParserResult
 parse_scalar_type(Parser *restrict p, Context *restrict c, Type **type) {
   switch (p->curtok) {
-  case TOK_TYPE_NIL: *type = context_nil_type(c); break;
-
+  case TOK_TYPE_NIL:  *type = context_nil_type(c); break;
   case TOK_TYPE_BOOL: *type = context_boolean_type(c); break;
-
-  case TOK_TYPE_I64: *type = context_i64_type(c); break;
+  case TOK_TYPE_I64:  *type = context_i64_type(c); break;
 
   default: return error(p, ERROR_PARSER_EXPECTED_TYPE);
   }
@@ -198,7 +196,6 @@ static ParserResult parse_formal_argument(Parser *restrict p,
 static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                Context *restrict c,
                                                FunctionBody *body) {
-  FormalArgumentList *args = &body->arguments;
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list. so we parse it as such
   if (expect(p, TOK_NIL)) { return success(zero()); }
@@ -208,13 +205,14 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
   }
 
   if (!expect(p, TOK_END_PAREN)) {
+    u8 index = 0;
     do {
-      FormalArgument arg;
+      FormalArgument arg = {.index = index++};
 
       ParserResult maybe = parse_formal_argument(p, c, &arg);
       if (maybe.has_error) { return maybe; }
 
-      formal_argument_list_append(args, arg);
+      function_body_new_argument(body, arg);
     } while (!expect(p, TOK_END_PAREN));
   }
 
@@ -262,8 +260,7 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
 static ParserResult statement(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
   case TOK_RETURN: return return_(p, c);
-
-  case TOK_CONST: return constant(p, c);
+  case TOK_CONST:  return constant(p, c);
 
   default: {
     ParserResult result = expression(p, c);
@@ -464,9 +461,6 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
 
   LocalVariable *var = context_lookup_local(c, name);
   if (var != NULL) { return success(operand_ssa(var->ssa)); }
-
-  FormalArgument *arg = context_lookup_argument(c, name);
-  if (var != NULL) { return success(operand_argument(arg->index)); }
 
   SymbolTableElement *global = context_global_symbol_table_at(c, name);
   if (string_view_empty(global->name)) {

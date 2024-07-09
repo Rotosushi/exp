@@ -77,15 +77,6 @@ static void x64_codegen_ret(Instruction I,
     break;
   }
 
-  case OPRFMT_ARGUMENT: {
-    x64_FormalArgument *arg =
-        x64_formal_argument_list_at(&body->arguments, (u8)I.B);
-
-    x64_codegen_copy(
-        body->return_location, arg->location, Idx, x64bc, allocator);
-    break;
-  }
-
   case OPRFMT_LABEL: {
     PANIC("#TODO");
     break;
@@ -108,6 +99,8 @@ x64_codegen_actual_argument(Operand arg,
                             [[maybe_unused]] LocalVariables *restrict locals,
                             [[maybe_unused]] x64_Allocator *restrict allocator,
                             [[maybe_unused]] x64_Context *restrict context) {
+  // the goal here is to load the argument location with the
+  // value given by the operand.
   switch (arg.format) {
   case OPRFMT_SSA: {
     break;
@@ -118,10 +111,6 @@ x64_codegen_actual_argument(Operand arg,
   }
 
   case OPRFMT_IMMEDIATE: {
-    break;
-  }
-
-  case OPRFMT_ARGUMENT: {
     break;
   }
 
@@ -183,13 +172,6 @@ static void x64_codegen_load(Instruction I,
     break;
   }
 
-  case OPRFMT_ARGUMENT: {
-    x64_FormalArgument *arg =
-        x64_formal_argument_list_at(&body->arguments, (u8)I.B);
-    x64_codegen_copy(A->location, arg->location, Idx, x64bc, allocator);
-    break;
-  }
-
   case OPRFMT_LABEL: {
     PANIC("#TODO");
     break;
@@ -220,19 +202,6 @@ static void x64_codegen_neg(Instruction I,
   case OPRFMT_IMMEDIATE: {
     // assert that we don't generate trivially foldable instructions
     assert(0);
-    break;
-  }
-
-  case OPRFMT_ARGUMENT: {
-    x64_FormalArgument *arg =
-        x64_formal_argument_list_at(&body->arguments, (u8)I.B);
-    // #NOTE: by definition the argument's lifetime is the whole function.
-    // so in order to maintain the value of the argument we initialize a
-    // new allocation with the value of the argument in order to negate that.
-    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
-    x64_codegen_copy(A->location, arg->location, Idx, x64bc, allocator);
-
-    x64_bytecode_append_neg(x64bc, x64_operand_alloc(A));
     break;
   }
 
@@ -317,18 +286,6 @@ static void x64_codegen_add(Instruction I,
       break;
     }
 
-    case OPRFMT_ARGUMENT: {
-      x64_FormalArgument *arg =
-          x64_formal_argument_list_at(&body->arguments, (u8)I.C);
-      // arguments are const, so we use B as the allocation point of A
-      x64_Allocation *A =
-          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-
-      x64_bytecode_append_add(
-          x64bc, x64_operand_alloc(A), x64_operand_location(arg->location));
-      break;
-    }
-
     case OPRFMT_LABEL: {
       PANIC("#TODO");
       break;
@@ -358,6 +315,11 @@ static void x64_codegen_add(Instruction I,
 
     x64_bytecode_append_add(
         x64bc, x64_operand_alloc(A), x64_operand_immediate(I.B));
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    PANIC("#TODO");
     break;
   }
 
@@ -952,6 +914,8 @@ static void x64_codegen_function(FunctionBody *restrict body,
   LocalVariables *locals  = &body->locals;
   Bytecode *bc            = &body->bc;
   x64_Allocator allocator = x64_allocator_create(body);
+
+  // we need to allocate the incoming arguments to this function.
 
   x64_codegen_bytecode(bc, x64_body, locals, &allocator, context);
 

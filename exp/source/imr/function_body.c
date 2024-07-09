@@ -258,6 +258,19 @@ ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
   return call_list_at(&function->calls, idx);
 }
 
+void function_body_new_argument(FunctionBody *restrict function,
+                                FormalArgument argument) {
+  assert(function != NULL);
+
+  LocalVariable local_arg = {.name = argument.name,
+                             .type = argument.type,
+                             .ssa  = function->ssa_count++};
+  argument.ssa            = local_arg.ssa;
+
+  local_variables_append(&function->locals, local_arg);
+  formal_argument_list_append(&function->arguments, argument);
+}
+
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
                              u16 ssa) {

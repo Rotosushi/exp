@@ -23,7 +23,7 @@ x64_Location x64_location_reg(x64_GPR gpr) {
   return a;
 }
 
-x64_Location x64_location_stack(u16 offset) {
+x64_Location x64_location_stack(i16 offset) {
   x64_Location a = {.kind = ALLOC_STACK, .offset = offset};
   return a;
 }

@@ -26,6 +26,7 @@ typedef struct FormalArgument {
   StringView name;
   Type *type;
   u8 index;
+  u16 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -94,6 +95,8 @@ CallPair function_body_new_call(FunctionBody *restrict function);
 ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
                                           u16 idx);
 
+void function_body_new_argument(FunctionBody *restrict function,
+                                FormalArgument arg);
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
                              u16 ssa);

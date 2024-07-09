@@ -41,16 +41,6 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
   return args->buffer + idx;
 }
 
-void x64_formal_argument_list_assign(x64_FormalArgumentList *restrict args,
-                                     u8 idx,
-                                     x64_Location location,
-                                     Type *type) {
-  assert(args != NULL);
-  x64_FormalArgument *arg = x64_formal_argument_list_at(args, idx);
-  arg->location           = location;
-  arg->type               = type;
-}
-
 x64_FunctionBody x64_function_body_create(u8 arg_count) {
   x64_FunctionBody x64body = {.arguments =
                                   x64_formal_argument_list_create(arg_count),

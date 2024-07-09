@@ -28,11 +28,11 @@ typedef struct x64_Location {
   x64_LocationKind kind;
   union {
     x64_GPR gpr;
-    u16 offset;
+    i16 offset;
   };
 } x64_Location;
 
 x64_Location x64_location_reg(x64_GPR gpr);
-x64_Location x64_location_stack(u16 offset);
+x64_Location x64_location_stack(i16 offset);
 
 #endif // !EXP_BACKEND_X64_LOCATION_H

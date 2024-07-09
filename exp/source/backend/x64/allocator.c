@@ -32,9 +32,6 @@ static x64_GPRP x64_gprp_create() {
 
 static void x64_gprp_destroy(x64_GPRP *restrict gprp) {
   gprp->bitset = 0;
-  for (u8 i = 0; i < 16; ++i) {
-    deallocate(gprp->buffer[i]);
-  }
   deallocate(gprp->buffer);
 }
 
@@ -130,10 +127,7 @@ static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
     x64_Allocation *cursor = gprp->buffer[i];
     if (cursor == NULL) { continue; }
 
-    if (cursor->lifetime.last_use <= Idx) {
-      deallocate(cursor);
-      x64_gprp_release(gprp, i);
-    }
+    if (cursor->lifetime.last_use <= Idx) { x64_gprp_release(gprp, i); }
   }
 }
 
@@ -155,9 +149,6 @@ static x64_StackAllocations x64_stack_allocations_create() {
 static void x64_stack_allocations_destroy(
     x64_StackAllocations *restrict stack_allocations) {
   if (stack_allocations->buffer != NULL) {
-    for (u16 i = 0; i < stack_allocations->count; ++i) {
-      deallocate(stack_allocations->buffer[i]);
-    }
     deallocate(stack_allocations->buffer);
   }
 
@@ -181,6 +172,8 @@ stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
   stack_allocations->capacity = (u16)g.new_capacity;
 }
 
+static bool in_range(u16 offset) { return (offset <= i16_MAX); }
+
 static void
 x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
                                x64_Allocation *restrict allocation) {
@@ -194,8 +187,9 @@ x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
     stack_allocations_grow(stack_allocations);
   }
 
-  allocation->location =
-      x64_location_stack(stack_allocations->active_stack_size);
+  u16 offset = stack_allocations->active_stack_size;
+  assert(in_range(offset));
+  allocation->location = x64_location_stack(-((i16)offset));
   stack_allocations->buffer[stack_allocations->count] = allocation;
   stack_allocations->count += 1;
 }
@@ -239,10 +233,62 @@ x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
   return NULL;
 }
 
+static x64_AllocationBuffer x64_allocation_buffer_create() {
+  x64_AllocationBuffer allocation_buffer = {
+      .count = 0, .capacity = 0, .buffer = NULL};
+  return allocation_buffer;
+}
+
+static void x64_allocation_buffer_destroy(
+    x64_AllocationBuffer *restrict allocation_buffer) {
+  assert(allocation_buffer != NULL);
+  deallocate(allocation_buffer->buffer);
+  allocation_buffer->buffer   = NULL;
+  allocation_buffer->count    = 0;
+  allocation_buffer->capacity = 0;
+}
+
+static bool
+x64_allocation_buffer_full(x64_AllocationBuffer *restrict allocation_buffer) {
+  return (allocation_buffer->count + 1) >= allocation_buffer->capacity;
+}
+
+static void
+x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
+  Growth g =
+      array_growth_u64(allocation_buffer->capacity, sizeof(x64_Allocation));
+  allocation_buffer->buffer =
+      reallocate(allocation_buffer->buffer, g.alloc_size);
+  allocation_buffer->capacity = g.new_capacity;
+}
+
+static x64_Allocation *
+x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
+                             u16 ssa,
+                             Lifetime *lifetime,
+                             Type *type) {
+  assert(allocation_buffer != NULL);
+  assert(lifetime != NULL);
+  assert(type != NULL);
+
+  if (x64_allocation_buffer_full(allocation_buffer)) {
+    x64_allocation_buffer_grow(allocation_buffer);
+  }
+
+  x64_Allocation *allocation =
+      allocation_buffer->buffer + allocation_buffer->count;
+  allocation_buffer->count += 1;
+  allocation->ssa      = ssa;
+  allocation->lifetime = *lifetime;
+  allocation->type     = type;
+  return allocation;
+}
+
 x64_Allocator x64_allocator_create(FunctionBody *restrict body) {
   x64_Allocator allocator = {
       .gprp              = x64_gprp_create(),
       .stack_allocations = x64_stack_allocations_create(),
+      .allocations       = x64_allocation_buffer_create(),
       .lifetimes         = lifetimes_compute(body),
   };
   x64_gprp_aquire(&allocator.gprp, X64GPR_RSP);
@@ -253,6 +299,7 @@ x64_Allocator x64_allocator_create(FunctionBody *restrict body) {
 void x64_allocator_destroy(x64_Allocator *restrict allocator) {
   x64_gprp_destroy(&allocator->gprp);
   x64_stack_allocations_destroy(&allocator->stack_allocations);
+  x64_allocation_buffer_destroy(&allocator->allocations);
   lifetimes_destroy(&allocator->lifetimes);
 }
 
@@ -325,15 +372,6 @@ void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
   x64_allocator_reallocate_active(allocator, active, x64bc);
 }
 
-static x64_Allocation *
-x64_allocation_construct(u16 ssa, Lifetime *lifetime, Type *type) {
-  x64_Allocation *allocation = allocate(sizeof(x64_Allocation));
-  allocation->ssa            = ssa;
-  allocation->lifetime       = *lifetime;
-  allocation->type           = type;
-  return allocation;
-}
-
 static void x64_allocator_stack_allocate(x64_Allocator *restrict allocator,
                                          x64_Allocation *restrict allocation) {
   x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
@@ -362,11 +400,10 @@ x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict allocator,
                                        u16 Idx,
                                        LocalVariable *local,
                                        x64_Bytecode *restrict x64bc) {
-  Lifetime *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-  x64_Allocation *allocation =
-      x64_allocation_construct(local->ssa, lifetime, local->type);
+  Lifetime *lifetime         = lifetimes_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation = x64_allocation_buffer_append(
+      &allocator->allocations, local->ssa, lifetime, local->type);
 
-  // if the local is unnamed and scalar, attempt register allocation
   if (string_view_empty(local->name) && type_is_scalar(local->type)) {
     x64_allocator_register_allocate(allocator, Idx, allocation, x64bc);
   } else {
@@ -424,9 +461,9 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
                                               x64_Bytecode *restrict x64bc) {
   x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
 
-  Lifetime *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-  x64_Allocation *allocation =
-      x64_allocation_construct(local->ssa, lifetime, local->type);
+  Lifetime *lifetime         = lifetimes_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation = x64_allocation_buffer_append(
+      &allocator->allocations, local->ssa, lifetime, local->type);
 
   x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
   return allocation;
@@ -441,18 +478,67 @@ x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
         allocator, X64GPR_RAX, Idx, local, x64bc);
   }
 
-  // #TODO while this is correct, we have to allocate the result of a call
-  // onto the stack when it is too big to fit in %rax. We still have to
-  // let the callee know where it's result is stored. We can use a hidden
-  // first parameter which is a pointer to the result. But we don't support
-  // types which don't fit in %rax yet. so this is fine for now.
-  Lifetime *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-  x64_Allocation *allocation =
-      x64_allocation_construct(local->ssa, lifetime, local->type);
+  Lifetime *lifetime         = lifetimes_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation = x64_allocation_buffer_append(
+      &allocator->allocations, local->ssa, lifetime, local->type);
 
   x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
   return allocation;
 }
+
+// static x64_Location x64_argument_location(u8 index) {
+//   // #TODO: for now, all possible types are scalar.
+//   // so when we introduce types that cannot be passed
+//   // by register we have to account for that here.
+//   switch (index) {
+//   case 0: return x64_location_reg(X64GPR_RDI);
+//   case 1: return x64_location_reg(X64GPR_RSI);
+//   case 2: return x64_location_reg(X64GPR_RDX);
+//   case 3: return x64_location_reg(X64GPR_RCX);
+//   case 4: return x64_location_reg(X64GPR_R8);
+//   case 5: return x64_location_reg(X64GPR_R9);
+//   // the rest of the arguments are passed on the stack.
+//   default: {
+//     return x64_location_stack(0);
+//   }
+//   }
+// }
+
+// we have to allocate an argument to the expected location.
+// this location needs to be agreed upon by both caller and callee.
+// for arguments passed in registers, this is straightforward, as
+// we can simply use the same register for the same arguments.
+// for this we, somewhat arbitrarily, use the system V abi.
+// when we pass arguments on the stack, we have to agree a-priori
+// about the stack location as well. this is somwhat more difficult.
+// but how about we simply pass the first stack argument right above
+// the callee's frame?
+// since the call instruction implicitly pushes the rIP onto the stack,
+// the first stack argument (if it is a single word large) would be at
+// 16(%rbp). (where 8(%rbp) is the location of the rIP.)
+// this brings up our first issue, until now the stack offsets have all
+// been in the same direction. but now, we need both positive and negative
+// offsets. however we have been storing our offsets within a u16, meaning
+// we cannot store negative numbers. so how do we solve this?
+// I think the cleanest solution would be to simply treat arguments as if
+// they were regular SSA locals. which means we want to directly encode their
+// stack position to simplify code which accesses stack variables.
+// this means using an i16 to store stack offsets.
+// we need to allocate the result of the call onto the stack as well, if the
+// result cannot fit into a register. This would place the first stack argument
+// directly above the result.
+// the second stack argument is above the first and so on.
+// when allocating the actual arguments we push each argument onto the stack
+// starting from the last stack argument.
+//
+
+// x64_Allocation *
+// x64_allocator_allocate_formal_argument(x64_Allocator *restrict allocator,
+//                                        u16 Idx,
+//                                        x64_FormalArgument *restrict argument,
+//                                        x64_Bytecode *restrict x64bc) {
+//   return;
+// }
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,

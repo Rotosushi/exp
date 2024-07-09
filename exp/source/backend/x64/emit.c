@@ -21,9 +21,9 @@
 #include "backend/directives.h"
 #include "utility/config.h"
 
-static void emit_x64symbol(x64_Symbol *restrict sym,
-                           String *restrict buffer,
-                           Context *restrict context) {
+static void x64_emit_symbol(x64_Symbol *restrict sym,
+                            String *restrict buffer,
+                            Context *restrict context) {
   directive_text(buffer);
   directive_globl(sym->name, buffer);
   directive_type(sym->name, STT_FUNC, buffer);
@@ -35,13 +35,13 @@ static void emit_x64symbol(x64_Symbol *restrict sym,
   string_append(buffer, SV("\n"));
 }
 
-static void emit_file_prolouge(Context *restrict context,
-                               String *restrict buffer) {
+static void x64_emit_file_prolouge(Context *restrict context,
+                                   String *restrict buffer) {
   directive_file(context_source_path(context), buffer);
   string_append(buffer, SV("\n"));
 }
 
-static void emit_file_epilouge(String *restrict buffer) {
+static void x64_emit_file_epilouge(String *restrict buffer) {
   StringView version = SV(EXP_VERSION_STRING);
   directive_ident(version, buffer);
   directive_noexecstack(buffer);
@@ -50,15 +50,15 @@ static void emit_file_epilouge(String *restrict buffer) {
 void x64_emit(x64_Context *restrict x64context) {
   String buffer = string_create();
 
-  emit_file_prolouge(x64context->context, &buffer);
+  x64_emit_file_prolouge(x64context->context, &buffer);
 
   x64_SymbolTable *symbols = &x64context->symbols;
   for (u64 i = 0; i < symbols->count; ++i) {
     x64_Symbol *sym = symbols->buffer + i;
-    emit_x64symbol(sym, &buffer, x64context->context);
+    x64_emit_symbol(sym, &buffer, x64context->context);
   }
 
-  emit_file_epilouge(&buffer);
+  x64_emit_file_epilouge(&buffer);
 
   StringView path = context_assembly_path(x64context->context);
   FILE *file      = file_open(path.ptr, "w");

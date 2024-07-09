@@ -83,11 +83,6 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
     return success(context_i64_type(c));
   }
 
-  case OPRFMT_ARGUMENT: {
-    FormalArgument *arg = context_argument_at(c, (u8)operand);
-    return success(arg->type);
-  }
-
   case OPRFMT_LABEL: {
     StringView name            = context_global_labels_at(c, operand);
     SymbolTableElement *global = context_global_symbol_table_at(c, name);

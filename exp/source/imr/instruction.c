@@ -33,11 +33,6 @@ Operand operand_immediate(u16 imm) {
   return opr;
 }
 
-Operand operand_argument(u16 index) {
-  Operand opr = {.format = OPRFMT_ARGUMENT, .common = index};
-  return opr;
-}
-
 Operand operand_label(u16 idx) {
   Operand opr = {.format = OPRFMT_LABEL, .common = idx};
   return opr;
