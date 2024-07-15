@@ -64,7 +64,7 @@ static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
                                      x64_Allocation *restrict allocation) {
   SET_BIT(gprp->bitset, gpr);
   gprp->buffer[gpr]    = allocation;
-  allocation->location = x64_location_reg(gpr);
+  allocation->location = x64_location_gpr(gpr);
 }
 
 static bool x64_gprp_allocate(x64_GPRP *restrict gprp,
@@ -172,7 +172,18 @@ stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
   stack_allocations->capacity = (u16)g.new_capacity;
 }
 
-static bool in_range(u16 offset) { return (offset <= i16_MAX); }
+static bool in_range_i16(u16 offset) { return (offset <= i16_MAX); }
+
+static void
+x64_stack_allocations_append(x64_StackAllocations *restrict stack_allocations,
+                             x64_Allocation *restrict allocation) {
+  if (stack_allocations_full(stack_allocations)) {
+    stack_allocations_grow(stack_allocations);
+  }
+
+  stack_allocations->buffer[stack_allocations->count] = allocation;
+  stack_allocations->count += 1;
+}
 
 static void
 x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
@@ -183,15 +194,12 @@ x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
       (u16)umax(stack_allocations->active_stack_size,
                 stack_allocations->total_stack_size);
 
-  if (stack_allocations_full(stack_allocations)) {
-    stack_allocations_grow(stack_allocations);
-  }
+  assert(in_range_i16(stack_allocations->active_stack_size));
+  i16 offset = (i16)stack_allocations->active_stack_size;
 
-  u16 offset = stack_allocations->active_stack_size;
-  assert(in_range(offset));
-  allocation->location = x64_location_stack(-((i16)offset));
-  stack_allocations->buffer[stack_allocations->count] = allocation;
-  stack_allocations->count += 1;
+  allocation->location = x64_location_stack(-offset);
+
+  x64_stack_allocations_append(stack_allocations, allocation);
 }
 
 static void
@@ -469,6 +477,18 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
   return allocation;
 }
 
+x64_Allocation *x64_allocator_allocate_formal_argument_to_stack(
+    x64_Allocator *restrict allocator, i16 offset, LocalVariable *local) {
+  Lifetime *lifetime         = lifetimes_at(&allocator->lifetimes, local->ssa);
+  x64_Allocation *allocation = x64_allocation_buffer_append(
+      &allocator->allocations, local->ssa, lifetime, local->type);
+
+  allocation->location = x64_location_stack(offset);
+
+  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+  return allocation;
+}
+
 x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
                                               u16 Idx,
                                               LocalVariable *local,
@@ -485,60 +505,6 @@ x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
   x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
   return allocation;
 }
-
-// static x64_Location x64_argument_location(u8 index) {
-//   // #TODO: for now, all possible types are scalar.
-//   // so when we introduce types that cannot be passed
-//   // by register we have to account for that here.
-//   switch (index) {
-//   case 0: return x64_location_reg(X64GPR_RDI);
-//   case 1: return x64_location_reg(X64GPR_RSI);
-//   case 2: return x64_location_reg(X64GPR_RDX);
-//   case 3: return x64_location_reg(X64GPR_RCX);
-//   case 4: return x64_location_reg(X64GPR_R8);
-//   case 5: return x64_location_reg(X64GPR_R9);
-//   // the rest of the arguments are passed on the stack.
-//   default: {
-//     return x64_location_stack(0);
-//   }
-//   }
-// }
-
-// we have to allocate an argument to the expected location.
-// this location needs to be agreed upon by both caller and callee.
-// for arguments passed in registers, this is straightforward, as
-// we can simply use the same register for the same arguments.
-// for this we, somewhat arbitrarily, use the system V abi.
-// when we pass arguments on the stack, we have to agree a-priori
-// about the stack location as well. this is somwhat more difficult.
-// but how about we simply pass the first stack argument right above
-// the callee's frame?
-// since the call instruction implicitly pushes the rIP onto the stack,
-// the first stack argument (if it is a single word large) would be at
-// 16(%rbp). (where 8(%rbp) is the location of the rIP.)
-// this brings up our first issue, until now the stack offsets have all
-// been in the same direction. but now, we need both positive and negative
-// offsets. however we have been storing our offsets within a u16, meaning
-// we cannot store negative numbers. so how do we solve this?
-// I think the cleanest solution would be to simply treat arguments as if
-// they were regular SSA locals. which means we want to directly encode their
-// stack position to simplify code which accesses stack variables.
-// this means using an i16 to store stack offsets.
-// we need to allocate the result of the call onto the stack as well, if the
-// result cannot fit into a register. This would place the first stack argument
-// directly above the result.
-// the second stack argument is above the first and so on.
-// when allocating the actual arguments we push each argument onto the stack
-// starting from the last stack argument.
-//
-
-// x64_Allocation *
-// x64_allocator_allocate_formal_argument(x64_Allocator *restrict allocator,
-//                                        u16 Idx,
-//                                        x64_FormalArgument *restrict argument,
-//                                        x64_Bytecode *restrict x64bc) {
-//   return;
-// }
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,

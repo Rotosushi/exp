@@ -21,7 +21,7 @@
 #include "intrinsics/type_of.h"
 #include "utility/panic.h"
 
-Type *type_of(Value *restrict value, Context *restrict context) {
+Type *type_of_value(Value *restrict value, Context *restrict context) {
   switch (value->kind) {
   case VALUEKIND_UNINITIALIZED: PANIC("uninitialized Value");
   case VALUEKIND_NIL:           return context_nil_type(context);
@@ -44,4 +44,36 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
   }
 
   return context_function_type(context, body->return_type, argument_types);
+}
+
+Type *type_of_operand(Operand operand, Context *restrict context) {
+  switch (operand.format) {
+  case OPRFMT_SSA: {
+    LocalVariable *local = context_lookup_ssa(context, operand.common);
+    return local->type;
+    break;
+  }
+
+  case OPRFMT_CONSTANT: {
+    Value *constant = context_constants_at(context, operand.common);
+    return type_of_value(constant, context);
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    return context_i64_type(context);
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    StringView label = context_global_labels_at(context, operand.common);
+    SymbolTableElement *symbol = context_global_symbol_table_at(context, label);
+    assert(!string_view_empty(symbol->name));
+    assert(symbol->type != NULL);
+    return symbol->type;
+    break;
+  }
+
+  default: unreachable();
+  }
 }

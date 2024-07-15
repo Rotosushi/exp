@@ -1,0 +1,51 @@
+// Copyright (C) 2024 Cade Weinberg
+// 
+// This file is part of exp.
+// 
+// exp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// exp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
+
+the process so far:
+
+  when we parse a function body, we parse it's formal argument list,
+  this enumerates the incoming arguments to the function. The incoming 
+  arguments to the function are allocated by the caller of the function.
+  going by the x64 system v abi, stack arguments are passed by pushing them 
+  onto the stack in a reversed right-to-left order. Note that this leaves the 
+  first stack argument (from the left) on the stack immediately before we 
+  "push %rbp" to start the function prolouge. 
+  by convention we are using %rsp as the "bottom" of the stack frame, and %rbp 
+  as the "top" of the stack frame. when we "push %rbp" we add 8 to the stack.
+  this means that %rsp points to the value that was just pushed. which means 
+  that 8(%rbp) is the first stack argument to the function, then 16(%rbp),
+  24(%rbp), etc...
+  These numbers will change based on the size of the incoming argument. 
+  but for now we only have types of size 8.
+
+
+  when we parse a function call expression we create an actual argument list,
+  which is referenced by the 'call' bytecode instruction. this enumerates 
+  the outgoing arguments to the function being called.  the outgouing
+  arguments are represented as operands. that is they can be an SSA local,
+  a constant, an immediate, or a label. 
+  we allocate each actual argument before we issue the call instruction.
+  arguments that fit in registers are called "scalar", and these are passed 
+  in registers rdi, rsi, rdx, rcx, r8, r9, then the rest go onto the stack.
+  arguments that are too big to fit in a register are simply passed on the 
+  stack.
+  arguments that are passed onto the stack are pushed onto the stack going 
+  from right-to-left when scanning the actual argument list.
+  this leaves the first incoming argument at the lowest stack address when 
+  calling the function. meaning it's location can always be computed
+
+

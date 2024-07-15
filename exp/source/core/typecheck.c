@@ -76,7 +76,7 @@ typecheck_operand(Context *restrict c, OperandFormat fmt, u16 operand) {
 
   case OPRFMT_CONSTANT: {
     Value *value = context_constants_at(c, operand);
-    return success(type_of(value, c));
+    return success(type_of_value(value, c));
   }
 
   case OPRFMT_IMMEDIATE: {

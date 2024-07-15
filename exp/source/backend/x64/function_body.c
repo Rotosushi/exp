@@ -44,7 +44,7 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
 x64_FunctionBody x64_function_body_create(u8 arg_count) {
   x64_FunctionBody x64body = {.arguments =
                                   x64_formal_argument_list_create(arg_count),
-                              .return_location = x64_location_reg(X64GPR_RAX),
+                              .return_location = x64_location_gpr(X64GPR_RAX),
                               .bc              = x64_bytecode_create()};
   return x64body;
 }

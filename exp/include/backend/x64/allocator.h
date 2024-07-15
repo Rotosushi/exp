@@ -19,6 +19,7 @@
 
 #include "backend/x64/allocation.h"
 #include "backend/x64/bytecode.h"
+#include "backend/x64/context.h"
 #include "backend/x64/function_body.h"
 #include "backend/x64/registers.h"
 
@@ -93,16 +94,13 @@ x64_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
                                               LocalVariable *local,
                                               x64_Bytecode *restrict x64bc);
 
+x64_Allocation *x64_allocator_allocate_formal_argument_to_stack(
+    x64_Allocator *restrict allocator, i16 offset, LocalVariable *local);
+
 x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
                                               u16 Idx,
                                               LocalVariable *local,
                                               x64_Bytecode *restrict x64bc);
-
-x64_Allocation *
-x64_allocator_allocate_formal_arguments(x64_Allocator *restrict allocator,
-                                        u16 Idx,
-                                        x64_FormalArgument *restrict argument,
-                                        x64_Bytecode *restrict x64bc);
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,

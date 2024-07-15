@@ -219,6 +219,21 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
   return success(zero());
 }
 
+// "return" <expression> ";"
+static ParserResult return_(Parser *restrict p, Context *restrict c) {
+  nexttok(p); // eat "return"
+
+  ParserResult maybe = expression(p, c);
+  if (maybe.has_error) { return maybe; }
+
+  if (!expect(p, TOK_SEMICOLON)) {
+    return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
+  }
+
+  context_emit_return(c, maybe.result);
+  return success(zero());
+}
+
 // "const" identifier "=" <expression> ";"
 static ParserResult constant(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat 'const'
@@ -239,21 +254,6 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
   }
 
   context_def_local_const(c, name, maybe.result);
-  return success(zero());
-}
-
-// "return" <expression> ";"
-static ParserResult return_(Parser *restrict p, Context *restrict c) {
-  nexttok(p); // eat "return"
-
-  ParserResult maybe = expression(p, c);
-  if (maybe.has_error) { return maybe; }
-
-  if (!expect(p, TOK_SEMICOLON)) {
-    return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
-  }
-
-  context_emit_return(c, maybe.result);
   return success(zero());
 }
 

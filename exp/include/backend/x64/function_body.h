@@ -22,7 +22,7 @@
 
 typedef struct x64_FormalArgument {
   u8 index;
-  u16 ssa;
+  x64_Allocation *allocation;
   Type *type;
 } x64_FormalArgument;
 

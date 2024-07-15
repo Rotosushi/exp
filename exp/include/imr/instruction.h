@@ -18,34 +18,6 @@
 #define EXP_IMR_INSTRUCTION_H
 #include "utility/int_types.h"
 
-/*
-  So, the big question for a call instruction is how to we elaborate
-  what the arguments to the call instruction are within the space provided
-  by the instruction format?
-
-  we only have 3 operands to the instruction A, B, C, (each being 16 bits)
-  and each argument to the function is as complex as an entire operand.
-  so how do we support function calls with [n] potential arguments?
-
-  my first guess is to specify a range of locals using the operands B, C.
-  and specify the function to call using operand A.
-  this leaves out how to specify the returned value.
-  so we need at least 4 operands? and if we are specifying a range of ssa
-  locals, we need to at least be able to start and stop the range anywhere.
-  so doesn't that mean we need at least two u16's? which means that with this
-  approach we need 4 u16's to properly encode. (and this leaves out the problem
-  of getting the arguments into a consecutive range of ssa locals.)
-
-  the call instruction needs to layout like:
-  [f][R][B][C] -> SSA[R] = f(SSA[B], ..., SSA[C])
-
-  what if we specify the argument list in another table somehow? and we
-  then just need to store a key in the instruction which can be used to
-  retrieve the argument list. just as we did with the global variable names.
-  then it can be
-  ABC -- SSA[A] = <B>(<C>)
-*/
-
 /**
  * @brief the valid opcodes for instructions
  *
@@ -149,13 +121,6 @@ Operand operand_ssa(u16 ssa);
 Operand operand_constant(u16 index);
 Operand operand_immediate(u16 imm);
 Operand operand_label(u16 idx);
-
-/*
-  #TODO if we ever need to store more than
-  a u16's worth of constants, or ssa's, or
-  global variable names, we will need extended
-  versions of instructions
-*/
 
 /**
  * @brief represents a bytecode instruction

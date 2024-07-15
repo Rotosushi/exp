@@ -16,9 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stddef.h>
+
 #include "backend/x64/location.h"
 
-x64_Location x64_location_reg(x64_GPR gpr) {
+x64_Location x64_location_gpr(x64_GPR gpr) {
   x64_Location a = {.kind = ALLOC_GPR, .gpr = gpr};
   return a;
 }
@@ -26,4 +28,14 @@ x64_Location x64_location_reg(x64_GPR gpr) {
 x64_Location x64_location_stack(i16 offset) {
   x64_Location a = {.kind = ALLOC_STACK, .offset = offset};
   return a;
+}
+
+bool x64_location_eq(x64_Location A, x64_Location B) {
+  if (A.kind != B.kind) { return 0; }
+
+  switch (A.kind) {
+  case ALLOC_GPR:   return A.gpr == B.gpr;
+  case ALLOC_STACK: return A.offset == B.offset;
+  default:          unreachable();
+  }
 }

@@ -49,7 +49,7 @@ static bool function_types_full(FunctionTypes *restrict function_types) {
 }
 
 static void function_types_grow(FunctionTypes *restrict function_types) {
-  Growth g    = array_growth_u64(function_types->capacity, sizeof(Type *));
+  Growth g = array_growth_u64(function_types->capacity, sizeof(Type));
   function_types->types    = reallocate(function_types->types, g.alloc_size);
   function_types->capacity = g.new_capacity;
 }
@@ -69,9 +69,11 @@ Type *function_types_append(FunctionTypes *restrict function_types,
     }
   }
 
-  if (function_types_full(function_types)) { function_types_grow(function_types); }
+  if (function_types_full(function_types)) {
+    function_types_grow(function_types);
+  }
 
-  Type *new_type = &function_types->types[function_types->size];
+  Type *new_type = function_types->types + function_types->size;
   *new_type      = function_type;
   function_types->size += 1;
   return new_type;

@@ -33,5 +33,19 @@ int call([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   result |= test_exp(
       source_path, "fn f() { return 25; } fn main() { return f() + f(); }", 50);
 
+  result |= test_exp(source_path,
+                     "fn f(a: i64) { return a; } fn main() { return f(12); }",
+                     12);
+
+  result |= test_exp(
+      source_path,
+      "fn f(a: i64) { return a; } fn main() { return f(6) + f(3) + f(3); }",
+      12);
+
+  //   result |= test_exp(
+  //       source_path,
+  //       "fn f(a: i64, b: i64) { return a + b; } fn main() { return f(12, 24);
+  //       }", 36);
+
   return result;
 }
