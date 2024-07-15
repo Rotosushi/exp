@@ -51,7 +51,7 @@ i32 compile(i32 argc, char const *argv[]) {
     result |= link(&context);
   }
 
-  if (context_do_cleanup(&context)) {
+  if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
     StringView asm_path = context_assembly_path(&context);
     file_remove(asm_path.ptr);
 

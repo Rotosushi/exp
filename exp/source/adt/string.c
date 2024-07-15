@@ -37,7 +37,7 @@ String string_create() {
 }
 
 static bool string_small(String const *restrict str) {
-  return str->capacity == sizeof(char *);
+  return str->capacity <= sizeof(char *);
 }
 
 void string_destroy(String *restrict str) {

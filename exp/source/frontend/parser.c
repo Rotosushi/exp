@@ -45,16 +45,14 @@ static void parser_result_destroy(ParserResult *restrict pr) {
 }
 
 static ParserResult error(Parser *restrict p, ErrorCode code) {
-  ParserResult result;
-  result.has_error = 1;
-  result.error     = error_construct(code, lexer_current_text(&p->lexer));
+  ParserResult result = {
+      .has_error = 1,
+      .error     = error_construct(code, lexer_current_text(&p->lexer))};
   return result;
 }
 
 static ParserResult success(Operand result) {
-  ParserResult pr;
-  pr.has_error = 0;
-  pr.result    = result;
+  ParserResult pr = {.has_error = 0, .result = result};
   return pr;
 }
 
@@ -213,7 +211,11 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
       if (maybe.has_error) { return maybe; }
 
       function_body_new_argument(body, arg);
-    } while (!expect(p, TOK_END_PAREN));
+    } while (expect(p, TOK_COMMA));
+
+    if (!expect(p, TOK_END_PAREN)) {
+      return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
+    }
   }
 
   return success(zero());
