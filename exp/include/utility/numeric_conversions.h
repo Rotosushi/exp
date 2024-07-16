@@ -23,8 +23,8 @@
 // TODO:
 //    u64 f32_safe_strlen(float value);
 //    u64 f64_safe_strlen(double value);
-//    char * f32_to_str(float value, char *buffer, u64 buf_len);
-//    char * f64_to_str(double value, char *buffer, u64 buf_len);
+//    char * f32_to_str(float value, char *buffer);
+//    char * f64_to_str(double value, char *buffer);
 // of note is that the assembler does not accept floating point
 // literals, and instead reads integer literals and stores them
 // as floats. effectively the integer literal is just there to

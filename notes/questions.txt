@@ -34,3 +34,5 @@ some basic questions:
 7 - how does the backend generate target machine assembly?
 7a - how does the register allocator use the IR to allocate variables?
 
+okay. all of these are answered at this point. 
+
