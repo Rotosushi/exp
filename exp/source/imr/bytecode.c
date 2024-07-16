@@ -166,23 +166,23 @@ void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
 
 static void print_local(u16 v, FILE *restrict file) {
   file_write("SSA[", file);
-  print_u64(v, RADIX_DECIMAL, file);
+  print_u64(v, file);
   file_write("]", file);
 }
 
 static void print_constant(u16 v, FILE *restrict file) {
   file_write("Constant[", file);
-  print_u64(v, RADIX_DECIMAL, file);
+  print_u64(v, file);
   file_write("]", file);
 }
 
 static void print_immediate(u16 v, FILE *restrict file) {
-  print_i64((i16)v, RADIX_DECIMAL, file);
+  print_i64((i16)v, file);
 }
 
 static void print_global(u16 v, FILE *restrict file) {
   file_write("GlobalSymbol[", file);
-  print_u64(v, RADIX_DECIMAL, file);
+  print_u64(v, file);
   file_write("]", file);
 }
 
@@ -288,7 +288,7 @@ static void print_instruction(Instruction I, FILE *restrict file) {
 void print_bytecode(Bytecode const *restrict bc, FILE *restrict file) {
   // walk the entire buffer and print each instruction
   for (u64 i = 0; i < bc->length; ++i) {
-    print_u64(i, RADIX_DECIMAL, file);
+    print_u64(i, file);
     file_write(": ", file);
     print_instruction(bc->buffer[i], file);
     file_write("\n", file);

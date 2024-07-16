@@ -28,6 +28,9 @@ typedef struct x64_Allocation {
   Type *type;
 } x64_Allocation;
 
+x64_Allocation *x64_allocation_allocate();
+void x64_allocation_deallocate(x64_Allocation *restrict allocation);
+
 bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
                                 x64_Location location);
 

@@ -17,20 +17,32 @@
 #ifndef EXP_ENV_STRING_INTERNER_H
 #define EXP_ENV_STRING_INTERNER_H
 
-#include "adt/string.h"
+#include "utility/string_view.h"
+
+/**
+ * @brief We use simple strings instead of general strings
+ * because the general strings are small string optimized
+ * and that means we cannot safely return a view into the
+ * small string and freely grow the interned strings.
+ * as reallocating the buffer of strings may move the interned
+ * string, invalidating the string view returned by the string
+ * interner.
+ */
+typedef struct SimpleString {
+  u64 length;
+  char *ptr;
+} SimpleString;
 
 /**
  * @brief holds a set of strings, such that the memory
  * allocated for these strings is all managed in one location,
  * this has the additional benefiet of allowing string
  * comparison outside the string interner to require a single
- * pointer comparison instead of a memcmp.
- *
  */
 typedef struct StringInterner {
   u64 capacity;
   u64 count;
-  String *buffer;
+  SimpleString *buffer;
 } StringInterner;
 
 StringInterner string_interner_create();

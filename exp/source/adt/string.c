@@ -36,13 +36,13 @@ String string_create() {
   return str;
 }
 
-static bool string_small(String const *restrict str) {
+static bool string_is_small(String const *restrict str) {
   return str->capacity <= sizeof(char *);
 }
 
 void string_destroy(String *restrict str) {
   assert(str != NULL);
-  if (!string_small(str)) {
+  if (!string_is_small(str)) {
     deallocate(str->ptr);
     str->ptr = NULL;
   }
@@ -58,7 +58,7 @@ StringView string_to_view(String const *restrict str) {
 }
 
 char const *string_to_cstring(String const *restrict str) {
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     return str->buffer;
   } else {
     return str->ptr;
@@ -116,7 +116,7 @@ bool string_eq(String const *restrict str, StringView sv) {
   assert(str != NULL);
   if (str->length != sv.length) { return 0; }
 
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     return strncmp(str->buffer, sv.ptr, sv.length) == 0;
   }
 
@@ -125,13 +125,13 @@ bool string_eq(String const *restrict str, StringView sv) {
 
 void string_resize(String *restrict str, u64 capacity) {
   assert(str != NULL);
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     if (capacity >= sizeof(char *)) {
       char *buf     = callocate(capacity, sizeof(char));
       str->capacity = capacity;
       memcpy(buf, str->buffer, str->length);
       str->ptr = buf;
-    }
+    } // else the small capacity can hold the given capacity
     return;
   }
 
@@ -144,11 +144,11 @@ void string_append(String *restrict str, StringView sv) {
   if (sv.length == 0) { return; }
 
   if ((str->length + sv.length) >= str->capacity) {
-    Growth g = array_growth_u64(str->capacity + sv.length, sizeof(char));
+    Growth g = array_growth_u64(str->capacity + sv.length, sizeof(*str->ptr));
     string_resize(str, g.new_capacity);
   }
 
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     memcpy(str->buffer + str->length, sv.ptr, sv.length);
     str->length += sv.length;
     str->buffer[str->length] = '\0';
@@ -166,18 +166,18 @@ void string_append_string(String *restrict dst, String const *restrict src) {
 }
 
 void string_append_i64(String *restrict str, i64 i) {
-  u64 len = i64_safe_strlen(i, RADIX_DECIMAL);
+  u64 len = i64_safe_strlen(i);
   char buf[len + 1];
-  char *r = i64_to_str(i, buf, RADIX_DECIMAL);
+  char *r = i64_to_str(i, buf);
   if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
   string_append(str, string_view_from_str(buf, len));
 }
 
 void string_append_u64(String *restrict str, u64 u) {
-  u64 len = u64_safe_strlen(u, RADIX_DECIMAL);
+  u64 len = u64_safe_strlen(u);
   char buf[len + 1];
-  char *r = u64_to_str(u, buf, RADIX_DECIMAL);
+  char *r = u64_to_str(u, buf);
   if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
   string_append(str, string_view_from_str(buf, len));
@@ -201,7 +201,7 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
 
   if ((offset == 0) && (length == str->length)) {
     // erase the entire buffer
-    if (string_small(str)) {
+    if (string_is_small(str)) {
       str->buffer[0] = '\0';
     } else {
       str->ptr[0] = '\0';
@@ -211,7 +211,7 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
   }
 
   // erase <length> characters starting from <str->buffer + offset>
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     char *pos       = str->buffer + offset;
     char *rest      = pos + length;
     u64 rest_length = (u64)((str->buffer + str->length) - rest);
@@ -260,7 +260,7 @@ void string_insert(String *restrict str, u64 offset, StringView sv) {
     str->length += added_length;
   }
 
-  if (string_small(str)) {
+  if (string_is_small(str)) {
     memcpy(str->buffer + offset, sv.ptr, sv.length);
     str->buffer[offset + sv.length] = '\0';
   } else {
@@ -281,7 +281,7 @@ void string_replace_extension(String *restrict str, StringView ext) {
   // search for the last '/' in the string
   u64 length   = str->length;
   u64 cursor   = length;
-  char *buffer = string_small(str) ? str->buffer : str->ptr;
+  char *buffer = string_is_small(str) ? str->buffer : str->ptr;
   while ((cursor != 0) && (buffer[cursor] != '/')) {
     --cursor;
   }

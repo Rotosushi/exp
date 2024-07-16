@@ -444,7 +444,7 @@ static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
 
 static ParserResult integer(Parser *restrict p, Context *restrict c) {
   StringView sv = curtxt(p);
-  i64 integer   = str_to_i64(sv.ptr, sv.length, RADIX_DECIMAL);
+  i64 integer   = str_to_i64(sv.ptr, sv.length);
 
   nexttok(p);
   Operand B;

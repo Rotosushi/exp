@@ -31,79 +31,34 @@
 // specify the bit pattern of the float value. so the above functions
 // are not useful in the backend.
 
-typedef enum Radix {
-  RADIX_BINARY      = 2,
-  RADIX_OCTAL       = 8,
-  RADIX_DECIMAL     = 10,
-  RADIX_HEXADECIMAL = 16,
-} Radix;
+/**
+ * @brief return the length of the string which can hold
+ * all of the digits in the given value when converted
+ * into base 10. plus the minus sign if <value> is negative
+ */
+u64 i64_safe_strlen(i64 value);
 
 /**
  * @brief return the length of the string which can hold
  * all of the digits in the given value when converted
- * into the given radix and the minus sign if value is negative.
- *
- * @note does not include the null terminator.
- * @note does not include the c-style prefixes 0x, 0b, 0
- *
- * @param value the value whose digits are to be stored
- * @param radix the radix to convert the number into
- * @return u64 the length of the string
+ * into base 10
  */
-u64 i64_safe_strlen(i64 value, Radix radix);
-
-/**
- * @brief return the length of the string which can hold
- * all of the digits in the given value when converted
- * into the given radix
- *
- * @note does not include the null terminator.
- * @note does not include the c-style prefixes 0x, 0b, 0
- *
- * @param value the value whose digits are to be stored
- * @param radix the radix to convert the number into
- * @return u64 the length of the string
- */
-u64 u64_safe_strlen(u64 value, Radix radix);
+u64 u64_safe_strlen(u64 value);
 
 /**
  * @brief write the digits of <value> into <buffer>
  * converted into the given radix
- *
- * @note the buffer must be large enough to hold the given value.
- * @note the radix can be any value between 2 and 32.
- * @note the c style prefixes 0x, 0b, 0, are not prefixed to
- * the resulting string.
- *
- * @param value the number to convert
- * @param buffer the buffer to write the string into
- * @param radix the radix of the resulting string
- * @return char* the end of the string, or NULL if conversion failed.
  */
-char *i64_to_str(i64 value, char *restrict buffer, Radix radix);
+char *i64_to_str(i64 value, char *restrict buffer);
 
-void print_i64(i64 value, Radix radix, FILE *file);
+void print_i64(i64 value, FILE *file);
 
-/**
- * @brief write the digits of <value> into <buffer>
- * converted into the given base
- *
- * @note the buffer must be large enough to hold the given value.
- * @note the base can be any value between 2 and 32.
- * @note the c style prefixes 0x, 0b, 0, are not prefixed to
- * the resulting string.
- *
- * @param value the number to convert
- * @param buffer the buffer to write the string into
- * @param radix the radix of the resulting string
- * @return char* the end of the string, or NULL if conversion failed.
- */
-char *u64_to_str(u64 value, char *restrict buffer, Radix radix);
+char *u64_to_str(u64 value, char *restrict buffer);
 
-void print_u64(u64 value, Radix radix, FILE *file);
+void print_u64(u64 value, FILE *file);
 
-i64 str_to_i64(char const *restrict buffer, u64 length, Radix radix);
+i64 str_to_i64(char const *restrict buffer, u64 length);
 
-u64 str_to_u64(char const *restrict buffer, u64 length, Radix radix);
+u64 str_to_u64(char const *restrict buffer, u64 length);
 
 #endif // !EXP_UTILITY_NUMBERS_TO_STRING_H

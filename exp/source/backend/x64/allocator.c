@@ -250,6 +250,10 @@ static x64_AllocationBuffer x64_allocation_buffer_create() {
 static void x64_allocation_buffer_destroy(
     x64_AllocationBuffer *restrict allocation_buffer) {
   assert(allocation_buffer != NULL);
+  for (u64 i = 0; i < allocation_buffer->count; ++i) {
+    x64_allocation_deallocate(allocation_buffer->buffer[i]);
+  }
+
   deallocate(allocation_buffer->buffer);
   allocation_buffer->buffer   = NULL;
   allocation_buffer->count    = 0;
@@ -263,8 +267,8 @@ x64_allocation_buffer_full(x64_AllocationBuffer *restrict allocation_buffer) {
 
 static void
 x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
-  Growth g =
-      array_growth_u64(allocation_buffer->capacity, sizeof(x64_Allocation));
+  Growth g = array_growth_u64(allocation_buffer->capacity,
+                              sizeof(*allocation_buffer->buffer));
   allocation_buffer->buffer =
       reallocate(allocation_buffer->buffer, g.alloc_size);
   allocation_buffer->capacity = g.new_capacity;
@@ -283,13 +287,14 @@ x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
     x64_allocation_buffer_grow(allocation_buffer);
   }
 
-  x64_Allocation *allocation =
+  x64_Allocation **allocation =
       allocation_buffer->buffer + allocation_buffer->count;
   allocation_buffer->count += 1;
-  allocation->ssa      = ssa;
-  allocation->lifetime = *lifetime;
-  allocation->type     = type;
-  return allocation;
+  *allocation             = x64_allocation_allocate();
+  (*allocation)->ssa      = ssa;
+  (*allocation)->lifetime = *lifetime;
+  (*allocation)->type     = type;
+  return *allocation;
 }
 
 x64_Allocator x64_allocator_create(FunctionBody *restrict body) {
@@ -485,7 +490,7 @@ x64_Allocation *x64_allocator_allocate_formal_argument_to_stack(
 
   allocation->location = x64_location_stack(offset);
 
-  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+  x64_stack_allocations_append(&allocator->stack_allocations, allocation);
   return allocation;
 }
 

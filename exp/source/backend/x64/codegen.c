@@ -117,37 +117,6 @@ static x64_GPR x64_argument_gpr(u8 index) {
   }
 }
 
-/*
-  for each actual argument, "allocate" it to a register
-  or to the stack.
-  if the argument is scalar, and there are still registers
-  left, allocate to the next available argument register.
-
-  if the argument is not scalar or there are no registers left,
-  allocate to the next stack slot. however, we have to allocate
-  the stack arguments going from right-to-left.
-
-  in order to know if the argument is scalar, we need it's type.
-  and to properly interpret constant and label arguments we need
-  access to the context.
-  and how do we allocate stack arguments right-to-left?
-  the simplest case is that the first 6 arguments are in
-  registers, and then the rest are on the stack. meaning
-  we can just reverse iterate the rest of the actual argument
-  list. but, what about when an initial argument is stack
-  allocated due to it being non-scalar? This requires us to
-  reverse iterate, and skip through the argument list while
-  reverse iterating. We could instead simply add all stack
-  allocated arguments to a buffer, and reverse iterate that
-  buffer, stack allocating each argument.
-
-  okay, great. But how does the codegen routine know where
-  each actual argument is allocated, so it can initialize them?
-  if we initialize them here, there is no problem.
-
-  okay, so what about the fact that while we need to allocate
-*/
-
 static void x64_codegen_call(Instruction I,
                              u16 Idx,
                              x64_FunctionBody *restrict body,
@@ -218,7 +187,8 @@ static void x64_codegen_call(Instruction I,
     Type *type  = type_of_operand(arg, context->context);
 
     u16 arg_size = (u16)ulmax(8UL, size_of(type));
-    u16 offset   = (u16)(current_stack_offset + arg_size);
+    u16 offset =
+        (u16)(current_stack_offset + actual_arguments_stack_size + arg_size);
     assert(offset <= i16_MAX);
     i16 arg_offset = -((i16)offset);
 
@@ -1066,13 +1036,14 @@ static void x64_codegen_function(FunctionBody *restrict body,
   // so we just have to increment a number, to select each successive
   // stack passed argument.
   if (i < args->size) {
-    i16 arg_offset = 0;
+    // the initial offset is 8, to skip the pushed %rbp
+    i16 arg_offset = 8;
     for (; i < args->size; ++i) {
       FormalArgument *arg  = args->list + i;
       LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
       u16 offset           = (u16)ulmax(8UL, size_of(arg->type));
       assert(offset <= i16_MAX);
-      arg_offset += -(i16)offset;
+      arg_offset += (i16)offset;
       x64_allocator_allocate_formal_argument_to_stack(
           &allocator, arg_offset, local);
     }

@@ -58,7 +58,7 @@ void log_message(LogLevel level,
 
     file_write(":", stream);
 
-    print_u64(line, RADIX_DECIMAL, stream);
+    print_u64(line, stream);
   }
 
   file_write("] ", stream);

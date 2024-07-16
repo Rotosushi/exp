@@ -92,7 +92,7 @@ void print_value(Value const *restrict v, FILE *restrict file) {
     else file_write("false", file);
     break;
 
-  case VALUEKIND_I64: print_i64(v->integer, RADIX_DECIMAL, file); break;
+  case VALUEKIND_I64: print_i64(v->integer, file); break;
 
   default: file_write("undefined", file); break;
   }

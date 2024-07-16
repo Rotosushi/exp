@@ -23,61 +23,38 @@
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-[[maybe_unused]] static bool valid_radix(Radix r) {
-  return (r == RADIX_BINARY) || (r == RADIX_OCTAL) || (r == RADIX_DECIMAL) ||
-         (r == RADIX_HEXADECIMAL);
+u64 u64_safe_strlen(u64 value) {
+  if (value < 10) return 1;
+  if (value < 100) return 2;
+  if (value < 1'000) return 3;
+  if (value < 10'000) return 4;
+  if (value < 100'000) return 5;
+  if (value < 1'000'000) return 6;
+  if (value < 10'000'000) return 7;
+  if (value < 100'000'000) return 8;
+  if (value < 1'000'000'000) return 9;
+  if (value < 10'000'000'000) return 10;
+  if (value < 100'000'000'000) return 11;
+  if (value < 1'000'000'000'000) return 12;
+  if (value < 10'000'000'000'000) return 13;
+  if (value < 100'000'000'000'000) return 14;
+  if (value < 1'000'000'000'000'000) return 15;
+  if (value < 10'000'000'000'000'000) return 16;
+  if (value < 100'000'000'000'000'000) return 17;
+  if (value < 1'000'000'000'000'000'000) return 18;
+  if (value < 10'000'000'000'000'000'000UL) return 19;
+  return 20;
 }
 
-u64 i64_safe_strlen(i64 value, Radix radix) {
-  u64 result = 0;
-
-  if ((value == 0) || (value == 1)) {
-    // "0" or "1"
-    result += 1;
-    return result;
-  }
-
+u64 i64_safe_strlen(i64 value) {
   if (value < 0) {
-    // negative sign "-"
-    result += 1;
-    if (value == -1) {
-      // "1"
-      result += 1;
-      return result;
-    }
-
-    double absolute   = fabs((double)value);
-    u64 number_length = (u64)(ceil(log(absolute) / log((double)radix)));
-    if (__builtin_add_overflow(result, number_length, &result)) {
-      PANIC("value exceeds u64");
-    }
-  } else {
-    u64 number_length = (u64)(ceil(log((double)value) / log((double)radix)));
-    if (__builtin_add_overflow(result, number_length, &result)) {
-      PANIC("value exceeds u64");
-    }
+    value = (value == i64_MIN) ? i64_MAX : -value;
+    return u64_safe_strlen((u64)value) + 1;
   }
-  return result;
+  return u64_safe_strlen((u64)value);
 }
 
-u64 u64_safe_strlen(u64 value, Radix radix) {
-  u64 result = 0;
-
-  if ((value == 0) || (value == 1)) {
-    // "0" or "1"
-    result += 1;
-    return result;
-  }
-
-  u64 number_length = (u64)(ceil(log((double)value) / log((double)radix)));
-  if (__builtin_add_overflow(result, number_length, &result)) {
-    PANIC("value exceeds u64");
-  }
-  return result;
-}
-
-char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
-  assert(valid_radix(radix));
+char *i64_to_str(i64 value, char *restrict buffer) {
   assert(buffer != NULL);
 
   i64 tmp_value;
@@ -89,8 +66,8 @@ char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
   ptr1 = buffer;
   do {
     tmp_value = value;
-    value /= radix;
-    *ptr1++ = mapping[35 + (tmp_value - value * radix)];
+    value /= 10;
+    *ptr1++ = mapping[35 + (tmp_value - value * 10)];
   } while (value);
 
   // append the sign
@@ -110,14 +87,13 @@ char *i64_to_str(i64 value, char *restrict buffer, Radix radix) {
   return buffer;
 }
 
-void print_i64(i64 value, Radix radix, FILE *file) {
-  char buf[i64_safe_strlen(value, radix) + 1];
-  if (i64_to_str(value, buf, radix) == NULL) { PANIC("conversion failed"); }
+void print_i64(i64 value, FILE *file) {
+  char buf[i64_safe_strlen(value) + 1];
+  if (i64_to_str(value, buf) == NULL) { PANIC("conversion failed"); }
   fputs(buf, file);
 }
 
-char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
-  assert(valid_radix(radix));
+char *u64_to_str(u64 value, char *restrict buffer) {
   assert(buffer != NULL);
 
   char *ptr1, *ptr2;
@@ -128,8 +104,8 @@ char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
   ptr1 = buffer;
   do {
     u64 tmp = value;
-    value /= radix;
-    *ptr1++ = mapping[35 + (tmp - value * radix)];
+    value /= 10;
+    *ptr1++ = mapping[35 + (tmp - value * 10)];
   } while (value);
 
   // append the null terminator
@@ -147,30 +123,11 @@ char *u64_to_str(u64 value, char *restrict buffer, Radix radix) {
   return buffer;
 }
 
-void print_u64(u64 value, Radix radix, FILE *file) {
-  char buf[u64_safe_strlen(value, radix) + 1];
-  if (u64_to_str(value, buf, radix) == NULL) { PANIC("conversion failed"); }
+void print_u64(u64 value, FILE *file) {
+  char buf[u64_safe_strlen(value) + 1];
+  if (u64_to_str(value, buf) == NULL) { PANIC("conversion failed"); }
   fputs(buf, file);
 }
-
-// static u64 char_value(char c) {
-//   switch (c) {
-//   case '0':
-//   case '1':
-//   case '2':
-//   case '3':
-//   case '4':
-//   case '5':
-//   case '6':
-//   case '7':
-//   case '8':
-//   case '9':
-//     return c - '0';
-
-//   default:
-//     unreachable();
-//   }
-// }
 
 static u64 base10_stou64(char const *restrict buffer, u64 length) {
   u64 result = 0;
@@ -211,32 +168,12 @@ static i64 base10_stoi64(char const *restrict buffer, u64 length) {
   return (i64)val * sign;
 }
 
-i64 str_to_i64(char const *restrict buffer, u64 length, Radix radix) {
-  assert(valid_radix(radix));
+i64 str_to_i64(char const *restrict buffer, u64 length) {
   assert(buffer != NULL);
-
-  switch (radix) {
-  case RADIX_DECIMAL: return base10_stoi64(buffer, length);
-
-  case RADIX_BINARY:
-  case RADIX_OCTAL:
-  case RADIX_HEXADECIMAL:
-  default:                PANIC("unsupported radix");
-  }
-
-  return 0;
+  return base10_stoi64(buffer, length);
 }
 
-u64 str_to_u64(char const *restrict buffer, u64 length, Radix radix) {
-  assert(valid_radix(radix));
+u64 str_to_u64(char const *restrict buffer, u64 length) {
   assert(buffer != NULL);
-
-  switch (radix) {
-  case RADIX_DECIMAL: return base10_stou64(buffer, length);
-
-  case RADIX_BINARY:
-  case RADIX_OCTAL:
-  case RADIX_HEXADECIMAL:
-  default:                PANIC("unsupported radix");
-  }
+  return base10_stou64(buffer, length);
 }

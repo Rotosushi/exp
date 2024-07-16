@@ -21,7 +21,7 @@
 
 #include "imr/type.h"
 #include "utility/alloc.h"
-#include "utility/nearest_power.h"
+#include "utility/array_growth.h"
 #include "utility/panic.h"
 
 ArgumentTypes argument_types_create() {
@@ -58,24 +58,13 @@ bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2) {
 }
 
 static bool argument_types_full(ArgumentTypes *restrict a) {
-  u64 new_size;
-  if (__builtin_add_overflow(a->size, 1, &new_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  return new_size >= a->capacity;
+  return (a->size + 1) >= a->capacity;
 }
 
 static void argument_types_grow(ArgumentTypes *restrict a) {
-  u64 new_capacity = nearest_power_of_two(a->capacity);
-
-  u64 alloc_size;
-  if (__builtin_mul_overflow(new_capacity, sizeof(Type *), &alloc_size)) {
-    PANIC("cannot allocate more than SIZE_MAX");
-  }
-
-  a->types    = reallocate(a->types, alloc_size);
-  a->capacity = new_capacity;
+  Growth g    = array_growth_u64(a->capacity, sizeof(*a->types));
+  a->types    = reallocate(a->types, g.alloc_size);
+  a->capacity = g.new_capacity;
 }
 
 void argument_types_append(ArgumentTypes *restrict a, Type *type) {

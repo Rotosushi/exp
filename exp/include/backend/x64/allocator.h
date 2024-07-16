@@ -43,7 +43,7 @@ typedef struct x64_StackAllocations {
 typedef struct x64_AllocationBuffer {
   u64 count;
   u64 capacity;
-  x64_Allocation *buffer;
+  x64_Allocation **buffer;
 } x64_AllocationBuffer;
 
 /**

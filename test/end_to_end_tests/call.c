@@ -47,5 +47,18 @@ int call([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
       "fn f(a: i64, b: i64) { return a + b; } fn main() { return f(12, 24);}",
       36);
 
+  result |= test_exp(
+      source_path,
+      "fn f(a: i64, b: i64, c: i64, d: i64, e: i64, f: i64, g: i64) { return a "
+      "+ b + c + d + e + f + g; } fn main() { return f(1, 2, 3, 4, 5, 6, 7);}",
+      28);
+
+  result |= test_exp(source_path,
+                     "fn f(a: i64, b: i64, c: i64, d: i64, e: i64, f: i64, g: "
+                     "i64, h: i64, i: i64, j: i64) {"
+                     "return a + b + c + d + e + f + g + h + i + j;}"
+                     "fn main() { return f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10); }",
+                     55);
+
   return result;
 }
