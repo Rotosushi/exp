@@ -26,11 +26,11 @@ typedef struct FunctionTypes {
   Type *types;
 } FunctionTypes;
 
-FunctionTypes function_types_create();
-void function_types_destroy(FunctionTypes *restrict f);
-Type *function_types_append(FunctionTypes *restrict f,
-                            Type *return_type,
-                            ArgumentTypes argument_types);
+typedef struct TupleTypes {
+  u64 size;
+  u64 capacity;
+  Type *types;
+} TupleTypes;
 
 /**
  * @brief The TypeInterner holds unique instances of
@@ -44,6 +44,7 @@ typedef struct TypeInterner {
   Type nil_type;
   Type boolean_type;
   Type i64_type;
+  TupleTypes tuple_types;
   FunctionTypes function_types;
 } TypeInterner;
 
@@ -85,6 +86,9 @@ Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
  */
 Type *type_interner_i64_type(TypeInterner *restrict type_interner);
 
+Type *type_interner_tuple_type(TypeInterner *restrict type_interer,
+                               TupleType tuple);
+
 /**
  * @brief get the FunctionType
  *
@@ -97,6 +101,6 @@ Type *type_interner_i64_type(TypeInterner *restrict type_interner);
  */
 Type *type_interner_function_type(TypeInterner *restrict type_interner,
                                   Type *return_type,
-                                  ArgumentTypes argument_types);
+                                  TupleType argument_types);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

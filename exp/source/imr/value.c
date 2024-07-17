@@ -16,70 +16,154 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "imr/value.h"
+#include <string.h>
+
 #include "env/context.h"
+#include "imr/value.h"
+#include "utility/alloc.h"
+#include "utility/array_growth.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
+Tuple tuple_create() {
+  Tuple tuple = {.capacity = 0, .size = 0, .elements = NULL};
+  return tuple;
+}
+
+void tuple_destroy(Tuple *restrict tuple) {
+  deallocate(tuple->elements);
+  tuple->elements = NULL;
+  tuple->capacity = 0;
+  tuple->size     = 0;
+}
+
+void tuple_assign(Tuple *restrict A, Tuple *restrict B) {
+  tuple_destroy(A);
+  A->capacity = B->capacity;
+  A->size     = B->size;
+  A->elements = callocate(A->capacity, sizeof(*A->elements));
+
+  memcpy(A->elements, B->elements, A->size);
+}
+
+bool tuple_equal(Tuple *A, Tuple *B) {
+  if (A->size != B->size) { return 0; }
+
+  for (u64 i = 0; i < A->size; ++i) {
+    if (!operand_equality(A->elements[i], B->elements[i])) { return 0; }
+  }
+
+  return 1;
+}
+
+static bool tuple_full(Tuple *restrict tuple) {
+  return (tuple->size + 1) >= tuple->capacity;
+}
+
+static void tuple_grow(Tuple *restrict tuple) {
+  Growth g        = array_growth_u64(tuple->capacity, sizeof(*tuple->elements));
+  tuple->elements = reallocate(tuple->elements, g.alloc_size);
+  tuple->capacity = g.new_capacity;
+}
+
+void tuple_append(Tuple *restrict tuple, Operand element) {
+  if (tuple_full(tuple)) { tuple_grow(tuple); }
+
+  tuple->elements[tuple->size] = element;
+  tuple->size += 1;
+}
+
 Value value_create() {
-  Value value;
-  value.kind = VALUEKIND_UNINITIALIZED;
-  value.nil  = 0;
+  Value value = {.kind = VALUEKIND_UNINITIALIZED, .nil = 0};
   return value;
 }
 
+void value_destroy(Value *restrict value) {
+  switch (value->kind) {
+  case VALUEKIND_TUPLE: {
+    tuple_destroy(&value->tuple);
+    break;
+  }
+
+  // values without dynamic storage
+  default: return;
+  }
+}
+
 Value value_create_nil() {
-  Value value;
-  value.kind = VALUEKIND_NIL;
-  value.nil  = 0;
+  Value value = {.kind = VALUEKIND_NIL, .nil = 0};
   return value;
 }
 
 Value value_create_boolean(bool b) {
-  Value value;
-  value.kind    = VALUEKIND_BOOLEAN;
-  value.boolean = b;
+  Value value = {.kind = VALUEKIND_BOOLEAN, .boolean = b};
   return value;
 }
 
 Value value_create_i64(i64 i) {
-  Value value;
-  value.kind    = VALUEKIND_I64;
-  value.integer = i;
+  Value value = {.kind = VALUEKIND_I64, .integer_64 = i};
+  return value;
+}
+
+Value value_create_tuple(Tuple tuple) {
+  Value value = {.kind = VALUEKIND_TUPLE, .tuple = tuple};
   return value;
 }
 
 void value_assign(Value *dest, Value *source) {
   if (dest == source) { return; }
 
-  /*
-    since values are "POD" it is valid to use
-    struct assignment on them. This function
-    is here really to ease the refactoring.
-  */
-  *dest = *source;
+  switch (source->kind) {
+  case VALUEKIND_TUPLE: {
+    value_destroy(dest);
+    *dest = (Value){.kind = VALUEKIND_TUPLE, .tuple = tuple_create()};
+    tuple_assign(&dest->tuple, &source->tuple);
+    break;
+  }
+
+  // values without dynamic storage can be struct assigned.
+  default: {
+    *dest = *source;
+    break;
+  }
+  }
 }
 
-bool value_equality(Value *v1, Value *v2) {
-  if (v1 == v2) { return 1; }
+bool value_equality(Value *A, Value *B) {
+  if (A == B) { return 1; }
 
-  switch (v1->kind) {
-  case VALUEKIND_UNINITIALIZED: return v2->kind == VALUEKIND_UNINITIALIZED;
+  switch (A->kind) {
+  case VALUEKIND_UNINITIALIZED: return B->kind == VALUEKIND_UNINITIALIZED;
+  case VALUEKIND_NIL:           return B->kind == VALUEKIND_NIL;
 
-  case VALUEKIND_NIL: return v2->kind == VALUEKIND_NIL;
+  case VALUEKIND_BOOLEAN: {
+    if (B->kind != VALUEKIND_BOOLEAN) { return 0; }
 
-  case VALUEKIND_BOOLEAN:
-    if (v2->kind != VALUEKIND_BOOLEAN) { return 0; }
+    return A->boolean == B->boolean;
+  }
 
-    return v1->boolean == v2->boolean;
+  case VALUEKIND_I64: {
+    if (B->kind != VALUEKIND_I64) { return 0; }
 
-  case VALUEKIND_I64:
-    if (v2->kind != VALUEKIND_I64) { return 0; }
+    return A->integer_64 == B->integer_64;
+  }
 
-    return v1->integer == v2->integer;
+  case VALUEKIND_TUPLE: {
+    return tuple_equal(&A->tuple, &B->tuple);
+  }
 
   default: PANIC("bad VALUEKIND");
   }
+}
+
+static void print_tuple(Tuple const *restrict tuple, FILE *restrict file) {
+  file_write("(", file);
+  for (u64 i = 0; i < tuple->size; ++i) {
+    print_operand(tuple->elements[i], file);
+
+    if (i < (tuple->size - 1)) { file_write(", ", file); }
+  }
+  file_write(")", file);
 }
 
 void print_value(Value const *restrict v, FILE *restrict file) {
@@ -87,12 +171,20 @@ void print_value(Value const *restrict v, FILE *restrict file) {
   case VALUEKIND_UNINITIALIZED:
   case VALUEKIND_NIL:           file_write("()", file); break;
 
-  case VALUEKIND_BOOLEAN:
-    if (v->boolean) file_write("true", file);
-    else file_write("false", file);
+  case VALUEKIND_BOOLEAN: {
+    (v->boolean) ? file_write("true", file) : file_write("false", file);
     break;
+  }
 
-  case VALUEKIND_I64: print_i64(v->integer, file); break;
+  case VALUEKIND_I64: {
+    print_i64(v->integer_64, file);
+    break;
+  }
+
+  case VALUEKIND_TUPLE: {
+    print_tuple(&v->tuple, file);
+    break;
+  }
 
   default: file_write("undefined", file); break;
   }

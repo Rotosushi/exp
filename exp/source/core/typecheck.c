@@ -119,7 +119,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   }
 
   FunctionType *function_type     = &Bty->function_type;
-  ArgumentTypes *formal_types     = &function_type->argument_types;
+  TupleType *formal_types         = &function_type->argument_types;
   ActualArgumentList *actual_args = context_call_at(c, I.C);
 
   if (formal_types->size != actual_args->size) {

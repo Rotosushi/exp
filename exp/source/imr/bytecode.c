@@ -164,65 +164,46 @@ void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
   bytecode_emit_instruction(bc, instruction_ABC(OPC_MOD, A, B, C));
 }
 
-static void print_local(u16 v, FILE *restrict file) {
-  file_write("SSA[", file);
-  print_u64(v, file);
-  file_write("]", file);
+static Operand operand_A(Instruction I) {
+  Operand operand = {.format = OPRFMT_SSA, .common = I.A};
+  return operand;
 }
 
-static void print_constant(u16 v, FILE *restrict file) {
-  file_write("Constant[", file);
-  print_u64(v, file);
-  file_write("]", file);
+static Operand operand_B(Instruction I) {
+  Operand operand = {.format = I.Bfmt, .common = I.B};
+  return operand;
 }
 
-static void print_immediate(u16 v, FILE *restrict file) {
-  print_i64((i16)v, file);
-}
-
-static void print_global(u16 v, FILE *restrict file) {
-  file_write("GlobalSymbol[", file);
-  print_u64(v, file);
-  file_write("]", file);
-}
-
-static void
-print_operand(OperandFormat format, u16 value, FILE *restrict file) {
-  switch (format) {
-  case OPRFMT_SSA:       print_local(value, file); break;
-  case OPRFMT_CONSTANT:  print_constant(value, file); break;
-  case OPRFMT_IMMEDIATE: print_immediate(value, file); break;
-  case OPRFMT_LABEL:     print_global(value, file); break;
-
-  default: file_write("undefined", file);
-  }
+static Operand operand_C(Instruction I) {
+  Operand operand = {.format = I.Cfmt, .common = I.C};
+  return operand;
 }
 
 static void
 print_B(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(I.Bfmt, I.B, file);
+  print_operand(operand_B(I), file);
 }
 
 static void
 print_AB(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(OPRFMT_SSA, I.A, file);
+  print_operand(operand_A(I), file);
   file_write(", ", file);
-  print_operand(I.Bfmt, I.B, file);
+  print_operand(operand_B(I), file);
 }
 
 static void
 print_ABC(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(OPRFMT_SSA, I.A, file);
+  print_operand(operand_A(I), file);
   file_write(", ", file);
-  print_operand(I.Bfmt, I.B, file);
+  print_operand(operand_B(I), file);
   file_write(", ", file);
-  print_operand(I.Cfmt, I.C, file);
+  print_operand(operand_C(I), file);
 }
 
 // "load L[<A>], <B>"

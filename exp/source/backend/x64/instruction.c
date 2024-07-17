@@ -107,7 +107,7 @@ static void x64_emit_operand(x64_Operand O,
     Value *constant = context_constants_at(context, O.common);
     assert(constant->kind == VALUEKIND_I64);
     string_append(buffer, SV("$"));
-    string_append_i64(buffer, constant->integer);
+    string_append_i64(buffer, constant->integer_64);
     break;
   }
 

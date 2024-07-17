@@ -28,6 +28,9 @@
 #include "utility/minmax.h"
 #include "utility/panic.h"
 
+// #TODO we have to copy from one location to the other,
+// but we also need type information to handle larger size objects.
+// and we have to have a copy for constants, immediates, and labels.
 static void x64_codegen_copy(x64_Location dest,
                              x64_Location source,
                              u16 Idx,

@@ -27,6 +27,15 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
   case VALUEKIND_NIL:           return context_nil_type(context);
   case VALUEKIND_BOOLEAN:       return context_boolean_type(context);
   case VALUEKIND_I64:           return context_i64_type(context);
+  case VALUEKIND_TUPLE:         {
+    Tuple *tuple         = &value->tuple;
+    TupleType tuple_type = tuple_type_create();
+    for (u64 i = 0; i < tuple->size; ++i) {
+      Type *T = type_of_operand(tuple->elements[i], context);
+      tuple_type_append(&tuple_type, T);
+    }
+    return context_tuple_type(context, tuple_type);
+  }
 
   default: PANIC("bad VALUEKIND");
   }
@@ -36,11 +45,11 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
   assert(body != NULL);
   assert(body->return_type != NULL);
 
-  ArgumentTypes argument_types = argument_types_create();
+  TupleType argument_types = tuple_type_create();
   for (u64 i = 0; i < body->arguments.size; ++i) {
     FormalArgument *formal_argument = &body->arguments.list[i];
     Type *argument_type             = formal_argument->type;
-    argument_types_append(&argument_types, argument_type);
+    tuple_type_append(&argument_types, argument_type);
   }
 
   return context_function_type(context, body->return_type, argument_types);

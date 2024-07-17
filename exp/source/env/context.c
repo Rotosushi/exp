@@ -100,9 +100,14 @@ Type *context_i64_type(Context *restrict context) {
   return type_interner_i64_type(&(context->type_interner));
 }
 
+Type *context_tuple_type(Context *restrict context, TupleType tuple) {
+  assert(context != NULL);
+  return type_interner_tuple_type(&context->type_interner, tuple);
+}
+
 Type *context_function_type(Context *restrict context,
                             Type *return_type,
-                            ArgumentTypes argument_types) {
+                            TupleType argument_types) {
   assert(context != NULL);
   return type_interner_function_type(
       &context->type_interner, return_type, argument_types);
@@ -254,7 +259,7 @@ FoldResult context_emit_neg(Context *restrict c, Operand B) {
   case OPRFMT_CONSTANT: {
     Value *v = context_constants_at(c, B.common);
     if (v->kind == VALUEKIND_I64) {
-      i64 n = -(v->integer);
+      i64 n = -(v->integer_64);
       A     = context_constants_append(c, value_create_i64(n));
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
@@ -294,7 +299,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
     if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer;
+      x = Bv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -319,7 +324,7 @@ FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Cv = context_constants_at(c, C.common);
     if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer;
+      y = Cv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -363,7 +368,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
     if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer;
+      x = Bv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -388,7 +393,7 @@ FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Cv = context_constants_at(c, C.common);
     if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer;
+      y = Cv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -432,7 +437,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
     if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer;
+      x = Bv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -457,7 +462,7 @@ FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Cv = context_constants_at(c, C.common);
     if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer;
+      y = Cv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -501,7 +506,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
     if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer;
+      x = Bv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -526,7 +531,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Cv = context_constants_at(c, C.common);
     if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer;
+      y = Cv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -568,7 +573,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Bv = context_constants_at(c, B.common);
     if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer;
+      x = Bv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }
@@ -593,7 +598,7 @@ FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
   case OPRFMT_CONSTANT: {
     Value *Cv = context_constants_at(c, C.common);
     if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer;
+      y = Cv->integer_64;
     } else {
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
     }

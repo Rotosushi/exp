@@ -35,6 +35,11 @@ Constants constants_create() {
 
 void constants_destroy(Constants *restrict constants) {
   assert(constants != NULL);
+  for (u16 i = 0; i < constants->length; ++i) {
+    Value *constant = constants->buffer + i;
+    value_destroy(constant);
+  }
+
   constants->length   = 0;
   constants->capacity = 0;
   deallocate(constants->buffer);
