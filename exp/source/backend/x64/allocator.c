@@ -26,7 +26,7 @@
 
 static x64_GPRP x64_gprp_create() {
   x64_GPRP gprp = {.bitset = 0,
-                   .buffer = callocate(16, sizeof(x64_Allocation *))};
+                   .buffer = callocate(32, sizeof(x64_Allocation *))};
   return gprp;
 }
 
