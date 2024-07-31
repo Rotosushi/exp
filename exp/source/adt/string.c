@@ -313,7 +313,3 @@ void string_replace_extension(String *restrict str, StringView ext) {
     string_insert(str, cursor, ext);
   }
 }
-
-// void print_string(String *restrict s, FILE *restrict file) {
-//   file_write(s->buffer, file);
-// }

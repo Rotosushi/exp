@@ -17,8 +17,6 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "imr/value.h"
-#include "env/context.h"
-#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 Value value_create() {
@@ -92,7 +90,7 @@ void print_value(Value const *restrict v, FILE *restrict file) {
     else file_write("false", file);
     break;
 
-  case VALUEKIND_I64: print_i64(v->integer, file); break;
+  case VALUEKIND_I64: file_write_i64(v->integer, file); break;
 
   default: file_write("undefined", file); break;
   }

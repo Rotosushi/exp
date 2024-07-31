@@ -40,6 +40,10 @@ void file_remove(char const *restrict path);
  */
 void file_write(const char *restrict buffer, FILE *restrict stream);
 
+void file_write_i64(i64 value, FILE *restrict stream);
+
+void file_write_u64(u64 value, FILE *restrict stream);
+
 /**
  * @brief read <length> chars into <buffer> from <stream>
  *

@@ -8,4 +8,3 @@ _exp_sysexit:
   mov $60, %rax
   syscall
 .size _exp_sysexit, .-_exp_sysexit
-

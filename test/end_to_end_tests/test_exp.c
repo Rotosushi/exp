@@ -23,7 +23,6 @@
 #include "test_exp.h"
 #include "utility/config.h"
 #include "utility/io.h"
-#include "utility/numeric_conversions.h"
 #include "utility/process.h"
 
 static char const *exp_path = EXP_BUILD_DIR "/exp/source/exp";
@@ -49,9 +48,9 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     i32 test_result         = process(exe_path, test_args);
     if (test_result != expected_code) {
       file_write("expected code: ", stderr);
-      print_i64(expected_code, stderr);
+      file_write_i64(expected_code, stderr);
       file_write(" actual code: ", stderr);
-      print_i64(test_result, stderr);
+      file_write_i64(test_result, stderr);
       file_write("\n", stderr);
       result |= EXIT_FAILURE;
     }

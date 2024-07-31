@@ -18,7 +18,6 @@
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
 
 #include "utility/int_types.h"
-#include "utility/io.h"
 
 // TODO:
 //    u64 f32_safe_strlen(float value);
@@ -51,11 +50,7 @@ u64 u64_safe_strlen(u64 value);
  */
 char *i64_to_str(i64 value, char *restrict buffer);
 
-void print_i64(i64 value, FILE *file);
-
 char *u64_to_str(u64 value, char *restrict buffer);
-
-void print_u64(u64 value, FILE *file);
 
 i64 str_to_i64(char const *restrict buffer, u64 length);
 

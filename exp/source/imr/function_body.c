@@ -20,11 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "env/context.h"
 #include "imr/function_body.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
 
 FormalArgumentList formal_argument_list_create() {
   FormalArgumentList fal;

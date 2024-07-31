@@ -17,15 +17,12 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "env/error.h"
 #include "frontend/parser.h"
-#include "utility/config.h"
 #include "utility/numeric_conversions.h"
-#include "utility/panic.h"
 
 typedef struct Parser {
   Lexer lexer;

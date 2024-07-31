@@ -20,9 +20,6 @@
 #include <stdlib.h>
 
 #include "env/context.h"
-#include "utility/io.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);

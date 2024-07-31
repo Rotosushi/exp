@@ -22,7 +22,6 @@
 #include "imr/type.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
 
 ArgumentTypes argument_types_create() {
   ArgumentTypes args;

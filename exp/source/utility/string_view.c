@@ -39,10 +39,8 @@ StringView string_view_from_cstring(char const *cstring) {
 }
 
 bool string_view_eq(StringView sv1, StringView sv2) {
-  if (sv1.length != sv2.length) { return 0; }
-
   if (sv1.ptr == sv2.ptr) { return 1; }
-
+  if (sv1.length != sv2.length) { return 0; }
   return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
 }
 
