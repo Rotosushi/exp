@@ -267,8 +267,8 @@ x64_allocation_buffer_full(x64_AllocationBuffer *restrict allocation_buffer) {
 
 static void
 x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
-  Growth g = array_growth_u64(allocation_buffer->capacity,
-                              sizeof(*allocation_buffer->buffer));
+  Growth g =
+      array_growth_u64(allocation_buffer->capacity, sizeof(x64_Allocation *));
   allocation_buffer->buffer =
       reallocate(allocation_buffer->buffer, g.alloc_size);
   allocation_buffer->capacity = g.new_capacity;

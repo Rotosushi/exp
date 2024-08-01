@@ -389,6 +389,7 @@ parse_actual_argument_list(Parser *restrict p,
                            ActualArgumentList *restrict list) {
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
+  // so we simply treat it as such here.
   if (expect(p, TOK_NIL)) { return success(zero()); }
 
   nexttok(p); // eat '('

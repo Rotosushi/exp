@@ -20,7 +20,7 @@
 
 #include "backend/x64/operand.h"
 
-x64_Operand x64_operand_gpr(u16 gpr) {
+x64_Operand x64_operand_gpr(x64_GPR gpr) {
   x64_Operand opr = {.format = X64OPRFMT_GPR, .common = gpr};
   return opr;
 }
