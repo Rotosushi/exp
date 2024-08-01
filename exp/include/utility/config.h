@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 1 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "066de9c565d6af8f4eac72e5dbaba1e472c554d2"
+#define EXP_GIT_REVISION "b88553ef6909ed4abf13ced05f50b4dc0a20d929"
 #define EXP_TEST_DIR "/home/stinky/Projects/exp/test"
 #define EXP_BUILD_DIR "/home/stinky/Projects/exp/build"
 #define EXP_LIB_DIR "/home/stinky/Projects/exp/build/libexp"
@@ -31,7 +31,7 @@
 /* #undef EXP_HOST_OS_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-07-31 07:20:36) git revision (066de9c565d6af8f4eac72e5dbaba1e472c554d2)"
+#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-08-01 09:10:53) git revision (b88553ef6909ed4abf13ced05f50b4dc0a20d929)"
 // NOLINTEND
 // clang-format on
 
