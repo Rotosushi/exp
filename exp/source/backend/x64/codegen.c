@@ -28,27 +28,108 @@
 #include "utility/minmax.h"
 #include "utility/panic.h"
 
-static void x64_codegen_copy(x64_Location dest,
-                             x64_Location source,
-                             u16 Idx,
-                             x64_Bytecode *restrict x64bc,
-                             x64_Allocator *restrict allocator) {
-  if (x64_location_eq(dest, source)) { return; }
+// #TODO we have to copy from one location to the other,
+// but we also need type information to handle larger size objects.
+// and we have to have a copy for constants, immediates, and labels.
 
-  if ((dest.kind == ALLOC_STACK) && (source.kind == ALLOC_STACK)) {
-    x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-
+static void x64_codegen_copy_scalar(x64_Allocation *restrict dst,
+                                    x64_Allocation *restrict src,
+                                    u16 Idx,
+                                    x64_Bytecode *restrict x64bc,
+                                    x64_Allocator *restrict allocator) {
+  if ((dst->location.kind != ALLOC_STACK) ||
+      (src->location.kind != ALLOC_STACK)) {
     x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(gpr), x64_operand_location(source));
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_location(dest), x64_operand_gpr(gpr));
-
-    x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+        x64bc, x64_operand_alloc(dst), x64_operand_alloc(src));
     return;
   }
 
-  x64_bytecode_append_mov(
-      x64bc, x64_operand_location(dest), x64_operand_location(source));
+  x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+
+  x64_bytecode_append_mov(x64bc, x64_operand_gpr(gpr), x64_operand_alloc(src));
+  x64_bytecode_append_mov(x64bc, x64_operand_alloc(dst), x64_operand_gpr(gpr));
+
+  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+}
+
+static void x64_codegen_copy_composite(x64_Allocation *restrict dst,
+                                       x64_Allocation *restrict src,
+                                       u16 Idx,
+                                       x64_Bytecode *restrict x64bc,
+                                       x64_Allocator *restrict allocator) {
+  assert(dst->location.kind == ALLOC_STACK);
+  assert(src->location.kind == ALLOC_STACK);
+  assert(type_equality(dst->type, src->type));
+  x64_GPR gpr   = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+  Type *type    = dst->type;
+  u64 type_size = size_of(type);
+
+  // mov src+8*n(%rbp), gpr
+  // mov gpr, dst+8*n(%rbp)
+  u16 src_offset = src->location.offset;
+  u16 dst_offset = dst->location.offset;
+
+  // #NOTE #TODO: as it currently stands, all
+  // types are length 8. to make math like this
+  // simpler. This is obviously inefficient.
+  u16 elements = (u16)(type_size / 8);
+  for (u16 i = 0; i < elements; ++i) {
+    u16 src_element_offset = src_offset + (8 * i);
+    assert(src_element_offset <= i16_MAX);
+    u16 dst_element_offset = dst_offset + (8 * i);
+    assert(dst_element_offset <= i16_MAX);
+
+    x64_Location src_element = x64_location_stack((i16)src_element_offset);
+    x64_Location dst_element = x64_location_stack((i16)dst_element_offset);
+
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_gpr(gpr), x64_operand_location(src_element));
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_location(dst_element), x64_operand_gpr(gpr));
+  }
+
+  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+}
+
+static void x64_codegen_copy(x64_Allocation *restrict dst,
+                             x64_Allocation *restrict src,
+                             u16 Idx,
+                             x64_Bytecode *restrict x64bc,
+                             x64_Allocator *restrict allocator) {
+  assert(type_equality(dst->type, src->type));
+
+  if (x64_location_eq(dst->location, src->location)) { return; }
+
+  if (type_is_scalar(dst->type)) {
+    x64_codegen_copy_scalar(dst, src, Idx, x64bc, allocator);
+  } else {
+    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
+  }
+}
+
+static void
+x64_codegen_load_constant_composite(x64_Allocation *restrict dst,
+                                    Value *restrict src,
+                                    u16 Idx,
+                                    x64_Bytecode *restrict x64bc,
+                                    x64_Allocator *restrict allocator) {}
+
+static void x64_codegen_load_constant(x64_Allocation *restrict dst,
+                                      u16 index,
+                                      u16 Idx,
+                                      x64_Bytecode *restrict x64bc,
+                                      x64_Allocator *restrict allocator,
+                                      x64_Context *restrict context) {
+  Value *src     = context_constants_at(context->context, index);
+  Type *src_type = type_of_value(src, context->context);
+  assert(type_equality(dst->type, src_type));
+
+  if (type_is_scalar(dst->type)) {
+    x64_bytecode_append_mov(
+        x64bc, x64_operand_alloc(dst), x64_operand_constant(index));
+  } else {
+    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
+  }
 }
 
 static void x64_codegen_ret(Instruction I,
@@ -96,7 +177,7 @@ static void x64_codegen_ret(Instruction I,
   x64_bytecode_append_ret(x64bc);
 }
 
-static x64_GPR x64_argument_gpr(u8 index) {
+static x64_GPR x64_scalar_argument_gpr(u8 num) {
   // #TODO: for now, all possible types are scalar.
   // so when we introduce types that cannot be passed
   // by register we have to account for that here.
@@ -105,7 +186,7 @@ static x64_GPR x64_argument_gpr(u8 index) {
   // no matter which index it is. and thus we cannot
   // rely on the index to be 1:1 with the register being
   // selected.
-  switch (index) {
+  switch (num) {
   case 0: return X64GPR_RDI;
   case 1: return X64GPR_RSI;
   case 2: return X64GPR_RDX;
@@ -129,11 +210,12 @@ static void x64_codegen_call(Instruction I,
 
   ActualArgumentList *args    = x64_context_call_at(context, I.C);
   u16 current_bytecode_offset = x64_bytecode_current_offset(x64bc);
+  u8 scalar_argument_count    = 0;
   u8 i                        = 0;
 
   for (; (i < args->size) && (i < 6); ++i) {
     Operand arg = args->list[i];
-    x64_GPR gpr = x64_argument_gpr(i);
+    x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
     x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
 
     switch (arg.format) {
@@ -1026,7 +1108,7 @@ static void x64_codegen_function(FunctionBody *restrict body,
   for (; (i < args->size) && (i < 6); ++i) {
     FormalArgument *arg  = args->list + i;
     LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
-    x64_GPR gpr          = x64_argument_gpr(i);
+    x64_GPR gpr          = x64_scalar_argument_gpr(i);
     x64_allocator_allocate_to_gpr(&allocator, gpr, 0, local, x64bc);
   }
 

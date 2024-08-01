@@ -37,7 +37,7 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
 
 typedef struct x64_FunctionBody {
   x64_FormalArgumentList arguments;
-  x64_Location return_location;
+  x64_Allocation *result;
   u16 stack_size;
   x64_Bytecode bc;
 } x64_FunctionBody;

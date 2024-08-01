@@ -16,7 +16,7 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_INSTRUCTION_H
 #define EXP_IMR_INSTRUCTION_H
-#include "utility/int_types.h"
+#include "imr/operand.h"
 
 /**
  * @brief the valid opcodes for instructions
@@ -104,23 +104,6 @@ typedef enum InstructionFormat {
   IFMT_AB,
   IFMT_ABC,
 } InstructionFormat;
-
-typedef enum OperandFormat {
-  OPRFMT_SSA,
-  OPRFMT_CONSTANT,
-  OPRFMT_IMMEDIATE,
-  OPRFMT_LABEL,
-} OperandFormat;
-
-typedef struct Operand {
-  unsigned format : 3;
-  unsigned common : 16;
-} Operand;
-
-Operand operand_ssa(u16 ssa);
-Operand operand_constant(u16 index);
-Operand operand_immediate(u16 imm);
-Operand operand_label(u16 idx);
 
 /**
  * @brief represents a bytecode instruction

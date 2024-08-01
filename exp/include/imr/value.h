@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "imr/operand.h"
 #include "utility/io.h"
 #include "utility/string_view.h"
 
@@ -26,7 +27,17 @@ typedef enum ValueKind {
   VALUEKIND_NIL,
   VALUEKIND_BOOLEAN,
   VALUEKIND_I64,
+
+  VALUEKIND_TUPLE,
 } ValueKind;
+
+struct Value;
+
+typedef struct Tuple {
+  u64 size;
+  u64 capacity;
+  Operand *elements;
+} Tuple;
 
 /**
  * @brief represents Values in the compiler
@@ -37,9 +48,16 @@ typedef struct Value {
   union {
     bool nil;
     bool boolean;
-    i64 integer;
+    i64 integer_64;
+    Tuple tuple;
   };
 } Value;
+
+Tuple tuple_create();
+void tuple_destroy(Tuple *restrict tuple);
+void tuple_assign(Tuple *restrict A, Tuple *restrict B);
+bool tuple_equal(Tuple *A, Tuple *B);
+void tuple_append(Tuple *restrict tuple, Operand element);
 
 /**
  * @brief create an uninitialized value
@@ -47,6 +65,8 @@ typedef struct Value {
  * @return Value
  */
 Value value_create();
+
+void value_destroy(Value *restrict value);
 
 /**
  * @brief create a nil value
@@ -70,6 +90,14 @@ Value value_create_boolean(bool b);
  * @return Value
  */
 Value value_create_i64(i64 i);
+
+/**
+ * @brief create a Tuple value
+ *
+ * @param tuple
+ * @return Value
+ */
+Value value_create_tuple(Tuple tuple);
 
 /**
  * @brief assign dest the value of source

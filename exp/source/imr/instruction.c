@@ -18,26 +18,6 @@
  */
 #include "imr/instruction.h"
 
-Operand operand_ssa(u16 ssa) {
-  Operand opr = {.format = OPRFMT_SSA, .common = ssa};
-  return opr;
-}
-
-Operand operand_constant(u16 index) {
-  Operand opr = {.format = OPRFMT_CONSTANT, .common = index};
-  return opr;
-}
-
-Operand operand_immediate(u16 imm) {
-  Operand opr = {.format = OPRFMT_IMMEDIATE, .common = imm};
-  return opr;
-}
-
-Operand operand_label(u16 idx) {
-  Operand opr = {.format = OPRFMT_LABEL, .common = idx};
-  return opr;
-}
-
 Instruction instruction_B(Opcode opcode, Operand B) {
   Instruction I = {
       .opcode = opcode, .Ifmt = IFMT_B, .Bfmt = B.format, .B = B.common};

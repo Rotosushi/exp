@@ -40,6 +40,7 @@ u64 align_of(Type *restrict type) {
   case TYPEKIND_NIL:     return 0;
   case TYPEKIND_BOOLEAN: return 0;
   case TYPEKIND_I64:     return 8;
+  case TYPEKIND_TUPLE:   return 8;
 
   default: PANIC("bad TYPEKIND");
   }

@@ -32,6 +32,7 @@ set_target_properties(libexp_start
 
 set(LIBEXP_SOURCES
   ${LIBEXP_SOURCE_DIR}/exp_syscalls.s
+  ${LIBEXP_SOURCE_DIR}/exp_byte.s
 )
 
 add_library(libexp

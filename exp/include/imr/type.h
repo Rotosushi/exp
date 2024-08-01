@@ -23,6 +23,7 @@ typedef enum TypeKind {
   TYPEKIND_NIL,
   TYPEKIND_BOOLEAN,
   TYPEKIND_I64,
+  TYPEKIND_TUPLE,
   TYPEKIND_FUNCTION,
 } TypeKind;
 
@@ -39,35 +40,34 @@ typedef struct IntegerType {
 } IntegerType;
 
 struct Type;
-// #TODO: strictly speaking, ArgumentTypes is equivalent
-// to a TupleType. Maybe it would be useful to unify them?
-typedef struct ArgumentTypes {
+
+typedef struct TupleType {
   u64 size;
   u64 capacity;
   struct Type **types;
-} ArgumentTypes;
+} TupleType;
 
-ArgumentTypes argument_types_create();
-void argument_types_destroy(ArgumentTypes *restrict a);
-bool argument_types_equality(ArgumentTypes const *a1, ArgumentTypes const *a2);
-void argument_types_append(ArgumentTypes *restrict a, struct Type *type);
+TupleType tuple_type_create();
+void tuple_type_destroy(TupleType *restrict tuple_type);
+bool tuple_type_equality(TupleType const *A, TupleType const *B);
+void tuple_type_append(TupleType *restrict tuple_type, struct Type *type);
 
 typedef struct FunctionType {
   struct Type *return_type;
-  ArgumentTypes argument_types;
+  TupleType argument_types;
 } FunctionType;
 
-bool function_type_equality(FunctionType const *f1, FunctionType const *f2);
+bool function_type_equality(FunctionType const *A, FunctionType const *B);
 
 /**
  * @brief represents Types in the compiler
  *
- * type attributes, something like u16::max, could work in the same way that
- * struct members work, there is also no reason we cannot bind a function ptr
- * there as well, giving type "member" functions. except not tied to a specific
- * instance of that type. I think we can leverage such a mechanism for type
- * introspection if we implicitly fill in the member details when we create the
- * type.
+ * #TODO #FEATURE: type attributes, something like u16::max, could work in the
+ * same way that struct members work, there is also no reason we cannot bind a
+ * function ptr there as well, giving type "member" functions. except not tied
+ * to a specific instance of that type. I think we can leverage such a mechanism
+ * for type introspection if we implicitly fill in the member details when we
+ * create the type.
  */
 typedef struct Type {
   TypeKind kind;
@@ -75,39 +75,20 @@ typedef struct Type {
     NilType nil_type;
     BooleanType boolean_type;
     IntegerType integer_type;
+    TupleType tuple_type;
     FunctionType function_type;
   };
 } Type;
 
-/**
- * @brief create a new NilType
- *
- * @return Type
- */
 Type type_create_nil();
 
-/**
- * @brief create a new BooleanType
- *
- * @return Type
- */
 Type type_create_boolean();
 
-/**
- * @brief create a new IntegerType
- *
- * @return Type
- */
 Type type_create_integer();
 
-/**
- * @brief create a new FunctionType
- *
- * @param result
- * @param args
- * @return Type
- */
-Type type_create_function(Type *result, ArgumentTypes args);
+Type type_create_tuple(TupleType tuple_type);
+
+Type type_create_function(Type *result, TupleType args);
 
 void type_destroy(Type *type);
 /**

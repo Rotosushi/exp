@@ -147,8 +147,52 @@ static ParserResult parse_precedence(Parser *restrict p,
                                      Precedence precedence);
 
 static ParserResult
-parse_scalar_type(Parser *restrict p, Context *restrict c, Type **type) {
+parse_type(Parser *restrict p, Context *restrict c, Type **type);
+
+static ParserResult
+parse_tuple_type(Parser *restrict p, Context *restrict c, Type **type) {
+  nexttok(p); // eat '('
+
+  // an empty tuple type is equivalent to a nil type.
+  if (expect(p, TOK_END_PAREN)) {
+    *type = context_nil_type(c);
+    return success(zero());
+  }
+
+  TupleType tuple_type = tuple_type_create();
+
+  do {
+    Type *element       = NULL;
+    ParserResult result = parse_type(p, c, &element);
+    if (result.has_error) { return result; }
+    assert(element != NULL);
+
+    tuple_type_append(&tuple_type, element);
+  } while (expect(p, TOK_COMMA));
+
+  if (!expect(p, TOK_END_PAREN)) {
+    return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
+  }
+
+  // a tuple type of length 1 is equivalent to that type.
+  if (tuple_type.size == 1) {
+    *type = tuple_type.types[0];
+    tuple_type_destroy(&tuple_type);
+  } else {
+    *type = context_tuple_type(c, tuple_type);
+  }
+
+  return success(zero());
+}
+
+static ParserResult
+parse_type(Parser *restrict p, Context *restrict c, Type **type) {
   switch (p->curtok) {
+  // composite types
+  case TOK_BEGIN_PAREN: return parse_tuple_type(p, c, type);
+
+  // scalar types
+  case TOK_NIL:       *type = context_nil_type(c); break;
   case TOK_TYPE_NIL:  *type = context_nil_type(c); break;
   case TOK_TYPE_BOOL: *type = context_boolean_type(c); break;
   case TOK_TYPE_I64:  *type = context_i64_type(c); break;
@@ -158,12 +202,6 @@ parse_scalar_type(Parser *restrict p, Context *restrict c, Type **type) {
 
   nexttok(p); // eat <scalar-type>
   return success(zero());
-}
-
-static ParserResult
-parse_type(Parser *restrict p, Context *restrict c, Type **type) {
-  // #TODO: handle composite types
-  return parse_scalar_type(p, c, type);
 }
 
 static ParserResult parse_formal_argument(Parser *restrict p,
@@ -337,14 +375,30 @@ static ParserResult definition(Parser *restrict p, Context *restrict c) {
 static ParserResult parens(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat '('
 
-  ParserResult result = expression(p, c);
-  if (result.has_error) { return result; }
+  Tuple tuple = tuple_create();
+  do {
+    ParserResult result = expression(p, c);
+    if (result.has_error) { return result; }
+    tuple_append(&tuple, result.result);
+  } while (expect(p, TOK_COMMA));
 
   if (!expect(p, TOK_END_PAREN)) {
     return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
   }
 
-  return result;
+  Operand result;
+
+  if (tuple.size == 0) {
+    result = context_constants_append(c, value_create_nil());
+    tuple_destroy(&tuple);
+  } else if (tuple.size == 1) {
+    result = tuple.elements[0];
+    tuple_destroy(&tuple);
+  } else {
+    result = context_constants_append(c, value_create_tuple(tuple));
+  }
+
+  return success(result);
 }
 
 static ParserResult unop(Parser *restrict p, Context *restrict c) {

@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_X64_CONTEXT_H
 #define EXP_BACKEND_X64_CONTEXT_H
 
+#include "backend/x64/allocator.h"
 #include "backend/x64/symbols.h"
 #include "env/context.h"
 

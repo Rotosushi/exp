@@ -68,9 +68,10 @@ StringView context_intern(Context *restrict context, StringView sv);
 Type *context_nil_type(Context *restrict context);
 Type *context_boolean_type(Context *restrict context);
 Type *context_i64_type(Context *restrict context);
+Type *context_tuple_type(Context *restrict context, TupleType tuple);
 Type *context_function_type(Context *restrict context,
                             Type *return_type,
-                            ArgumentTypes argument_types);
+                            TupleType argument_types);
 
 // global labels functions
 u16 context_global_labels_insert(Context *restrict context, StringView symbol);
