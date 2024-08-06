@@ -18,7 +18,6 @@
  */
 
 #include "backend/directives.h"
-#include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
 void directive_file(StringView path, String *restrict str) {

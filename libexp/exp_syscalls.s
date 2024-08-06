@@ -9,3 +9,5 @@ _exp_sysexit:
   syscall
 .size _exp_sysexit, .-_exp_sysexit
 
+.section .note.GNU-stack,"",@progbits
+

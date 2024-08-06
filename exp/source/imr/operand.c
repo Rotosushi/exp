@@ -16,67 +16,69 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stddef.h>
+
 #include "imr/operand.h"
 #include "utility/numeric_conversions.h"
 
-Operand operand_create(OperandFormat format, u16 common) {
-  Operand operand = {.format = format, .common = common};
-  return operand;
-}
-
-Operand operand_ssa(u16 ssa) {
-  Operand opr = {.format = OPRFMT_SSA, .common = ssa};
+Operand operand_ssa(u64 ssa) {
+  Operand opr = {.format = OPRFMT_SSA, .ssa = ssa};
   return opr;
 }
 
-Operand operand_constant(u16 index) {
-  Operand opr = {.format = OPRFMT_CONSTANT, .common = index};
+Operand operand_constant(u64 index) {
+  Operand opr = {.format = OPRFMT_CONSTANT, .index = index};
   return opr;
 }
 
-Operand operand_immediate(u16 imm) {
-  Operand opr = {.format = OPRFMT_IMMEDIATE, .common = imm};
+Operand operand_immediate(i64 immediate) {
+  Operand opr = {.format = OPRFMT_IMMEDIATE, .immediate = immediate};
   return opr;
 }
 
-Operand operand_label(u16 idx) {
-  Operand opr = {.format = OPRFMT_LABEL, .common = idx};
+Operand operand_label(u64 index) {
+  Operand opr = {.format = OPRFMT_LABEL, .index = index};
   return opr;
 }
 
 bool operand_equality(Operand A, Operand B) {
-  if (A.format != B.format) { return 0; }
-  return A.common == B.common;
+  if (A.format != B.format) { return false; }
+  switch (A.format) {
+  case OPRFMT_SSA:       return A.ssa == B.ssa;
+  case OPRFMT_CONSTANT:  return A.index == B.index;
+  case OPRFMT_IMMEDIATE: return A.immediate == B.immediate;
+  case OPRFMT_LABEL:     return A.index == B.index;
+
+  default: unreachable();
+  }
 }
 
-static void print_local(u16 v, FILE *restrict file) {
+static void print_local(u64 v, FILE *restrict file) {
   file_write("SSA[", file);
   print_u64(v, file);
   file_write("]", file);
 }
 
-static void print_constant(u16 v, FILE *restrict file) {
+static void print_constant(u64 v, FILE *restrict file) {
   file_write("Constant[", file);
   print_u64(v, file);
   file_write("]", file);
 }
 
-static void print_immediate(u16 v, FILE *restrict file) {
-  print_i64((i16)v, file);
-}
+static void print_immediate(i64 v, FILE *restrict file) { print_i64(v, file); }
 
-static void print_global(u16 v, FILE *restrict file) {
-  file_write("GlobalSymbol[", file);
+static void print_global(u64 v, FILE *restrict file) {
+  file_write("GlobalSymbol[GlobalLabel[", file);
   print_u64(v, file);
-  file_write("]", file);
+  file_write("]]", file);
 }
 
 void print_operand(Operand operand, FILE *restrict file) {
   switch (operand.format) {
-  case OPRFMT_SSA:       print_local(operand.common, file); break;
-  case OPRFMT_CONSTANT:  print_constant(operand.common, file); break;
-  case OPRFMT_IMMEDIATE: print_immediate(operand.common, file); break;
-  case OPRFMT_LABEL:     print_global(operand.common, file); break;
+  case OPRFMT_SSA:       print_local(operand.ssa, file); break;
+  case OPRFMT_CONSTANT:  print_constant(operand.index, file); break;
+  case OPRFMT_IMMEDIATE: print_immediate(operand.immediate, file); break;
+  case OPRFMT_LABEL:     print_global(operand.index, file); break;
 
   default: file_write("undefined", file);
   }

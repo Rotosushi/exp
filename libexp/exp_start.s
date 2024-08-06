@@ -9,4 +9,4 @@ _start:
   call _exp_sysexit
 .size _start, .-_start
 
-
+.section .note.GNU-stack,"",@progbits

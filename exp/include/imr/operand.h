@@ -20,7 +20,7 @@
 #include "utility/int_types.h"
 #include "utility/io.h"
 
-typedef enum OperandFormat {
+typedef enum OperandFormat : u8 {
   OPRFMT_SSA,
   OPRFMT_CONSTANT,
   OPRFMT_IMMEDIATE,
@@ -28,15 +28,18 @@ typedef enum OperandFormat {
 } OperandFormat;
 
 typedef struct Operand {
-  unsigned format : 3;
-  unsigned common : 16;
+  OperandFormat format;
+  union {
+    u64 ssa;
+    u64 index;
+    i64 immediate;
+  };
 } Operand;
 
-Operand operand_create(OperandFormat format, u16 common);
-Operand operand_ssa(u16 ssa);
-Operand operand_constant(u16 index);
-Operand operand_immediate(u16 imm);
-Operand operand_label(u16 idx);
+Operand operand_ssa(u64 ssa);
+Operand operand_constant(u64 index);
+Operand operand_immediate(i64 imm);
+Operand operand_label(u64 idx);
 bool operand_equality(Operand A, Operand B);
 void print_operand(Operand operand, FILE *restrict file);
 

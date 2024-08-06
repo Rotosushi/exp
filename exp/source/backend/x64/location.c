@@ -16,9 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <stddef.h>
 
 #include "backend/x64/location.h"
+#include "utility/panic.h"
 
 x64_OptionalGPR x64_optional_gpr_empty() {
   x64_OptionalGPR opt = {.present = false};
@@ -54,10 +56,18 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
   return a;
 }
 
+[[maybe_unused]] static void validate_scale(x64_OptionalU8 scale) {
+  if (scale.present) {
+    assert((scale.value == 1) || (scale.value == 2) || (scale.value == 4) ||
+           (scale.value == 8));
+  }
+}
+
 x64_Location x64_location_address(x64_GPR base,
                                   x64_OptionalGPR optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset) {
+  validate_scale(optional_scale);
   x64_Location a = {
       .kind    = LOCATION_ADDRESS,
       .address = {.base   = base,

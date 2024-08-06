@@ -40,24 +40,24 @@ static bool x64_bytecode_full(x64_Bytecode *restrict bc) {
 }
 
 static void x64_bytecode_grow(x64_Bytecode *restrict bc) {
-  Growth g     = array_growth_u16(bc->capacity, sizeof(x64_Instruction));
+  Growth g     = array_growth_u64(bc->capacity, sizeof(x64_Instruction));
   bc->buffer   = reallocate(bc->buffer, g.alloc_size);
-  bc->capacity = (u16)g.new_capacity;
+  bc->capacity = g.new_capacity;
 }
 
-u16 x64_bytecode_current_offset(x64_Bytecode *restrict bc) {
+u64 x64_bytecode_current_offset(x64_Bytecode *restrict bc) {
   return bc->length;
 }
 
 void x64_bytecode_insert(x64_Bytecode *restrict bc,
                          x64_Instruction I,
-                         u16 offset) {
+                         u64 offset) {
   assert(bc != NULL);
   assert(offset < bc->capacity);
   assert(offset <= bc->length);
   if (x64_bytecode_full(bc)) { x64_bytecode_grow(bc); }
 
-  for (u16 i = bc->length; i > offset; --i) {
+  for (u64 i = bc->length; i > offset; --i) {
     bc->buffer[i] = bc->buffer[i - 1];
   }
 
@@ -78,81 +78,12 @@ void x64_bytecode_prepend(x64_Bytecode *restrict bc, x64_Instruction I) {
   if (x64_bytecode_full(bc)) { x64_bytecode_grow(bc); }
 
   // move all instructions forward one location
-  for (u16 idx = bc->length; idx > 0; --idx) {
+  for (u64 idx = bc->length; idx > 0; --idx) {
     bc->buffer[idx] = bc->buffer[idx - 1];
   }
 
   bc->buffer[0] = I;
   bc->length += 1;
-}
-
-void x64_bytecode_append_ret(x64_Bytecode *restrict bc) {
-  x64_bytecode_append(bc, x64_instruction(X64OPC_RET));
-}
-
-void x64_bytecode_append_call(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_CALL, A));
-}
-
-void x64_bytecode_append_push(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_PUSH, A));
-}
-
-void x64_bytecode_prepend_push(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_prepend(bc, x64_instruction_A(X64OPC_PUSH, A));
-}
-
-void x64_bytecode_append_pop(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_POP, A));
-}
-
-void x64_bytecode_append_mov(x64_Bytecode *restrict bc,
-                             x64_Operand A,
-                             x64_Operand B) {
-  x64_bytecode_append(bc, x64_instruction_AB(X64OPC_MOV, A, B));
-}
-
-void x64_bytecode_prepend_mov(x64_Bytecode *restrict bc,
-                              x64_Operand A,
-                              x64_Operand B) {
-  x64_bytecode_prepend(bc, x64_instruction_AB(X64OPC_MOV, A, B));
-}
-
-void x64_bytecode_append_neg(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_NEG, A));
-}
-
-void x64_bytecode_append_add(x64_Bytecode *restrict bc,
-                             x64_Operand A,
-                             x64_Operand B) {
-  x64_bytecode_append(bc, x64_instruction_AB(X64OPC_ADD, A, B));
-}
-
-void x64_bytecode_insert_sub(x64_Bytecode *restrict bc,
-                             u16 offset,
-                             x64_Operand A,
-                             x64_Operand B) {
-  x64_bytecode_insert(bc, x64_instruction_AB(X64OPC_SUB, A, B), offset);
-}
-
-void x64_bytecode_append_sub(x64_Bytecode *restrict bc,
-                             x64_Operand A,
-                             x64_Operand B) {
-  x64_bytecode_append(bc, x64_instruction_AB(X64OPC_SUB, A, B));
-}
-
-void x64_bytecode_prepend_sub(x64_Bytecode *restrict bc,
-                              x64_Operand A,
-                              x64_Operand B) {
-  x64_bytecode_prepend(bc, x64_instruction_AB(X64OPC_SUB, A, B));
-}
-
-void x64_bytecode_append_imul(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_IMUL, A));
-}
-
-void x64_bytecode_append_idiv(x64_Bytecode *restrict bc, x64_Operand A) {
-  x64_bytecode_append(bc, x64_instruction_A(X64OPC_IDIV, A));
 }
 
 void x64_bytecode_emit(x64_Bytecode *restrict bc,

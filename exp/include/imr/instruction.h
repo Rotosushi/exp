@@ -22,7 +22,7 @@
  * @brief the valid opcodes for instructions
  *
  */
-typedef enum Opcode {
+typedef enum Opcode : u8 {
   /*
    * <...> -> side effect
    * ip    -> the instruction pointer
@@ -99,7 +99,7 @@ typedef enum Opcode {
            // ABC -- SSA[A] = B    % C
 } Opcode;
 
-typedef enum InstructionFormat {
+typedef enum InstructionFormat : u8 {
   IFMT_B,
   IFMT_AB,
   IFMT_ABC,
@@ -109,13 +109,11 @@ typedef enum InstructionFormat {
  * @brief represents a bytecode instruction
  */
 typedef struct Instruction {
-  unsigned opcode : 7;
-  unsigned Ifmt   : 3;
-  unsigned Bfmt   : 3;
-  unsigned Cfmt   : 3;
-  unsigned A      : 16;
-  unsigned B      : 16;
-  unsigned C      : 16;
+  Opcode opcode;
+  InstructionFormat format;
+  Operand A;
+  Operand B;
+  Operand C;
 } Instruction;
 
 Instruction instruction_B(Opcode opcode, Operand B);
