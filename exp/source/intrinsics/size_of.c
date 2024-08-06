@@ -19,22 +19,21 @@
 #include <assert.h>
 
 #include "intrinsics/size_of.h"
-#include "utility/minmax.h"
 #include "utility/panic.h"
 
 u64 size_of(Type *restrict type) {
   assert(type != NULL);
 
   switch (type->kind) {
-  case TYPEKIND_NIL:     return 1;
-  case TYPEKIND_BOOLEAN: return 1;
+  case TYPEKIND_NIL:     return 8;
+  case TYPEKIND_BOOLEAN: return 8;
   case TYPEKIND_I64:     return 8;
 
   case TYPEKIND_TUPLE: {
     TupleType *tuple = &type->tuple_type;
     u64 acc          = 0;
     for (u64 i = 0; i < tuple->size; ++i) {
-      acc += ulmax(8ul, size_of(tuple->types[i]));
+      acc += size_of(tuple->types[i]);
     }
     return acc;
   }

@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #include "backend/x64/allocator.h"
 #include "backend/x64/codegen.h"

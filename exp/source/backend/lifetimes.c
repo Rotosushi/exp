@@ -22,7 +22,12 @@
 #include "backend/lifetimes.h"
 #include "utility/alloc.h"
 
-Lifetimes lifetimes_create(u16 count) {
+Lifetime lifetime_immortal() {
+  Lifetime lifetime = {.first_use = 0, .last_use = u64_MAX};
+  return lifetime;
+}
+
+Lifetimes lifetimes_create(u64 count) {
   Lifetimes lifetiems = {.count  = count,
                          .buffer = callocate(count, sizeof(Lifetime))};
   return lifetiems;
@@ -34,7 +39,7 @@ void lifetimes_destroy(Lifetimes *restrict lifetiems) {
   lifetiems->buffer = NULL;
 }
 
-Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u16 ssa) {
+Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
   assert(ssa < lifetiems->count);
   return lifetiems->buffer + ssa;
 }
@@ -53,8 +58,8 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
   Bytecode *bc        = &body->bc;
   Lifetimes lifetiems = lifetimes_create(body->ssa_count);
 
-  for (u16 i = bc->length; i > 0; --i) {
-    u16 inst      = i - 1;
+  for (u64 i = bc->length; i > 0; --i) {
+    u64 inst      = i - 1;
     Instruction I = bc->buffer[inst];
     switch (I.Ifmt) {
     case IFMT_B: {

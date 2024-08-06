@@ -19,37 +19,28 @@
 
 #include "backend/x64/allocation.h"
 
-/*
-  #TODO:
-  we need to specify memory operands more generally
-  to support pointers. however, a memory operand requires
-  more than one datum, the register holding the address
-  and the offset from that address. and more. this is
-  a complexity we are deliberately avoiding right now.
-*/
-
-typedef enum x64_OperandFormat {
+typedef enum x64_OperandFormat : u8 {
   X64OPRFMT_GPR,
-  X64OPRFMT_STACK,
-  X64OPRFMT_CONSTANT,
+  X64OPRFMT_ADDRESS,
   X64OPRFMT_IMMEDIATE,
   X64OPRFMT_LABEL,
 } x64_OperandFormat;
 
 typedef struct x64_Operand {
-  unsigned format : 3;
+  x64_OperandFormat format;
   union {
-    unsigned common : 16;
-    signed offset   : 16;
+    x64_GPR gpr;
+    x64_Address address;
+    u64 index;
+    i64 immediate;
   };
 } x64_Operand;
 
-x64_Operand x64_operand_gpr(u16 gpr);
-x64_Operand x64_operand_stack(i16 offset);
+x64_Operand x64_operand_gpr(x64_GPR gpr);
+x64_Operand x64_operand_address(x64_Address address);
 x64_Operand x64_operand_location(x64_Location location);
 x64_Operand x64_operand_alloc(x64_Allocation *alloc);
-x64_Operand x64_operand_constant(u16 idx);
-x64_Operand x64_operand_immediate(u16 value);
-x64_Operand x64_operand_label(u16 idx);
+x64_Operand x64_operand_immediate(i64 value);
+x64_Operand x64_operand_label(u64 index);
 
 #endif // !EXP_BACKEND_X64_OPERAND_H
