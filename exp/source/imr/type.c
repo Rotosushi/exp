@@ -140,7 +140,7 @@ bool type_equality(Type const *A, Type const *B) {
     return function_type_equality(&A->function_type, &B->function_type);
 
   // #NOTE: scalar types are equal when their kinds are equal
-  default: return 1;
+  default: return true;
   }
 }
 
@@ -148,13 +148,13 @@ bool type_is_scalar(Type const *T) {
   switch (T->kind) {
   case TYPEKIND_NIL:
   case TYPEKIND_BOOLEAN:
-  case TYPEKIND_I64:     return 1;
+  case TYPEKIND_I64:     return true;
 
   // a tuple type of size two or more cannot be scalar
   // unless we optimize it to be so. which is a TODO.
   // and a tuple type of length 0 or 1 is never created.
   case TYPEKIND_TUPLE:
-  default:             return 0;
+  default:             return false;
   }
 }
 

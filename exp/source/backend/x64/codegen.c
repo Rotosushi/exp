@@ -23,114 +23,11 @@
 #include "backend/x64/codegen.h"
 #include "backend/x64/context.h"
 #include "backend/x64/emit.h"
+#include "backend/x64/intrinsics/copy.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
 #include "utility/minmax.h"
 #include "utility/panic.h"
-
-// #TODO we have to copy from one location to the other,
-// but we also need type information to handle larger size objects.
-// and we have to have a copy for constants, immediates, and labels.
-
-static void x64_codegen_copy_scalar(x64_Allocation *restrict dst,
-                                    x64_Allocation *restrict src,
-                                    u16 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator) {
-  if ((dst->location.kind != ALLOC_STACK) ||
-      (src->location.kind != ALLOC_STACK)) {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(dst), x64_operand_alloc(src));
-    return;
-  }
-
-  x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-
-  x64_bytecode_append_mov(x64bc, x64_operand_gpr(gpr), x64_operand_alloc(src));
-  x64_bytecode_append_mov(x64bc, x64_operand_alloc(dst), x64_operand_gpr(gpr));
-
-  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-}
-
-static void x64_codegen_copy_composite(x64_Allocation *restrict dst,
-                                       x64_Allocation *restrict src,
-                                       u16 Idx,
-                                       x64_Bytecode *restrict x64bc,
-                                       x64_Allocator *restrict allocator) {
-  assert(dst->location.kind == ALLOC_STACK);
-  assert(src->location.kind == ALLOC_STACK);
-  assert(type_equality(dst->type, src->type));
-  x64_GPR gpr   = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-  Type *type    = dst->type;
-  u64 type_size = size_of(type);
-
-  // mov src+8*n(%rbp), gpr
-  // mov gpr, dst+8*n(%rbp)
-  u16 src_offset = src->location.offset;
-  u16 dst_offset = dst->location.offset;
-
-  // #NOTE #TODO: as it currently stands, all
-  // types are length 8. to make math like this
-  // simpler. This is obviously inefficient.
-  u16 elements = (u16)(type_size / 8);
-  for (u16 i = 0; i < elements; ++i) {
-    u16 src_element_offset = src_offset + (8 * i);
-    assert(src_element_offset <= i16_MAX);
-    u16 dst_element_offset = dst_offset + (8 * i);
-    assert(dst_element_offset <= i16_MAX);
-
-    x64_Location src_element = x64_location_stack((i16)src_element_offset);
-    x64_Location dst_element = x64_location_stack((i16)dst_element_offset);
-
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(gpr), x64_operand_location(src_element));
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_location(dst_element), x64_operand_gpr(gpr));
-  }
-
-  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-}
-
-static void x64_codegen_copy(x64_Allocation *restrict dst,
-                             x64_Allocation *restrict src,
-                             u16 Idx,
-                             x64_Bytecode *restrict x64bc,
-                             x64_Allocator *restrict allocator) {
-  assert(type_equality(dst->type, src->type));
-
-  if (x64_location_eq(dst->location, src->location)) { return; }
-
-  if (type_is_scalar(dst->type)) {
-    x64_codegen_copy_scalar(dst, src, Idx, x64bc, allocator);
-  } else {
-    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
-  }
-}
-
-static void
-x64_codegen_load_constant_composite(x64_Allocation *restrict dst,
-                                    Value *restrict src,
-                                    u16 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator) {}
-
-static void x64_codegen_load_constant(x64_Allocation *restrict dst,
-                                      u16 index,
-                                      u16 Idx,
-                                      x64_Bytecode *restrict x64bc,
-                                      x64_Allocator *restrict allocator,
-                                      x64_Context *restrict context) {
-  Value *src     = context_constants_at(context->context, index);
-  Type *src_type = type_of_value(src, context->context);
-  assert(type_equality(dst->type, src_type));
-
-  if (type_is_scalar(dst->type)) {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(dst), x64_operand_constant(index));
-  } else {
-    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
-  }
-}
 
 static void x64_codegen_ret(Instruction I,
                             u16 Idx,
@@ -141,11 +38,11 @@ static void x64_codegen_ret(Instruction I,
   // since we are returning, we know by definition
   // that lifetimes are ending. thus we can just emit
   // mov's where necessary.
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    if (x64_allocation_location_eq(B, body->return_location)) { break; }
-    x64_codegen_copy(body->return_location, B->location, Idx, x64bc, allocator);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    if (x64_allocation_location_eq(B, body->result->location)) { break; }
+    x64_codegen_copy_allocation(body->result, B, Idx, x64bc, allocator);
     break;
   }
 
@@ -282,7 +179,7 @@ static void x64_codegen_call(Instruction I,
       x64_Allocation *allocation =
           x64_allocator_allocation_of(allocator, local->ssa);
 
-      x64_codegen_copy(x64_location_stack(arg_offset),
+      x64_codegen_copy(x64_location_address(arg_offset),
                        allocation->location,
                        Idx,
                        x64bc,
@@ -415,7 +312,7 @@ static void x64_codegen_add(Instruction I,
       // if B or C is in a gpr we use it as the allocation point of A
       // and the destination operand of the x64 add instruction.
       // this is to try and keep the result, A, in a register.
-      if (B->location.kind == ALLOC_GPR) {
+      if (B->location.kind == LOCATION_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
         x64_bytecode_append_add(
@@ -423,7 +320,7 @@ static void x64_codegen_add(Instruction I,
         return;
       }
 
-      if (C->location.kind == ALLOC_GPR) {
+      if (C->location.kind == LOCATION_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
         x64_bytecode_append_add(
@@ -527,7 +424,8 @@ static void x64_codegen_sub(Instruction I,
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
       // #NOTE since subtraction is not commutative we have to allocate A from B
       // regardless of which of B or C is in a register.
-      if ((B->location.kind == ALLOC_GPR) || (C->location.kind == ALLOC_GPR)) {
+      if ((B->location.kind == LOCATION_GPR) ||
+          (C->location.kind == LOCATION_GPR)) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
@@ -641,7 +539,8 @@ static void x64_codegen_mul(Instruction I,
     switch (I.Cfmt) {
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -650,7 +549,8 @@ static void x64_codegen_mul(Instruction I,
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -737,7 +637,7 @@ static void x64_codegen_mul(Instruction I,
   case OPRFMT_IMMEDIATE: {
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
       x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -771,7 +671,8 @@ static void x64_codegen_div(Instruction I,
     switch (I.Cfmt) {
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -783,7 +684,8 @@ static void x64_codegen_div(Instruction I,
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
@@ -864,7 +766,7 @@ static void x64_codegen_div(Instruction I,
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
@@ -885,7 +787,7 @@ static void x64_codegen_div(Instruction I,
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
@@ -916,7 +818,8 @@ static void x64_codegen_mod(Instruction I,
     switch (I.Cfmt) {
     case OPRFMT_SSA: {
       x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
         x64_bytecode_append_mov(
             x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
@@ -925,7 +828,8 @@ static void x64_codegen_mod(Instruction I,
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
 
         x64_allocator_reallocate_active(allocator, C, x64bc);
@@ -987,7 +891,7 @@ static void x64_codegen_mod(Instruction I,
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
@@ -1006,7 +910,7 @@ static void x64_codegen_mod(Instruction I,
 
     assert(I.Cfmt == OPRFMT_SSA);
     x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
       x64_allocator_reallocate_active(allocator, C, x64bc);
     }
 
@@ -1126,8 +1030,7 @@ static void x64_codegen_function(FunctionBody *restrict body,
       u16 offset           = (u16)ulmax(8UL, size_of(arg->type));
       assert(offset <= i16_MAX);
       arg_offset += (i16)offset;
-      x64_allocator_allocate_formal_argument_to_stack(
-          &allocator, arg_offset, local);
+      x64_allocator_allocate_to_stack(&allocator, arg_offset, local);
     }
   }
 

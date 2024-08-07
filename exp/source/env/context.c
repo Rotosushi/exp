@@ -21,8 +21,6 @@
 
 #include "env/context.h"
 #include "utility/io.h"
-#include "utility/nearest_power.h"
-#include "utility/panic.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
@@ -113,12 +111,12 @@ Type *context_function_type(Context *restrict context,
       &context->type_interner, return_type, argument_types);
 }
 
-u16 context_global_labels_insert(Context *restrict context, StringView symbol) {
+u64 context_global_labels_insert(Context *restrict context, StringView symbol) {
   assert(context != NULL);
   return global_labels_insert(&context->global_labels, symbol);
 }
 
-StringView context_global_labels_at(Context *restrict context, u16 idx) {
+StringView context_global_labels_at(Context *restrict context, u64 idx) {
   assert(context != NULL);
   return global_labels_at(&context->global_labels, idx);
 }
@@ -162,7 +160,7 @@ CallPair context_new_call(Context *restrict c) {
   return function_body_new_call(context_current_function(c));
 }
 
-ActualArgumentList *context_call_at(Context *restrict c, u16 idx) {
+ActualArgumentList *context_call_at(Context *restrict c, u64 idx) {
   return function_body_call_at(context_current_function(c), idx);
 }
 
@@ -170,14 +168,14 @@ void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value) {
   Operand A = context_emit_load(c, value);
-  function_body_new_local(context_current_function(c), name, A.common);
+  function_body_new_local(context_current_function(c), name, A.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
   return local_variables_lookup(&(context_current_function(c)->locals), name);
 }
 
-LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa) {
+LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa) {
   return local_variables_lookup_ssa(&(context_current_function(c)->locals),
                                     ssa);
 }
@@ -202,7 +200,7 @@ Operand context_constants_append(Context *restrict context, Value value) {
   return constants_add(&(context->constants), value);
 }
 
-Value *context_constants_at(Context *restrict context, u16 index) {
+Value *context_constants_at(Context *restrict context, u64 index) {
   assert(context != NULL);
   return constants_at(&(context->constants), index);
 }
@@ -242,8 +240,6 @@ Operand context_emit_load(Context *restrict c, Operand B) {
   bytecode_append(bc, imr_load(A, B));
   return A;
 }
-
-static bool in_range(i64 n) { return (n < u16_MAX) && (n > 0); }
 
 FoldResult context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);

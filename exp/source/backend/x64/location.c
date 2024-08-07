@@ -56,6 +56,18 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
   return a;
 }
 
+void x64_address_increment_offset(x64_Address *restrict address, i64 offset) {
+  if (!address->offset.present) {
+    address->offset = x64_optional_i64(offset);
+    return;
+  }
+
+  if (__builtin_add_overflow(
+          address->offset.value, offset, &address->offset.value)) {
+    PANIC("address offset overflow");
+  }
+}
+
 [[maybe_unused]] static void validate_scale(x64_OptionalU8 scale) {
   if (scale.present) {
     assert((scale.value == 1) || (scale.value == 2) || (scale.value == 4) ||

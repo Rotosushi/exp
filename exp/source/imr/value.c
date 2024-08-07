@@ -18,7 +18,6 @@
  */
 #include <string.h>
 
-#include "env/context.h"
 #include "imr/value.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"

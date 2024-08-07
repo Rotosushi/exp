@@ -26,7 +26,7 @@ typedef struct FormalArgument {
   StringView name;
   Type *type;
   u8 index;
-  u16 ssa;
+  u64 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -45,19 +45,19 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
 typedef struct LocalVariable {
   StringView name;
   Type *type;
-  u16 ssa;
+  u64 ssa;
 } LocalVariable;
 
 typedef struct LocalVariables {
-  u16 size;
-  u16 capacity;
+  u64 size;
+  u64 capacity;
   LocalVariable *buffer;
 } LocalVariables;
 
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
-LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
+LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u64 ssa);
 
 typedef struct ActualArgumentList {
   Operand *list;
@@ -70,12 +70,12 @@ void actual_argument_list_append(ActualArgumentList *restrict aal,
 
 typedef struct CallList {
   ActualArgumentList *list;
-  u16 size;
-  u16 capacity;
+  u64 size;
+  u64 capacity;
 } CallList;
 
 typedef struct CallPair {
-  u16 index;
+  u64 index;
   ActualArgumentList *list;
 } CallPair;
 
@@ -84,7 +84,7 @@ typedef struct FunctionBody {
   CallList calls;
   LocalVariables locals;
   Type *return_type;
-  u16 ssa_count;
+  u64 ssa_count;
   Bytecode bc;
 } FunctionBody;
 
@@ -93,13 +93,13 @@ void function_body_destroy(FunctionBody *restrict function);
 
 CallPair function_body_new_call(FunctionBody *restrict function);
 ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
-                                          u16 idx);
+                                          u64 idx);
 
 void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument arg);
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u16 ssa);
+                             u64 ssa);
 Operand function_body_new_ssa(FunctionBody *restrict function);
 
 void print_function_body(FunctionBody const *restrict f, FILE *restrict file);

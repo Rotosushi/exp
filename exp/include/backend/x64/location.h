@@ -55,6 +55,8 @@ typedef struct x64_Address {
   x64_OptionalI64 offset;
 } x64_Address;
 
+void x64_address_increment_offset(x64_Address *restrict address, i64 offset);
+
 typedef struct x64_Location {
   x64_LocationKind kind;
   union {

@@ -74,9 +74,9 @@ Type *context_function_type(Context *restrict context,
                             TupleType argument_types);
 
 // global labels functions
-u16 context_global_labels_insert(Context *restrict context, StringView symbol);
+u64 context_global_labels_insert(Context *restrict context, StringView symbol);
 
-StringView context_global_labels_at(Context *restrict context, u16 idx);
+StringView context_global_labels_at(Context *restrict context, u64 idx);
 
 // symbol table functions
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
@@ -91,13 +91,13 @@ FunctionBody *context_current_function(Context *restrict c);
 Bytecode *context_active_bytecode(Context *restrict c);
 
 CallPair context_new_call(Context *restrict c);
-ActualArgumentList *context_call_at(Context *restrict c, u16 idx);
+ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
 void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
-LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
+LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa);
 FormalArgument *context_lookup_argument(Context *restrict c, StringView name);
 FormalArgument *context_argument_at(Context *restrict c, u8 index);
 
@@ -106,7 +106,7 @@ void context_leave_function(Context *restrict c);
 // Constants functions
 Operand context_constants_append(Context *restrict context, Value value);
 
-Value *context_constants_at(Context *restrict context, u16 index);
+Value *context_constants_at(Context *restrict context, u64 index);
 
 // emit instruction functions
 typedef struct FoldResult {

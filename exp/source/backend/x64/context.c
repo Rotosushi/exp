@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "backend/x64/context.h"
+#include "env/context.h"
 
 x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
@@ -33,8 +34,13 @@ void x64_context_destroy(x64_Context *restrict x64_context) {
   x64_symbol_table_destroy(&x64_context->symbols);
 }
 
+Value *x64_context_value_at(x64_Context *restrict context, u64 index) {
+  assert(context != NULL);
+  return context_constants_at(context->context, index);
+}
+
 StringView x64_context_global_symbols_at(x64_Context *restrict x64_context,
-                                         u16 idx) {
+                                         u64 idx) {
   assert(x64_context != NULL);
   return context_global_labels_at(x64_context->context, idx);
 }
@@ -51,7 +57,7 @@ void x64_context_leave_function(x64_Context *restrict x64_context) {
 }
 
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
-                                        u16 idx) {
+                                        u64 idx) {
   assert(x64_context != NULL);
   return context_call_at(x64_context->context, idx);
 }
