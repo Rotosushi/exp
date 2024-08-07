@@ -61,39 +61,37 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
   for (u64 i = bc->length; i > 0; --i) {
     u64 inst      = i - 1;
     Instruction I = bc->buffer[inst];
-    switch (I.Ifmt) {
+    switch (I.format) {
     case IFMT_B: {
-      if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
+      if (I.B.format == OPRFMT_SSA) {
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
     }
 
     case IFMT_AB: {
-      u16 A         = I.A;
-      Lifetime *Al  = lifetimes_at(&lifetiems, A);
+      Lifetime *Al  = lifetimes_at(&lifetiems, I.A.ssa);
       Al->first_use = inst;
 
-      if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
+      if (I.B.format == OPRFMT_SSA) {
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
       break;
     }
 
     case IFMT_ABC: {
-      u16 A         = I.A;
-      Lifetime *Al  = lifetimes_at(&lifetiems, A);
+      Lifetime *Al  = lifetimes_at(&lifetiems, I.A.ssa);
       Al->first_use = inst;
 
-      if (I.Bfmt == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B);
+      if (I.B.format == OPRFMT_SSA) {
+        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       }
 
-      if (I.Cfmt == OPRFMT_SSA) {
-        Lifetime *Cl = lifetimes_at(&lifetiems, I.C);
+      if (I.C.format == OPRFMT_SSA) {
+        Lifetime *Cl = lifetimes_at(&lifetiems, I.C.ssa);
         if (inst > Cl->last_use) { Cl->last_use = inst; }
       }
       break;

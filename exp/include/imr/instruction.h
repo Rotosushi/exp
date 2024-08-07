@@ -116,8 +116,14 @@ typedef struct Instruction {
   Operand C;
 } Instruction;
 
-Instruction instruction_B(Opcode opcode, Operand B);
-Instruction instruction_AB(Opcode opcode, Operand A, Operand B);
-Instruction instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C);
+Instruction imr_ret(Operand result);
+Instruction imr_call(Operand result, Operand label, Operand args);
+Instruction imr_load(Operand dst, Operand src);
+Instruction imr_neg(Operand dst, Operand src);
+Instruction imr_add(Operand dst, Operand left, Operand right);
+Instruction imr_sub(Operand dst, Operand left, Operand right);
+Instruction imr_mul(Operand dst, Operand left, Operand right);
+Instruction imr_div(Operand dst, Operand left, Operand right);
+Instruction imr_mod(Operand dst, Operand left, Operand right);
 
 #endif // !EXP_IMR_INSTRUCTION_H

@@ -49,9 +49,9 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {
-  Growth g         = array_growth_u16(bytecode->capacity, sizeof(Instruction));
+  Growth g         = array_growth_u64(bytecode->capacity, sizeof(Instruction));
   bytecode->buffer = reallocate(bytecode->buffer, g.alloc_size);
-  bytecode->capacity = (u16)g.new_capacity;
+  bytecode->capacity = g.new_capacity;
 }
 
 static void bytecode_emit_instruction(Bytecode *restrict bytecode,
@@ -62,6 +62,7 @@ static void bytecode_emit_instruction(Bytecode *restrict bytecode,
   bytecode->length += 1;
 }
 
+/*
 // B -- L[R] = B,    <return>
 // B -- L[R] = C[B], <return>
 // B -- L[R] = L[B], <return>
@@ -178,32 +179,33 @@ static Operand operand_C(Instruction I) {
   Operand operand = {.format = I.Cfmt, .common = I.C};
   return operand;
 }
+*/
 
 static void
 print_B(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(operand_B(I), file);
+  print_operand(I.B, file);
 }
 
 static void
 print_AB(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(operand_A(I), file);
+  print_operand(I.A, file);
   file_write(", ", file);
-  print_operand(operand_B(I), file);
+  print_operand(I.B, file);
 }
 
 static void
 print_ABC(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(operand_A(I), file);
+  print_operand(I.A, file);
   file_write(", ", file);
-  print_operand(operand_B(I), file);
+  print_operand(I.B, file);
   file_write(", ", file);
-  print_operand(operand_C(I), file);
+  print_operand(I.C, file);
 }
 
 // "load L[<A>], <B>"

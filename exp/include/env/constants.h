@@ -23,8 +23,8 @@
 #include "utility/io.h"
 
 typedef struct Constants {
-  u16 length;
-  u16 capacity;
+  u64 length;
+  u64 capacity;
   Value *buffer;
 } Constants;
 
@@ -58,7 +58,7 @@ Operand constants_add(Constants *restrict constants, Value value);
  * @param index
  * @return Value*
  */
-Value *constants_at(Constants *restrict constants, u16 index);
+Value *constants_at(Constants *restrict constants, u64 index);
 
 void print_constants(Constants const *restrict c, FILE *restrict file);
 

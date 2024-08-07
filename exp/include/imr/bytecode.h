@@ -24,25 +24,15 @@
  * @brief represents a section of instructions.
  */
 typedef struct Bytecode {
-  u16 length;
-  u16 capacity;
+  u64 length;
+  u64 capacity;
   Instruction *buffer;
 } Bytecode;
 
 Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
-void bytecode_emit_return(Bytecode *restrict bc, Operand B);
-void bytecode_emit_call(Bytecode *restrict bc, Operand A, Operand B, Operand C);
-
-void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B);
-
-void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B);
-void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C);
-void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C);
-void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C);
-void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C);
-void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C);
+void bytecode_append(Bytecode *restrict bytecode, Instruction I);
 
 void print_bytecode(Bytecode const *restrict bc, FILE *restrict file);
 #endif // !EXP_IMR_BYTECODE_H

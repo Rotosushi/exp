@@ -35,7 +35,7 @@ Constants constants_create() {
 
 void constants_destroy(Constants *restrict constants) {
   assert(constants != NULL);
-  for (u16 i = 0; i < constants->length; ++i) {
+  for (u64 i = 0; i < constants->length; ++i) {
     Value *constant = constants->buffer + i;
     value_destroy(constant);
   }
@@ -51,12 +51,12 @@ static bool constants_full(Constants *restrict constants) {
 }
 
 static void constants_grow(Constants *restrict constants) {
-  Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
+  Growth g            = array_growth_u64(constants->capacity, sizeof(Value));
   constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-  constants->capacity = (u16)g.new_capacity;
+  constants->capacity = g.new_capacity;
 }
 
-[[maybe_unused]] static bool index_inbounds(Constants *restrict c, u16 i) {
+[[maybe_unused]] static bool index_inbounds(Constants *restrict c, u64 i) {
   return i < c->length;
 }
 
@@ -64,25 +64,21 @@ Operand constants_add(Constants *restrict c, Value value) {
   assert(c != NULL);
 
   for (u64 i = 0; i < c->length; ++i) {
+    if (i == u64_MAX) { PANIC("constant index out of bounds"); }
     Value *v = c->buffer + i;
-    if (value_equality(v, &value)) {
-      if (i > u16_MAX) { PANIC("constant index out of bounds"); }
-      return operand_constant((u16)i);
-    }
+    if (value_equality(v, &value)) { return operand_constant(i); }
   }
 
   if (constants_full(c)) { constants_grow(c); }
 
-  if (c->length == u16_MAX) { PANIC("constant index out of bounds"); }
-
-  u16 index            = c->length;
+  u64 index            = c->length;
   c->buffer[c->length] = value;
   c->length += 1;
 
   return operand_constant(index);
 }
 
-Value *constants_at(Constants *restrict c, u16 i) {
+Value *constants_at(Constants *restrict c, u64 i) {
   assert(c != NULL);
   assert(index_inbounds(c, i));
   return c->buffer + i;

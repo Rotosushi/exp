@@ -18,28 +18,53 @@
  */
 #include "imr/instruction.h"
 
-Instruction instruction_B(Opcode opcode, Operand B) {
+static Instruction instruction_B(Opcode opcode, Operand B) {
+  Instruction I = {.opcode = opcode, .format = IFMT_B, .B = B};
+  return I;
+}
+
+static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
+  Instruction I = {.opcode = opcode, .format = IFMT_AB, .A = A, .B = B};
+  return I;
+}
+
+static Instruction
+instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
   Instruction I = {
-      .opcode = opcode, .Ifmt = IFMT_B, .Bfmt = B.format, .B = B.common};
+      .opcode = opcode, .format = IFMT_ABC, .A = A, .B = B, .C = C};
   return I;
 }
 
-Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
-  Instruction I = {.opcode = opcode,
-                   .Ifmt   = IFMT_AB,
-                   .A      = A.common,
-                   .Bfmt   = B.format,
-                   .B      = B.common};
-  return I;
+Instruction imr_ret(Operand result) { return instruction_B(OPC_RET, result); }
+
+Instruction imr_call(Operand result, Operand label, Operand args) {
+  return instruction_ABC(OPC_CALL, result, label, args);
 }
 
-Instruction instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
-  Instruction I = {.opcode = opcode,
-                   .Ifmt   = IFMT_ABC,
-                   .A      = A.common,
-                   .Bfmt   = B.format,
-                   .B      = B.common,
-                   .Cfmt   = C.format,
-                   .C      = C.common};
-  return I;
+Instruction imr_load(Operand dst, Operand src) {
+  return instruction_AB(OPC_LOAD, dst, src);
+}
+
+Instruction imr_neg(Operand dst, Operand src) {
+  return instruction_AB(OPC_NEG, dst, src);
+}
+
+Instruction imr_add(Operand dst, Operand left, Operand right) {
+  return instruction_ABC(OPC_ADD, dst, left, right);
+}
+
+Instruction imr_sub(Operand dst, Operand left, Operand right) {
+  return instruction_ABC(OPC_SUB, dst, left, right);
+}
+
+Instruction imr_mul(Operand dst, Operand left, Operand right) {
+  return instruction_ABC(OPC_MUL, dst, left, right);
+}
+
+Instruction imr_div(Operand dst, Operand left, Operand right) {
+  return instruction_ABC(OPC_DIV, dst, left, right);
+}
+
+Instruction imr_mod(Operand dst, Operand left, Operand right) {
+  return instruction_ABC(OPC_MOD, dst, left, right);
 }

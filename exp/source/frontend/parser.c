@@ -17,15 +17,13 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "env/error.h"
 #include "frontend/parser.h"
-#include "utility/config.h"
+#include "imr/operand.h"
 #include "utility/numeric_conversions.h"
-#include "utility/panic.h"
 
 typedef struct Parser {
   Lexer lexer;
@@ -66,10 +64,7 @@ static ParserResult from_fold(FoldResult fold) {
   return result;
 }
 
-static Operand zero() {
-  Operand o = {.format = OPRFMT_IMMEDIATE, .common = 0};
-  return o;
-}
+static Operand zero() { return operand_immediate(0); }
 
 typedef enum Precedence {
   PREC_NONE,
