@@ -56,14 +56,17 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
   return a;
 }
 
-void x64_address_increment_offset(x64_Address *restrict address, i64 offset) {
+void x64_address_increment_offset(x64_Address *restrict address, u64 offset) {
+  assert(offset <= i64_MAX);
+  i64 increment = (i64)offset;
+
   if (!address->offset.present) {
-    address->offset = x64_optional_i64(offset);
+    address->offset = x64_optional_i64(increment);
     return;
   }
 
   if (__builtin_add_overflow(
-          address->offset.value, offset, &address->offset.value)) {
+          address->offset.value, increment, &address->offset.value)) {
     PANIC("address offset overflow");
   }
 }

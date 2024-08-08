@@ -24,6 +24,7 @@
 #include "backend/x64/context.h"
 #include "backend/x64/emit.h"
 #include "backend/x64/intrinsics/copy.h"
+#include "backend/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
 #include "utility/minmax.h"
@@ -33,7 +34,8 @@ static void x64_codegen_ret(Instruction I,
                             u16 Idx,
                             x64_FunctionBody *restrict body,
                             [[maybe_unused]] LocalVariables *restrict locals,
-                            x64_Allocator *restrict allocator) {
+                            x64_Allocator *restrict allocator,
+                            x64_Context *restrict context) {
   x64_Bytecode *x64bc = &body->bc;
   // since we are returning, we know by definition
   // that lifetimes are ending. thus we can just emit
@@ -47,16 +49,15 @@ static void x64_codegen_ret(Instruction I,
   }
 
   case OPRFMT_CONSTANT: {
-    x64_bytecode_append_mov(x64bc,
-                            x64_operand_location(body->return_location),
-                            x64_operand_constant(I.B));
+    x64_codegen_load_allocation(
+        body->result, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append_mov(x64bc,
-                            x64_operand_location(body->return_location),
-                            x64_operand_immediate(I.B));
+    x64_bytecode_append(x64bc,
+                        x64_mov(x64_operand_alloc(body->result),
+                                x64_operand_immediate(I.B.immediate)));
     break;
   }
 
@@ -68,10 +69,10 @@ static void x64_codegen_ret(Instruction I,
   default: unreachable();
   }
 
-  x64_bytecode_append_mov(
-      x64bc, x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP));
-  x64_bytecode_append_pop(x64bc, x64_operand_gpr(X64GPR_RBP));
-  x64_bytecode_append_ret(x64bc);
+  x64_bytecode_append(
+      x64bc, x64_mov(x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP)));
+  x64_bytecode_append(x64bc, x64_pop(x64_operand_gpr(X64GPR_RBP)));
+  x64_bytecode_append(x64bc, x64_ret());
 }
 
 static x64_GPR x64_scalar_argument_gpr(u8 num) {

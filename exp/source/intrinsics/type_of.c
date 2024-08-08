@@ -31,7 +31,7 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
     Tuple *tuple         = &value->tuple;
     TupleType tuple_type = tuple_type_create();
     for (u64 i = 0; i < tuple->size; ++i) {
-      Type *T = type_of_operand(tuple->elements[i], context);
+      Type *T = type_of_operand(tuple->elements + i, context);
       tuple_type_append(&tuple_type, T);
     }
     return context_tuple_type(context, tuple_type);
@@ -55,16 +55,16 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
   return context_function_type(context, body->return_type, argument_types);
 }
 
-Type *type_of_operand(Operand operand, Context *restrict context) {
-  switch (operand.format) {
+Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
+  switch (operand->format) {
   case OPRFMT_SSA: {
-    LocalVariable *local = context_lookup_ssa(context, operand.common);
+    LocalVariable *local = context_lookup_ssa(context, operand->ssa);
     return local->type;
     break;
   }
 
   case OPRFMT_CONSTANT: {
-    Value *constant = context_constants_at(context, operand.common);
+    Value *constant = context_constants_at(context, operand->index);
     return type_of_value(constant, context);
     break;
   }
@@ -75,7 +75,7 @@ Type *type_of_operand(Operand operand, Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    StringView label = context_global_labels_at(context, operand.common);
+    StringView label = context_global_labels_at(context, operand->index);
     SymbolTableElement *symbol = context_global_symbol_table_at(context, label);
     assert(!string_view_empty(symbol->name));
     assert(symbol->type != NULL);
