@@ -3,3 +3,5 @@
 [Bb]uild/
 [Ss]cratch/
 [Tt]esting/
+
+*.swp

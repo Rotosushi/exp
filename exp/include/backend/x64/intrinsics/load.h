@@ -23,6 +23,14 @@
 #include "backend/x64/allocator.h"
 #include "backend/x64/context.h"
 
+void x64_codegen_load_from_operand(x64_Address *restrict dst,
+                                   Operand *restrict src,
+                                   Type *restrict type,
+                                   u64 Idx,
+                                   x64_Bytecode *restrict x64bc,
+                                   x64_Allocator *restrict allocator,
+                                   x64_Context *restrict context);
+
 void x64_codegen_load_allocation(x64_Allocation *restrict dst,
                                  u64 index,
                                  u64 Idx,

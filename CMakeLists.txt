@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
   set(EXP_HOST_OS_LINUX 1)
   execute_process(

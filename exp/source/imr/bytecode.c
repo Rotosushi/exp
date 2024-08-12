@@ -54,8 +54,7 @@ static void bytecode_grow(Bytecode *restrict bytecode) {
   bytecode->capacity = g.new_capacity;
 }
 
-static void bytecode_emit_instruction(Bytecode *restrict bytecode,
-                                      Instruction I) {
+void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
   if (bytecode_full(bytecode)) { bytecode_grow(bytecode); }
 
   bytecode->buffer[bytecode->length] = I;

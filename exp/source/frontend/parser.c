@@ -518,7 +518,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
   }
 
-  u16 idx = context_global_labels_insert(c, name);
+  u64 idx = context_global_labels_insert(c, name);
   return success(operand_label(idx));
 }
 

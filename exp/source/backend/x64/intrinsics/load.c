@@ -68,14 +68,6 @@ x64_codegen_load_scalar_operand(x64_Address *restrict dst,
   }
 }
 
-static void x64_codegen_load_from_operand(x64_Address *restrict dst,
-                                          Operand *restrict src,
-                                          Type *restrict type,
-                                          u64 Idx,
-                                          x64_Bytecode *restrict x64bc,
-                                          x64_Allocator *restrict allocator,
-                                          x64_Context *restrict context);
-
 static void
 x64_codegen_load_composite_operand(x64_Address *restrict dst,
                                    Operand *restrict src,
@@ -117,7 +109,9 @@ x64_codegen_load_composite_operand(x64_Address *restrict dst,
                                     allocator,
                                     context);
 
-      x64_address_increment_offset(&dst_element_address, element_size);
+      assert(element_size <= i64_MAX);
+      i64 offset = (i64)element_size;
+      x64_address_increment_offset(&dst_element_address, offset);
     }
 
     break;
@@ -137,13 +131,13 @@ x64_codegen_load_composite_operand(x64_Address *restrict dst,
   }
 }
 
-static void x64_codegen_load_from_operand(x64_Address *restrict dst,
-                                          Operand *restrict src,
-                                          Type *restrict type,
-                                          u64 Idx,
-                                          x64_Bytecode *restrict x64bc,
-                                          x64_Allocator *restrict allocator,
-                                          x64_Context *restrict context) {
+void x64_codegen_load_from_operand(x64_Address *restrict dst,
+                                   Operand *restrict src,
+                                   Type *restrict type,
+                                   u64 Idx,
+                                   x64_Bytecode *restrict x64bc,
+                                   x64_Allocator *restrict allocator,
+                                   x64_Context *restrict context) {
   if (type_is_scalar(type)) {
     x64_codegen_load_scalar_operand(dst, src, type, Idx, x64bc, allocator);
   } else {
@@ -198,7 +192,9 @@ void x64_codegen_load_allocation(x64_Allocation *restrict dst,
       x64_codegen_load_from_operand(
           &dst_address, element, element_type, Idx, x64bc, allocator, context);
 
-      x64_address_increment_offset(&dst_address, element_size);
+      assert(element_size <= i64_MAX);
+      i64 offset = (i64)element_size;
+      x64_address_increment_offset(&dst_address, offset);
     }
     break;
   }

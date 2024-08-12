@@ -23,7 +23,7 @@
 
 bool test_constants(Constants *restrict constants, Value value) {
   Operand index   = constants_add(constants, value);
-  Value *constant = constants_at(constants, index.common);
+  Value *constant = constants_at(constants, index.index);
 
   if (value_equality(constant, &value)) {
     return 0;

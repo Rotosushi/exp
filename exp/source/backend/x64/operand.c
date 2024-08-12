@@ -48,10 +48,10 @@ x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
   return x64_operand_location(alloc->location);
 }
 
-x64_Operand x64_operand_constant(u64 index) {
-  x64_Operand opr = {.format = X64OPRFMT_CONSTANT, .index = index};
-  return opr;
-}
+// x64_Operand x64_operand_constant(u64 index) {
+//   x64_Operand opr = {.format = X64OPRFMT_CONSTANT, .index = index};
+//   return opr;
+// }
 
 x64_Operand x64_operand_immediate(i64 value) {
   x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .immediate = value};

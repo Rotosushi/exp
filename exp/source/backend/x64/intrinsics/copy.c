@@ -67,8 +67,10 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                         allocator);
     }
 
-    x64_address_increment_offset(&dst_element_address, element_size);
-    x64_address_increment_offset(&src_element_address, element_size);
+    assert(element_size <= i64_MAX);
+    i64 offset = (i64)element_size;
+    x64_address_increment_offset(&dst_element_address, offset);
+    x64_address_increment_offset(&src_element_address, offset);
   }
 }
 
