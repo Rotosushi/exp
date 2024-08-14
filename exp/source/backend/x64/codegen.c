@@ -31,6 +31,20 @@
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
+
+/*
+ * #TODO #CLEANUP
+ *  so, this code is rather difficult to read and modify.
+ *  as it is all handrolled nested switch statements.
+ *  The best thing for now is going to be factoring out
+ *  each case into it's own function. This is going to
+ *  create a lot more functions, but hopefully it will make
+ *  them all easier to read, and hopefully maintain.
+ *
+ *  a popular replacement for this handrolling is to generate
+ *  these switches based on some form of x64 specification language.
+ */
 
 static void x64_codegen_ret(Instruction I,
                             u64 Idx,
@@ -47,7 +61,7 @@ static void x64_codegen_ret(Instruction I,
     break;
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     x64_codegen_load_allocation(
         body->result, I.B.index, Idx, x64bc, allocator, context);
     break;
@@ -67,12 +81,14 @@ static void x64_codegen_ret(Instruction I,
      * proven vital). When these exist, it will be possible to
      * access them via OPRFMT_LABEL operands. Since we do not
      * have them yet, this case is effecively unreachable.
+     * (right now OPRFMT_LABEL is used exclusively for global
+     *  functions. which are global constants.)
      */
     PANIC("#TODO");
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 
   x64_bytecode_append(
@@ -98,7 +114,7 @@ static x64_GPR x64_scalar_argument_gpr(u8 num) {
   case 4: return X64GPR_R8;
   case 5: return X64GPR_R9;
   // the rest of the arguments are passed on the stack.
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -152,14 +168,14 @@ x64_codegen_load_scalar_argument(x64_GPR dst,
     break;
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     /*
      * #NOTE we do not generate scalar constants anymore as immediate
      * has been widened to an i64. However, This will need to handle
      * arguments of scalar type which are not i64's. For now, we do not
      * handle types other than i64.
      */
-    PANIC("unreachable");
+    EXP_UNREACHABLE;
     break;
   }
 
@@ -175,7 +191,7 @@ x64_codegen_load_scalar_argument(x64_GPR dst,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -186,7 +202,7 @@ static void x64_codegen_call(Instruction I,
                              x64_Allocator *restrict allocator,
                              x64_Context *restrict context) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
   ActualArgumentList *args    = x64_context_call_at(context, I.C.index);
@@ -257,7 +273,7 @@ static void x64_codegen_load(Instruction I,
                              x64_Allocator *restrict allocator,
                              x64_Context *restrict context) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   x64_Allocation *A    = x64_allocator_allocate(allocator, Idx, local, x64bc);
   switch (I.B.format) {
   case OPRFMT_SSA: {
@@ -266,7 +282,7 @@ static void x64_codegen_load(Instruction I,
     break;
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     x64_codegen_load_allocation(A, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
@@ -283,7 +299,7 @@ static void x64_codegen_load(Instruction I,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -293,7 +309,7 @@ static void x64_codegen_neg(Instruction I,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -304,10 +320,9 @@ static void x64_codegen_neg(Instruction I,
     break;
   }
 
-  case OPRFMT_CONSTANT:
   case OPRFMT_IMMEDIATE: {
-    // assert that we don't generate trivially foldable instructions
-    PANIC("unreachable");
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_bytecode_append(x64bc, x64_neg(x64_operand_alloc(A)));
     break;
   }
 
@@ -316,7 +331,8 @@ static void x64_codegen_neg(Instruction I,
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -326,7 +342,7 @@ static void x64_codegen_add(Instruction I,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -374,14 +390,6 @@ static void x64_codegen_add(Instruction I,
       break;
     }
 
-    case OPRFMT_CONSTANT: {
-      // #NOTE we do not add types which are not i64 (yet), thus there is no
-      // way to generate an instruction which adds to a constant. (floating
-      // point types are the exception to this.)
-      PANIC("unreachable");
-      break;
-    }
-
     case OPRFMT_IMMEDIATE: {
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
@@ -397,25 +405,44 @@ static void x64_codegen_add(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
     break;
   }
 
-  case OPRFMT_CONSTANT: {
-    PANIC("unreachable");
-    break;
-  }
-
   case OPRFMT_IMMEDIATE: {
-    assert(I.C.format == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
-    x64_Allocation *A =
-        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-    x64_bytecode_append(
-        x64bc,
-        x64_add(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(
+          x64bc,
+          x64_add(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(
+          x64bc,
+          x64_add(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
+      break;
+    }
+
+    case OPRFMT_LABEL: {
+      PANIC("#TODO");
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
@@ -424,7 +451,8 @@ static void x64_codegen_add(Instruction I,
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -434,7 +462,7 @@ static void x64_codegen_sub(Instruction I,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -465,11 +493,6 @@ static void x64_codegen_sub(Instruction I,
       break;
     }
 
-    case OPRFMT_CONSTANT: {
-      PANIC("unreachable");
-      break;
-    }
-
     case OPRFMT_IMMEDIATE: {
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
@@ -480,50 +503,54 @@ static void x64_codegen_sub(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
     break;
   }
-  case OPRFMT_CONSTANT: {
-    PANIC("unreachable");
-    break;
-  }
 
-  /*
-   * #NOTE: there is no x64 sub instruction which takes an
-   * immediate value on the lhs. so we have to move the
-   * value of B into a gpr and allocate A there.
-   * Then we can emit the sub instruction.
-   *
-   * #NOTE that we could also aquire a stack slot for the immediate
-   * value, and emit the sub. this is a single instruction if and
-   * only if C was in a gpr; otherwise we are forced to emit a mov
-   * to ensure one operand of the sub is in a gpr.
-   * and, as above, this leaves the result in memory,
-   * which makes it more likely that a future usage will result
-   * in generating another mov instruction.
-   *
-   * I don't know the difference in timings for the various forms
-   * of the sub instruction, my assumption is (reg,reg) is faster than
-   * either (reg/mem) or (mem/reg); and relatively equal to (reg,imm).
-   */
   case OPRFMT_IMMEDIATE: {
-    assert(I.C.format == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+    switch (I.C.format) {
+      /*
+       * #NOTE: there is no x64 sub instruction which takes an
+       * immediate value on the lhs. so we have to move the
+       * value of B into a gpr and allocate A there.
+       * Then we can emit the sub instruction.
+       */
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
 
-    x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-    x64_bytecode_append(
-        x64bc,
-        x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.B.immediate)));
-    x64_Allocation *A =
-        x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.B.immediate)));
+      x64_Allocation *A =
+          x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-    x64_bytecode_append(x64bc,
-                        x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+      x64_bytecode_append(x64bc,
+                          x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(
+          x64bc,
+          x64_sub(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -539,7 +566,7 @@ static void x64_codegen_mul(Instruction I,
     and stores the result in %rdx:%rax.
   */
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -580,11 +607,6 @@ static void x64_codegen_mul(Instruction I,
       break;
     }
 
-    case OPRFMT_CONSTANT: {
-      PANIC("unreachable");
-      break;
-    }
-
     case OPRFMT_IMMEDIATE: {
       if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
@@ -593,7 +615,7 @@ static void x64_codegen_mul(Instruction I,
         x64_bytecode_append(x64bc,
                             x64_mov(x64_operand_gpr(X64GPR_RDX),
                                     x64_operand_immediate(I.C.immediate)));
-        x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(B)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
         break;
       }
 
@@ -605,39 +627,58 @@ static void x64_codegen_mul(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
     break;
   }
 
-  case OPRFMT_CONSTANT: {
-    PANIC("unreachable");
-    break;
-  }
-
   case OPRFMT_IMMEDIATE: {
-    assert(I.C.format == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
-    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+        x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+        x64_bytecode_append(x64bc,
+                            x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                    x64_operand_immediate(I.B.immediate)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+        break;
+      }
+
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append(x64bc,
-                          x64_mov(x64_operand_gpr(X64GPR_RDX),
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
                                   x64_operand_immediate(I.B.immediate)));
       x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(C)));
       break;
     }
 
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_gpr(X64GPR_RAX),
-                                x64_operand_immediate(I.B.immediate)));
-    x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(C)));
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate_to_gpr(
+          allocator, X64GPR_RAX, Idx, local, x64bc);
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                  x64_operand_immediate(I.C.immediate)));
+      x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -647,7 +688,7 @@ static void x64_codegen_div(Instruction I,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -702,11 +743,6 @@ static void x64_codegen_div(Instruction I,
       break;
     }
 
-    case OPRFMT_CONSTANT: {
-      PANIC("unreachable");
-      break;
-    }
-
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_bytecode_append(
@@ -728,39 +764,68 @@ static void x64_codegen_div(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    PANIC("unreachable");
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    assert(I.C.format == OPRFMT_SSA);
-    x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
-    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_reallocate_active(allocator, C, x64bc);
+      }
+
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      break;
     }
 
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+    case OPRFMT_IMMEDIATE: {
+      x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_gpr(X64GPR_RAX),
-                                x64_operand_immediate(I.B.immediate)));
-    x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+      x64_Allocation *A = x64_allocator_allocate_to_gpr(
+          allocator, X64GPR_RAX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
 
-    x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
+
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
+
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -770,7 +835,7 @@ static void x64_codegen_mod(Instruction I,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A.ssa);
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
@@ -811,11 +876,6 @@ static void x64_codegen_mod(Instruction I,
       break;
     }
 
-    case OPRFMT_CONSTANT: {
-      PANIC("unreachable");
-      break;
-    }
-
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
@@ -831,35 +891,63 @@ static void x64_codegen_mod(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    PANIC("unreachable");
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    assert(I.C.format == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
-    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_reallocate_active(allocator, C, x64bc);
+      }
+
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+      break;
     }
 
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_gpr(X64GPR_RAX),
-                                x64_operand_immediate(I.B.immediate)));
-    x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+    case OPRFMT_IMMEDIATE: {
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+      x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
+
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
+      x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
+
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -917,7 +1005,7 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
       break;
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE;
     }
   }
 }
@@ -1016,7 +1104,7 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 

@@ -21,6 +21,7 @@
 
 #include "env/context.h"
 #include "utility/io.h"
+#include "utility/unreachable.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
@@ -205,31 +206,25 @@ Value *context_constants_at(Context *restrict context, u64 index) {
   return values_at(&(context->values), index);
 }
 
-static FoldResult success(Operand O) {
-  FoldResult result = {.has_error = 0, .operand = O};
-  return result;
-}
-
-static FoldResult error(ErrorCode code, StringView sv) {
-  FoldResult result = {.has_error = 1, .error = error_construct(code, sv)};
-  return result;
-}
-
-void fold_result_destroy(FoldResult *restrict fr) {
-  if (fr->has_error) { error_destroy(&fr->error); }
-}
-
 void context_emit_return(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  bytecode_append(bc, imr_ret(B));
+  bytecode_append(bc, instruction_ret(B));
 }
 
 Operand context_emit_call(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_append(bc, imr_call(A, B, C));
+  bytecode_append(bc, instruction_call(A, B, C));
+  return A;
+}
+
+Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_dot(A, B, C));
   return A;
 }
 
@@ -237,308 +232,54 @@ Operand context_emit_load(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_append(bc, imr_load(A, B));
+  bytecode_append(bc, instruction_load(A, B));
   return A;
 }
 
-FoldResult context_emit_neg(Context *restrict c, Operand B) {
+Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_neg(A, B));
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    A = operand_immediate(-B.immediate);
-    break;
-  }
-
-  default: unreachable();
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_neg(A, B));
+  return A;
 }
 
-FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_add(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = B.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_add(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = C.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_add_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  A = operand_immediate(z);
-
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_add(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_sub(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = B.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_sub(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = C.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_sub_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  A = operand_immediate(z);
-
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_sub(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_mul(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = B.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_mul(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = C.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_mul_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  A = operand_immediate(z);
-
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_mul(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_div(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = B.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_div(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = C.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  z = x / y;
-
-  A = operand_immediate(z);
-
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_div(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_mod(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = B.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_append(bc, imr_mod(A, B, C));
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(0);
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = C.immediate;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  z = x % y;
-
-  A = operand_immediate(z);
-
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_mod(A, B, C));
+  return A;
 }

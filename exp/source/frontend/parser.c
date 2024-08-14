@@ -25,6 +25,7 @@
 #include "frontend/parser.h"
 #include "imr/operand.h"
 #include "utility/numeric_conversions.h"
+#include "utility/unreachable.h"
 
 typedef struct Parser {
   Lexer lexer;
@@ -53,16 +54,6 @@ static ParserResult error(Parser *restrict p, ErrorCode code) {
 static ParserResult success(Operand result) {
   ParserResult pr = {.has_error = 0, .result = result};
   return pr;
-}
-
-static ParserResult from_fold(FoldResult fold) {
-  ParserResult result = {.has_error = fold.has_error};
-  if (fold.has_error) {
-    result.error = fold.error;
-  } else {
-    result.result = fold.operand;
-  }
-  return result;
 }
 
 static Operand zero() { return operand_immediate(0); }
@@ -408,9 +399,9 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
   if (maybe.has_error) { return maybe; }
 
   switch (op) {
-  case TOK_MINUS: return from_fold(context_emit_neg(c, maybe.result));
+  case TOK_MINUS: return success(context_emit_neg(c, maybe.result));
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -426,13 +417,14 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   Operand right = maybe.result;
 
   switch (op) {
-  case TOK_PLUS:    return from_fold(context_emit_add(c, left, right));
-  case TOK_MINUS:   return from_fold(context_emit_sub(c, left, right));
-  case TOK_STAR:    return from_fold(context_emit_mul(c, left, right));
-  case TOK_SLASH:   return from_fold(context_emit_div(c, left, right));
-  case TOK_PERCENT: return from_fold(context_emit_mod(c, left, right));
+  case TOK_DOT:     return success(context_emit_dot(c, left, right));
+  case TOK_PLUS:    return success(context_emit_add(c, left, right));
+  case TOK_MINUS:   return success(context_emit_sub(c, left, right));
+  case TOK_STAR:    return success(context_emit_mul(c, left, right));
+  case TOK_SLASH:   return success(context_emit_div(c, left, right));
+  case TOK_PERCENT: return success(context_emit_mod(c, left, right));
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -565,7 +557,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
       [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
-      [TOK_DOT]         = {         NULL,  NULL,   PREC_NONE},
+      [TOK_DOT]         = {         NULL, binop,   PREC_NONE},
       [TOK_SEMICOLON]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_COLON]       = {         NULL,  NULL,   PREC_NONE},
       [TOK_RIGHT_ARROW] = {         NULL,  NULL,   PREC_NONE},

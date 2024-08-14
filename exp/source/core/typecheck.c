@@ -23,8 +23,6 @@
 #include "core/typecheck.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
-#include "utility/alloc.h"
-#include "utility/panic.h"
 
 typedef struct TResult {
   bool has_error;
@@ -73,7 +71,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     return success(type);
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     Value *value = context_constants_at(c, operand.index);
     return success(type_of_value(value, c));
   }
@@ -99,7 +97,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
 }
 
 static TResult typecheck_load(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
   local->type = Bty;
   return success(Bty);
@@ -110,7 +108,7 @@ static TResult typecheck_ret(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_call(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   if (Bty->kind != TYPEKIND_FUNCTION) {
@@ -140,7 +138,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_neg(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   Type *i64ty = context_i64_type(c);
@@ -154,7 +152,7 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_add(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   try(Cty, typecheck_operand(c, I.C));
@@ -175,7 +173,7 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_sub(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   try(Cty, typecheck_operand(c, I.C));
@@ -196,7 +194,7 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_mul(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   try(Cty, typecheck_operand(c, I.C));
@@ -217,7 +215,7 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_div(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   try(Cty, typecheck_operand(c, I.C));
@@ -238,7 +236,7 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_mod(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
 
   try(Cty, typecheck_operand(c, I.C));

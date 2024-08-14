@@ -22,7 +22,7 @@
 
 typedef enum OperandFormat : u8 {
   OPRFMT_SSA,
-  OPRFMT_CONSTANT,
+  OPRFMT_VALUE,
   OPRFMT_IMMEDIATE,
   OPRFMT_LABEL,
 } OperandFormat;
@@ -41,6 +41,7 @@ Operand operand_constant(u64 index);
 Operand operand_immediate(i64 imm);
 Operand operand_label(u64 idx);
 bool operand_equality(Operand A, Operand B);
+void print_ssa(u64 ssa, FILE *restrict file);
 void print_operand(Operand operand, FILE *restrict file);
 
 #endif // EXP_IMR_OPERAND_H

@@ -27,7 +27,7 @@ Operand operand_ssa(u64 ssa) {
 }
 
 Operand operand_constant(u64 index) {
-  Operand opr = {.format = OPRFMT_CONSTANT, .index = index};
+  Operand opr = {.format = OPRFMT_VALUE, .index = index};
   return opr;
 }
 
@@ -45,7 +45,7 @@ bool operand_equality(Operand A, Operand B) {
   if (A.format != B.format) { return false; }
   switch (A.format) {
   case OPRFMT_SSA:       return A.ssa == B.ssa;
-  case OPRFMT_CONSTANT:  return A.index == B.index;
+  case OPRFMT_VALUE:     return A.index == B.index;
   case OPRFMT_IMMEDIATE: return A.immediate == B.immediate;
   case OPRFMT_LABEL:     return A.index == B.index;
 
@@ -53,7 +53,7 @@ bool operand_equality(Operand A, Operand B) {
   }
 }
 
-static void print_local(u64 v, FILE *restrict file) {
+void print_ssa(u64 v, FILE *restrict file) {
   file_write("SSA[", file);
   print_u64(v, file);
   file_write("]", file);
@@ -75,8 +75,8 @@ static void print_global(u64 v, FILE *restrict file) {
 
 void print_operand(Operand operand, FILE *restrict file) {
   switch (operand.format) {
-  case OPRFMT_SSA:       print_local(operand.ssa, file); break;
-  case OPRFMT_CONSTANT:  print_constant(operand.index, file); break;
+  case OPRFMT_SSA:       print_ssa(operand.ssa, file); break;
+  case OPRFMT_VALUE:     print_constant(operand.index, file); break;
   case OPRFMT_IMMEDIATE: print_immediate(operand.immediate, file); break;
   case OPRFMT_LABEL:     print_global(operand.index, file); break;
 

@@ -47,7 +47,7 @@ x64_codegen_load_scalar_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     PANIC("unreachable");
     break;
   }
@@ -88,7 +88,7 @@ x64_codegen_load_composite_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_CONSTANT: {
+  case OPRFMT_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     Type *type   = type_of_value(value, context->context);
     assert(value->kind == VALUEKIND_TUPLE);

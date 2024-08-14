@@ -108,27 +108,15 @@ Operand context_constants_append(Context *restrict context, Value value);
 
 Value *context_constants_at(Context *restrict context, u64 index);
 
-// emit instruction functions
-typedef struct FoldResult {
-  bool has_error;
-  union {
-    Operand operand;
-    Error error;
-  };
-} FoldResult;
-
-void fold_result_destroy(FoldResult *restrict fr);
-
 void context_emit_return(Context *restrict c, Operand B);
 Operand context_emit_call(Context *restrict c, Operand B, Operand C);
-
+Operand context_emit_dot(Context *restrict c, Operand B, Operand C);
 Operand context_emit_load(Context *restrict c, Operand B);
-
-FoldResult context_emit_neg(Context *restrict c, Operand B);
-FoldResult context_emit_add(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_div(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C);
+Operand context_emit_neg(Context *restrict c, Operand B);
+Operand context_emit_add(Context *restrict c, Operand B, Operand C);
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C);
+Operand context_emit_div(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C);
 
 #endif // !EXP_ENV_CONTEXT_H

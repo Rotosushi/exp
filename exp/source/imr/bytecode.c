@@ -17,16 +17,13 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 #include "imr/bytecode.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
-#include "utility/panic.h"
 
 Bytecode bytecode_create() {
   Bytecode bc;
@@ -61,125 +58,6 @@ void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
   bytecode->length += 1;
 }
 
-/*
-// B -- L[R] = B,    <return>
-// B -- L[R] = C[B], <return>
-// B -- L[R] = L[B], <return>
-void bytecode_emit_return(Bytecode *restrict bc, Operand B) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_B(OPC_RET, B));
-}
-
-void bytecode_emit_call(Bytecode *restrict bc,
-                        Operand A,
-                        Operand B,
-                        Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_CALL, A, B, C));
-}
-
-// AB -- L[A] = B
-// AB -- L[A] = C[B]
-// AB -- L[A] = L[B]
-void bytecode_emit_load(Bytecode *restrict bc, Operand A, Operand B) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_AB(OPC_LOAD, A, B));
-}
-
-// AB  -- L[A] = -(B)
-// AB  -- L[A] = -(C[B])
-// AB  -- L[A] = -(L[B])
-void bytecode_emit_neg(Bytecode *restrict bc, Operand A, Operand B) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_AB(OPC_NEG, A, B));
-}
-
-// ABC -- L[A] = L[B] + L[C]
-// ABC -- L[A] = L[B] + C[C]
-// ABC -- L[A] = L[B] + C
-// ABC -- L[A] = C[B] + L[C]
-// ABC -- L[A] = C[B] + C[C]
-// ABC -- L[A] = C[B] + C
-// ABC -- L[A] = B    + L[C]
-// ABC -- L[A] = B    + C[C]
-// ABC -- L[A] = B    + C
-void bytecode_emit_add(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_ADD, A, B, C));
-}
-
-// ABC -- L[A] = L[B] - L[C]
-// ABC -- L[A] = L[B] - C[C]
-// ABC -- L[A] = L[B] - C
-// ABC -- L[A] = C[B] - L[C]
-// ABC -- L[A] = C[B] - C[C]
-// ABC -- L[A] = C[B] - C
-// ABC -- L[A] = B    - L[C]
-// ABC -- L[A] = B    - C[C]
-// ABC -- L[A] = B    - C
-void bytecode_emit_sub(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_SUB, A, B, C));
-}
-
-// ABC -- L[A] = L[B] * L[C]
-// ABC -- L[A] = L[B] * C[C]
-// ABC -- L[A] = L[B] * C
-// ABC -- L[A] = C[B] * L[C]
-// ABC -- L[A] = C[B] * C[C]
-// ABC -- L[A] = C[B] * C
-// ABC -- L[A] = B    * L[C]
-// ABC -- L[A] = B    * C[C]
-// ABC -- L[A] = B    * C
-void bytecode_emit_mul(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_MUL, A, B, C));
-}
-
-// ABC -- L[A] = L[B] / L[C]
-// ABC -- L[A] = L[B] / C[C]
-// ABC -- L[A] = L[B] / C
-// ABC -- L[A] = C[B] / L[C]
-// ABC -- L[A] = C[B] / C[C]
-// ABC -- L[A] = C[B] / C
-// ABC -- L[A] = B    / L[C]
-// ABC -- L[A] = B    / C[C]
-// ABC -- L[A] = B    / C
-void bytecode_emit_div(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_DIV, A, B, C));
-}
-
-// ABC -- L[A] = L[B] % L[C]
-// ABC -- L[A] = L[B] % C[C]
-// ABC -- L[A] = L[B] % C
-// ABC -- L[A] = C[B] % L[C]
-// ABC -- L[A] = C[B] % C[C]
-// ABC -- L[A] = C[B] % C
-// ABC -- L[A] = B    % L[C]
-// ABC -- L[A] = B    % C[C]
-// ABC -- L[A] = B    % C
-void bytecode_emit_mod(Bytecode *restrict bc, Operand A, Operand B, Operand C) {
-  assert(bc != NULL);
-  bytecode_emit_instruction(bc, instruction_ABC(OPC_MOD, A, B, C));
-}
-
-static Operand operand_A(Instruction I) {
-  Operand operand = {.format = OPRFMT_SSA, .common = I.A};
-  return operand;
-}
-
-static Operand operand_B(Instruction I) {
-  Operand operand = {.format = I.Bfmt, .common = I.B};
-  return operand;
-}
-
-static Operand operand_C(Instruction I) {
-  Operand operand = {.format = I.Cfmt, .common = I.C};
-  return operand;
-}
-*/
-
 static void
 print_B(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
@@ -191,7 +69,7 @@ static void
 print_AB(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(I.A, file);
+  print_ssa(I.A, file);
   file_write(", ", file);
   print_operand(I.B, file);
 }
@@ -200,46 +78,11 @@ static void
 print_ABC(char const *restrict inst, Instruction I, FILE *restrict file) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand(I.A, file);
+  print_ssa(I.A, file);
   file_write(", ", file);
   print_operand(I.B, file);
   file_write(", ", file);
   print_operand(I.C, file);
-}
-
-// "load L[<A>], <B>"
-static void print_load(Instruction I, FILE *restrict file) {
-  print_AB("load", I, file);
-}
-
-// "neg L[<A>], <B>"
-static void print_neg(Instruction I, FILE *restrict file) {
-  print_AB("neg", I, file);
-}
-
-// "add L[<A>], <B>, <C>"
-static void print_add(Instruction I, FILE *restrict file) {
-  print_ABC("add", I, file);
-}
-
-// "sub L[<A>], <B>, <C>"
-static void print_sub(Instruction I, FILE *restrict file) {
-  print_ABC("sub", I, file);
-}
-
-// "mul L[<A>], <B>, <C>"
-static void print_mul(Instruction I, FILE *restrict file) {
-  print_ABC("mul", I, file);
-}
-
-// "div L[<A>], <B>, <C>"
-static void print_div(Instruction I, FILE *restrict file) {
-  print_ABC("div", I, file);
-}
-
-// "mod L[<A>], <B>, <C>"
-static void print_mod(Instruction I, FILE *restrict file) {
-  print_ABC("mod", I, file);
 }
 
 // "ret <B>"
@@ -247,14 +90,56 @@ static void print_ret(Instruction I, FILE *restrict file) {
   print_B("ret", I, file);
 }
 
+// "call SSA[<A>], GlobalSymbols[GlobalLabels[B]](Calls[C])"
 static void print_call(Instruction I, FILE *restrict file) {
   print_ABC("call", I, file);
+}
+
+// "dot SSA[<A>], <B>, <C>"
+static void print_dot(Instruction I, FILE *restrict file) {
+  print_ABC("dot", I, file);
+}
+
+// "load SSA[<A>], <B>"
+static void print_load(Instruction I, FILE *restrict file) {
+  print_AB("load", I, file);
+}
+
+// "neg SSA[<A>], <B>"
+static void print_neg(Instruction I, FILE *restrict file) {
+  print_AB("neg", I, file);
+}
+
+// "add SSA[<A>], <B>, <C>"
+static void print_add(Instruction I, FILE *restrict file) {
+  print_ABC("add", I, file);
+}
+
+// "sub SSA[<A>], <B>, <C>"
+static void print_sub(Instruction I, FILE *restrict file) {
+  print_ABC("sub", I, file);
+}
+
+// "mul SSA[<A>], <B>, <C>"
+static void print_mul(Instruction I, FILE *restrict file) {
+  print_ABC("mul", I, file);
+}
+
+// "div SSA[<A>], <B>, <C>"
+static void print_div(Instruction I, FILE *restrict file) {
+  print_ABC("div", I, file);
+}
+
+// "mod SSA[<A>], <B>, <C>"
+static void print_mod(Instruction I, FILE *restrict file) {
+  print_ABC("mod", I, file);
 }
 
 static void print_instruction(Instruction I, FILE *restrict file) {
   switch (I.opcode) {
   case OPC_RET:  print_ret(I, file); break;
   case OPC_CALL: print_call(I, file); break;
+  case OPC_DOT:  print_dot(I, file); break;
   case OPC_LOAD: print_load(I, file); break;
   case OPC_NEG:  print_neg(I, file); break;
   case OPC_ADD:  print_add(I, file); break;
@@ -263,7 +148,7 @@ static void print_instruction(Instruction I, FILE *restrict file) {
   case OPC_DIV:  print_div(I, file); break;
   case OPC_MOD:  print_mod(I, file); break;
 
-  default: file_write("undefined", file); break;
+  default: unreachable();
   }
 }
 

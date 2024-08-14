@@ -38,7 +38,7 @@
 
   basic = literal
         | unop basic
-        | "(" expression ")"
+        | "(" expression ("," expression)* ")"
         | identifier
 
   literal = integer

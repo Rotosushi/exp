@@ -25,12 +25,12 @@
 #else
 #include <stdlib.h>
 #define EXP_BREAK() abort();
-#endif
+#endif // if defined(__GNUC__) || defined(__clang__)
 #else
 #error "unsupported host OS"
-#endif
+#endif // if defined(EXP_HOST_OS_LINUX)
 #else
 #define EXP_BREAK()
-#endif
+#endif // if EXP_DEBUG
 
 #endif // !EXP_UTILITY_DEBUG_H

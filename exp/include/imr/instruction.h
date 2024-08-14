@@ -29,73 +29,50 @@ typedef enum Opcode : u8 {
    * R     -> the return value location
    * A|B|C -> an operand
    * SSA[*]           -> indexing the locals array.
-   * Constants[*]     -> indexing the constants array.
+   * Values[*]     -> indexing the constants array.
    * GlobalSymbol[*]  -> indexing the global names array followed by
    *          indexing the global symbol table.
    * Calls[*]         -> indexing the actual argument lists array.
    */
   OPC_RET, // B -- R = B,    <return>
-           // B -- R = Constants[B], <return>
+           // B -- R = Values[B], <return>
            // B -- R = SSA[B], <return>
 
   OPC_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
+  OPC_DOT, // ABC -- SSA[A] = SSA[B].C
+           // ABC -- SSA[A] = Values[B].C
+
   OPC_LOAD, // AB  -- SSA[A] = B
-            // AB  -- SSA[A] = Constants[B]
+            // AB  -- SSA[A] = Values[B]
             // AB  -- SSA[A] = SSA[B]
 
   OPC_NEG, // AB  -- SSA[A] = -(B)
-           // AB  -- SSA[A] = -(Constants[B])
            // AB  -- SSA[A] = -(SSA[B])
 
   OPC_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
-           // ABC -- SSA[A] = SSA[B] + Constants[C]
            // ABC -- SSA[A] = SSA[B] + C
-           // ABC -- SSA[A] = Constants[B] + SSA[C]
-           // ABC -- SSA[A] = Constants[B] + Constants[C]
-           // ABC -- SSA[A] = Constants[B] + C
            // ABC -- SSA[A] = B    + SSA[C]
-           // ABC -- SSA[A] = B    + Constants[C]
            // ABC -- SSA[A] = B    + C
 
   OPC_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
-           // ABC -- SSA[A] = SSA[B] - Constants[C]
            // ABC -- SSA[A] = SSA[B] - C
-           // ABC -- SSA[A] = Constants[B] - SSA[C]
-           // ABC -- SSA[A] = Constants[B] - Constants[C]
-           // ABC -- SSA[A] = Constants[B] - C
            // ABC -- SSA[A] = B    - SSA[C]
-           // ABC -- SSA[A] = B    - Constants[C]
            // ABC -- SSA[A] = B    - C
 
   OPC_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
-           // ABC -- SSA[A] = SSA[B] * Constants[C]
            // ABC -- SSA[A] = SSA[B] * C
-           // ABC -- SSA[A] = Constants[B] * SSA[C]
-           // ABC -- SSA[A] = Constants[B] * Constants[C]
-           // ABC -- SSA[A] = Constants[B] * C
            // ABC -- SSA[A] = B    * SSA[C]
-           // ABC -- SSA[A] = B    * Constants[C]
            // ABC -- SSA[A] = B    * C
 
   OPC_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
-           // ABC -- SSA[A] = SSA[B] / Constants[C]
            // ABC -- SSA[A] = SSA[B] / C
-           // ABC -- SSA[A] = Constants[B] / SSA[C]
-           // ABC -- SSA[A] = Constants[B] / Constants[C]
-           // ABC -- SSA[A] = Constants[B] / C
            // ABC -- SSA[A] = B    / SSA[C]
-           // ABC -- SSA[A] = B    / Constants[C]
            // ABC -- SSA[A] = B    / C
 
   OPC_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
-           // ABC -- SSA[A] = SSA[B] % Constants[C]
            // ABC -- SSA[A] = SSA[B] % C
-           // ABC -- SSA[A] = Constants[B] % SSA[C]
-           // ABC -- SSA[A] = Constants[B] % Constants[C]
-           // ABC -- SSA[A] = Constants[B] % C
            // ABC -- SSA[A] = B    % SSA[C]
-           // ABC -- SSA[A] = B    % Constants[C]
            // ABC -- SSA[A] = B    % C
 } Opcode;
 
@@ -111,19 +88,20 @@ typedef enum InstructionFormat : u8 {
 typedef struct Instruction {
   Opcode opcode;
   InstructionFormat format;
-  Operand A;
+  u64 A;
   Operand B;
   Operand C;
 } Instruction;
 
-Instruction imr_ret(Operand result);
-Instruction imr_call(Operand result, Operand label, Operand args);
-Instruction imr_load(Operand dst, Operand src);
-Instruction imr_neg(Operand dst, Operand src);
-Instruction imr_add(Operand dst, Operand left, Operand right);
-Instruction imr_sub(Operand dst, Operand left, Operand right);
-Instruction imr_mul(Operand dst, Operand left, Operand right);
-Instruction imr_div(Operand dst, Operand left, Operand right);
-Instruction imr_mod(Operand dst, Operand left, Operand right);
+Instruction instruction_ret(Operand result);
+Instruction instruction_call(Operand dst, Operand label, Operand args);
+Instruction instruction_dot(Operand dst, Operand src, Operand index);
+Instruction instruction_load(Operand dst, Operand src);
+Instruction instruction_neg(Operand dst, Operand src);
+Instruction instruction_add(Operand dst, Operand left, Operand right);
+Instruction instruction_sub(Operand dst, Operand left, Operand right);
+Instruction instruction_mul(Operand dst, Operand left, Operand right);
+Instruction instruction_div(Operand dst, Operand left, Operand right);
+Instruction instruction_mod(Operand dst, Operand left, Operand right);
 
 #endif // !EXP_IMR_INSTRUCTION_H

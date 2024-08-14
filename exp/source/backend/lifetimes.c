@@ -71,7 +71,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
     }
 
     case IFMT_AB: {
-      Lifetime *Al  = lifetimes_at(&lifetiems, I.A.ssa);
+      Lifetime *Al  = lifetimes_at(&lifetiems, I.A);
       Al->first_use = inst;
 
       if (I.B.format == OPRFMT_SSA) {
@@ -82,7 +82,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
     }
 
     case IFMT_ABC: {
-      Lifetime *Al  = lifetimes_at(&lifetiems, I.A.ssa);
+      Lifetime *Al  = lifetimes_at(&lifetiems, I.A);
       Al->first_use = inst;
 
       if (I.B.format == OPRFMT_SSA) {
