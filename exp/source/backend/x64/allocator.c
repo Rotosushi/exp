@@ -503,19 +503,13 @@ x64_Allocation *x64_allocator_allocate_to_stack(
 }
 
 x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
-                                              u64 Idx,
-                                              LocalVariable *local,
-                                              x64_Bytecode *restrict x64bc) {
-  if (type_is_scalar(local->type)) {
-    return x64_allocator_allocate_to_gpr(
-        allocator, X64GPR_RAX, Idx, local, x64bc);
-  }
-
-  Lifetime *lifetime         = lifetimes_at(&allocator->lifetimes, local->ssa);
+                                              x64_Location location,
+                                              Type *type) {
   x64_Allocation *allocation = x64_allocation_buffer_append(
-      &allocator->allocations, local->ssa, lifetime, local->type);
+      &allocator->allocations, u64_MAX, nullptr, type);
 
-  x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+  allocation->location = location;
+
   return allocation;
 }
 

@@ -19,7 +19,6 @@
 
 #include "imr/operand.h"
 #include "utility/io.h"
-#include "utility/string_view.h"
 
 typedef enum ValueKind {
   VALUEKIND_UNINITIALIZED,

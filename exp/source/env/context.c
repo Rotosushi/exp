@@ -29,7 +29,7 @@ Context context_create(CLIOptions *restrict options) {
                      .type_interner       = type_interner_create(),
                      .global_symbol_table = symbol_table_create(),
                      .global_labels       = global_labels_create(),
-                     .constants           = constants_create()};
+                     .values              = values_create()};
   return context;
 }
 
@@ -40,7 +40,7 @@ void context_destroy(Context *restrict context) {
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbol_table));
   global_labels_destroy(&(context->global_labels));
-  constants_destroy(&(context->constants));
+  values_destroy(&(context->values));
 }
 
 bool context_do_assemble(Context *restrict context) {
@@ -197,12 +197,12 @@ void context_leave_function(Context *restrict c) {
 
 Operand context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
-  return constants_add(&(context->constants), value);
+  return values_add(&(context->values), value);
 }
 
 Value *context_constants_at(Context *restrict context, u64 index) {
   assert(context != NULL);
-  return constants_at(&(context->constants), index);
+  return values_at(&(context->values), index);
 }
 
 static FoldResult success(Operand O) {
@@ -465,7 +465,7 @@ FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
   switch (C.format) {
   case OPRFMT_SSA: {
     A = context_new_ssa(c);
-    bytecode_append(bc, imr_mul(A, B, C));
+    bytecode_append(bc, imr_div(A, B, C));
     return success(A);
   }
 

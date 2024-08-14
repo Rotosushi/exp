@@ -17,13 +17,13 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/constants.h"
 #include "env/context_options.h"
 #include "env/error.h"
 #include "env/global_labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
+#include "env/values.h"
 #include "imr/function_body.h"
 
 /**
@@ -37,7 +37,7 @@ typedef struct Context {
   SymbolTable global_symbol_table;
   GlobalLabels global_labels;
   FunctionBody *current_function;
-  Constants constants;
+  Values values;
 } Context;
 
 /**

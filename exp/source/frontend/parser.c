@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "env/error.h"
+#include "frontend/lexer.h"
 #include "frontend/parser.h"
 #include "imr/operand.h"
 #include "utility/numeric_conversions.h"

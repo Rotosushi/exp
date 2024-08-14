@@ -225,13 +225,13 @@ static void x64_codegen_call(Instruction I,
     Type *arg_type = type_of_operand(arg, context->context);
     u64 arg_size   = size_of(arg_type);
 
-    x64_codegen_load_from_operand(
-        &arg_address, arg, arg_type, Idx, x64bc, allocator, context);
-
     assert(arg_size <= i64_MAX);
     i64 offset = -((i64)(arg_size));
     actual_arguments_stack_size += -offset;
     x64_address_increment_offset(&arg_address, offset);
+
+    x64_codegen_load_from_operand(
+        &arg_address, arg, arg_type, Idx, x64bc, allocator, context);
   }
 
   x64_bytecode_insert(
@@ -288,7 +288,7 @@ static void x64_codegen_load(Instruction I,
 }
 
 static void x64_codegen_neg(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -321,7 +321,7 @@ static void x64_codegen_neg(Instruction I,
 }
 
 static void x64_codegen_add(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -429,7 +429,7 @@ static void x64_codegen_add(Instruction I,
 }
 
 static void x64_codegen_sub(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -528,7 +528,7 @@ static void x64_codegen_sub(Instruction I,
 }
 
 static void x64_codegen_mul(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -642,7 +642,7 @@ static void x64_codegen_mul(Instruction I,
 }
 
 static void x64_codegen_div(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -765,7 +765,7 @@ static void x64_codegen_div(Instruction I,
 }
 
 static void x64_codegen_mod(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -868,7 +868,7 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
                                  LocalVariables *restrict locals,
                                  x64_Allocator *restrict allocator,
                                  x64_Context *restrict context) {
-  for (u16 idx = 0; idx < bc->length; ++idx) {
+  for (u64 idx = 0; idx < bc->length; ++idx) {
     Instruction I = bc->buffer[idx];
 
     switch (I.opcode) {
@@ -945,6 +945,19 @@ static void x64_codegen_function(FunctionBody *restrict body,
   FormalArgumentList *args = &body->arguments;
   x64_Allocator allocator  = x64_allocator_create(body);
   x64_Bytecode *x64bc      = &x64_body->bc;
+
+  if (type_is_scalar(body->return_type)) {
+    x64_body->result = x64_allocator_allocate_result(
+        &allocator, x64_location_gpr(X64GPR_RAX), body->return_type);
+  } else {
+    x64_body->result = x64_allocator_allocate_result(
+        &allocator,
+        x64_location_address(X64GPR_RDI,
+                             x64_optional_gpr_empty(),
+                             x64_optional_u8_empty(),
+                             x64_optional_i64_empty()),
+        body->return_type);
+  }
 
   // allocate the incoming arguments to the function.
   // first we allocate the incoming GPR arguments.

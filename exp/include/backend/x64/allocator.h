@@ -96,9 +96,8 @@ x64_Allocation *x64_allocator_allocate_to_stack(
     x64_Allocator *restrict allocator, i64 offset, LocalVariable *local);
 
 x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
-                                              u64 Idx,
-                                              LocalVariable *local,
-                                              x64_Bytecode *restrict x64bc);
+                                              x64_Location location,
+                                              Type *type);
 
 void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,
