@@ -228,7 +228,7 @@ static void x64_stack_allocations_release_expired_allocations(
     x64_StackAllocations *restrict stack_allocations, u64 Idx) {
   for (u64 i = 0; i < stack_allocations->count; ++i) {
     x64_Allocation *cursor = stack_allocations->buffer[i];
-    if (cursor->lifetime.last_use <= Idx) {
+    if (cursor->lifetime.last_use < Idx) {
       x64_stack_allocations_erase(stack_allocations, cursor);
       --i;
     }

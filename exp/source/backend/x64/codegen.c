@@ -24,6 +24,7 @@
 #include "backend/x64/context.h"
 #include "backend/x64/emit.h"
 #include "backend/x64/intrinsics/copy.h"
+#include "backend/x64/intrinsics/get_element_address.h"
 #include "backend/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
@@ -62,7 +63,7 @@ static void x64_codegen_ret(Instruction I,
   }
 
   case OPRFMT_VALUE: {
-    x64_codegen_load_allocation(
+    x64_codegen_load_allocation_from_value(
         body->result, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
@@ -246,7 +247,7 @@ static void x64_codegen_call(Instruction I,
     actual_arguments_stack_size += -offset;
     x64_address_increment_offset(&arg_address, offset);
 
-    x64_codegen_load_from_operand(
+    x64_codegen_load_address_from_operand(
         &arg_address, arg, arg_type, Idx, x64bc, allocator, context);
   }
 
@@ -266,6 +267,48 @@ static void x64_codegen_call(Instruction I,
   operand_array_destroy(&stack_args);
 }
 
+static void x64_codegen_dot(Instruction I,
+                            u64 Idx,
+                            x64_FunctionBody *restrict body,
+                            LocalVariables *restrict locals,
+                            x64_Allocator *restrict allocator,
+                            x64_Context *restrict context) {
+  x64_Bytecode *x64bc  = &body->bc;
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
+
+  assert(I.C.format == OPRFMT_IMMEDIATE);
+  assert((I.C.immediate >= 0) && (I.C.immediate <= i64_MAX));
+  u64 index = (u64)I.C.immediate;
+
+  switch (I.B.format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    assert(B->location.kind == LOCATION_ADDRESS);
+    x64_Address *tuple_address = &B->location.address;
+    x64_Address element_address =
+        x64_get_element_address(tuple_address, B->type, index);
+
+    x64_codegen_copy_allocation_from_memory(
+        A, &element_address, B->type, Idx, x64bc, allocator);
+    break;
+  }
+
+  case OPRFMT_VALUE: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_codegen_load_allocation_from_value(
+        A, I.B.index, Idx, x64bc, allocator, context);
+    break;
+  }
+
+  // we will never store tuples as immediates
+  case OPRFMT_IMMEDIATE:
+  // we don't support globals which are not functions yet
+  case OPRFMT_LABEL:
+  default:           EXP_UNREACHABLE;
+  }
+}
+
 static void x64_codegen_load(Instruction I,
                              u64 Idx,
                              x64_FunctionBody *restrict body,
@@ -283,7 +326,8 @@ static void x64_codegen_load(Instruction I,
   }
 
   case OPRFMT_VALUE: {
-    x64_codegen_load_allocation(A, I.B.index, Idx, x64bc, allocator, context);
+    x64_codegen_load_allocation_from_value(
+        A, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
 
@@ -970,6 +1014,11 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
       break;
     }
 
+    case OPC_DOT: {
+      x64_codegen_dot(I, idx, body, locals, allocator, context);
+      break;
+    }
+
     case OPC_LOAD: {
       x64_codegen_load(I, idx, body, locals, allocator, context);
       break;
@@ -1047,31 +1096,26 @@ static void x64_codegen_function(FunctionBody *restrict body,
         body->return_type);
   }
 
-  // allocate the incoming arguments to the function.
-  // first we allocate the incoming GPR arguments.
-  u8 i = 0;
-  for (; (i < args->size) && (i < 6); ++i) {
-    FormalArgument *arg  = args->list + i;
-    LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
-    x64_GPR gpr          = x64_scalar_argument_gpr(i);
-    x64_allocator_allocate_to_gpr(&allocator, gpr, 0, local, x64bc);
-  }
-
   // then if the rest of the incoming arguments are passed on the stack
   // pushed from right-to-left, this means that the first stack passed
   // argument is on the stack immediately above the pushed %rbp.
-  // so we just have to increment a number, to select each successive
-  // stack passed argument.
-  if (i < args->size) {
-    // the initial offset is 8, to skip the pushed %rbp
-    i16 arg_offset = 8;
-    for (; i < args->size; ++i) {
-      FormalArgument *arg  = args->list + i;
-      LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
-      u16 offset           = (u16)ulmax(8UL, size_of(arg->type));
-      assert(offset <= i16_MAX);
-      arg_offset += (i16)offset;
-      x64_allocator_allocate_to_stack(&allocator, arg_offset, local);
+  // the initial offset is 8, to skip the pushed %rbp
+  i64 offset               = 8;
+  u8 scalar_argument_count = 0;
+  for (u8 i = 0; i < args->size; ++i) {
+    FormalArgument *arg  = args->list + i;
+    LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
+
+    if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
+      x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
+      x64_allocator_allocate_to_gpr(&allocator, gpr, 0, local, x64bc);
+    } else {
+      u64 argument_size = size_of(arg->type);
+      assert(argument_size <= i64_MAX);
+      if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
+        PANIC("argument offset overflow");
+      }
+      x64_allocator_allocate_to_stack(&allocator, offset, local);
     }
   }
 

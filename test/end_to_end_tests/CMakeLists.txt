@@ -29,7 +29,6 @@ target_link_libraries(exp_e2e PUBLIC exp_common)
 
 create_test_sourcelist(Tests exp_e2e_tests.c
   return_.c
-  call.c
   trivial_constant_folding.c
   addition.c
   subtraction.c
@@ -37,6 +36,8 @@ create_test_sourcelist(Tests exp_e2e_tests.c
   division.c
   modulus.c
   pemdas.c
+  call.c
+  tuple.c
 )
 
 add_executable (exp_e2e_tests ${Tests})

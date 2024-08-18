@@ -137,6 +137,36 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   return success(function_type->return_type);
 }
 
+static bool tuple_index_out_of_bounds(i64 index, TupleType *tuple) {
+  return ((index < 0) || ((u64)index >= tuple->size));
+}
+
+static TResult typecheck_dot(Context *restrict c, Instruction I) {
+  LocalVariable *local = context_lookup_ssa(c, I.A);
+  try(Bty, typecheck_operand(c, I.B));
+
+  if (Bty->kind != TYPEKIND_TUPLE) {
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+  }
+
+  TupleType *tuple = &Bty->tuple_type;
+
+  if (I.C.format != OPRFMT_IMMEDIATE) {
+    return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
+                 string_from_view(SV("")));
+  }
+
+  i64 index = I.C.immediate;
+
+  if (tuple_index_out_of_bounds(index, tuple)) {
+    return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS,
+                 string_from_view(SV("")));
+  }
+
+  local->type = tuple->types[index];
+  return success(tuple->types[index]);
+}
+
 static TResult typecheck_neg(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A);
   try(Bty, typecheck_operand(c, I.B));
@@ -279,6 +309,11 @@ static TResult typecheck_function(Context *restrict c) {
 
     case OPC_CALL: {
       try(Aty, typecheck_call(c, I));
+      break;
+    }
+
+    case OPC_DOT: {
+      try(Aty, typecheck_dot(c, I));
       break;
     }
 

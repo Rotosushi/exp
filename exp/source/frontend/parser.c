@@ -484,17 +484,14 @@ static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   return success(idx);
 }
 
-static ParserResult integer(Parser *restrict p, Context *restrict c) {
+static ParserResult integer(Parser *restrict p,
+                            [[maybe_unused]] Context *restrict c) {
   StringView sv = curtxt(p);
   i64 integer   = str_to_i64(sv.ptr, sv.length);
 
   nexttok(p);
   Operand B;
-  if ((integer >= 0) && (integer < u16_MAX)) {
-    B = operand_immediate((u16)integer);
-  } else {
-    B = context_constants_append(c, value_create_i64(integer));
-  }
+  B = operand_immediate(integer);
 
   return success(B);
 }
@@ -557,7 +554,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
       [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
-      [TOK_DOT]         = {         NULL, binop,   PREC_NONE},
+      [TOK_DOT]         = {         NULL, binop,   PREC_CALL},
       [TOK_SEMICOLON]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_COLON]       = {         NULL,  NULL,   PREC_NONE},
       [TOK_RIGHT_ARROW] = {         NULL,  NULL,   PREC_NONE},

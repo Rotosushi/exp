@@ -24,14 +24,15 @@
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
 
-static void
-x64_codegen_load_scalar_operand(x64_Address *restrict dst,
-                                Operand *restrict src,
-                                [[maybe_unused]] Type *restrict type,
-                                u64 Idx,
-                                x64_Bytecode *restrict x64bc,
-                                x64_Allocator *restrict allocator) {
+static void x64_codegen_load_address_from_scalar_operand(
+    x64_Address *restrict dst,
+    Operand *restrict src,
+    [[maybe_unused]] Type *restrict type,
+    u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator) {
   switch (src->format) {
   case OPRFMT_SSA: {
     x64_Allocation *allocation =
@@ -47,11 +48,6 @@ x64_codegen_load_scalar_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_VALUE: {
-    PANIC("unreachable");
-    break;
-  }
-
   case OPRFMT_IMMEDIATE: {
     x64_bytecode_append(x64bc,
                         x64_mov(x64_operand_address(*dst),
@@ -64,18 +60,19 @@ x64_codegen_load_scalar_operand(x64_Address *restrict dst,
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
-static void
-x64_codegen_load_composite_operand(x64_Address *restrict dst,
-                                   Operand *restrict src,
-                                   Type *restrict type,
-                                   u64 Idx,
-                                   x64_Bytecode *restrict x64bc,
-                                   x64_Allocator *restrict allocator,
-                                   x64_Context *restrict context) {
+static void x64_codegen_load_address_from_composite_operand(
+    x64_Address *restrict dst,
+    Operand *restrict src,
+    Type *restrict type,
+    u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator,
+    x64_Context *restrict context) {
   switch (src->format) {
   case OPRFMT_SSA: {
     x64_Allocation *allocation =
@@ -101,13 +98,13 @@ x64_codegen_load_composite_operand(x64_Address *restrict dst,
       Type *element_type = type_of_operand(element, context->context);
       u64 element_size   = size_of(element_type);
 
-      x64_codegen_load_from_operand(&dst_element_address,
-                                    element,
-                                    element_type,
-                                    Idx,
-                                    x64bc,
-                                    allocator,
-                                    context);
+      x64_codegen_load_address_from_operand(&dst_element_address,
+                                            element,
+                                            element_type,
+                                            Idx,
+                                            x64bc,
+                                            allocator,
+                                            context);
 
       assert(element_size <= i64_MAX);
       i64 offset = (i64)element_size;
@@ -117,41 +114,84 @@ x64_codegen_load_composite_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
-    PANIC("unreachable");
-    break;
-  }
-
   case OPRFMT_LABEL: {
     PANIC("#TODO");
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_IMMEDIATE:
+  default:               EXP_UNREACHABLE;
   }
 }
 
-void x64_codegen_load_from_operand(x64_Address *restrict dst,
-                                   Operand *restrict src,
-                                   Type *restrict type,
-                                   u64 Idx,
-                                   x64_Bytecode *restrict x64bc,
-                                   x64_Allocator *restrict allocator,
-                                   x64_Context *restrict context) {
+void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
+                                           Operand *restrict src,
+                                           Type *restrict type,
+                                           u64 Idx,
+                                           x64_Bytecode *restrict x64bc,
+                                           x64_Allocator *restrict allocator,
+                                           x64_Context *restrict context) {
   if (type_is_scalar(type)) {
-    x64_codegen_load_scalar_operand(dst, src, type, Idx, x64bc, allocator);
+    x64_codegen_load_address_from_scalar_operand(
+        dst, src, type, Idx, x64bc, allocator);
   } else {
-    x64_codegen_load_composite_operand(
+    x64_codegen_load_address_from_composite_operand(
         dst, src, type, Idx, x64bc, allocator, context);
   }
 }
 
-void x64_codegen_load_allocation(x64_Allocation *restrict dst,
-                                 u64 index,
-                                 u64 Idx,
-                                 x64_Bytecode *restrict x64bc,
-                                 x64_Allocator *restrict allocator,
-                                 x64_Context *restrict context) {
+void x64_codegen_load_gpr_from_operand(
+    x64_GPR gpr,
+    Operand *restrict src,
+    [[maybe_unused]] u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator,
+    [[maybe_unused]] x64_Context *restrict context) {
+  switch (src->format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *allocation =
+        x64_allocator_allocation_of(allocator, src->ssa);
+    x64_bytecode_append(
+        x64bc, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    x64_bytecode_append(
+        x64bc,
+        x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(src->immediate)));
+    break;
+  }
+
+  // we don't create scalar values (yet)
+  case OPRFMT_VALUE:
+  // we don't create globals that are not functions (yet)
+  case OPRFMT_LABEL:
+  default:           EXP_UNREACHABLE;
+  }
+}
+
+void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
+                                              Operand *restrict src,
+                                              u64 Idx,
+                                              x64_Bytecode *restrict x64bc,
+                                              x64_Allocator *restrict allocator,
+                                              x64_Context *restrict context) {
+  if (dst->location.kind == LOCATION_ADDRESS) {
+    x64_codegen_load_address_from_operand(
+        &dst->location.address, src, dst->type, Idx, x64bc, allocator, context);
+  } else {
+    x64_codegen_load_gpr_from_operand(
+        dst->location.gpr, src, Idx, x64bc, allocator, context);
+  }
+}
+
+void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
+                                            u64 index,
+                                            u64 Idx,
+                                            x64_Bytecode *restrict x64bc,
+                                            x64_Allocator *restrict allocator,
+                                            x64_Context *restrict context) {
   Value *value = x64_context_value_at(context, index);
   Type *type   = type_of_value(value, context->context);
 
@@ -189,7 +229,7 @@ void x64_codegen_load_allocation(x64_Allocation *restrict dst,
       Type *element_type = type_of_operand(element, context->context);
       u64 element_size   = size_of(element_type);
 
-      x64_codegen_load_from_operand(
+      x64_codegen_load_address_from_operand(
           &dst_address, element, element_type, Idx, x64bc, allocator, context);
 
       assert(element_size <= i64_MAX);
@@ -199,6 +239,6 @@ void x64_codegen_load_allocation(x64_Allocation *restrict dst,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }

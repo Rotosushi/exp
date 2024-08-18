@@ -74,6 +74,36 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
   }
 }
 
+void x64_codegen_copy_memory(x64_Address *restrict dst,
+                             x64_Address *restrict src,
+                             Type *type,
+                             u64 Idx,
+                             x64_Bytecode *restrict x64bc,
+                             x64_Allocator *restrict allocator) {
+  if (type_is_scalar(type)) {
+    x64_codegen_copy_scalar_memory(dst, src, Idx, x64bc, allocator);
+  } else {
+    x64_codegen_copy_composite_memory(dst, src, type, Idx, x64bc, allocator);
+  }
+}
+
+void x64_codegen_copy_allocation_from_memory(
+    x64_Allocation *restrict dst,
+    x64_Address *restrict src,
+    Type *restrict type,
+    u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator) {
+  if (dst->location.kind == LOCATION_ADDRESS) {
+    x64_codegen_copy_memory(
+        &dst->location.address, src, type, Idx, x64bc, allocator);
+  } else {
+    x64_bytecode_append(
+        x64bc,
+        x64_mov(x64_operand_gpr(dst->location.gpr), x64_operand_address(*src)));
+  }
+}
+
 static void
 x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
                                    x64_Allocation *restrict src,
