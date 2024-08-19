@@ -202,13 +202,24 @@ static void x64_codegen_call(Instruction I,
                              LocalVariables *restrict locals,
                              x64_Allocator *restrict allocator,
                              x64_Context *restrict context) {
-  x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+  x64_Bytecode *x64bc      = &body->bc;
+  LocalVariable *local     = local_variables_lookup_ssa(locals, I.A);
+  u8 scalar_argument_count = 0;
+
+  if (type_is_scalar(local->type)) {
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+  } else {
+    x64_Allocation *result =
+        x64_allocator_allocate(allocator, Idx, local, x64bc);
+    assert(result->location.kind == LOCATION_ADDRESS);
+    x64_bytecode_append(x64bc,
+                        x64_lea(x64_operand_gpr(x64_scalar_argument_gpr(
+                                    scalar_argument_count++)),
+                                x64_operand_address(result->location.address)));
+  }
 
   ActualArgumentList *args    = x64_context_call_at(context, I.C.index);
   u64 current_bytecode_offset = x64_bytecode_current_offset(x64bc);
-  u8 scalar_argument_count    = 0;
   OperandArray stack_args     = operand_array_create();
 
   for (u8 i = 0; i < args->size; ++i) {
@@ -1082,6 +1093,7 @@ static void x64_codegen_function(FunctionBody *restrict body,
   FormalArgumentList *args = &body->arguments;
   x64_Allocator allocator  = x64_allocator_create(body);
   x64_Bytecode *x64bc      = &x64_body->bc;
+  u8 scalar_argument_count = 0;
 
   if (type_is_scalar(body->return_type)) {
     x64_body->result = x64_allocator_allocate_result(
@@ -1094,14 +1106,14 @@ static void x64_codegen_function(FunctionBody *restrict body,
                              x64_optional_u8_empty(),
                              x64_optional_i64_empty()),
         body->return_type);
+    scalar_argument_count += 1;
   }
 
   // then if the rest of the incoming arguments are passed on the stack
   // pushed from right-to-left, this means that the first stack passed
   // argument is on the stack immediately above the pushed %rbp.
   // the initial offset is 8, to skip the pushed %rbp
-  i64 offset               = 8;
-  u8 scalar_argument_count = 0;
+  i64 offset = 8;
   for (u8 i = 0; i < args->size; ++i) {
     FormalArgument *arg  = args->list + i;
     LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);

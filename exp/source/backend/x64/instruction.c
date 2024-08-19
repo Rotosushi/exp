@@ -57,6 +57,10 @@ x64_Instruction x64_mov(x64_Operand dst, x64_Operand src) {
   return x64_instruction_AB(X64OPC_MOV, dst, src);
 }
 
+x64_Instruction x64_lea(x64_Operand dst, x64_Operand src) {
+  return x64_instruction_AB(X64OPC_LEA, dst, src);
+}
+
 x64_Instruction x64_neg(x64_Operand dst) {
   return x64_instruction_A(X64OPC_NEG, dst);
 }
@@ -187,6 +191,14 @@ void x64_instruction_emit(x64_Instruction I,
     x64_emit_mnemonic(SV("mov"), I, buffer, context);
     x64_emit_operand(I.B, buffer, context);
     string_append(buffer, SV(", "));
+    x64_emit_operand(I.A, buffer, context);
+    break;
+  }
+
+  case X64OPC_LEA: {
+    x64_emit_mnemonic(SV("lea"), I, buffer, context);
+    x64_emit_operand(I.B, buffer, context);
+    string_append(buffer, SV(","));
     x64_emit_operand(I.A, buffer, context);
     break;
   }

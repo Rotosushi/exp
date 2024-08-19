@@ -55,6 +55,7 @@ typedef enum x64_Opcode : u8 {
   X64OPC_PUSH,
   X64OPC_POP,
   X64OPC_MOV,
+  X64OPC_LEA,
   X64OPC_NEG,
   X64OPC_ADD,
   X64OPC_SUB,
@@ -73,6 +74,7 @@ x64_Instruction x64_call(x64_Operand label);
 x64_Instruction x64_push(x64_Operand src);
 x64_Instruction x64_pop(x64_Operand dst);
 x64_Instruction x64_mov(x64_Operand dst, x64_Operand src);
+x64_Instruction x64_lea(x64_Operand dst, x64_Operand src);
 
 x64_Instruction x64_neg(x64_Operand dst);
 x64_Instruction x64_add(x64_Operand dst, x64_Operand src);
