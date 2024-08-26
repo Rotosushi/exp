@@ -24,6 +24,7 @@
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
 
 static x64_GPRP x64_gprp_create() {
   x64_GPRP gprp = {.bitset = 0,
@@ -187,16 +188,16 @@ x64_stack_allocations_append(x64_StackAllocations *restrict stack_allocations,
 static void
 x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
                                x64_Allocation *restrict allocation) {
-  if (__builtin_add_overflow(stack_allocations->active_stack_size,
+  if (__builtin_add_overflow(stack_allocations->total_stack_size,
                              size_of(allocation->type),
-                             &stack_allocations->active_stack_size)) {
+                             &stack_allocations->total_stack_size)) {
     PANIC("computed stack size overflow");
   }
-  stack_allocations->total_stack_size =
-      lmax(stack_allocations->active_stack_size,
-           stack_allocations->total_stack_size);
+  // stack_allocations->total_stack_size =
+  //     lmax(stack_allocations->active_stack_size,
+  //          stack_allocations->total_stack_size);
 
-  i64 offset = stack_allocations->active_stack_size;
+  i64 offset = stack_allocations->total_stack_size;
 
   allocation->location = x64_location_address(X64GPR_RBP,
                                               x64_optional_gpr_empty(),
@@ -242,7 +243,7 @@ x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
     x64_Allocation *cursor = stack_allocations->buffer[i];
     if (cursor->ssa == ssa) { return cursor; }
   }
-  return NULL;
+  EXP_UNREACHABLE;
 }
 
 static x64_AllocationBuffer x64_allocation_buffer_create() {
@@ -304,12 +305,13 @@ x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
   return *allocation;
 }
 
-x64_Allocator x64_allocator_create(FunctionBody *restrict body) {
+x64_Allocator x64_allocator_create(FunctionBody *restrict body,
+                                   Context *restrict context) {
   x64_Allocator allocator = {
       .gprp              = x64_gprp_create(),
       .stack_allocations = x64_stack_allocations_create(),
       .allocations       = x64_allocation_buffer_create(),
-      .lifetimes         = lifetimes_compute(body),
+      .lifetimes         = lifetimes_compute(body, context),
   };
   x64_gprp_aquire(&allocator.gprp, X64GPR_RSP);
   x64_gprp_aquire(&allocator.gprp, X64GPR_RBP);

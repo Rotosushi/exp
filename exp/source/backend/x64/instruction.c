@@ -198,7 +198,7 @@ void x64_instruction_emit(x64_Instruction I,
   case X64OPC_LEA: {
     x64_emit_mnemonic(SV("lea"), I, buffer, context);
     x64_emit_operand(I.B, buffer, context);
-    string_append(buffer, SV(","));
+    string_append(buffer, SV(", "));
     x64_emit_operand(I.A, buffer, context);
     break;
   }

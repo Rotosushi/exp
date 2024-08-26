@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 1 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "e5ce5860b578151fa71c41aca507a7fea94b6a34"
+#define EXP_GIT_REVISION "7fea2216e17e1f04b443f9af7c5206d8754ba134"
 #define EXP_TEST_DIR "/home/gwen/Projects/exp/test"
 #define EXP_BUILD_DIR "/home/gwen/Projects/exp/build"
 #define EXP_LIB_DIR "/home/gwen/Projects/exp/build/libexp"
@@ -31,7 +31,7 @@
 /* #undef EXP_HOST_OS_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-08-18 22:26:15) git revision (e5ce5860b578151fa71c41aca507a7fea94b6a34)"
+#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-08-26 11:54:55) git revision (7fea2216e17e1f04b443f9af7c5206d8754ba134)"
 // NOLINTEND
 // clang-format on
 

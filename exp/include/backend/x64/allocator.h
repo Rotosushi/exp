@@ -55,7 +55,8 @@ typedef struct x64_Allocator {
   Lifetimes lifetimes;
 } x64_Allocator;
 
-x64_Allocator x64_allocator_create(FunctionBody *restrict body);
+x64_Allocator x64_allocator_create(FunctionBody *restrict body,
+                                   Context *restrict context);
 void x64_allocator_destroy(x64_Allocator *restrict allocator);
 
 bool x64_allocator_uses_stack(x64_Allocator *restrict allocator);

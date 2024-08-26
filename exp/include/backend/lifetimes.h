@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_LIFETIMES_H
 #define EXP_BACKEND_LIFETIMES_H
 
+#include "env/context.h"
 #include "imr/function_body.h"
 
 /**
@@ -53,6 +54,7 @@ typedef struct Lifetimes {
 Lifetimes lifetimes_create(u64 count);
 void lifetimes_destroy(Lifetimes *restrict li);
 Lifetime *lifetimes_at(Lifetimes *restrict li, u64 ssa);
-Lifetimes lifetimes_compute(FunctionBody *restrict body);
+Lifetimes lifetimes_compute(FunctionBody *restrict body,
+                            Context *restrict context);
 
 #endif // !EXP_BACKEND_LIFETIMES_H

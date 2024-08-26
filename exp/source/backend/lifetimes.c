@@ -54,9 +54,10 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
 // the last use is the first use we encounter, and
 // the first use is the instruction which defines
 // the local (has the local in operand A)
-Lifetimes lifetimes_compute(FunctionBody *restrict body) {
+Lifetimes lifetimes_compute(FunctionBody *restrict body,
+                            Context *restrict context) {
   Bytecode *bc        = &body->bc;
-  Lifetimes lifetiems = lifetimes_create(body->ssa_count);
+  Lifetimes lifetimes = lifetimes_create(body->ssa_count);
 
   for (u64 i = bc->length; i > 0; --i) {
     u64 inst      = i - 1;
@@ -64,35 +65,83 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
     switch (I.format) {
     case IFMT_B: {
       if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
+        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
+      } else if (I.B.format == OPRFMT_VALUE) {
+        Value *value = context_constants_at(context, I.B.index);
+        assert(value->kind == VALUEKIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+
+        for (u64 i = 0; i < tuple->size; ++i) {
+          Operand element = tuple->elements[i];
+          if (element.format == OPRFMT_SSA) {
+            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
+            if (inst > el->last_use) { el->last_use = inst; }
+          }
+        }
       }
       break;
     }
 
     case IFMT_AB: {
-      Lifetime *Al  = lifetimes_at(&lifetiems, I.A);
+      Lifetime *Al  = lifetimes_at(&lifetimes, I.A);
       Al->first_use = inst;
 
       if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
+        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
+      } else if (I.B.format == OPRFMT_VALUE) {
+        Value *value = context_constants_at(context, I.B.index);
+        assert(value->kind == VALUEKIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+
+        for (u64 i = 0; i < tuple->size; ++i) {
+          Operand element = tuple->elements[i];
+          if (element.format == OPRFMT_SSA) {
+            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
+            if (inst > el->last_use) { el->last_use = inst; }
+          }
+        }
       }
       break;
     }
 
     case IFMT_ABC: {
-      Lifetime *Al  = lifetimes_at(&lifetiems, I.A);
+      Lifetime *Al  = lifetimes_at(&lifetimes, I.A);
       Al->first_use = inst;
 
       if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetiems, I.B.ssa);
+        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
+      } else if (I.B.format == OPRFMT_VALUE) {
+        Value *value = context_constants_at(context, I.B.index);
+        assert(value->kind == VALUEKIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+
+        for (u64 i = 0; i < tuple->size; ++i) {
+          Operand element = tuple->elements[i];
+          if (element.format == OPRFMT_SSA) {
+            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
+            if (inst > el->last_use) { el->last_use = inst; }
+          }
+        }
       }
 
       if (I.C.format == OPRFMT_SSA) {
-        Lifetime *Cl = lifetimes_at(&lifetiems, I.C.ssa);
+        Lifetime *Cl = lifetimes_at(&lifetimes, I.C.ssa);
         if (inst > Cl->last_use) { Cl->last_use = inst; }
+      } else if (I.C.format == OPRFMT_VALUE) {
+        Value *value = context_constants_at(context, I.C.index);
+        assert(value->kind == VALUEKIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+
+        for (u64 i = 0; i < tuple->size; ++i) {
+          Operand element = tuple->elements[i];
+          if (element.format == OPRFMT_SSA) {
+            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
+            if (inst > el->last_use) { el->last_use = inst; }
+          }
+        }
       }
       break;
     }
@@ -101,5 +150,5 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body) {
     }
   }
 
-  return lifetiems;
+  return lifetimes;
 }

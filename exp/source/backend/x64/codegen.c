@@ -30,7 +30,6 @@
 #include "intrinsics/type_of.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/minmax.h"
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
@@ -239,6 +238,39 @@ static void x64_codegen_call(Instruction I,
     return;
   }
 
+  // we alloca space for the return variable
+  //
+  // we alloca each of the arguments, relative to the current stack size
+  //
+  // then we alloca the local variable, copying it's value from the alloca'd
+  // return variable.
+  //
+  // is the issue that we are accounting for the local variable in the final
+  // code. but when we are emitting the call instruction we are computing the
+  // argument offsets when we don't have the local variable allocated yet.
+  // so the arguments are offset from where they are expected to be by the size
+  // of the local variable.
+  //
+  // so if we call a function, then allocate a bunch of locals afterwords, the
+  // arguments for the call will be even farther away from where they are
+  // expected.
+  //
+  // we need to allocate arguments such that they are unaffected by alloca that
+  // happen after we call. I thought this was accounted for by only decrementing
+  // the stack pointer for the arguments right before the call, then
+  // incrementing it right after. but this doesn't account for fully fledged
+  // local variables which are allocated at any point after the function call.
+  //
+  // we could fix this by decrementing the stack pointer for each local variable
+  // we create. but that begs the question, how do we properly coalese these
+  // allocations such that we don't cause issues such as this one? because that
+  // is an obvious optimization. (in fact changing the code to behave that way
+  // feels like a pessimization.)
+  //
+  // the issue is that we need to account for information that we do not have
+  // yet.
+  //
+
   i64 current_stack_offset        = -x64_allocator_total_stack_size(allocator);
   i64 actual_arguments_stack_size = 0;
 
@@ -254,8 +286,8 @@ static void x64_codegen_call(Instruction I,
     u64 arg_size   = size_of(arg_type);
 
     assert(arg_size <= i64_MAX);
+    actual_arguments_stack_size += (i64)arg_size;
     i64 offset = -((i64)(arg_size));
-    actual_arguments_stack_size += -offset;
     x64_address_increment_offset(&arg_address, offset);
 
     x64_codegen_load_address_from_operand(
@@ -1091,7 +1123,7 @@ static void x64_codegen_function(FunctionBody *restrict body,
   LocalVariables *locals   = &body->locals;
   Bytecode *bc             = &body->bc;
   FormalArgumentList *args = &body->arguments;
-  x64_Allocator allocator  = x64_allocator_create(body);
+  x64_Allocator allocator  = x64_allocator_create(body, context->context);
   x64_Bytecode *x64bc      = &x64_body->bc;
   u8 scalar_argument_count = 0;
 
