@@ -268,8 +268,11 @@ static void x64_codegen_call(Instruction I,
   // feels like a pessimization.)
   //
   // the issue is that we need to account for information that we do not have
-  // yet.
-  //
+  // yet. we don't know about locals which are declared after this point.
+  // (which is part of why we prepend the function prolouge once we are done
+  // emitting the body.) whereas here and now, we have to know what the size of
+  // the stack is after all locals are allocated, because we go back and
+  // allocate that much space once we finalize the body.
 
   i64 current_stack_offset        = -x64_allocator_total_stack_size(allocator);
   i64 actual_arguments_stack_size = 0;
