@@ -24,7 +24,6 @@
 #include "utility/io.h"
 #include "utility/log.h"
 #include "utility/numeric_conversions.h"
-#include "utility/panic.h"
 
 #define LOG_FATAL_MSG     "fatal"
 #define LOG_ERROR_MSG     "error"
@@ -72,3 +71,4 @@ void log_message(LogLevel level,
 #undef LOG_WARNING_MSG
 #undef LOG_STATUS_MSG
 #undef BAD_LOG_LEVEL_MSG
+

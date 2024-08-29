@@ -169,3 +169,4 @@ VertexList graph_vertex_fanin(Graph *restrict graph, u64 vertex) {
 
   return vl;
 }
+

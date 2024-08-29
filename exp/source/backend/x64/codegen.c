@@ -98,14 +98,6 @@ static void x64_codegen_ret(Instruction I,
 }
 
 static x64_GPR x64_scalar_argument_gpr(u8 num) {
-  // #TODO: for now, all possible types are scalar.
-  // so when we introduce types that cannot be passed
-  // by register we have to account for that here.
-  // all scalar arguments are passed as below,
-  // any non-scalar argument goes straight to the stack
-  // no matter which index it is. and thus we cannot
-  // rely on the index to be 1:1 with the register being
-  // selected.
   switch (num) {
   case 0: return X64GPR_RDI;
   case 1: return X64GPR_RSI;
@@ -261,11 +253,11 @@ static void x64_codegen_call(Instruction I,
   // incrementing it right after. but this doesn't account for fully fledged
   // local variables which are allocated at any point after the function call.
   //
-  // we could fix this by decrementing the stack pointer for each local variable
-  // we create. but that begs the question, how do we properly coalese these
-  // allocations such that we don't cause issues such as this one? because that
-  // is an obvious optimization. (in fact changing the code to behave that way
-  // feels like a pessimization.)
+  // I think we could fix this by decrementing the stack pointer for each local
+  // variable we create. but that begs the question, how do we properly coalese
+  // these allocations such that we don't cause issues such as this one? because
+  // that is an obvious optimization. (in fact changing the code to behave that
+  // way feels like a pessimization.)
   //
   // the issue is that we need to account for information that we do not have
   // yet. we don't know about locals which are declared after this point.
@@ -363,21 +355,22 @@ static void x64_codegen_load(Instruction I,
                              x64_Context *restrict context) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  x64_Allocation *A    = x64_allocator_allocate(allocator, Idx, local, x64bc);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
-    x64_codegen_copy_allocation(A, B, Idx, x64bc, allocator);
+    x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
     break;
   }
 
   case OPRFMT_VALUE: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
     x64_codegen_load_allocation_from_value(
         A, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
     x64_bytecode_append(
         x64bc,
         x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));

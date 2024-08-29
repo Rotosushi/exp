@@ -25,7 +25,6 @@
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/hash.h"
-#include "utility/minmax.h"
 
 static void simple_string_destroy(SimpleString *restrict string) {
   deallocate(string->ptr);
@@ -149,3 +148,4 @@ StringView string_interner_insert(StringInterner *restrict string_interner,
   simple_string_assign(element, sv);
   return simple_string_to_view(element);
 }
+

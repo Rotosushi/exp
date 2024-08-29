@@ -34,7 +34,7 @@ x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
       Type *element_type = tuple->types[i];
       u64 element_size   = size_of(element_type);
       assert(element_size <= i64_MAX);
-      i64 offset = (i64)element_size;
+      i64 offset = -(i64)element_size;
 
       x64_address_increment_offset(&result, offset);
     }

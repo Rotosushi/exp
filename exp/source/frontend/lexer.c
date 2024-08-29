@@ -299,3 +299,4 @@ Token lexer_scan(Lexer *restrict lexer) {
   default: return TOK_ERROR_UNEXPECTED_CHAR;
   }
 }
+

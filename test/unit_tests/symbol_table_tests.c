@@ -27,8 +27,7 @@ bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
   StringView sv               = string_view_from_cstring(name);
   SymbolTableElement *element = symbol_table_at(symbol_table, sv);
 
-  if (element == NULL)
-    return 1;
+  if (element == NULL) return 1;
 
   failure |= !string_view_eq(element->name, sv);
 
@@ -58,3 +57,4 @@ i32 symbol_table_tests([[maybe_unused]] i32 argc,
     return EXIT_SUCCESS;
   }
 }
+

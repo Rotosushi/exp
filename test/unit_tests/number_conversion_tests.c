@@ -104,3 +104,4 @@ i32 number_conversion_tests([[maybe_unused]] i32 argc,
     return 0;
   }
 }
+

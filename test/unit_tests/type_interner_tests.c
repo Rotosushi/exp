@@ -41,3 +41,4 @@ i32 type_interner_tests([[maybe_unused]] i32 argc,
     return EXIT_SUCCESS;
   }
 }
+

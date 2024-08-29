@@ -33,3 +33,4 @@ u64 hash_cstring(char const *restrict string, u64 length) {
 
 #undef LARGE_PRIME
 }
+

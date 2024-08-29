@@ -109,3 +109,4 @@ i32 lexer_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     return 0;
   }
 }
+

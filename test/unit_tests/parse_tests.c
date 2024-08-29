@@ -56,3 +56,4 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     return EXIT_SUCCESS;
   }
 }
+

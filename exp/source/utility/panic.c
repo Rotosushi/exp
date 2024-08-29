@@ -47,3 +47,4 @@
   log_message(LOG_FATAL, file, (u64)line, buf, stderr);
   exit(EXIT_FAILURE);
 }
+

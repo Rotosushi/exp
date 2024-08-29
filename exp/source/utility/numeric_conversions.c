@@ -18,7 +18,6 @@
  */
 #include <assert.h>
 #include <ctype.h>
-#include <math.h>
 
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
@@ -177,3 +176,4 @@ u64 str_to_u64(char const *restrict buffer, u64 length) {
   assert(buffer != NULL);
   return base10_stou64(buffer, length);
 }
+
