@@ -344,12 +344,12 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
   context_leave_function(c);
 
-  // #if EXP_DEBUG
-  //   file_write("parsed a function: \n fn ", stdout);
-  //   print_string_view(name, stdout);
-  //   print_function_body(body, stdout);
-  //   file_write("\n", stdout);
-  // #endif
+#if EXP_DEBUG
+  file_write("parsed a function: \n fn ", stdout);
+  print_string_view(name, stdout);
+  print_function_body(body, stdout);
+  file_write("\n", stdout);
+#endif
 
   return success(zero());
 }

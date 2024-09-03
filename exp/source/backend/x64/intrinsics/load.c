@@ -26,13 +26,48 @@
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
+static void
+x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
+                                           Value *restrict value,
+                                           x64_Bytecode *restrict x64bc) {
+  switch (value->kind) {
+  case VALUEKIND_UNINITIALIZED: break; // don't initialize the uninitialized
+
+  case VALUEKIND_NIL: {
+    x64_bytecode_append(
+        x64bc, x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
+    break;
+  }
+
+  case VALUEKIND_BOOLEAN: {
+    x64_bytecode_append(x64bc,
+                        x64_mov(x64_operand_address(*dst),
+                                x64_operand_immediate((i64)value->boolean)));
+    break;
+  }
+
+  case VALUEKIND_I64: {
+    x64_bytecode_append(x64bc,
+                        x64_mov(x64_operand_address(*dst),
+                                x64_operand_immediate(value->integer_64)));
+    break;
+  }
+
+  case VALUEKIND_TUPLE:
+  default:              EXP_UNREACHABLE;
+  }
+}
+
 static void x64_codegen_load_address_from_scalar_operand(
     x64_Address *restrict dst,
     Operand *restrict src,
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
     x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator) {
+    x64_Allocator *restrict allocator,
+    x64_Context *restrict context) {
+  assert(type_is_scalar(type));
+
   switch (src->format) {
   case OPRFMT_SSA: {
     x64_Allocation *allocation =
@@ -60,8 +95,14 @@ static void x64_codegen_load_address_from_scalar_operand(
     break;
   }
 
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  case OPRFMT_VALUE: {
+    Value *value = x64_context_value_at(context, src->index);
+    assert(type_equality(type, type_of_value(value, context->context)));
+    x64_codegen_load_address_from_scalar_value(dst, value, x64bc);
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -133,9 +174,123 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            x64_Context *restrict context) {
   if (type_is_scalar(type)) {
     x64_codegen_load_address_from_scalar_operand(
-        dst, src, type, Idx, x64bc, allocator);
+        dst, src, type, Idx, x64bc, allocator, context);
   } else {
     x64_codegen_load_address_from_composite_operand(
+        dst, src, type, Idx, x64bc, allocator, context);
+  }
+}
+
+static void x64_codegen_load_argument_from_scalar_operand(
+    x64_Address *restrict dst,
+    Operand *restrict src,
+    [[maybe_unused]] Type *restrict type,
+    u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator) {
+  switch (src->format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *allocation =
+        x64_allocator_allocation_of(allocator, src->ssa);
+    if (allocation->location.kind == LOCATION_GPR) {
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_address(*dst),
+                                  x64_operand_gpr(allocation->location.gpr)));
+    } else {
+      x64_codegen_copy_scalar_memory(
+          dst, &allocation->location.address, Idx, x64bc, allocator);
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    x64_bytecode_append(x64bc,
+                        x64_mov(x64_operand_address(*dst),
+                                x64_operand_immediate(src->immediate)));
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    PANIC("#TODO");
+    break;
+  }
+
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
+  }
+}
+
+static void x64_codegen_load_argument_from_composite_operand(
+    x64_Address *restrict dst,
+    Operand *restrict src,
+    Type *restrict type,
+    u64 Idx,
+    x64_Bytecode *restrict x64bc,
+    x64_Allocator *restrict allocator,
+    x64_Context *restrict context) {
+  switch (src->format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *allocation =
+        x64_allocator_allocation_of(allocator, src->ssa);
+
+    assert(allocation->location.kind == LOCATION_ADDRESS);
+
+    x64_codegen_copy_composite_memory(
+        dst, &allocation->location.address, type, Idx, x64bc, allocator);
+    break;
+  }
+
+  case OPRFMT_VALUE: {
+    Value *value = x64_context_value_at(context, src->index);
+    Type *type   = type_of_value(value, context->context);
+    assert(value->kind == VALUEKIND_TUPLE);
+    assert(!type_is_scalar(type));
+    Tuple *tuple = &value->tuple;
+
+    x64_Address dst_element_address = *dst;
+    for (u64 i = 0; i < tuple->size; ++i) {
+      Operand *element   = tuple->elements + i;
+      Type *element_type = type_of_operand(element, context->context);
+      u64 element_size   = size_of(element_type);
+
+      x64_codegen_load_argument_from_operand(&dst_element_address,
+                                             element,
+                                             element_type,
+                                             Idx,
+                                             x64bc,
+                                             allocator,
+                                             context);
+
+      assert(element_size <= i64_MAX);
+      i64 offset = -(i64)element_size;
+      x64_address_increment_offset(&dst_element_address, offset);
+    }
+
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    PANIC("#TODO");
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE:
+  default:               EXP_UNREACHABLE;
+  }
+}
+
+void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
+                                            Operand *restrict src,
+                                            Type *restrict type,
+                                            u64 Idx,
+                                            x64_Bytecode *restrict x64bc,
+                                            x64_Allocator *restrict allocator,
+                                            x64_Context *restrict context) {
+  if (type_is_scalar(type)) {
+    x64_codegen_load_argument_from_scalar_operand(
+        dst, src, type, Idx, x64bc, allocator);
+  } else {
+    x64_codegen_load_argument_from_composite_operand(
         dst, src, type, Idx, x64bc, allocator, context);
   }
 }

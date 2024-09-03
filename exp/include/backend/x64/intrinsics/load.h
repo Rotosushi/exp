@@ -31,6 +31,14 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            x64_Allocator *restrict allocator,
                                            x64_Context *restrict context);
 
+void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
+                                            Operand *restrict src,
+                                            Type *restrict type,
+                                            u64 Idx,
+                                            x64_Bytecode *restrict x64bc,
+                                            x64_Allocator *restrict allocator,
+                                            x64_Context *restrict context);
+
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               Operand *restrict src,
                                               u64 Idx,

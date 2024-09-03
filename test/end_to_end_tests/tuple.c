@@ -42,5 +42,24 @@ int tuple([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
                      "const x = f(4, 2); return x.1 + x.0; }",
                      6);
 
+  result |= test_exp(source_path,
+                     "fn f(x: (i64, i64), y: (i64, i64)) { return (x.0 + "
+                     "y.0, x.1 + y.1); } fn main() { const x = f((1, 2), "
+                     "(3, 4)); return x.0 + x.1; }",
+                     10);
+
+  result |= test_exp(source_path,
+                     "fn f(x: (i64, i64, i64), y: (i64, i64, i64)) {\n"
+                     "return (x.0 + y.0, x.1 + y.1, x.2 + y.2);\n}\n"
+                     "fn main() {\nconst x = f((1, 2, 3), (4, 5, 6)); "
+                     "\nreturn x.0 + x.1 + x.2;\n} ",
+                     21);
+  result |= test_exp(source_path,
+                     "fn f(x: (i64, i64), y: (i64, i64), z: (i64, i64)) {\n"
+                     "return (x.0 + y.0 + z.0, x.1 + y.1 + z.1);\n}\n"
+                     "fn main() { const x = f((2, 3), (4, 5), (6, 7)); "
+                     "return x.0 + x.1;\n}",
+                     27);
+
   return result;
 }

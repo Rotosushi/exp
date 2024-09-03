@@ -230,63 +230,25 @@ static void x64_codegen_call(Instruction I,
     return;
   }
 
-  // we alloca space for the return variable
-  //
-  // we alloca each of the arguments, relative to the current stack size
-  //
-  // then we alloca the local variable, copying it's value from the alloca'd
-  // return variable.
-  //
-  // is the issue that we are accounting for the local variable in the final
-  // code. but when we are emitting the call instruction we are computing the
-  // argument offsets when we don't have the local variable allocated yet.
-  // so the arguments are offset from where they are expected to be by the size
-  // of the local variable.
-  //
-  // so if we call a function, then allocate a bunch of locals afterwords, the
-  // arguments for the call will be even farther away from where they are
-  // expected.
-  //
-  // we need to allocate arguments such that they are unaffected by alloca that
-  // happen after we call. I thought this was accounted for by only decrementing
-  // the stack pointer for the arguments right before the call, then
-  // incrementing it right after. but this doesn't account for fully fledged
-  // local variables which are allocated at any point after the function call.
-  //
-  // I think we could fix this by decrementing the stack pointer for each local
-  // variable we create. but that begs the question, how do we properly coalese
-  // these allocations such that we don't cause issues such as this one? because
-  // that is an obvious optimization. (in fact changing the code to behave that
-  // way feels like a pessimization.)
-  //
-  // the issue is that we need to account for information that we do not have
-  // yet. we don't know about locals which are declared after this point.
-  // (which is part of why we prepend the function prolouge once we are done
-  // emitting the body.) whereas here and now, we have to know what the size of
-  // the stack is after all locals are allocated, because we go back and
-  // allocate that much space once we finalize the body.
-
-  i64 current_stack_offset        = -x64_allocator_total_stack_size(allocator);
   i64 actual_arguments_stack_size = 0;
 
-  x64_Address arg_address =
-      x64_address_construct(X64GPR_RBP,
-                            x64_optional_gpr_empty(),
-                            x64_optional_u8_empty(),
-                            x64_optional_i64(current_stack_offset));
+  x64_Address arg_address = x64_address_construct(X64GPR_RSP,
+                                                  x64_optional_gpr_empty(),
+                                                  x64_optional_u8_empty(),
+                                                  x64_optional_i64_empty());
 
-  for (u8 i = stack_args.size; i > 0; --i) {
-    Operand *arg   = stack_args.buffer + (i - 1);
+  for (u8 i = 0; i < stack_args.size; ++i) {
+    Operand *arg   = stack_args.buffer + i;
     Type *arg_type = type_of_operand(arg, context->context);
     u64 arg_size   = size_of(arg_type);
-
     assert(arg_size <= i64_MAX);
-    actual_arguments_stack_size += (i64)arg_size;
-    i64 offset = -((i64)(arg_size));
-    x64_address_increment_offset(&arg_address, offset);
+    i64 offset = (i64)(arg_size);
+    actual_arguments_stack_size += offset;
 
     x64_codegen_load_address_from_operand(
         &arg_address, arg, arg_type, Idx, x64bc, allocator, context);
+
+    x64_address_increment_offset(&arg_address, offset);
   }
 
   x64_bytecode_insert(
@@ -1141,7 +1103,7 @@ static void x64_codegen_function(FunctionBody *restrict body,
   // pushed from right-to-left, this means that the first stack passed
   // argument is on the stack immediately above the pushed %rbp.
   // the initial offset is 8, to skip the pushed %rbp
-  i64 offset = 8;
+  i64 offset = 16;
   for (u8 i = 0; i < args->size; ++i) {
     FormalArgument *arg  = args->list + i;
     LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
@@ -1152,10 +1114,12 @@ static void x64_codegen_function(FunctionBody *restrict body,
     } else {
       u64 argument_size = size_of(arg->type);
       assert(argument_size <= i64_MAX);
+
+      x64_allocator_allocate_to_stack(&allocator, offset, local);
+
       if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
         PANIC("argument offset overflow");
       }
-      x64_allocator_allocate_to_stack(&allocator, offset, local);
     }
   }
 
