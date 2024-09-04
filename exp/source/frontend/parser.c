@@ -17,7 +17,6 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -348,7 +347,7 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 #if EXP_DEBUG
   file_write("parsed a function: \n fn ", stdout);
   print_string_view(name, stdout);
-  print_function_body(body, stdout);
+  print_function_body(body, stdout, c);
   file_write("\n", stdout);
 #endif
 
@@ -380,13 +379,13 @@ static ParserResult parens(Parser *restrict p, Context *restrict c) {
   Operand result;
 
   if (tuple.size == 0) {
-    result = context_constants_append(c, value_create_nil());
+    result = context_values_append(c, value_create_nil());
     tuple_destroy(&tuple);
   } else if (tuple.size == 1) {
     result = tuple.elements[0];
     tuple_destroy(&tuple);
   } else {
-    result = context_constants_append(c, value_create_tuple(tuple));
+    result = context_values_append(c, value_create_tuple(tuple));
   }
 
   return success(result);
@@ -469,19 +468,19 @@ call(Parser *restrict p, Context *restrict c, Operand left) {
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_append(c, value_create_nil());
+  Operand idx = context_values_append(c, value_create_nil());
   return success(idx);
 }
 
 static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_append(c, value_create_boolean(1));
+  Operand idx = context_values_append(c, value_create_boolean(1));
   return success(idx);
 }
 
 static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   nexttok(p);
-  Operand idx = context_constants_append(c, value_create_boolean(0));
+  Operand idx = context_values_append(c, value_create_boolean(0));
   return success(idx);
 }
 

@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "env/context.h"
 #include "env/values.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
@@ -84,12 +85,14 @@ Value *values_at(Values *restrict values, u64 index) {
   return values->buffer + index;
 }
 
-void print_values(Values const *restrict values, FILE *restrict file) {
+void print_values(Values const *restrict values,
+                  FILE *restrict file,
+                  Context *restrict context) {
   for (u64 i = 0; i < values->length; ++i) {
     file_write_u64(i, file);
     file_write(": ", file);
     file_write("[", file);
-    print_value(values->buffer + i, file);
+    print_value(values->buffer + i, file, context);
     file_write("]\n", file);
   }
 }

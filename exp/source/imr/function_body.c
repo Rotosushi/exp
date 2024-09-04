@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "env/context.h"
 #include "imr/function_body.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
@@ -290,7 +291,9 @@ static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
   print_type(arg->type, file);
 }
 
-void print_function_body(FunctionBody const *restrict f, FILE *restrict file) {
+void print_function_body(FunctionBody const *restrict f,
+                         FILE *restrict file,
+                         Context *restrict context) {
   file_write("(", file);
   FormalArgumentList const *args = &f->arguments;
   for (u8 i = 0; i < args->size; ++i) {
@@ -299,5 +302,5 @@ void print_function_body(FunctionBody const *restrict f, FILE *restrict file) {
     if (i < (u8)(args->size - 1)) { file_write(", ", file); }
   }
   file_write(")\n", file);
-  print_bytecode(&f->bc, file);
+  print_bytecode(&f->bc, file, context);
 }

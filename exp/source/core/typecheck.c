@@ -72,7 +72,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
   }
 
   case OPRFMT_VALUE: {
-    Value *value = context_constants_at(c, operand.index);
+    Value *value = context_values_at(c, operand.index);
     return success(type_of_value(value, c));
   }
 

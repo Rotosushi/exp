@@ -18,7 +18,6 @@
 #define EXP_ENV_CONTEXT_H
 
 #include "env/context_options.h"
-#include "env/error.h"
 #include "env/global_labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
@@ -103,11 +102,11 @@ FormalArgument *context_argument_at(Context *restrict c, u8 index);
 
 void context_leave_function(Context *restrict c);
 
-// Constants functions
-Operand context_constants_append(Context *restrict context, Value value);
+// Values functions
+Operand context_values_append(Context *restrict context, Value value);
+Value *context_values_at(Context *restrict context, u64 index);
 
-Value *context_constants_at(Context *restrict context, u64 index);
-
+// Bytecode functions
 void context_emit_return(Context *restrict c, Operand B);
 Operand context_emit_call(Context *restrict c, Operand B, Operand C);
 Operand context_emit_dot(Context *restrict c, Operand B, Operand C);

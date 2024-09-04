@@ -68,7 +68,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
         Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_constants_at(context, I.B.index);
+        Value *value = context_values_at(context, I.B.index);
         assert(value->kind == VALUEKIND_TUPLE);
         Tuple *tuple = &value->tuple;
 
@@ -91,7 +91,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
         Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_constants_at(context, I.B.index);
+        Value *value = context_values_at(context, I.B.index);
         assert(value->kind == VALUEKIND_TUPLE);
         Tuple *tuple = &value->tuple;
 
@@ -114,7 +114,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
         Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
         if (inst > Bl->last_use) { Bl->last_use = inst; }
       } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_constants_at(context, I.B.index);
+        Value *value = context_values_at(context, I.B.index);
         assert(value->kind == VALUEKIND_TUPLE);
         Tuple *tuple = &value->tuple;
 
@@ -131,7 +131,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
         Lifetime *Cl = lifetimes_at(&lifetimes, I.C.ssa);
         if (inst > Cl->last_use) { Cl->last_use = inst; }
       } else if (I.C.format == OPRFMT_VALUE) {
-        Value *value = context_constants_at(context, I.C.index);
+        Value *value = context_values_at(context, I.C.index);
         assert(value->kind == VALUEKIND_TUPLE);
         Tuple *tuple = &value->tuple;
 

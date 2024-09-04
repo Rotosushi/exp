@@ -18,6 +18,7 @@
  */
 #include <string.h>
 
+#include "env/context.h"
 #include "imr/value.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
@@ -154,17 +155,21 @@ bool value_equality(Value *A, Value *B) {
   }
 }
 
-static void print_tuple(Tuple const *restrict tuple, FILE *restrict file) {
+static void print_tuple(Tuple const *restrict tuple,
+                        FILE *restrict file,
+                        Context *restrict context) {
   file_write("(", file);
   for (u64 i = 0; i < tuple->size; ++i) {
-    print_operand(tuple->elements[i], file);
+    print_operand(tuple->elements[i], file, context);
 
     if (i < (tuple->size - 1)) { file_write(", ", file); }
   }
   file_write(")", file);
 }
 
-void print_value(Value const *restrict v, FILE *restrict file) {
+void print_value(Value const *restrict v,
+                 FILE *restrict file,
+                 Context *restrict context) {
   switch (v->kind) {
   case VALUEKIND_UNINITIALIZED:
   case VALUEKIND_NIL:           file_write("()", file); break;
@@ -175,7 +180,7 @@ void print_value(Value const *restrict v, FILE *restrict file) {
   }
 
   case VALUEKIND_I64:   file_write_i64(v->integer_64, file); break;
-  case VALUEKIND_TUPLE: print_tuple(&v->tuple, file); break;
+  case VALUEKIND_TUPLE: print_tuple(&v->tuple, file, context); break;
 
   default: file_write("undefined", file); break;
   }

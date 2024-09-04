@@ -36,7 +36,7 @@ void x64_context_destroy(x64_Context *restrict x64_context) {
 
 Value *x64_context_value_at(x64_Context *restrict context, u64 index) {
   assert(context != NULL);
-  return context_constants_at(context->context, index);
+  return context_values_at(context->context, index);
 }
 
 StringView x64_context_global_symbols_at(x64_Context *restrict x64_context,

@@ -18,6 +18,7 @@
  */
 #include <stddef.h>
 
+#include "env/context.h"
 #include "imr/operand.h"
 
 Operand operand_ssa(u64 ssa) {
@@ -52,34 +53,41 @@ bool operand_equality(Operand A, Operand B) {
   }
 }
 
-void print_ssa(u64 v, FILE *restrict file) {
+void print_operand_ssa(u64 ssa,
+                       FILE *restrict file,
+                       [[maybe_unused]] Context *restrict context) {
   file_write("SSA[", file);
-  file_write_u64(v, file);
+  file_write_u64(ssa, file);
   file_write("]", file);
 }
 
-static void print_constant(u64 v, FILE *restrict file) {
-  file_write("Constant[", file);
-  file_write_u64(v, file);
-  file_write("]", file);
+static void
+print_operand_value(u64 index, FILE *restrict file, Context *restrict context) {
+  Value *value = context_values_at(context, index);
+  print_value(value, file, context);
 }
 
-static void print_immediate(i64 v, FILE *restrict file) {
+static void print_operand_immediate(i64 v, FILE *restrict file) {
   file_write_i64(v, file);
 }
 
-static void print_global(u64 v, FILE *restrict file) {
-  file_write("GlobalSymbol[GlobalLabel[", file);
-  file_write_u64(v, file);
-  file_write("]]", file);
+static void print_operand_global(u64 index,
+                                 FILE *restrict file,
+                                 Context *restrict context) {
+  StringView name = context_global_labels_at(context, index);
+  file_write(name.ptr, file);
 }
 
-void print_operand(Operand operand, FILE *restrict file) {
+void print_operand(Operand operand,
+                   FILE *restrict file,
+                   Context *restrict context) {
   switch (operand.format) {
-  case OPRFMT_SSA:       print_ssa(operand.ssa, file); break;
-  case OPRFMT_VALUE:     print_constant(operand.index, file); break;
-  case OPRFMT_IMMEDIATE: print_immediate(operand.immediate, file); break;
-  case OPRFMT_LABEL:     print_global(operand.index, file); break;
+  case OPRFMT_SSA:   print_operand_ssa(operand.ssa, file, context); break;
+  case OPRFMT_VALUE: print_operand_value(operand.index, file, context); break;
+  case OPRFMT_IMMEDIATE:
+    print_operand_immediate(operand.immediate, file);
+    break;
+  case OPRFMT_LABEL: print_operand_global(operand.index, file, context); break;
 
   default: file_write("undefined", file);
   }

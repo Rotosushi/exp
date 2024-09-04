@@ -102,6 +102,9 @@ void function_body_new_local(FunctionBody *restrict function,
                              u64 ssa);
 Operand function_body_new_ssa(FunctionBody *restrict function);
 
-void print_function_body(FunctionBody const *restrict f, FILE *restrict file);
+struct Context;
+void print_function_body(FunctionBody const *restrict f,
+                         FILE *restrict file,
+                         struct Context *restrict context);
 
 #endif // !EXP_IMR_FUNCTION_H

@@ -64,7 +64,7 @@ Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
   }
 
   case OPRFMT_VALUE: {
-    Value *constant = context_constants_at(context, operand->index);
+    Value *constant = context_values_at(context, operand->index);
     return type_of_value(constant, context);
     break;
   }

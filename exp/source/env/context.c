@@ -20,8 +20,6 @@
 #include <stdlib.h>
 
 #include "env/context.h"
-#include "utility/io.h"
-#include "utility/unreachable.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
@@ -196,12 +194,12 @@ void context_leave_function(Context *restrict c) {
   c->current_function = NULL;
 }
 
-Operand context_constants_append(Context *restrict context, Value value) {
+Operand context_values_append(Context *restrict context, Value value) {
   assert(context != NULL);
   return values_add(&(context->values), value);
 }
 
-Value *context_constants_at(Context *restrict context, u64 index) {
+Value *context_values_at(Context *restrict context, u64 index) {
   assert(context != NULL);
   return values_at(&(context->values), index);
 }

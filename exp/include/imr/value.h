@@ -116,6 +116,9 @@ void value_assign(Value *dest, Value *source);
  */
 bool value_equality(Value *v1, Value *v2);
 
-void print_value(Value const *restrict v, FILE *restrict file);
+struct Context;
+void print_value(Value const *restrict v,
+                 FILE *restrict file,
+                 struct Context *restrict context);
 
 #endif // !EXP_IMR_VALUE_H

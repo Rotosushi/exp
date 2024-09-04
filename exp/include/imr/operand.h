@@ -16,9 +16,9 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
+#include <stdio.h>
 
 #include "utility/int_types.h"
-#include "utility/io.h"
 
 typedef enum OperandFormat : u8 {
   OPRFMT_SSA,
@@ -36,12 +36,18 @@ typedef struct Operand {
   };
 } Operand;
 
+struct Context;
+
 Operand operand_ssa(u64 ssa);
 Operand operand_constant(u64 index);
 Operand operand_immediate(i64 imm);
 Operand operand_label(u64 idx);
 bool operand_equality(Operand A, Operand B);
-void print_ssa(u64 ssa, FILE *restrict file);
-void print_operand(Operand operand, FILE *restrict file);
+void print_operand_ssa(u64 ssa,
+                       FILE *restrict file,
+                       struct Context *restrict context);
+void print_operand(Operand operand,
+                   FILE *restrict file,
+                   struct Context *restrict context);
 
 #endif // EXP_IMR_OPERAND_H

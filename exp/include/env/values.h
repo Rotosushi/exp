@@ -59,6 +59,9 @@ Operand values_add(Values *restrict values, Value value);
  */
 Value *values_at(Values *restrict values, u64 index);
 
-void print_values(Values const *restrict values, FILE *restrict file);
+struct Context;
+void print_values(Values const *restrict values,
+                  FILE *restrict file,
+                  struct Context *restrict context);
 
 #endif // !EXP_IMR_CONSTANTS_H
