@@ -20,6 +20,7 @@
 
 #include "env/context.h"
 #include "imr/operand.h"
+#include "utility/unreachable.h"
 
 Operand operand_ssa(u64 ssa) {
   Operand opr = {.format = OPRFMT_SSA, .ssa = ssa};
@@ -41,6 +42,11 @@ Operand operand_label(u64 index) {
   return opr;
 }
 
+Operand operand_call(u64 index) {
+  Operand operand = {.format = OPRFMT_CALL, .index = index};
+  return operand;
+}
+
 bool operand_equality(Operand A, Operand B) {
   if (A.format != B.format) { return false; }
   switch (A.format) {
@@ -56,9 +62,8 @@ bool operand_equality(Operand A, Operand B) {
 void print_operand_ssa(u64 ssa,
                        FILE *restrict file,
                        [[maybe_unused]] Context *restrict context) {
-  file_write("SSA[", file);
+  file_write("%", file);
   file_write_u64(ssa, file);
-  file_write("]", file);
 }
 
 static void
@@ -74,8 +79,22 @@ static void print_operand_immediate(i64 v, FILE *restrict file) {
 static void print_operand_global(u64 index,
                                  FILE *restrict file,
                                  Context *restrict context) {
+  file_write("@", file);
   StringView name = context_global_labels_at(context, index);
   file_write(name.ptr, file);
+}
+
+static void
+print_operand_call(u64 index, FILE *restrict file, Context *restrict context) {
+  ActualArgumentList *args = context_call_at(context, index);
+  file_write("(", file);
+  for (u8 i = 0; i < args->size; ++i) {
+    Operand arg = args->list[i];
+    print_operand(arg, file, context);
+
+    if (i < (args->size - 1)) { file_write(", ", file); }
+  }
+  file_write(")", file);
 }
 
 void print_operand(Operand operand,
@@ -88,7 +107,8 @@ void print_operand(Operand operand,
     print_operand_immediate(operand.immediate, file);
     break;
   case OPRFMT_LABEL: print_operand_global(operand.index, file, context); break;
+  case OPRFMT_CALL:  print_operand_call(operand.index, file, context); break;
 
-  default: file_write("undefined", file);
+  default: EXP_UNREACHABLE;
   }
 }

@@ -175,6 +175,7 @@ void print_bytecode(Bytecode const *restrict bc,
                     Context *restrict context) {
   // walk the entire buffer and print each instruction
   for (u64 i = 0; i < bc->length; ++i) {
+    file_write("  ", file);
     file_write_u64(i, file);
     file_write(": ", file);
     print_instruction(bc->buffer[i], file, context);

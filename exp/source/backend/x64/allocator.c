@@ -22,7 +22,6 @@
 #include "intrinsics/size_of.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/minmax.h"
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
@@ -193,9 +192,6 @@ x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
                              &stack_allocations->total_stack_size)) {
     PANIC("computed stack size overflow");
   }
-  // stack_allocations->total_stack_size =
-  //     lmax(stack_allocations->active_stack_size,
-  //          stack_allocations->total_stack_size);
 
   i64 offset = stack_allocations->total_stack_size;
 

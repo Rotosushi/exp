@@ -17,7 +17,9 @@
 #ifndef EXP_BACKEND_X64_FUNCTION_BODY_H
 #define EXP_BACKEND_X64_FUNCTION_BODY_H
 
+#include "backend/x64/allocator.h"
 #include "backend/x64/bytecode.h"
+#include "imr/function_body.h"
 
 typedef struct x64_FormalArgument {
   u8 index;
@@ -37,11 +39,13 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
 typedef struct x64_FunctionBody {
   x64_FormalArgumentList arguments;
   x64_Allocation *result;
-  i64 stack_size;
   x64_Bytecode bc;
+  x64_Allocator allocator;
 } x64_FunctionBody;
 
-x64_FunctionBody x64_function_body_create(u8 arg_count);
+struct x64_Context;
+x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
+                                          struct x64_Context *restrict context);
 void x64_function_body_destroy(x64_FunctionBody *restrict body);
 
 #endif // !EXP_BACKEND_X64_FUNCTION_BODY_H

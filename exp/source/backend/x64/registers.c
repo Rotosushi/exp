@@ -19,6 +19,7 @@
 #include <stddef.h>
 
 #include "backend/x64/registers.h"
+#include "utility/unreachable.h"
 
 StringView x64_gpr_to_sv(x64_GPR r) {
   switch (r) {
@@ -54,6 +55,19 @@ StringView x64_gpr_to_sv(x64_GPR r) {
   // case X64GPR_R29: return SV("r29");
   // case X64GPR_R30: return SV("r30");
   // case X64GPR_R31: return SV("r31");
-  default:         unreachable();
+  default: EXP_UNREACHABLE;
+  }
+}
+
+x64_GPR x64_scalar_argument_gpr(u8 index) {
+  switch (index) {
+  case 0: return X64GPR_RDI;
+  case 1: return X64GPR_RSI;
+  case 2: return X64GPR_RDX;
+  case 3: return X64GPR_RCX;
+  case 4: return X64GPR_R8;
+  case 5: return X64GPR_R9;
+  // the rest of the arguments are passed on the stack.
+  default: EXP_UNREACHABLE;
   }
 }

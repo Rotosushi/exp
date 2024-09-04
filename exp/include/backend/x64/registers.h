@@ -59,5 +59,6 @@ typedef enum x64_GPR : u8 {
 } x64_GPR;
 
 StringView x64_gpr_to_sv(x64_GPR r);
+x64_GPR x64_scalar_argument_gpr(u8 index);
 
 #endif // !EXP_BACKEND_X64_GPR_H

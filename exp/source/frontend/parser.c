@@ -342,15 +342,14 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
     if (maybe.has_error) { return maybe; }
   }
 
-  context_leave_function(c);
-
 #if EXP_DEBUG
-  file_write("parsed a function: \n fn ", stdout);
+  file_write("parsed a function: \nfn ", stdout);
   print_string_view(name, stdout);
   print_function_body(body, stdout, c);
   file_write("\n", stdout);
 #endif
 
+  context_leave_function(c);
   return success(zero());
 }
 
@@ -463,7 +462,7 @@ call(Parser *restrict p, Context *restrict c, Operand left) {
     if (maybe.has_error) { return maybe; }
   }
 
-  return success(context_emit_call(c, left, operand_ssa(pair.index)));
+  return success(context_emit_call(c, left, operand_call(pair.index)));
 }
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
