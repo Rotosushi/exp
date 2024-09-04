@@ -6,6 +6,11 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/backend/directives.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
+
+  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/copy.c
+  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
+  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
+
   ${EXP_SOURCE_DIR}/backend/x64/allocation.c
   ${EXP_SOURCE_DIR}/backend/x64/allocator.c
   ${EXP_SOURCE_DIR}/backend/x64/bytecode.c
@@ -26,7 +31,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/core/typecheck.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
-  ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
@@ -34,6 +38,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
+  ${EXP_SOURCE_DIR}/env/values.c
 
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c

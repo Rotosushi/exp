@@ -86,6 +86,12 @@ char *i64_to_str(i64 value, char *restrict buffer) {
   return buffer;
 }
 
+void print_i64(i64 value, FILE *file) {
+  char buf[i64_safe_strlen(value) + 1];
+  if (i64_to_str(value, buf) == NULL) { PANIC("conversion failed"); }
+  fputs(buf, file);
+}
+
 char *u64_to_str(u64 value, char *restrict buffer) {
   assert(buffer != NULL);
 
@@ -114,6 +120,12 @@ char *u64_to_str(u64 value, char *restrict buffer) {
   }
 
   return buffer;
+}
+
+void print_u64(u64 value, FILE *file) {
+  char buf[u64_safe_strlen(value) + 1];
+  if (u64_to_str(value, buf) == NULL) { PANIC("conversion failed"); }
+  fputs(buf, file);
 }
 
 static u64 base10_stou64(char const *restrict buffer, u64 length) {
@@ -164,3 +176,4 @@ u64 str_to_u64(char const *restrict buffer, u64 length) {
   assert(buffer != NULL);
   return base10_stou64(buffer, length);
 }
+

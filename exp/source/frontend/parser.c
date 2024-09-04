@@ -17,12 +17,16 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "env/error.h"
+#include "frontend/lexer.h"
 #include "frontend/parser.h"
+#include "imr/operand.h"
 #include "utility/numeric_conversions.h"
+#include "utility/unreachable.h"
 
 typedef struct Parser {
   Lexer lexer;
@@ -53,20 +57,7 @@ static ParserResult success(Operand result) {
   return pr;
 }
 
-static ParserResult from_fold(FoldResult fold) {
-  ParserResult result = {.has_error = fold.has_error};
-  if (fold.has_error) {
-    result.error = fold.error;
-  } else {
-    result.result = fold.operand;
-  }
-  return result;
-}
-
-static Operand zero() {
-  Operand o = {.format = OPRFMT_IMMEDIATE, .common = 0};
-  return o;
-}
+static Operand zero() { return operand_immediate(0); }
 
 typedef enum Precedence {
   PREC_NONE,
@@ -354,12 +345,12 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 
   context_leave_function(c);
 
-  // #if EXP_DEBUG
-  //   file_write("parsed a function: \n fn ", stdout);
-  //   print_string_view(name, stdout);
-  //   print_function_body(body, stdout);
-  //   file_write("\n", stdout);
-  // #endif
+#if EXP_DEBUG
+  file_write("parsed a function: \n fn ", stdout);
+  print_string_view(name, stdout);
+  print_function_body(body, stdout);
+  file_write("\n", stdout);
+#endif
 
   return success(zero());
 }
@@ -409,9 +400,9 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
   if (maybe.has_error) { return maybe; }
 
   switch (op) {
-  case TOK_MINUS: return from_fold(context_emit_neg(c, maybe.result));
+  case TOK_MINUS: return success(context_emit_neg(c, maybe.result));
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -427,13 +418,14 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   Operand right = maybe.result;
 
   switch (op) {
-  case TOK_PLUS:    return from_fold(context_emit_add(c, left, right));
-  case TOK_MINUS:   return from_fold(context_emit_sub(c, left, right));
-  case TOK_STAR:    return from_fold(context_emit_mul(c, left, right));
-  case TOK_SLASH:   return from_fold(context_emit_div(c, left, right));
-  case TOK_PERCENT: return from_fold(context_emit_mod(c, left, right));
+  case TOK_DOT:     return success(context_emit_dot(c, left, right));
+  case TOK_PLUS:    return success(context_emit_add(c, left, right));
+  case TOK_MINUS:   return success(context_emit_sub(c, left, right));
+  case TOK_STAR:    return success(context_emit_mul(c, left, right));
+  case TOK_SLASH:   return success(context_emit_div(c, left, right));
+  case TOK_PERCENT: return success(context_emit_mod(c, left, right));
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -443,7 +435,6 @@ parse_actual_argument_list(Parser *restrict p,
                            ActualArgumentList *restrict list) {
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
-  // so we simply treat it as such here.
   if (expect(p, TOK_NIL)) { return success(zero()); }
 
   nexttok(p); // eat '('
@@ -494,17 +485,14 @@ static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
   return success(idx);
 }
 
-static ParserResult integer(Parser *restrict p, Context *restrict c) {
+static ParserResult integer(Parser *restrict p,
+                            [[maybe_unused]] Context *restrict c) {
   StringView sv = curtxt(p);
   i64 integer   = str_to_i64(sv.ptr, sv.length);
 
   nexttok(p);
   Operand B;
-  if ((integer >= 0) && (integer < u16_MAX)) {
-    B = operand_immediate((u16)integer);
-  } else {
-    B = context_constants_append(c, value_create_i64(integer));
-  }
+  B = operand_immediate(integer);
 
   return success(B);
 }
@@ -521,7 +509,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
     return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
   }
 
-  u16 idx = context_global_labels_insert(c, name);
+  u64 idx = context_global_labels_insert(c, name);
   return success(operand_label(idx));
 }
 
@@ -567,7 +555,7 @@ static ParseRule *get_rule(Token token) {
       [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
       [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
-      [TOK_DOT]         = {         NULL,  NULL,   PREC_NONE},
+      [TOK_DOT]         = {         NULL, binop,   PREC_CALL},
       [TOK_SEMICOLON]   = {         NULL,  NULL,   PREC_NONE},
       [TOK_COLON]       = {         NULL,  NULL,   PREC_NONE},
       [TOK_RIGHT_ARROW] = {         NULL,  NULL,   PREC_NONE},

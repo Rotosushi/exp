@@ -17,3 +17,5 @@ _exp_byte_copy:
   rep movsb
   ret
 .size _exp_byte_copy, .-_exp_byte_copy
+
+.section .note.GNU-stack,"",@progbits

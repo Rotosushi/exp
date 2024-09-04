@@ -174,7 +174,8 @@ void print_value(Value const *restrict v, FILE *restrict file) {
     break;
   }
 
-  case VALUEKIND_I64: file_write_i64(v->integer, file); break;
+  case VALUEKIND_I64:   file_write_i64(v->integer_64, file); break;
+  case VALUEKIND_TUPLE: print_tuple(&v->tuple, file); break;
 
   default: file_write("undefined", file); break;
   }

@@ -31,3 +31,4 @@ u64 nearest_power_of_two(u64 value) {
     }
   }
 }
+

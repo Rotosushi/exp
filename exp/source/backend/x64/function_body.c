@@ -54,3 +54,4 @@ void x64_function_body_destroy(x64_FunctionBody *restrict body) {
   x64_formal_arguments_destroy(&body->arguments);
   x64_bytecode_destroy(&body->bc);
 }
+

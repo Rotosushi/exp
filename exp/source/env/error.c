@@ -96,3 +96,4 @@ void error_print(Error *restrict error, StringView file, u64 line) {
   log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
   string_destroy(&msg);
 }
+

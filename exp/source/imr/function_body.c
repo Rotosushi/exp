@@ -97,9 +97,9 @@ static bool local_variables_full(LocalVariables *restrict lv) {
 }
 
 static void local_variables_grow(LocalVariables *restrict lv) {
-  Growth g     = array_growth_u16(lv->capacity, sizeof(LocalVariable));
+  Growth g     = array_growth_u64(lv->capacity, sizeof(LocalVariable));
   lv->buffer   = reallocate(lv->buffer, g.alloc_size);
-  lv->capacity = (u16)g.new_capacity;
+  lv->capacity = g.new_capacity;
 }
 
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
@@ -110,9 +110,9 @@ void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
 }
 
 static void local_variables_name_ssa(LocalVariables *restrict lv,
-                                     u16 ssa,
+                                     u64 ssa,
                                      StringView name) {
-  for (u16 i = 0; i < lv->size; ++i) {
+  for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
     if (var->ssa == ssa) {
       var->name = name;
@@ -123,7 +123,7 @@ static void local_variables_name_ssa(LocalVariables *restrict lv,
 
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name) {
-  for (u16 i = 0; i < lv->size; ++i) {
+  for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
     if (string_view_eq(var->name, name)) { return var; }
   }
@@ -131,8 +131,8 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
 }
 
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
-                                          u16 ssa) {
-  for (u16 i = 0; i < lv->size; ++i) {
+                                          u64 ssa) {
+  for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
     if (var->ssa == ssa) { return var; }
   }
@@ -178,7 +178,7 @@ static CallList call_list_create() {
 
 static void call_list_destroy(CallList *restrict list) {
   assert(list != NULL);
-  for (u16 i = 0; i < list->size; ++i) {
+  for (u64 i = 0; i < list->size; ++i) {
     actual_argument_list_destroy(list->list + i);
   }
   deallocate(list->list);
@@ -192,12 +192,12 @@ static bool call_list_full(CallList *restrict list) {
 }
 
 static void call_list_grow(CallList *restrict list) {
-  Growth g       = array_growth_u16(list->capacity, sizeof(ActualArgumentList));
+  Growth g       = array_growth_u64(list->capacity, sizeof(ActualArgumentList));
   list->list     = reallocate(list->list, g.alloc_size);
-  list->capacity = (u16)g.new_capacity;
+  list->capacity = g.new_capacity;
 }
 
-static CallPair call_pair(u16 idx, ActualArgumentList *list) {
+static CallPair call_pair(u64 idx, ActualArgumentList *list) {
   CallPair pair = {.index = idx, .list = list};
   return pair;
 }
@@ -214,11 +214,11 @@ static CallPair call_list_new_call(CallList *restrict list) {
   return pair;
 }
 
-[[maybe_unused]] static bool index_inbounds(CallList *restrict list, u16 idx) {
+[[maybe_unused]] static bool index_inbounds(CallList *restrict list, u64 idx) {
   return idx < list->size;
 }
 
-static ActualArgumentList *call_list_at(CallList *restrict list, u16 idx) {
+static ActualArgumentList *call_list_at(CallList *restrict list, u64 idx) {
   assert(list != NULL);
   assert(index_inbounds(list, idx));
 
@@ -251,7 +251,7 @@ CallPair function_body_new_call(FunctionBody *restrict function) {
 }
 
 ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
-                                          u16 idx) {
+                                          u64 idx) {
   assert(function != NULL);
   return call_list_at(&function->calls, idx);
 }
@@ -271,7 +271,7 @@ void function_body_new_argument(FunctionBody *restrict function,
 
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u16 ssa) {
+                             u64 ssa) {
   assert(function != NULL);
   local_variables_name_ssa(&function->locals, ssa, name);
 }

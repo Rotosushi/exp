@@ -18,7 +18,6 @@
 #define EXP_FRONTEND_PARSER_H
 
 #include "env/context.h"
-#include "frontend/lexer.h"
 
 /*
   definition = "fn" identifier formal-args "->" type body
@@ -39,7 +38,7 @@
 
   basic = literal
         | unop basic
-        | "(" expression ")"
+        | "(" expression ("," expression)* ")"
         | identifier
 
   literal = integer

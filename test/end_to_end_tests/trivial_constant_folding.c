@@ -35,3 +35,4 @@ int trivial_constant_folding([[maybe_unused]] int argc,
 
   return result;
 }
+

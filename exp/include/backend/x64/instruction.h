@@ -49,12 +49,13 @@
 
 */
 
-typedef enum x64_Opcode {
+typedef enum x64_Opcode : u8 {
   X64OPC_RET,
   X64OPC_CALL,
   X64OPC_PUSH,
   X64OPC_POP,
   X64OPC_MOV,
+  X64OPC_LEA,
   X64OPC_NEG,
   X64OPC_ADD,
   X64OPC_SUB,
@@ -63,24 +64,23 @@ typedef enum x64_Opcode {
 } x64_Opcode;
 
 typedef struct x64_Instruction {
-  unsigned opcode : 8;
-  unsigned Afmt   : 3;
-  unsigned Bfmt   : 3;
-  unsigned        : 2;
-  union {
-    unsigned Acommon : 16;
-    signed Aoffset   : 16;
-  };
-  union {
-    unsigned Bcommon : 16;
-    signed Boffset   : 16;
-  };
+  x64_Opcode opcode;
+  x64_Operand A;
+  x64_Operand B;
 } x64_Instruction;
 
-x64_Instruction x64_instruction(x64_Opcode opcode);
-x64_Instruction x64_instruction_A(x64_Opcode opcode, x64_Operand A);
-x64_Instruction
-x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B);
+x64_Instruction x64_ret();
+x64_Instruction x64_call(x64_Operand label);
+x64_Instruction x64_push(x64_Operand src);
+x64_Instruction x64_pop(x64_Operand dst);
+x64_Instruction x64_mov(x64_Operand dst, x64_Operand src);
+x64_Instruction x64_lea(x64_Operand dst, x64_Operand src);
+
+x64_Instruction x64_neg(x64_Operand dst);
+x64_Instruction x64_add(x64_Operand dst, x64_Operand src);
+x64_Instruction x64_sub(x64_Operand dst, x64_Operand src);
+x64_Instruction x64_imul(x64_Operand src);
+x64_Instruction x64_idiv(x64_Operand src);
 
 void x64_instruction_emit(x64_Instruction I,
                           String *restrict buffer,

@@ -35,3 +35,4 @@ i32 assemble(Context *restrict context) {
 
   return process("as", args);
 }
+

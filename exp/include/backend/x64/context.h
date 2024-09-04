@@ -31,9 +31,12 @@ x64_Context x64_context_create(Context *restrict context);
 void x64_context_destroy(x64_Context *restrict x64_context);
 
 // context functions
+// context constants functions
+Value *x64_context_value_at(x64_Context *restrict context, u64 index);
+
 // context global symbol table functions
 StringView x64_context_global_symbols_at(x64_Context *restrict x64_context,
-                                         u16 idx);
+                                         u64 idx);
 
 // context function functions
 FunctionBody *x64_context_enter_function(x64_Context *restrict x64_context,
@@ -41,7 +44,7 @@ FunctionBody *x64_context_enter_function(x64_Context *restrict x64_context,
 void x64_context_leave_function(x64_Context *restrict context);
 
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
-                                        u16 idx);
+                                        u64 idx);
 FormalArgument *x64_context_argument_at(x64_Context *restrict x64_context,
                                         u8 index);
 

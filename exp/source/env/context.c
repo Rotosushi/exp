@@ -20,6 +20,8 @@
 #include <stdlib.h>
 
 #include "env/context.h"
+#include "utility/io.h"
+#include "utility/unreachable.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
@@ -28,7 +30,7 @@ Context context_create(CLIOptions *restrict options) {
                      .type_interner       = type_interner_create(),
                      .global_symbol_table = symbol_table_create(),
                      .global_labels       = global_labels_create(),
-                     .constants           = constants_create()};
+                     .values              = values_create()};
   return context;
 }
 
@@ -39,7 +41,7 @@ void context_destroy(Context *restrict context) {
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbol_table));
   global_labels_destroy(&(context->global_labels));
-  constants_destroy(&(context->constants));
+  values_destroy(&(context->values));
 }
 
 bool context_do_assemble(Context *restrict context) {
@@ -110,12 +112,12 @@ Type *context_function_type(Context *restrict context,
       &context->type_interner, return_type, argument_types);
 }
 
-u16 context_global_labels_insert(Context *restrict context, StringView symbol) {
+u64 context_global_labels_insert(Context *restrict context, StringView symbol) {
   assert(context != NULL);
   return global_labels_insert(&context->global_labels, symbol);
 }
 
-StringView context_global_labels_at(Context *restrict context, u16 idx) {
+StringView context_global_labels_at(Context *restrict context, u64 idx) {
   assert(context != NULL);
   return global_labels_at(&context->global_labels, idx);
 }
@@ -159,7 +161,7 @@ CallPair context_new_call(Context *restrict c) {
   return function_body_new_call(context_current_function(c));
 }
 
-ActualArgumentList *context_call_at(Context *restrict c, u16 idx) {
+ActualArgumentList *context_call_at(Context *restrict c, u64 idx) {
   return function_body_call_at(context_current_function(c), idx);
 }
 
@@ -167,14 +169,14 @@ void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value) {
   Operand A = context_emit_load(c, value);
-  function_body_new_local(context_current_function(c), name, A.common);
+  function_body_new_local(context_current_function(c), name, A.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
   return local_variables_lookup(&(context_current_function(c)->locals), name);
 }
 
-LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa) {
+LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa) {
   return local_variables_lookup_ssa(&(context_current_function(c)->locals),
                                     ssa);
 }
@@ -196,39 +198,33 @@ void context_leave_function(Context *restrict c) {
 
 Operand context_constants_append(Context *restrict context, Value value) {
   assert(context != NULL);
-  return constants_add(&(context->constants), value);
+  return values_add(&(context->values), value);
 }
 
-Value *context_constants_at(Context *restrict context, u16 index) {
+Value *context_constants_at(Context *restrict context, u64 index) {
   assert(context != NULL);
-  return constants_at(&(context->constants), index);
-}
-
-static FoldResult success(Operand O) {
-  FoldResult result = {.has_error = 0, .operand = O};
-  return result;
-}
-
-static FoldResult error(ErrorCode code, StringView sv) {
-  FoldResult result = {.has_error = 1, .error = error_construct(code, sv)};
-  return result;
-}
-
-void fold_result_destroy(FoldResult *restrict fr) {
-  if (fr->has_error) { error_destroy(&fr->error); }
+  return values_at(&(context->values), index);
 }
 
 void context_emit_return(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  bytecode_emit_return(bc, B);
+  bytecode_append(bc, instruction_ret(B));
 }
 
 Operand context_emit_call(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_emit_call(bc, A, B, C);
+  bytecode_append(bc, instruction_call(A, B, C));
+  return A;
+}
+
+Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
+  assert(c != NULL);
+  Bytecode *bc = context_active_bytecode(c);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_dot(A, B, C));
   return A;
 }
 
@@ -236,386 +232,54 @@ Operand context_emit_load(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_emit_load(bc, A, B);
+  bytecode_append(bc, instruction_load(A, B));
   return A;
 }
 
-static bool in_range(i64 n) { return (n < u16_MAX) && (n > 0); }
-
-FoldResult context_emit_neg(Context *restrict c, Operand B) {
+Operand context_emit_neg(Context *restrict c, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_neg(bc, A, B);
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *v = context_constants_at(c, B.common);
-    if (v->kind == VALUEKIND_I64) {
-      i64 n = -(v->integer_64);
-      A     = context_constants_append(c, value_create_i64(n));
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    i64 n = -((i64)(B.common));
-    if (in_range(n)) {
-      A = operand_immediate((u16)n);
-    } else {
-      A = context_constants_append(c, value_create_i64(n));
-    }
-    break;
-  }
-
-  default: unreachable();
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_neg(A, B));
+  return A;
 }
 
-FoldResult context_emit_add(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_add(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Bv = context_constants_at(c, B.common);
-    if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = (i64)B.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_add(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Cv = context_constants_at(c, C.common);
-    if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = (i64)C.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_add_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  if (in_range(z)) {
-    A = operand_immediate((u16)z);
-  } else {
-    A = context_constants_append(c, value_create_i64(z));
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_add(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_sub(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Bv = context_constants_at(c, B.common);
-    if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = (i64)B.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_sub(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Cv = context_constants_at(c, C.common);
-    if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = (i64)C.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_sub_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  if (in_range(z)) {
-    A = operand_immediate((u16)z);
-  } else {
-    A = context_constants_append(c, value_create_i64(z));
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_sub(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_mul(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Bv = context_constants_at(c, B.common);
-    if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = (i64)B.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_mul(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Cv = context_constants_at(c, C.common);
-    if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = (i64)C.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  if (__builtin_mul_overflow(x, y, &z)) {
-    return error(ERROR_INTEGER_TO_LARGE, string_view_from_cstring(""));
-  }
-
-  if (in_range(z)) {
-    A = operand_immediate((u16)z);
-  } else {
-    A = context_constants_append(c, value_create_i64(z));
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_mul(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_div(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_div(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Bv = context_constants_at(c, B.common);
-    if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = (i64)B.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_div(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Cv = context_constants_at(c, C.common);
-    if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = (i64)C.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  z = x / y;
-
-  if (in_range(z)) {
-    A = operand_immediate((u16)z);
-  } else {
-    A = context_constants_append(c, value_create_i64(z));
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_div(A, B, C));
+  return A;
 }
 
-FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A;
-  i64 x = 0;
-  i64 y = 0;
-  i64 z = 0;
-  switch (B.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_mod(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Bv = context_constants_at(c, B.common);
-    if (Bv->kind == VALUEKIND_I64) {
-      x = Bv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    x = (i64)B.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  switch (C.format) {
-  case OPRFMT_SSA: {
-    A = context_new_ssa(c);
-    bytecode_emit_mod(bc, A, B, C);
-    return success(A);
-  }
-
-  case OPRFMT_CONSTANT: {
-    Value *Cv = context_constants_at(c, C.common);
-    if (Cv->kind == VALUEKIND_I64) {
-      y = Cv->integer_64;
-    } else {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_view_from_cstring(""));
-    }
-    break;
-  }
-
-  case OPRFMT_IMMEDIATE: {
-    y = (i64)C.common;
-    break;
-  }
-
-  default: unreachable();
-  }
-
-  z = x % y;
-
-  if (in_range(z)) {
-    A = operand_immediate((u16)z);
-  } else {
-    A = context_constants_append(c, value_create_i64(z));
-  }
-  return success(A);
+  Operand A    = context_new_ssa(c);
+  bytecode_append(bc, instruction_mod(A, B, C));
+  return A;
 }

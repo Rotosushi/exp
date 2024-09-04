@@ -19,15 +19,15 @@
 #include "utility/string_view.h"
 
 typedef struct GlobalLabels {
-  u16 size;
-  u16 capacity;
+  u64 size;
+  u64 capacity;
   StringView *buffer;
 } GlobalLabels;
 
 GlobalLabels global_labels_create();
 void global_labels_destroy(GlobalLabels *restrict symbols);
 
-u16 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol);
-StringView global_labels_at(GlobalLabels *restrict symbols, u16 idx);
+u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol);
+StringView global_labels_at(GlobalLabels *restrict symbols, u64 idx);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

@@ -23,7 +23,7 @@
  * @brief General Purpose Register
  *
  */
-typedef enum x64_GPR {
+typedef enum x64_GPR : u8 {
   X64GPR_RAX,
   X64GPR_RBX,
   X64GPR_RCX,
@@ -40,22 +40,22 @@ typedef enum x64_GPR {
   X64GPR_R13,
   X64GPR_R14,
   X64GPR_R15,
-  X64GPR_R16,
-  X64GPR_R17,
-  X64GPR_R18,
-  X64GPR_R19,
-  X64GPR_R20,
-  X64GPR_R21,
-  X64GPR_R22,
-  X64GPR_R23,
-  X64GPR_R24,
-  X64GPR_R25,
-  X64GPR_R26,
-  X64GPR_R27,
-  X64GPR_R28,
-  X64GPR_R29,
-  X64GPR_R30,
-  X64GPR_R31,
+  // X64GPR_R16,
+  // X64GPR_R17,
+  // X64GPR_R18,
+  // X64GPR_R19,
+  // X64GPR_R20,
+  // X64GPR_R21,
+  // X64GPR_R22,
+  // X64GPR_R23,
+  // X64GPR_R24,
+  // X64GPR_R25,
+  // X64GPR_R26,
+  // X64GPR_R27,
+  // X64GPR_R28,
+  // X64GPR_R29,
+  // X64GPR_R30,
+  // X64GPR_R31,
 } x64_GPR;
 
 StringView x64_gpr_to_sv(x64_GPR r);

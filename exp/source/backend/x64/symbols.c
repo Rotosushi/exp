@@ -56,3 +56,4 @@ x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
   }
   PANIC("unreachable");
 }
+

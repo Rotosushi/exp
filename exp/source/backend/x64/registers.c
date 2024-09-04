@@ -38,22 +38,22 @@ StringView x64_gpr_to_sv(x64_GPR r) {
   case X64GPR_R13: return SV("r13");
   case X64GPR_R14: return SV("r14");
   case X64GPR_R15: return SV("r15");
-  case X64GPR_R16: return SV("r16");
-  case X64GPR_R17: return SV("r17");
-  case X64GPR_R18: return SV("r18");
-  case X64GPR_R19: return SV("r19");
-  case X64GPR_R20: return SV("r20");
-  case X64GPR_R21: return SV("r21");
-  case X64GPR_R22: return SV("r22");
-  case X64GPR_R23: return SV("r23");
-  case X64GPR_R24: return SV("r24");
-  case X64GPR_R25: return SV("r25");
-  case X64GPR_R26: return SV("r26");
-  case X64GPR_R27: return SV("r27");
-  case X64GPR_R28: return SV("r28");
-  case X64GPR_R29: return SV("r29");
-  case X64GPR_R30: return SV("r30");
-  case X64GPR_R31: return SV("r31");
+  // case X64GPR_R16: return SV("r16");
+  // case X64GPR_R17: return SV("r17");
+  // case X64GPR_R18: return SV("r18");
+  // case X64GPR_R19: return SV("r19");
+  // case X64GPR_R20: return SV("r20");
+  // case X64GPR_R21: return SV("r21");
+  // case X64GPR_R22: return SV("r22");
+  // case X64GPR_R23: return SV("r23");
+  // case X64GPR_R24: return SV("r24");
+  // case X64GPR_R25: return SV("r25");
+  // case X64GPR_R26: return SV("r26");
+  // case X64GPR_R27: return SV("r27");
+  // case X64GPR_R28: return SV("r28");
+  // case X64GPR_R29: return SV("r29");
+  // case X64GPR_R30: return SV("r30");
+  // case X64GPR_R31: return SV("r31");
   default:         unreachable();
   }
 }

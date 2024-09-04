@@ -20,7 +20,7 @@
 #include "adt/string.h"
 #include "utility/log.h"
 
-typedef enum ErrorCode {
+typedef enum ErrorCode : u8 {
   ERROR_NONE,
 
   ERROR_LEXER_ERROR_UNEXPECTED_CHAR,
@@ -49,6 +49,8 @@ typedef enum ErrorCode {
 
   ERROR_TYPECHECK_UNDEFINED_SYMBOL,
   ERROR_TYPECHECK_TYPE_MISMATCH,
+  ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
+  ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS,
 } ErrorCode;
 
 StringView error_code_sv(ErrorCode code);

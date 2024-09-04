@@ -134,3 +134,4 @@ bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
 
   return iter->element == iter->end;
 }
+

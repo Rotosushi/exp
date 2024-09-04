@@ -21,23 +21,23 @@
 #include "backend/x64/operand.h"
 
 x64_Operand x64_operand_gpr(x64_GPR gpr) {
-  x64_Operand opr = {.format = X64OPRFMT_GPR, .common = gpr};
+  x64_Operand opr = {.format = X64OPRFMT_GPR, .gpr = gpr};
   return opr;
 }
 
-x64_Operand x64_operand_stack(i16 offset) {
-  x64_Operand opr = {.format = X64OPRFMT_STACK, .offset = offset};
+x64_Operand x64_operand_address(x64_Address address) {
+  x64_Operand opr = {.format = X64OPRFMT_ADDRESS, .address = address};
   return opr;
 }
 
 x64_Operand x64_operand_location(x64_Location location) {
   switch (location.kind) {
-  case ALLOC_GPR: {
+  case LOCATION_GPR: {
     return x64_operand_gpr(location.gpr);
   }
 
-  case ALLOC_STACK: {
-    return x64_operand_stack(location.offset);
+  case LOCATION_ADDRESS: {
+    return x64_operand_address(location.address);
   }
 
   default: unreachable();
@@ -48,17 +48,17 @@ x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
   return x64_operand_location(alloc->location);
 }
 
-x64_Operand x64_operand_constant(u16 idx) {
-  x64_Operand opr = {.format = X64OPRFMT_CONSTANT, .common = idx};
+// x64_Operand x64_operand_constant(u64 index) {
+//   x64_Operand opr = {.format = X64OPRFMT_CONSTANT, .index = index};
+//   return opr;
+// }
+
+x64_Operand x64_operand_immediate(i64 value) {
+  x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .immediate = value};
   return opr;
 }
 
-x64_Operand x64_operand_immediate(u16 value) {
-  x64_Operand opr = {.format = X64OPRFMT_IMMEDIATE, .common = value};
-  return opr;
-}
-
-x64_Operand x64_operand_label(u16 idx) {
-  x64_Operand opr = {.format = X64OPRFMT_LABEL, .common = idx};
+x64_Operand x64_operand_label(u64 index) {
+  x64_Operand opr = {.format = X64OPRFMT_LABEL, .index = index};
   return opr;
 }

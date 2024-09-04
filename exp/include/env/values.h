@@ -18,38 +18,37 @@
 #define EXP_IMR_CONSTANTS_H
 #include <stddef.h>
 
-#include "imr/instruction.h"
 #include "imr/value.h"
 #include "utility/io.h"
 
-typedef struct Constants {
-  u16 length;
-  u16 capacity;
+typedef struct Values {
+  u64 length;
+  u64 capacity;
   Value *buffer;
-} Constants;
+} Values;
 
 /**
- * @brief create a Constants buffer
+ * @brief create a Values buffer
  *
- * @return Constants
+ * @return Values
  */
-Constants constants_create();
+Values values_create();
 
 /**
- * @brief destroy a Constants buffer
+ * @brief destroy a Values buffer
  *
- * @param constants
+ * @param values
  */
-void constants_destroy(Constants *restrict constants);
+void values_destroy(Values *restrict values);
 
 /**
- * @brief add a new constant to the Constants buffer
+ * @brief add a new Value to the Values buffer
  *
- * @param constants
+ * @param values
  * @param value
  * @return Value*
  */
-Operand constants_add(Constants *restrict constants, Value value);
+Operand values_add(Values *restrict values, Value value);
 
 /**
  * @brief return the constant at the given index in the buffer
@@ -58,8 +57,8 @@ Operand constants_add(Constants *restrict constants, Value value);
  * @param index
  * @return Value*
  */
-Value *constants_at(Constants *restrict constants, u16 index);
+Value *values_at(Values *restrict values, u64 index);
 
-void print_constants(Constants const *restrict c, FILE *restrict file);
+void print_values(Values const *restrict values, FILE *restrict file);
 
 #endif // !EXP_IMR_CONSTANTS_H

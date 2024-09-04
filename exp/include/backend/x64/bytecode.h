@@ -21,22 +21,23 @@
 #include "backend/x64/instruction.h"
 
 typedef struct x64_Bytecode {
-  u16 length;
-  u16 capacity;
+  u64 length;
+  u64 capacity;
   x64_Instruction *buffer;
 } x64_Bytecode;
 
 x64_Bytecode x64_bytecode_create();
 void x64_bytecode_destroy(x64_Bytecode *restrict bc);
 
-u16 x64_bytecode_current_offset(x64_Bytecode *restrict bc);
+u64 x64_bytecode_current_offset(x64_Bytecode *restrict bc);
 
 void x64_bytecode_insert(x64_Bytecode *restrict bc,
                          x64_Instruction I,
-                         u16 offset);
+                         u64 offset);
 void x64_bytecode_prepend(x64_Bytecode *restrict bc, x64_Instruction I);
 void x64_bytecode_append(x64_Bytecode *restrict bc, x64_Instruction I);
 
+/*
 void x64_bytecode_append_ret(x64_Bytecode *restrict bc);
 void x64_bytecode_append_call(x64_Bytecode *restrict bc, x64_Operand A);
 
@@ -71,7 +72,7 @@ void x64_bytecode_prepend_sub(x64_Bytecode *restrict bc,
 
 void x64_bytecode_append_imul(x64_Bytecode *restrict bc, x64_Operand A);
 
-void x64_bytecode_append_idiv(x64_Bytecode *restrict bc, x64_Operand A);
+void x64_bytecode_append_idiv(x64_Bytecode *restrict bc, x64_Operand A);*/
 
 void x64_bytecode_emit(x64_Bytecode *restrict bc,
                        String *restrict buffer,

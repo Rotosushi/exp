@@ -17,13 +17,13 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/constants.h"
 #include "env/context_options.h"
 #include "env/error.h"
 #include "env/global_labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
+#include "env/values.h"
 #include "imr/function_body.h"
 
 /**
@@ -37,7 +37,7 @@ typedef struct Context {
   SymbolTable global_symbol_table;
   GlobalLabels global_labels;
   FunctionBody *current_function;
-  Constants constants;
+  Values values;
 } Context;
 
 /**
@@ -74,9 +74,9 @@ Type *context_function_type(Context *restrict context,
                             TupleType argument_types);
 
 // global labels functions
-u16 context_global_labels_insert(Context *restrict context, StringView symbol);
+u64 context_global_labels_insert(Context *restrict context, StringView symbol);
 
-StringView context_global_labels_at(Context *restrict context, u16 idx);
+StringView context_global_labels_at(Context *restrict context, u64 idx);
 
 // symbol table functions
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
@@ -91,13 +91,13 @@ FunctionBody *context_current_function(Context *restrict c);
 Bytecode *context_active_bytecode(Context *restrict c);
 
 CallPair context_new_call(Context *restrict c);
-ActualArgumentList *context_call_at(Context *restrict c, u16 idx);
+ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
 void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
-LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
+LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa);
 FormalArgument *context_lookup_argument(Context *restrict c, StringView name);
 FormalArgument *context_argument_at(Context *restrict c, u8 index);
 
@@ -106,29 +106,17 @@ void context_leave_function(Context *restrict c);
 // Constants functions
 Operand context_constants_append(Context *restrict context, Value value);
 
-Value *context_constants_at(Context *restrict context, u16 index);
-
-// emit instruction functions
-typedef struct FoldResult {
-  bool has_error;
-  union {
-    Operand operand;
-    Error error;
-  };
-} FoldResult;
-
-void fold_result_destroy(FoldResult *restrict fr);
+Value *context_constants_at(Context *restrict context, u64 index);
 
 void context_emit_return(Context *restrict c, Operand B);
 Operand context_emit_call(Context *restrict c, Operand B, Operand C);
-
+Operand context_emit_dot(Context *restrict c, Operand B, Operand C);
 Operand context_emit_load(Context *restrict c, Operand B);
-
-FoldResult context_emit_neg(Context *restrict c, Operand B);
-FoldResult context_emit_add(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_sub(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_mul(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_div(Context *restrict c, Operand B, Operand C);
-FoldResult context_emit_mod(Context *restrict c, Operand B, Operand C);
+Operand context_emit_neg(Context *restrict c, Operand B);
+Operand context_emit_add(Context *restrict c, Operand B, Operand C);
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C);
+Operand context_emit_div(Context *restrict c, Operand B, Operand C);
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C);
 
 #endif // !EXP_ENV_CONTEXT_H

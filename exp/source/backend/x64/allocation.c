@@ -19,6 +19,7 @@
 #include <stddef.h>
 
 #include "backend/x64/allocation.h"
+#include "backend/x64/location.h"
 #include "utility/alloc.h"
 
 x64_Allocation *x64_allocation_allocate() {
@@ -32,11 +33,5 @@ void x64_allocation_deallocate(x64_Allocation *restrict allocation) {
 
 bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
                                 x64_Location location) {
-  if (location.kind != allocation->location.kind) { return 0; }
-
-  switch (location.kind) {
-  case ALLOC_GPR:   return location.gpr == allocation->location.gpr;
-  case ALLOC_STACK: return location.offset == allocation->location.offset;
-  default:          unreachable();
-  }
+  return x64_location_eq(location, allocation->location);
 }

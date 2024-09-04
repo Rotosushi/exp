@@ -22,9 +22,7 @@
 
 static bool list_contains(VertexList *restrict vl, u64 vertex) {
   for (u64 i = 0; i < vl->count; ++i) {
-    if (vl->list[i] == vertex) {
-      return 1;
-    }
+    if (vl->list[i] == vertex) { return 1; }
   }
   return 0;
 }
@@ -98,3 +96,4 @@ int graph_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     return EXIT_SUCCESS;
   }
 }
+

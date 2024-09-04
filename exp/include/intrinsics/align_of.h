@@ -31,3 +31,4 @@
 u64 align_of(Type *restrict type);
 
 #endif // !EXP_INTRINSICS_ALIGNOF_H
+

@@ -19,11 +19,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "env/constants.h"
+#include "env/values.h"
 
-bool test_constants(Constants *restrict constants, Value value) {
-  Operand index   = constants_add(constants, value);
-  Value *constant = constants_at(constants, index.common);
+bool test_values(Values *restrict values, Value value) {
+  Operand index   = values_add(values, value);
+  Value *constant = values_at(values, index.index);
 
   if (value_equality(constant, &value)) {
     return 0;
@@ -34,26 +34,16 @@ bool test_constants(Constants *restrict constants, Value value) {
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
   srand((unsigned)time(NULL));
-  Constants constants = constants_create();
-  bool failure        = 0;
+  Values values = values_create();
+  bool failure  = 0;
 
   // #TODO:
-  failure |= test_constants(&constants, value_create_i64(rand()));
-  failure |= test_constants(&constants, value_create_i64(rand()));
-  failure |= test_constants(&constants, value_create_i64(rand()));
-  failure |= test_constants(&constants, value_create_i64(rand()));
+  failure |= test_values(&values, value_create_i64(rand()));
+  failure |= test_values(&values, value_create_i64(rand()));
+  failure |= test_values(&values, value_create_i64(rand()));
+  failure |= test_values(&values, value_create_i64(rand()));
 
-  // failure |= test_constants(
-  //     &constants, value_create_string_literal(
-  //                     string_view_from_string("hello", sizeof("hello"))));
-  // failure |= test_constants(
-  //     &constants, value_create_string_literal(
-  //                     string_view_from_string("world", sizeof("world"))));
-  // failure |= test_constants(&constants,
-  //                           value_create_string_literal(string_view_from_string(
-  //                               "hello, world", sizeof("hello, world"))));
-
-  constants_destroy(&constants);
+  values_destroy(&values);
   if (failure) {
     return EXIT_FAILURE;
   } else {

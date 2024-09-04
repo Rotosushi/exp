@@ -22,84 +22,61 @@
  * @brief the valid opcodes for instructions
  *
  */
-typedef enum Opcode {
+typedef enum Opcode : u8 {
   /*
    * <...> -> side effect
    * ip    -> the instruction pointer
    * R     -> the return value location
    * A|B|C -> an operand
    * SSA[*]           -> indexing the locals array.
-   * Constants[*]     -> indexing the constants array.
+   * Values[*]     -> indexing the constants array.
    * GlobalSymbol[*]  -> indexing the global names array followed by
    *          indexing the global symbol table.
    * Calls[*]         -> indexing the actual argument lists array.
    */
   OPC_RET, // B -- R = B,    <return>
-           // B -- R = Constants[B], <return>
+           // B -- R = Values[B], <return>
            // B -- R = SSA[B], <return>
 
   OPC_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
+  OPC_DOT, // ABC -- SSA[A] = SSA[B].C
+           // ABC -- SSA[A] = Values[B].C
+
   OPC_LOAD, // AB  -- SSA[A] = B
-            // AB  -- SSA[A] = Constants[B]
+            // AB  -- SSA[A] = Values[B]
             // AB  -- SSA[A] = SSA[B]
 
   OPC_NEG, // AB  -- SSA[A] = -(B)
-           // AB  -- SSA[A] = -(Constants[B])
            // AB  -- SSA[A] = -(SSA[B])
 
   OPC_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
-           // ABC -- SSA[A] = SSA[B] + Constants[C]
            // ABC -- SSA[A] = SSA[B] + C
-           // ABC -- SSA[A] = Constants[B] + SSA[C]
-           // ABC -- SSA[A] = Constants[B] + Constants[C]
-           // ABC -- SSA[A] = Constants[B] + C
            // ABC -- SSA[A] = B    + SSA[C]
-           // ABC -- SSA[A] = B    + Constants[C]
            // ABC -- SSA[A] = B    + C
 
   OPC_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
-           // ABC -- SSA[A] = SSA[B] - Constants[C]
            // ABC -- SSA[A] = SSA[B] - C
-           // ABC -- SSA[A] = Constants[B] - SSA[C]
-           // ABC -- SSA[A] = Constants[B] - Constants[C]
-           // ABC -- SSA[A] = Constants[B] - C
            // ABC -- SSA[A] = B    - SSA[C]
-           // ABC -- SSA[A] = B    - Constants[C]
            // ABC -- SSA[A] = B    - C
 
   OPC_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
-           // ABC -- SSA[A] = SSA[B] * Constants[C]
            // ABC -- SSA[A] = SSA[B] * C
-           // ABC -- SSA[A] = Constants[B] * SSA[C]
-           // ABC -- SSA[A] = Constants[B] * Constants[C]
-           // ABC -- SSA[A] = Constants[B] * C
            // ABC -- SSA[A] = B    * SSA[C]
-           // ABC -- SSA[A] = B    * Constants[C]
            // ABC -- SSA[A] = B    * C
 
   OPC_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
-           // ABC -- SSA[A] = SSA[B] / Constants[C]
            // ABC -- SSA[A] = SSA[B] / C
-           // ABC -- SSA[A] = Constants[B] / SSA[C]
-           // ABC -- SSA[A] = Constants[B] / Constants[C]
-           // ABC -- SSA[A] = Constants[B] / C
            // ABC -- SSA[A] = B    / SSA[C]
-           // ABC -- SSA[A] = B    / Constants[C]
            // ABC -- SSA[A] = B    / C
 
   OPC_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
-           // ABC -- SSA[A] = SSA[B] % Constants[C]
            // ABC -- SSA[A] = SSA[B] % C
-           // ABC -- SSA[A] = Constants[B] % SSA[C]
-           // ABC -- SSA[A] = Constants[B] % Constants[C]
-           // ABC -- SSA[A] = Constants[B] % C
            // ABC -- SSA[A] = B    % SSA[C]
-           // ABC -- SSA[A] = B    % Constants[C]
            // ABC -- SSA[A] = B    % C
 } Opcode;
 
-typedef enum InstructionFormat {
+typedef enum InstructionFormat : u8 {
   IFMT_B,
   IFMT_AB,
   IFMT_ABC,
@@ -109,17 +86,22 @@ typedef enum InstructionFormat {
  * @brief represents a bytecode instruction
  */
 typedef struct Instruction {
-  unsigned opcode : 7;
-  unsigned Ifmt   : 3;
-  unsigned Bfmt   : 3;
-  unsigned Cfmt   : 3;
-  unsigned A      : 16;
-  unsigned B      : 16;
-  unsigned C      : 16;
+  Opcode opcode;
+  InstructionFormat format;
+  u64 A;
+  Operand B;
+  Operand C;
 } Instruction;
 
-Instruction instruction_B(Opcode opcode, Operand B);
-Instruction instruction_AB(Opcode opcode, Operand A, Operand B);
-Instruction instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C);
+Instruction instruction_ret(Operand result);
+Instruction instruction_call(Operand dst, Operand label, Operand args);
+Instruction instruction_dot(Operand dst, Operand src, Operand index);
+Instruction instruction_load(Operand dst, Operand src);
+Instruction instruction_neg(Operand dst, Operand src);
+Instruction instruction_add(Operand dst, Operand left, Operand right);
+Instruction instruction_sub(Operand dst, Operand left, Operand right);
+Instruction instruction_mul(Operand dst, Operand left, Operand right);
+Instruction instruction_div(Operand dst, Operand left, Operand right);
+Instruction instruction_mod(Operand dst, Operand left, Operand right);
 
 #endif // !EXP_IMR_INSTRUCTION_H

@@ -38,28 +38,28 @@ static bool global_labels_full(GlobalLabels *restrict symbols) {
 }
 
 static void global_labels_grow(GlobalLabels *restrict symbols) {
-  Growth g          = array_growth_u16(symbols->capacity, sizeof(StringView));
+  Growth g          = array_growth_u64(symbols->capacity, sizeof(StringView));
   symbols->buffer   = reallocate(symbols->buffer, g.alloc_size);
-  symbols->capacity = (u16)g.new_capacity;
+  symbols->capacity = g.new_capacity;
 }
 
-u16 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
+u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
   assert(symbols != NULL);
 
   if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
-  for (u16 i = 0; i < symbols->size; ++i) {
+  for (u64 i = 0; i < symbols->size; ++i) {
     StringView s = symbols->buffer[i];
     if (string_view_eq(s, symbol)) { return i; }
   }
 
-  u16 idx              = symbols->size;
+  u64 idx              = symbols->size;
   symbols->buffer[idx] = symbol;
   symbols->size += 1;
   return idx;
 }
 
-StringView global_labels_at(GlobalLabels *restrict symbols, u16 idx) {
+StringView global_labels_at(GlobalLabels *restrict symbols, u64 idx) {
   assert(symbols != NULL);
   assert(idx < symbols->size);
   return symbols->buffer[idx];

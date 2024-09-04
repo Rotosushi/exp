@@ -17,175 +17,87 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #include "backend/x64/allocator.h"
 #include "backend/x64/codegen.h"
 #include "backend/x64/context.h"
 #include "backend/x64/emit.h"
+#include "backend/x64/intrinsics/copy.h"
+#include "backend/x64/intrinsics/get_element_address.h"
+#include "backend/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
-#include "utility/minmax.h"
+#include "utility/alloc.h"
+#include "utility/array_growth.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
 
-// #TODO we have to copy from one location to the other,
-// but we also need type information to handle larger size objects.
-// and we have to have a copy for constants, immediates, and labels.
-
-static void x64_codegen_copy_scalar(x64_Allocation *restrict dst,
-                                    x64_Allocation *restrict src,
-                                    u16 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator) {
-  if ((dst->location.kind != ALLOC_STACK) ||
-      (src->location.kind != ALLOC_STACK)) {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(dst), x64_operand_alloc(src));
-    return;
-  }
-
-  x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-
-  x64_bytecode_append_mov(x64bc, x64_operand_gpr(gpr), x64_operand_alloc(src));
-  x64_bytecode_append_mov(x64bc, x64_operand_alloc(dst), x64_operand_gpr(gpr));
-
-  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-}
-
-static void x64_codegen_copy_composite(x64_Allocation *restrict dst,
-                                       x64_Allocation *restrict src,
-                                       u16 Idx,
-                                       x64_Bytecode *restrict x64bc,
-                                       x64_Allocator *restrict allocator) {
-  assert(dst->location.kind == ALLOC_STACK);
-  assert(src->location.kind == ALLOC_STACK);
-  assert(type_equality(dst->type, src->type));
-  x64_GPR gpr   = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-  Type *type    = dst->type;
-  u64 type_size = size_of(type);
-
-  // mov src+8*n(%rbp), gpr
-  // mov gpr, dst+8*n(%rbp)
-  u16 src_offset = src->location.offset;
-  u16 dst_offset = dst->location.offset;
-
-  // #NOTE #TODO: as it currently stands, all
-  // types are length 8. to make math like this
-  // simpler. This is obviously inefficient.
-  u16 elements = (u16)(type_size / 8);
-  for (u16 i = 0; i < elements; ++i) {
-    u16 src_element_offset = src_offset + (8 * i);
-    assert(src_element_offset <= i16_MAX);
-    u16 dst_element_offset = dst_offset + (8 * i);
-    assert(dst_element_offset <= i16_MAX);
-
-    x64_Location src_element = x64_location_stack((i16)src_element_offset);
-    x64_Location dst_element = x64_location_stack((i16)dst_element_offset);
-
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(gpr), x64_operand_location(src_element));
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_location(dst_element), x64_operand_gpr(gpr));
-  }
-
-  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-}
-
-static void x64_codegen_copy(x64_Allocation *restrict dst,
-                             x64_Allocation *restrict src,
-                             u16 Idx,
-                             x64_Bytecode *restrict x64bc,
-                             x64_Allocator *restrict allocator) {
-  assert(type_equality(dst->type, src->type));
-
-  if (x64_location_eq(dst->location, src->location)) { return; }
-
-  if (type_is_scalar(dst->type)) {
-    x64_codegen_copy_scalar(dst, src, Idx, x64bc, allocator);
-  } else {
-    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
-  }
-}
-
-static void
-x64_codegen_load_constant_composite(x64_Allocation *restrict dst,
-                                    Value *restrict src,
-                                    u16 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator) {}
-
-static void x64_codegen_load_constant(x64_Allocation *restrict dst,
-                                      u16 index,
-                                      u16 Idx,
-                                      x64_Bytecode *restrict x64bc,
-                                      x64_Allocator *restrict allocator,
-                                      x64_Context *restrict context) {
-  Value *src     = context_constants_at(context->context, index);
-  Type *src_type = type_of_value(src, context->context);
-  assert(type_equality(dst->type, src_type));
-
-  if (type_is_scalar(dst->type)) {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(dst), x64_operand_constant(index));
-  } else {
-    x64_codegen_copy_composite(dst, src, Idx, x64bc, allocator);
-  }
-}
+/*
+ * #TODO #CLEANUP
+ *  so, this code is rather difficult to read and modify.
+ *  as it is all handrolled nested switch statements.
+ *  The best thing for now is going to be factoring out
+ *  each case into it's own function. This is going to
+ *  create a lot more functions, but hopefully it will make
+ *  them all easier to read, and hopefully maintain.
+ *
+ *  a popular replacement for this handrolling is to generate
+ *  these switches based on some form of x64 specification language.
+ */
 
 static void x64_codegen_ret(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             [[maybe_unused]] LocalVariables *restrict locals,
-                            x64_Allocator *restrict allocator) {
+                            x64_Allocator *restrict allocator,
+                            x64_Context *restrict context) {
   x64_Bytecode *x64bc = &body->bc;
-  // since we are returning, we know by definition
-  // that lifetimes are ending. thus we can just emit
-  // mov's where necessary.
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    if (x64_allocation_location_eq(B, body->return_location)) { break; }
-    x64_codegen_copy(body->return_location, B->location, Idx, x64bc, allocator);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    if (x64_allocation_location_eq(B, body->result->location)) { break; }
+    x64_codegen_copy_allocation(body->result, B, Idx, x64bc, allocator);
     break;
   }
 
-  case OPRFMT_CONSTANT: {
-    x64_bytecode_append_mov(x64bc,
-                            x64_operand_location(body->return_location),
-                            x64_operand_constant(I.B));
+  case OPRFMT_VALUE: {
+    x64_codegen_load_allocation_from_value(
+        body->result, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append_mov(x64bc,
-                            x64_operand_location(body->return_location),
-                            x64_operand_immediate(I.B));
+    x64_bytecode_append(x64bc,
+                        x64_mov(x64_operand_alloc(body->result),
+                                x64_operand_immediate(I.B.immediate)));
     break;
   }
 
   case OPRFMT_LABEL: {
+    /*
+     * #NOTE #TODO #FEATURE eventually we will add support for
+     * global constants (global variables are in limbo until
+     * proven vital). When these exist, it will be possible to
+     * access them via OPRFMT_LABEL operands. Since we do not
+     * have them yet, this case is effecively unreachable.
+     * (right now OPRFMT_LABEL is used exclusively for global
+     *  functions. which are global constants.)
+     */
     PANIC("#TODO");
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 
-  x64_bytecode_append_mov(
-      x64bc, x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP));
-  x64_bytecode_append_pop(x64bc, x64_operand_gpr(X64GPR_RBP));
-  x64_bytecode_append_ret(x64bc);
+  x64_bytecode_append(
+      x64bc, x64_mov(x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP)));
+  x64_bytecode_append(x64bc, x64_pop(x64_operand_gpr(X64GPR_RBP)));
+  x64_bytecode_append(x64bc, x64_ret());
 }
 
 static x64_GPR x64_scalar_argument_gpr(u8 num) {
-  // #TODO: for now, all possible types are scalar.
-  // so when we introduce types that cannot be passed
-  // by register we have to account for that here.
-  // all scalar arguments are passed as below,
-  // any non-scalar argument goes straight to the stack
-  // no matter which index it is. and thus we cannot
-  // rely on the index to be 1:1 with the register being
-  // selected.
   switch (num) {
   case 0: return X64GPR_RDI;
   case 1: return X64GPR_RSI;
@@ -194,166 +106,236 @@ static x64_GPR x64_scalar_argument_gpr(u8 num) {
   case 4: return X64GPR_R8;
   case 5: return X64GPR_R9;
   // the rest of the arguments are passed on the stack.
-  default: unreachable();
+  default: EXP_UNREACHABLE;
+  }
+}
+
+typedef struct OperandArray {
+  u8 size;
+  u8 capacity;
+  Operand *buffer;
+} OperandArray;
+
+static OperandArray operand_array_create() {
+  OperandArray array = {.size = 0, .capacity = 0, .buffer = nullptr};
+  return array;
+}
+
+static void operand_array_destroy(OperandArray *restrict array) {
+  deallocate(array->buffer);
+  array->size     = 0;
+  array->capacity = 0;
+  array->buffer   = nullptr;
+}
+
+static bool operand_array_full(OperandArray *restrict array) {
+  return (array->size + 1) >= array->capacity;
+}
+
+static void operand_array_grow(OperandArray *restrict array) {
+  Growth g        = array_growth_u8(array->capacity, sizeof(Operand));
+  array->buffer   = reallocate(array->buffer, g.alloc_size);
+  array->capacity = (u8)g.new_capacity;
+}
+
+static void operand_array_append(OperandArray *restrict array,
+                                 Operand operand) {
+  if (operand_array_full(array)) { operand_array_grow(array); }
+  array->buffer[array->size++] = operand;
+}
+
+static void
+x64_codegen_load_scalar_argument(x64_GPR dst,
+                                 Operand *arg,
+                                 u64 Idx,
+                                 x64_Bytecode *restrict x64bc,
+                                 x64_Allocator *restrict allocator) {
+  x64_allocator_release_gpr(allocator, dst, Idx, x64bc);
+  switch (arg->format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *allocation =
+        x64_allocator_allocation_of(allocator, arg->ssa);
+    x64_bytecode_append(
+        x64bc, x64_mov(x64_operand_gpr(dst), x64_operand_alloc(allocation)));
+    break;
+  }
+
+  case OPRFMT_VALUE: {
+    /*
+     * #NOTE we do not generate scalar constants anymore as immediate
+     * has been widened to an i64. However, This will need to handle
+     * arguments of scalar type which are not i64's. For now, we do not
+     * handle types other than i64.
+     */
+    EXP_UNREACHABLE;
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    x64_bytecode_append(
+        x64bc,
+        x64_mov(x64_operand_gpr(dst), x64_operand_immediate(arg->immediate)));
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    PANIC("#TODO");
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_call(Instruction I,
-                             u16 Idx,
+                             u64 Idx,
+                             x64_FunctionBody *restrict body,
+                             LocalVariables *restrict locals,
+                             x64_Allocator *restrict allocator,
+                             x64_Context *restrict context) {
+  x64_Bytecode *x64bc      = &body->bc;
+  LocalVariable *local     = local_variables_lookup_ssa(locals, I.A);
+  u8 scalar_argument_count = 0;
+
+  if (type_is_scalar(local->type)) {
+    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+  } else {
+    x64_Allocation *result =
+        x64_allocator_allocate(allocator, Idx, local, x64bc);
+    assert(result->location.kind == LOCATION_ADDRESS);
+    x64_bytecode_append(x64bc,
+                        x64_lea(x64_operand_gpr(x64_scalar_argument_gpr(
+                                    scalar_argument_count++)),
+                                x64_operand_address(result->location.address)));
+  }
+
+  ActualArgumentList *args    = x64_context_call_at(context, I.C.index);
+  u64 current_bytecode_offset = x64_bytecode_current_offset(x64bc);
+  OperandArray stack_args     = operand_array_create();
+
+  for (u8 i = 0; i < args->size; ++i) {
+    Operand *arg   = args->list + i;
+    Type *arg_type = type_of_operand(arg, context->context);
+
+    if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
+      x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
+      x64_codegen_load_scalar_argument(gpr, arg, Idx, x64bc, allocator);
+    } else {
+      operand_array_append(&stack_args, *arg);
+    }
+  }
+
+  if (stack_args.size == 0) {
+    x64_bytecode_append(x64bc, x64_call(x64_operand_label(I.B.index)));
+    return;
+  }
+
+  i64 actual_arguments_stack_size = 0;
+
+  x64_Address arg_address = x64_address_construct(X64GPR_RSP,
+                                                  x64_optional_gpr_empty(),
+                                                  x64_optional_u8_empty(),
+                                                  x64_optional_i64_empty());
+
+  for (u8 i = 0; i < stack_args.size; ++i) {
+    Operand *arg   = stack_args.buffer + i;
+    Type *arg_type = type_of_operand(arg, context->context);
+    u64 arg_size   = size_of(arg_type);
+    assert(arg_size <= i64_MAX);
+    i64 offset = (i64)(arg_size);
+    actual_arguments_stack_size += offset;
+
+    x64_codegen_load_address_from_operand(
+        &arg_address, arg, arg_type, Idx, x64bc, allocator, context);
+
+    x64_address_increment_offset(&arg_address, offset);
+  }
+
+  x64_bytecode_insert(
+      x64bc,
+      x64_sub(x64_operand_gpr(X64GPR_RSP),
+              x64_operand_immediate(actual_arguments_stack_size)),
+      current_bytecode_offset);
+
+  x64_bytecode_append(x64bc, x64_call(x64_operand_label(I.B.index)));
+
+  x64_bytecode_append(
+      x64bc,
+      x64_add(x64_operand_gpr(X64GPR_RSP),
+              x64_operand_immediate(actual_arguments_stack_size)));
+
+  operand_array_destroy(&stack_args);
+}
+
+static void x64_codegen_dot(Instruction I,
+                            u64 Idx,
+                            x64_FunctionBody *restrict body,
+                            LocalVariables *restrict locals,
+                            x64_Allocator *restrict allocator,
+                            x64_Context *restrict context) {
+  x64_Bytecode *x64bc  = &body->bc;
+  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
+
+  assert(I.C.format == OPRFMT_IMMEDIATE);
+  assert((I.C.immediate >= 0) && (I.C.immediate <= i64_MAX));
+  u64 index = (u64)I.C.immediate;
+
+  switch (I.B.format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    assert(B->location.kind == LOCATION_ADDRESS);
+    x64_Address *tuple_address = &B->location.address;
+    x64_Address element_address =
+        x64_get_element_address(tuple_address, B->type, index);
+
+    x64_codegen_copy_allocation_from_memory(
+        A, &element_address, B->type, Idx, x64bc, allocator);
+    break;
+  }
+
+  case OPRFMT_VALUE: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_codegen_load_allocation_from_value(
+        A, I.B.index, Idx, x64bc, allocator, context);
+    break;
+  }
+
+  // we will never store tuples as immediates
+  case OPRFMT_IMMEDIATE:
+  // we don't support globals which are not functions yet
+  case OPRFMT_LABEL:
+  default:           EXP_UNREACHABLE;
+  }
+}
+
+static void x64_codegen_load(Instruction I,
+                             u64 Idx,
                              x64_FunctionBody *restrict body,
                              LocalVariables *restrict locals,
                              x64_Allocator *restrict allocator,
                              x64_Context *restrict context) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-
-  ActualArgumentList *args    = x64_context_call_at(context, I.C);
-  u16 current_bytecode_offset = x64_bytecode_current_offset(x64bc);
-  u8 scalar_argument_count    = 0;
-  u8 i                        = 0;
-
-  for (; (i < args->size) && (i < 6); ++i) {
-    Operand arg = args->list[i];
-    x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-    x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-
-    switch (arg.format) {
-    case OPRFMT_SSA: {
-      LocalVariable *local = local_variables_lookup_ssa(locals, arg.common);
-      x64_Allocation *allocation =
-          x64_allocator_allocation_of(allocator, local->ssa);
-
-      x64_codegen_copy(
-          x64_location_gpr(gpr), allocation->location, Idx, x64bc, allocator);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_constant(arg.common));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_immediate(arg.common));
-      break;
-    }
-
-    case OPRFMT_LABEL: {
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_label(arg.common));
-      break;
-    }
-
-    default: unreachable();
-    }
-  }
-
-  // if we initialized all of the arguments, all we have left
-  // is to emit the call and return.
-  if (i >= args->size) {
-    x64_bytecode_append_call(x64bc, x64_operand_label(I.B));
-    return;
-  }
-
-  // initialize the stack passed arguments, then we can emit the
-  // call and return.
-  u16 actual_arguments_stack_size = 0;
-  u16 current_stack_offset        = x64_allocator_total_stack_size(allocator);
-  // reverse iterate the stack passed arguments, so we push them
-  // onto the stack in the correct order.
-  for (u8 j = args->size - 1; j >= i; --j) {
-    Operand arg = args->list[j];
-    Type *type  = type_of_operand(arg, context->context);
-
-    u16 arg_size = (u16)ulmax(8UL, size_of(type));
-    u16 offset =
-        (u16)(current_stack_offset + actual_arguments_stack_size + arg_size);
-    assert(offset <= i16_MAX);
-    i16 arg_offset = -((i16)offset);
-
-    actual_arguments_stack_size += arg_size;
-
-    switch (arg.format) {
-    case OPRFMT_SSA: {
-      LocalVariable *local = local_variables_lookup_ssa(locals, arg.common);
-      x64_Allocation *allocation =
-          x64_allocator_allocation_of(allocator, local->ssa);
-
-      x64_codegen_copy(x64_location_stack(arg_offset),
-                       allocation->location,
-                       Idx,
-                       x64bc,
-                       allocator);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_bytecode_append_mov(x64bc,
-                              x64_operand_stack(arg_offset),
-                              x64_operand_constant(arg.common));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      x64_bytecode_append_mov(x64bc,
-                              x64_operand_stack(arg_offset),
-                              x64_operand_immediate(arg.common));
-      break;
-    }
-
-    case OPRFMT_LABEL: {
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_stack(arg_offset), x64_operand_label(arg.common));
-      break;
-    }
-
-    default: unreachable();
-    }
-  }
-
-  x64_bytecode_insert_sub(x64bc,
-                          current_bytecode_offset,
-                          x64_operand_gpr(X64GPR_RSP),
-                          x64_operand_immediate(actual_arguments_stack_size));
-
-  x64_bytecode_append_call(x64bc, x64_operand_label(I.B));
-
-  x64_bytecode_append_add(x64bc,
-                          x64_operand_gpr(X64GPR_RSP),
-                          x64_operand_immediate(actual_arguments_stack_size));
-}
-
-static void x64_codegen_load(Instruction I,
-                             u16 Idx,
-                             x64_FunctionBody *restrict body,
-                             LocalVariables *restrict locals,
-                             x64_Allocator *restrict allocator) {
-  /*
-    the load instruction can be lowered to
-    the x64 mov instruction nearly 1:1
-  */
-  x64_Bytecode *x64bc  = &body->bc;
-  LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  x64_Allocation *A    = x64_allocator_allocate(allocator, Idx, local, x64bc);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    x64_codegen_copy(A->location, B->location, Idx, x64bc, allocator);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
     break;
   }
 
-  case OPRFMT_CONSTANT: {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(A), x64_operand_constant(I.B));
+  case OPRFMT_VALUE: {
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_codegen_load_allocation_from_value(
+        A, I.B.index, Idx, x64bc, allocator, context);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_alloc(A), x64_operand_immediate(I.B));
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_bytecode_append(
+        x64bc,
+        x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
     break;
   }
 
@@ -362,31 +344,30 @@ static void x64_codegen_load(Instruction I,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_neg(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
     x64_Allocation *A =
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-    x64_bytecode_append_neg(x64bc, x64_operand_alloc(A));
+    x64_bytecode_append(x64bc, x64_neg(x64_operand_alloc(A)));
     break;
   }
 
-  case OPRFMT_CONSTANT:
   case OPRFMT_IMMEDIATE: {
-    // assert that we don't generate trivially foldable instructions
-    assert(0);
+    x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x64_bytecode_append(x64bc, x64_neg(x64_operand_alloc(A)));
     break;
   }
 
@@ -395,39 +376,40 @@ static void x64_codegen_neg(Instruction I,
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_add(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    switch (I.Cfmt) {
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    switch (I.C.format) {
     case OPRFMT_SSA: {
-      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
       // if B or C is in a gpr we use it as the allocation point of A
       // and the destination operand of the x64 add instruction.
       // this is to try and keep the result, A, in a register.
-      if (B->location.kind == ALLOC_GPR) {
+      if (B->location.kind == LOCATION_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-        x64_bytecode_append_add(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
+        x64_bytecode_append(
+            x64bc, x64_add(x64_operand_alloc(A), x64_operand_alloc(C)));
         return;
       }
 
-      if (C->location.kind == ALLOC_GPR) {
+      if (C->location.kind == LOCATION_GPR) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
-        x64_bytecode_append_add(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
+        x64_bytecode_append(
+            x64bc, x64_add(x64_operand_alloc(A), x64_operand_alloc(B)));
         return;
       }
 
@@ -440,25 +422,16 @@ static void x64_codegen_add(Instruction I,
       // we use the huristic of longest lifetime to choose
       // which of B and C to move into A's gpr.
       if (B->lifetime.last_use <= C->lifetime.last_use) {
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
-        x64_bytecode_append_add(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_alloc(A), x64_operand_alloc(C)));
+        x64_bytecode_append(
+            x64bc, x64_add(x64_operand_alloc(A), x64_operand_alloc(B)));
       } else {
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
-        x64_bytecode_append_add(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
+        x64_bytecode_append(
+            x64bc, x64_add(x64_operand_alloc(A), x64_operand_alloc(C)));
       }
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_Allocation *A =
-          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-
-      x64_bytecode_append_add(
-          x64bc, x64_operand_alloc(A), x64_operand_constant(I.C));
       break;
     }
 
@@ -466,8 +439,9 @@ static void x64_codegen_add(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_add(
-          x64bc, x64_operand_alloc(A), x64_operand_immediate(I.C));
+      x64_bytecode_append(
+          x64bc,
+          x64_add(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
       break;
     }
 
@@ -476,30 +450,44 @@ static void x64_codegen_add(Instruction I,
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
     break;
   }
 
-  case OPRFMT_CONSTANT: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_Allocation *A =
-        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
-
-    x64_bytecode_append_add(
-        x64bc, x64_operand_alloc(A), x64_operand_constant(I.B));
-    break;
-  }
-
   case OPRFMT_IMMEDIATE: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    x64_Allocation *A =
-        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      x64_Allocation *A =
+          x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-    x64_bytecode_append_add(
-        x64bc, x64_operand_alloc(A), x64_operand_immediate(I.B));
+      x64_bytecode_append(
+          x64bc,
+          x64_add(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(
+          x64bc,
+          x64_add(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
+      break;
+    }
+
+    case OPRFMT_LABEL: {
+      PANIC("#TODO");
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
@@ -508,31 +496,33 @@ static void x64_codegen_add(Instruction I,
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_sub(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    switch (I.Cfmt) {
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    switch (I.C.format) {
     case OPRFMT_SSA: {
-      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
       // #NOTE since subtraction is not commutative we have to allocate A from B
       // regardless of which of B or C is in a register.
-      if ((B->location.kind == ALLOC_GPR) || (C->location.kind == ALLOC_GPR)) {
+      if ((B->location.kind == LOCATION_GPR) ||
+          (C->location.kind == LOCATION_GPR)) {
         x64_Allocation *A =
             x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-        x64_bytecode_append_sub(
-            x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
+        x64_bytecode_append(
+            x64bc, x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
         return;
       }
 
@@ -540,20 +530,11 @@ static void x64_codegen_sub(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_alloc(A), x64_operand_alloc(B));
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
 
-      x64_bytecode_append_sub(
-          x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_Allocation *A =
-          x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-
-      x64_bytecode_append_sub(
-          x64bc, x64_operand_alloc(A), x64_operand_constant(I.C));
+      x64_bytecode_append(x64bc,
+                          x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
       break;
     }
 
@@ -561,69 +542,65 @@ static void x64_codegen_sub(Instruction I,
       x64_Allocation *A =
           x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
-      x64_bytecode_append_sub(
-          x64bc, x64_operand_alloc(A), x64_operand_immediate(I.C));
+      x64_bytecode_append(
+          x64bc,
+          x64_sub(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  /*
-    #NOTE: there is no x64 sub instruction which takes an
-    immediate value on the lhs. so we have to move the
-    value of B into a gpr and allocate A there.
-    Then we can emit the sub instruction.
-
-    #NOTE that we could also aquire a stack slot for the immediate
-    value, and emit the sub. this is a single instruction if and
-    only if C was in a gpr; otherwise we are forced to emit a mov
-    to ensure one operand of the sub is in a gpr.
-    and, as above, this leaves the result in memory,
-    which makes it more likely that a future usage will result
-    in generating another mov instruction.
-
-    I don't know the difference in timings for the various forms
-    of the sub instruction, my assumption is (reg,reg) is faster than
-    either (reg/mem) or (mem/reg); and relatively equal to (reg,imm).
-
-  */
-  case OPRFMT_CONSTANT: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-
-    x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.B));
-    x64_Allocation *A =
-        x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
-
-    x64_bytecode_append_sub(x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
+    switch (I.C.format) {
+      /*
+       * #NOTE: there is no x64 sub instruction which takes an
+       * immediate value on the lhs. so we have to move the
+       * value of B into a gpr and allocate A there.
+       * Then we can emit the sub instruction.
+       */
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
 
-    x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.B));
-    x64_Allocation *A =
-        x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.B.immediate)));
+      x64_Allocation *A =
+          x64_allocator_allocate_to_gpr(allocator, gpr, Idx, local, x64bc);
 
-    x64_bytecode_append_sub(x64bc, x64_operand_alloc(A), x64_operand_alloc(C));
+      x64_bytecode_append(x64bc,
+                          x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+      break;
+    }
+
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate(allocator, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(
+          x64bc,
+          x64_sub(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_mul(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
@@ -635,59 +612,43 @@ static void x64_codegen_mul(Instruction I,
   */
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    switch (I.Cfmt) {
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    switch (I.C.format) {
     case OPRFMT_SSA: {
-      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(C)));
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
 
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(B)));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       if ((B->lifetime.last_use <= C->lifetime.last_use)) {
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(C)));
       } else {
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(C));
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(C)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(B)));
       }
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
-        x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
-
-        x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_constant(I.C));
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
-        break;
-      }
-
-      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.C));
-      x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
       break;
     }
 
@@ -696,106 +657,118 @@ static void x64_codegen_mul(Instruction I,
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(I.C));
-        x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
+        x64_bytecode_append(x64bc,
+                            x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                    x64_operand_immediate(I.C.immediate)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.C));
-      x64_bytecode_append_imul(x64bc, x64_operand_alloc(B));
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.C.immediate)));
+      x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(B)));
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if (x64_allocation_location_eq(C, x64_location_gpr(X64GPR_RAX))) {
-      x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
-
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_constant(I.B));
-      x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
-      break;
-    }
-
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
-    x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_allocate_from_active(allocator, Idx, local, C, x64bc);
 
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(I.B));
-      x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
+        x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+        x64_bytecode_append(x64bc,
+                            x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                    x64_operand_immediate(I.B.immediate)));
+        x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+        break;
+      }
+
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc, x64_imul(x64_operand_alloc(C)));
       break;
     }
 
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
-    x64_bytecode_append_imul(x64bc, x64_operand_alloc(C));
+    case OPRFMT_IMMEDIATE: {
+      x64_Allocation *A = x64_allocator_allocate_to_gpr(
+          allocator, X64GPR_RAX, Idx, local, x64bc);
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                  x64_operand_immediate(I.C.immediate)));
+      x64_bytecode_append(x64bc, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_div(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    switch (I.Cfmt) {
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    switch (I.C.format) {
     case OPRFMT_SSA: {
-      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_from_active(allocator, Idx, local, B, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+        x64_bytecode_append(
+            x64bc,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+        x64_bytecode_append(
+            x64bc,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
         x64_allocator_reallocate_active(allocator, C, x64bc);
 
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
-        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
         x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
         break;
       }
@@ -803,220 +776,223 @@ static void x64_codegen_div(Instruction I,
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+      x64_bytecode_append(
+          x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
-      x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
-      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
-
-      x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
-
-      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.C));
-
-      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
-
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+      x64_bytecode_append(
+          x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
       x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.C));
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
 
-      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
 
       x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
-
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
-    }
-
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
-
-    x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_reallocate_active(allocator, C, x64bc);
+      }
+
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      break;
     }
 
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
+    case OPRFMT_IMMEDIATE: {
+      x64_allocator_aquire_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+      x64_Allocation *A = x64_allocator_allocate_to_gpr(
+          allocator, X64GPR_RAX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
 
-    x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
+
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
+
+      x64_allocator_release_gpr(allocator, X64GPR_RDX, Idx, x64bc);
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
 static void x64_codegen_mod(Instruction I,
-                            u16 Idx,
+                            u64 Idx,
                             x64_FunctionBody *restrict body,
                             LocalVariables *restrict locals,
                             x64_Allocator *restrict allocator) {
   x64_Bytecode *x64bc  = &body->bc;
   LocalVariable *local = local_variables_lookup_ssa(locals, I.A);
-  switch (I.Bfmt) {
+  switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B);
-    switch (I.Cfmt) {
+    x64_Allocation *B = x64_allocator_allocation_of(allocator, I.B.ssa);
+    switch (I.C.format) {
     case OPRFMT_SSA: {
-      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-      if ((B->location.kind == ALLOC_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((B->location.kind == LOCATION_GPR) &&
+          (B->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+        x64_bytecode_append(
+            x64bc,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
         break;
       }
 
-      if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
         x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
 
         x64_allocator_reallocate_active(allocator, C, x64bc);
 
         x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-        x64_bytecode_append_mov(
-            x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+        x64_bytecode_append(
+            x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
-        x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+        x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
         break;
       }
 
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+      x64_bytecode_append(
+          x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
-      x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
-      break;
-    }
-
-    case OPRFMT_CONSTANT: {
-      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
-      x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
-
-      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_constant(I.C));
-
-      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
       break;
     }
 
     case OPRFMT_IMMEDIATE: {
       x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
       x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B));
+      x64_bytecode_append(
+          x64bc, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
 
       x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
-      x64_bytecode_append_mov(
-          x64bc, x64_operand_gpr(gpr), x64_operand_immediate(I.C));
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
 
-      x64_bytecode_append_idiv(x64bc, x64_operand_gpr(gpr));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
       break;
     }
 
-    default: unreachable();
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
     }
-    break;
-  }
-
-  case OPRFMT_CONSTANT: {
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
-
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
-    }
-
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RAX, Idx, local, x64bc);
-
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_constant(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0));
+    switch (I.C.format) {
+    case OPRFMT_SSA: {
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
 
-    assert(I.Cfmt == OPRFMT_SSA);
-    x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C);
-    if ((C->location.kind == ALLOC_GPR) && (C->location.gpr == X64GPR_RAX)) {
-      x64_allocator_reallocate_active(allocator, C, x64bc);
+      x64_Allocation *C = x64_allocator_allocation_of(allocator, I.C.ssa);
+      if ((C->location.kind == LOCATION_GPR) &&
+          (C->location.gpr == X64GPR_RAX)) {
+        x64_allocator_reallocate_active(allocator, C, x64bc);
+      }
+
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_alloc(C)));
+      break;
     }
 
-    x64_bytecode_append_mov(
-        x64bc, x64_operand_gpr(X64GPR_RAX), x64_operand_immediate(I.B));
-    x64_bytecode_append_idiv(x64bc, x64_operand_alloc(C));
+    case OPRFMT_IMMEDIATE: {
+      x64_allocator_allocate_to_gpr(allocator, X64GPR_RDX, Idx, local, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+      x64_allocator_aquire_gpr(allocator, X64GPR_RAX, Idx, x64bc);
+      x64_bytecode_append(x64bc,
+                          x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                  x64_operand_immediate(I.B.immediate)));
+
+      x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+      x64_bytecode_append(
+          x64bc,
+          x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.C.immediate)));
+
+      x64_bytecode_append(x64bc, x64_idiv(x64_operand_gpr(gpr)));
+      x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+      break;
+    }
+
+    case OPRFMT_VALUE:
+    default:           EXP_UNREACHABLE;
+    }
+
     break;
   }
 
-  default: unreachable();
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE;
   }
 }
 
@@ -1025,12 +1001,12 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
                                  LocalVariables *restrict locals,
                                  x64_Allocator *restrict allocator,
                                  x64_Context *restrict context) {
-  for (u16 idx = 0; idx < bc->length; ++idx) {
+  for (u64 idx = 0; idx < bc->length; ++idx) {
     Instruction I = bc->buffer[idx];
 
     switch (I.opcode) {
     case OPC_RET: {
-      x64_codegen_ret(I, idx, body, locals, allocator);
+      x64_codegen_ret(I, idx, body, locals, allocator, context);
       break;
     }
 
@@ -1039,8 +1015,13 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
       break;
     }
 
+    case OPC_DOT: {
+      x64_codegen_dot(I, idx, body, locals, allocator, context);
+      break;
+    }
+
     case OPC_LOAD: {
-      x64_codegen_load(I, idx, body, locals, allocator);
+      x64_codegen_load(I, idx, body, locals, allocator, context);
       break;
     }
 
@@ -1074,7 +1055,7 @@ static void x64_codegen_bytecode(Bytecode *restrict bc,
       break;
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE;
     }
   }
 }
@@ -1083,14 +1064,15 @@ static void x64_codegen_function_header(x64_Allocator *restrict allocator,
                                         x64_FunctionBody *restrict body) {
   x64_Bytecode *x64bc = &body->bc;
   if (x64_allocator_uses_stack(allocator)) {
-    x64_bytecode_prepend_sub(
+    x64_bytecode_prepend(
         x64bc,
-        x64_operand_gpr(X64GPR_RSP),
-        x64_operand_immediate(x64_allocator_total_stack_size(allocator)));
+        x64_sub(
+            x64_operand_gpr(X64GPR_RSP),
+            x64_operand_immediate(x64_allocator_total_stack_size(allocator))));
   }
-  x64_bytecode_prepend_mov(
-      x64bc, x64_operand_gpr(X64GPR_RBP), x64_operand_gpr(X64GPR_RSP));
-  x64_bytecode_prepend_push(x64bc, x64_operand_gpr(X64GPR_RBP));
+  x64_bytecode_prepend(
+      x64bc, x64_mov(x64_operand_gpr(X64GPR_RBP), x64_operand_gpr(X64GPR_RSP)));
+  x64_bytecode_prepend(x64bc, x64_push(x64_operand_gpr(X64GPR_RBP)));
 }
 
 static void x64_codegen_function(FunctionBody *restrict body,
@@ -1099,35 +1081,45 @@ static void x64_codegen_function(FunctionBody *restrict body,
   LocalVariables *locals   = &body->locals;
   Bytecode *bc             = &body->bc;
   FormalArgumentList *args = &body->arguments;
-  x64_Allocator allocator  = x64_allocator_create(body);
+  x64_Allocator allocator  = x64_allocator_create(body, context->context);
   x64_Bytecode *x64bc      = &x64_body->bc;
+  u8 scalar_argument_count = 0;
 
-  // allocate the incoming arguments to the function.
-  // first we allocate the incoming GPR arguments.
-  u8 i = 0;
-  for (; (i < args->size) && (i < 6); ++i) {
-    FormalArgument *arg  = args->list + i;
-    LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
-    x64_GPR gpr          = x64_scalar_argument_gpr(i);
-    x64_allocator_allocate_to_gpr(&allocator, gpr, 0, local, x64bc);
+  if (type_is_scalar(body->return_type)) {
+    x64_body->result = x64_allocator_allocate_result(
+        &allocator, x64_location_gpr(X64GPR_RAX), body->return_type);
+  } else {
+    x64_body->result = x64_allocator_allocate_result(
+        &allocator,
+        x64_location_address(X64GPR_RDI,
+                             x64_optional_gpr_empty(),
+                             x64_optional_u8_empty(),
+                             x64_optional_i64_empty()),
+        body->return_type);
+    scalar_argument_count += 1;
   }
 
   // then if the rest of the incoming arguments are passed on the stack
   // pushed from right-to-left, this means that the first stack passed
   // argument is on the stack immediately above the pushed %rbp.
-  // so we just have to increment a number, to select each successive
-  // stack passed argument.
-  if (i < args->size) {
-    // the initial offset is 8, to skip the pushed %rbp
-    i16 arg_offset = 8;
-    for (; i < args->size; ++i) {
-      FormalArgument *arg  = args->list + i;
-      LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
-      u16 offset           = (u16)ulmax(8UL, size_of(arg->type));
-      assert(offset <= i16_MAX);
-      arg_offset += (i16)offset;
-      x64_allocator_allocate_formal_argument_to_stack(
-          &allocator, arg_offset, local);
+  // the initial offset is 8, to skip the pushed %rbp
+  i64 offset = 16;
+  for (u8 i = 0; i < args->size; ++i) {
+    FormalArgument *arg  = args->list + i;
+    LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
+
+    if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
+      x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
+      x64_allocator_allocate_to_gpr(&allocator, gpr, 0, local, x64bc);
+    } else {
+      u64 argument_size = size_of(arg->type);
+      assert(argument_size <= i64_MAX);
+
+      x64_allocator_allocate_to_stack(&allocator, offset, local);
+
+      if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
+        PANIC("argument offset overflow");
+      }
     }
   }
 
@@ -1160,7 +1152,7 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE;
   }
 }
 

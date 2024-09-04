@@ -40,3 +40,4 @@ void *reallocate(void *ptr, u64 size) {
 }
 
 void deallocate(void *ptr) { free(ptr); }
+
