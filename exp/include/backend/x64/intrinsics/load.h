@@ -20,37 +20,33 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_LOAD_H
 #define EXP_BACKEND_X64_INTRINSICS_LOAD_H
 
-#include "backend/x64/allocator.h"
 #include "backend/x64/context.h"
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            Operand *restrict src,
                                            Type *restrict type,
                                            u64 Idx,
-                                           x64_Bytecode *restrict x64bc,
-                                           x64_Allocator *restrict allocator,
                                            x64_Context *restrict context);
+
+void x64_codegen_load_gpr_from_operand(x64_GPR dst,
+                                       Operand *src,
+                                       u64 Idx,
+                                       x64_Context *restrict context);
 
 void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
                                             Operand *restrict src,
                                             Type *restrict type,
                                             u64 Idx,
-                                            x64_Bytecode *restrict x64bc,
-                                            x64_Allocator *restrict allocator,
                                             x64_Context *restrict context);
 
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               Operand *restrict src,
                                               u64 Idx,
-                                              x64_Bytecode *restrict x64bc,
-                                              x64_Allocator *restrict allocator,
                                               x64_Context *restrict context);
 
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
                                             u64 index,
                                             u64 Idx,
-                                            x64_Bytecode *restrict x64bc,
-                                            x64_Allocator *restrict allocator,
                                             x64_Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_LOAD_H

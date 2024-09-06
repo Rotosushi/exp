@@ -103,7 +103,7 @@ x64_Allocator *current_allocator(x64_Context *restrict x64_context) {
   return &current_x64_body(x64_context)->allocator;
 }
 
-u64 x64_context_current_bc_offset(x64_Context *restrict x64_context) {
+u64 x64_context_current_offset(x64_Context *restrict x64_context) {
   return x64_bytecode_current_offset(current_x64_bc(x64_context));
 }
 

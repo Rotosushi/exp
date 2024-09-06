@@ -29,27 +29,27 @@
 static void
 x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
                                            Value *restrict value,
-                                           x64_Bytecode *restrict x64bc) {
+                                           x64_Context *restrict context) {
   switch (value->kind) {
   case VALUEKIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
   case VALUEKIND_NIL: {
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
+    x64_context_append(
+        context, x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
     break;
   }
 
   case VALUEKIND_BOOLEAN: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_address(*dst),
-                                x64_operand_immediate((i64)value->boolean)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_address(*dst),
+                               x64_operand_immediate((i64)value->boolean)));
     break;
   }
 
   case VALUEKIND_I64: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_address(*dst),
-                                x64_operand_immediate(value->integer_64)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_address(*dst),
+                               x64_operand_immediate(value->integer_64)));
     break;
   }
 
@@ -63,30 +63,27 @@ static void x64_codegen_load_address_from_scalar_operand(
     Operand *restrict src,
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator,
     x64_Context *restrict context) {
   assert(type_is_scalar(type));
 
   switch (src->format) {
   case OPRFMT_SSA: {
-    x64_Allocation *allocation =
-        x64_allocator_allocation_of(allocator, src->ssa);
+    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
     if (allocation->location.kind == LOCATION_GPR) {
-      x64_bytecode_append(x64bc,
-                          x64_mov(x64_operand_address(*dst),
-                                  x64_operand_gpr(allocation->location.gpr)));
+      x64_context_append(context,
+                         x64_mov(x64_operand_address(*dst),
+                                 x64_operand_gpr(allocation->location.gpr)));
     } else {
       x64_codegen_copy_scalar_memory(
-          dst, &allocation->location.address, Idx, x64bc, allocator);
+          dst, &allocation->location.address, Idx, context);
     }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_address(*dst),
-                                x64_operand_immediate(src->immediate)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_address(*dst),
+                               x64_operand_immediate(src->immediate)));
     break;
   }
 
@@ -98,7 +95,7 @@ static void x64_codegen_load_address_from_scalar_operand(
   case OPRFMT_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     assert(type_equality(type, type_of_value(value, context->context)));
-    x64_codegen_load_address_from_scalar_value(dst, value, x64bc);
+    x64_codegen_load_address_from_scalar_value(dst, value, context);
     break;
   }
 
@@ -106,23 +103,20 @@ static void x64_codegen_load_address_from_scalar_operand(
   }
 }
 
-static void x64_codegen_load_address_from_composite_operand(
-    x64_Address *restrict dst,
-    Operand *restrict src,
-    Type *restrict type,
-    u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator,
-    x64_Context *restrict context) {
+static void
+x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
+                                                Operand *restrict src,
+                                                Type *restrict type,
+                                                u64 Idx,
+                                                x64_Context *restrict context) {
   switch (src->format) {
   case OPRFMT_SSA: {
-    x64_Allocation *allocation =
-        x64_allocator_allocation_of(allocator, src->ssa);
+    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
 
     assert(allocation->location.kind == LOCATION_ADDRESS);
 
     x64_codegen_copy_composite_memory(
-        dst, &allocation->location.address, type, Idx, x64bc, allocator);
+        dst, &allocation->location.address, type, Idx, context);
     break;
   }
 
@@ -139,13 +133,8 @@ static void x64_codegen_load_address_from_composite_operand(
       Type *element_type = type_of_operand(element, context->context);
       u64 element_size   = size_of(element_type);
 
-      x64_codegen_load_address_from_operand(&dst_element_address,
-                                            element,
-                                            element_type,
-                                            Idx,
-                                            x64bc,
-                                            allocator,
-                                            context);
+      x64_codegen_load_address_from_operand(
+          &dst_element_address, element, element_type, Idx, context);
 
       assert(element_size <= i64_MAX);
       i64 offset = (i64)element_size;
@@ -169,15 +158,12 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            Operand *restrict src,
                                            Type *restrict type,
                                            u64 Idx,
-                                           x64_Bytecode *restrict x64bc,
-                                           x64_Allocator *restrict allocator,
                                            x64_Context *restrict context) {
   if (type_is_scalar(type)) {
-    x64_codegen_load_address_from_scalar_operand(
-        dst, src, type, Idx, x64bc, allocator, context);
+    x64_codegen_load_address_from_scalar_operand(dst, src, type, Idx, context);
   } else {
     x64_codegen_load_address_from_composite_operand(
-        dst, src, type, Idx, x64bc, allocator, context);
+        dst, src, type, Idx, context);
   }
 }
 
@@ -186,27 +172,25 @@ static void x64_codegen_load_argument_from_scalar_operand(
     Operand *restrict src,
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator) {
+    x64_Context *restrict context) {
   switch (src->format) {
   case OPRFMT_SSA: {
-    x64_Allocation *allocation =
-        x64_allocator_allocation_of(allocator, src->ssa);
+    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
     if (allocation->location.kind == LOCATION_GPR) {
-      x64_bytecode_append(x64bc,
-                          x64_mov(x64_operand_address(*dst),
-                                  x64_operand_gpr(allocation->location.gpr)));
+      x64_context_append(context,
+                         x64_mov(x64_operand_address(*dst),
+                                 x64_operand_gpr(allocation->location.gpr)));
     } else {
       x64_codegen_copy_scalar_memory(
-          dst, &allocation->location.address, Idx, x64bc, allocator);
+          dst, &allocation->location.address, Idx, context);
     }
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_address(*dst),
-                                x64_operand_immediate(src->immediate)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_address(*dst),
+                               x64_operand_immediate(src->immediate)));
     break;
   }
 
@@ -225,18 +209,15 @@ static void x64_codegen_load_argument_from_composite_operand(
     Operand *restrict src,
     Type *restrict type,
     u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator,
     x64_Context *restrict context) {
   switch (src->format) {
   case OPRFMT_SSA: {
-    x64_Allocation *allocation =
-        x64_allocator_allocation_of(allocator, src->ssa);
+    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
 
     assert(allocation->location.kind == LOCATION_ADDRESS);
 
     x64_codegen_copy_composite_memory(
-        dst, &allocation->location.address, type, Idx, x64bc, allocator);
+        dst, &allocation->location.address, type, Idx, context);
     break;
   }
 
@@ -253,13 +234,8 @@ static void x64_codegen_load_argument_from_composite_operand(
       Type *element_type = type_of_operand(element, context->context);
       u64 element_size   = size_of(element_type);
 
-      x64_codegen_load_argument_from_operand(&dst_element_address,
-                                             element,
-                                             element_type,
-                                             Idx,
-                                             x64bc,
-                                             allocator,
-                                             context);
+      x64_codegen_load_argument_from_operand(
+          &dst_element_address, element, element_type, Idx, context);
 
       assert(element_size <= i64_MAX);
       i64 offset = -(i64)element_size;
@@ -283,37 +259,30 @@ void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
                                             Operand *restrict src,
                                             Type *restrict type,
                                             u64 Idx,
-                                            x64_Bytecode *restrict x64bc,
-                                            x64_Allocator *restrict allocator,
                                             x64_Context *restrict context) {
   if (type_is_scalar(type)) {
-    x64_codegen_load_argument_from_scalar_operand(
-        dst, src, type, Idx, x64bc, allocator);
+    x64_codegen_load_argument_from_scalar_operand(dst, src, type, Idx, context);
   } else {
     x64_codegen_load_argument_from_composite_operand(
-        dst, src, type, Idx, x64bc, allocator, context);
+        dst, src, type, Idx, context);
   }
 }
 
-void x64_codegen_load_gpr_from_operand(
-    x64_GPR gpr,
-    Operand *restrict src,
-    [[maybe_unused]] u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator,
-    [[maybe_unused]] x64_Context *restrict context) {
+void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
+                                       Operand *restrict src,
+                                       [[maybe_unused]] u64 Idx,
+                                       x64_Context *restrict context) {
   switch (src->format) {
   case OPRFMT_SSA: {
-    x64_Allocation *allocation =
-        x64_allocator_allocation_of(allocator, src->ssa);
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
+    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
+    x64_context_append(
+        context, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    x64_bytecode_append(
-        x64bc,
+    x64_context_append(
+        context,
         x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(src->immediate)));
     break;
   }
@@ -329,23 +298,18 @@ void x64_codegen_load_gpr_from_operand(
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               Operand *restrict src,
                                               u64 Idx,
-                                              x64_Bytecode *restrict x64bc,
-                                              x64_Allocator *restrict allocator,
                                               x64_Context *restrict context) {
   if (dst->location.kind == LOCATION_ADDRESS) {
     x64_codegen_load_address_from_operand(
-        &dst->location.address, src, dst->type, Idx, x64bc, allocator, context);
+        &dst->location.address, src, dst->type, Idx, context);
   } else {
-    x64_codegen_load_gpr_from_operand(
-        dst->location.gpr, src, Idx, x64bc, allocator, context);
+    x64_codegen_load_gpr_from_operand(dst->location.gpr, src, Idx, context);
   }
 }
 
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
                                             u64 index,
                                             u64 Idx,
-                                            x64_Bytecode *restrict x64bc,
-                                            x64_Allocator *restrict allocator,
                                             x64_Context *restrict context) {
   Value *value = x64_context_value_at(context, index);
   Type *type   = type_of_value(value, context->context);
@@ -356,22 +320,22 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
   case VALUEKIND_UNINITIALIZED: break;
 
   case VALUEKIND_NIL: {
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
+    x64_context_append(
+        context, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
     break;
   }
 
   case VALUEKIND_BOOLEAN: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_alloc(dst),
-                                x64_operand_immediate((i64)value->boolean)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_alloc(dst),
+                               x64_operand_immediate((i64)value->boolean)));
     break;
   }
 
   case VALUEKIND_I64: {
-    x64_bytecode_append(x64bc,
-                        x64_mov(x64_operand_alloc(dst),
-                                x64_operand_immediate(value->integer_64)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_alloc(dst),
+                               x64_operand_immediate(value->integer_64)));
     break;
   }
 
@@ -385,7 +349,7 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
       u64 element_size   = size_of(element_type);
 
       x64_codegen_load_address_from_operand(
-          &dst_address, element, element_type, Idx, x64bc, allocator, context);
+          &dst_address, element, element_type, Idx, context);
 
       assert(element_size <= i64_MAX);
       i64 offset = (i64)element_size;

@@ -11,6 +11,17 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
 
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/ret.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/load.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/mul.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/neg.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/sub.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/div.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/mod.c
+
   ${EXP_SOURCE_DIR}/backend/x64/allocation.c
   ${EXP_SOURCE_DIR}/backend/x64/allocator.c
   ${EXP_SOURCE_DIR}/backend/x64/bytecode.c

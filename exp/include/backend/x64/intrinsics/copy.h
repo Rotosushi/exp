@@ -19,39 +19,34 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_H
 #define EXP_BACKEND_X64_INTRINSICS_H
 
-#include "backend/x64/allocator.h"
+#include "backend/x64/context.h"
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
                                     u64 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator);
+                                    x64_Context *restrict context);
 
 void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        x64_Address *restrict src,
                                        Type *type,
                                        u64 Idx,
-                                       x64_Bytecode *restrict x64bc,
-                                       x64_Allocator *restrict allocator);
+                                       x64_Context *restrict context);
 
 void x64_codegen_copy_memory(x64_Address *restrict dst,
                              x64_Address *restrict src,
                              Type *type,
                              u64 Idx,
-                             x64_Bytecode *restrict x64bc,
-                             x64_Allocator *restrict allocator);
+                             x64_Context *restrict context);
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              x64_Address *restrict src,
                                              Type *restrict type,
                                              u64 Idx,
-                                             x64_Bytecode *restrict x64bc,
-                                             x64_Allocator *restrict allocator);
+                                             x64_Context *restrict context);
 
 void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                  x64_Allocation *restrict src,
                                  u64 Idx,
-                                 x64_Bytecode *restrict x64bc,
-                                 x64_Allocator *restrict allocator);
+                                 x64_Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_H

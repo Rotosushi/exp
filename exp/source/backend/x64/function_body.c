@@ -51,15 +51,18 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
       .result    = NULL,
       .bc        = x64_bytecode_create(),
       .allocator = x64_allocator_create(body, context->context)};
+  x64_Allocator *allocator = &x64_body.allocator;
+  x64_Bytecode *bc         = &x64_body.bc;
+  LocalVariables *locals   = &body->locals;
 
   u8 scalar_argument_count = 0;
 
   if (type_is_scalar(body->return_type)) {
-    x64_body.result = x64_context_allocate_result(
-        context, x64_location_gpr(X64GPR_RAX), body->return_type);
+    x64_body.result = x64_allocator_allocate_result(
+        allocator, x64_location_gpr(X64GPR_RAX), body->return_type);
   } else {
-    x64_body.result = x64_context_allocate_result(
-        context,
+    x64_body.result = x64_allocator_allocate_result(
+        allocator,
         x64_location_address(X64GPR_RDI,
                              x64_optional_gpr_empty(),
                              x64_optional_u8_empty(),
@@ -71,16 +74,16 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
   i64 offset = 16;
   for (u8 i = 0; i < body->arguments.size; ++i) {
     FormalArgument *arg  = body->arguments.list + i;
-    LocalVariable *local = x64_context_lookup_ssa(context, arg->ssa);
+    LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
 
     if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
       x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-      x64_context_allocate_to_gpr(context, local, gpr, 0);
+      x64_allocator_allocate_to_gpr(allocator, gpr, 0, local, bc);
     } else {
       u64 argument_size = size_of(arg->type);
       assert(argument_size <= i64_MAX);
 
-      x64_context_allocate_to_stack(context, local, offset);
+      x64_allocator_allocate_to_stack(allocator, offset, local);
 
       if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
         PANIC("argument offset overflow");

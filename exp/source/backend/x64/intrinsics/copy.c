@@ -18,8 +18,6 @@
  */
 #include <assert.h>
 
-#include "backend/x64/allocator.h"
-#include "backend/x64/bytecode.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/location.h"
 #include "imr/type.h"
@@ -28,24 +26,22 @@
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
                                     u64 Idx,
-                                    x64_Bytecode *restrict x64bc,
-                                    x64_Allocator *restrict allocator) {
-  x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+                                    x64_Context *restrict context) {
+  x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
 
-  x64_bytecode_append(x64bc,
-                      x64_mov(x64_operand_gpr(gpr), x64_operand_address(*src)));
-  x64_bytecode_append(x64bc,
-                      x64_mov(x64_operand_address(*dst), x64_operand_gpr(gpr)));
+  x64_context_append(context,
+                     x64_mov(x64_operand_gpr(gpr), x64_operand_address(*src)));
+  x64_context_append(context,
+                     x64_mov(x64_operand_address(*dst), x64_operand_gpr(gpr)));
 
-  x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+  x64_context_release_gpr(context, gpr, Idx);
 }
 
 void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        x64_Address *restrict src,
                                        Type *type,
                                        u64 Idx,
-                                       x64_Bytecode *restrict x64bc,
-                                       x64_Allocator *restrict allocator) {
+                                       x64_Context *restrict context) {
   assert(type->kind == TYPEKIND_TUPLE);
   TupleType *tuple_type = &type->tuple_type;
 
@@ -57,14 +53,13 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
 
     if (type_is_scalar(element_type)) {
       x64_codegen_copy_scalar_memory(
-          &dst_element_address, &src_element_address, Idx, x64bc, allocator);
+          &dst_element_address, &src_element_address, Idx, context);
     } else {
       x64_codegen_copy_composite_memory(&dst_element_address,
                                         &src_element_address,
                                         element_type,
                                         Idx,
-                                        x64bc,
-                                        allocator);
+                                        context);
     }
 
     assert(element_size <= i64_MAX);
@@ -78,59 +73,52 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
                              x64_Address *restrict src,
                              Type *type,
                              u64 Idx,
-                             x64_Bytecode *restrict x64bc,
-                             x64_Allocator *restrict allocator) {
+                             x64_Context *restrict context) {
   if (type_is_scalar(type)) {
-    x64_codegen_copy_scalar_memory(dst, src, Idx, x64bc, allocator);
+    x64_codegen_copy_scalar_memory(dst, src, Idx, context);
   } else {
-    x64_codegen_copy_composite_memory(dst, src, type, Idx, x64bc, allocator);
+    x64_codegen_copy_composite_memory(dst, src, type, Idx, context);
   }
 }
 
-void x64_codegen_copy_allocation_from_memory(
-    x64_Allocation *restrict dst,
-    x64_Address *restrict src,
-    Type *restrict type,
-    u64 Idx,
-    x64_Bytecode *restrict x64bc,
-    x64_Allocator *restrict allocator) {
+void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
+                                             x64_Address *restrict src,
+                                             Type *restrict type,
+                                             u64 Idx,
+                                             x64_Context *restrict context) {
   if (dst->location.kind == LOCATION_ADDRESS) {
-    x64_codegen_copy_memory(
-        &dst->location.address, src, type, Idx, x64bc, allocator);
+    x64_codegen_copy_memory(&dst->location.address, src, type, Idx, context);
   } else {
-    x64_bytecode_append(
-        x64bc,
+    x64_context_append(
+        context,
         x64_mov(x64_operand_gpr(dst->location.gpr), x64_operand_address(*src)));
   }
 }
 
-static void
-x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
-                                   x64_Allocation *restrict src,
-                                   u64 Idx,
-                                   x64_Bytecode *restrict x64bc,
-                                   x64_Allocator *restrict allocator) {
+static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
+                                               x64_Allocation *restrict src,
+                                               u64 Idx,
+                                               x64_Context *restrict context) {
   if ((dst->location.kind == LOCATION_GPR) ||
       (src->location.kind == LOCATION_GPR)) {
-    x64_bytecode_append(
-        x64bc, x64_mov(x64_operand_alloc(dst), x64_operand_alloc(src)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_alloc(dst), x64_operand_alloc(src)));
   } else {
     x64_codegen_copy_scalar_memory(
-        &dst->location.address, &src->location.address, Idx, x64bc, allocator);
+        &dst->location.address, &src->location.address, Idx, context);
   }
 }
 
 void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                  x64_Allocation *restrict src,
                                  u64 Idx,
-                                 x64_Bytecode *restrict x64bc,
-                                 x64_Allocator *restrict allocator) {
+                                 x64_Context *restrict context) {
   assert(type_equality(dst->type, src->type));
 
   if (x64_location_eq(dst->location, src->location)) { return; }
 
   if (type_is_scalar(dst->type)) {
-    x64_codegen_copy_scalar_allocation(dst, src, Idx, x64bc, allocator);
+    x64_codegen_copy_scalar_allocation(dst, src, Idx, context);
   } else {
     assert(dst->location.kind == LOCATION_ADDRESS);
     assert(src->location.kind == LOCATION_ADDRESS);
@@ -139,7 +127,6 @@ void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                       &src->location.address,
                                       dst->type,
                                       Idx,
-                                      x64bc,
-                                      allocator);
+                                      context);
   }
 }
