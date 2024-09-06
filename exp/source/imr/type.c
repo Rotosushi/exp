@@ -22,6 +22,7 @@
 #include "imr/type.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/unreachable.h"
 
 TupleType tuple_type_create() {
   TupleType tuple_type;
@@ -157,34 +158,40 @@ bool type_is_scalar(Type const *T) {
   }
 }
 
-static void print_tuple_type(TupleType const *restrict tuple_type,
-                             FILE *restrict file) {
-  file_write("(", file);
+static void emit_tuple_type(TupleType const *restrict tuple_type,
+                            String *restrict buf) {
+  string_append(buf, SV("("));
   for (u64 i = 0; i < tuple_type->size; ++i) {
-    print_type(tuple_type->types[i], file);
+    emit_type(tuple_type->types[i], buf);
 
-    if (i < (tuple_type->size - 1)) { file_write(", ", file); }
+    if (i < (tuple_type->size - 1)) { string_append(buf, SV(", ")); }
   }
-  file_write(")", file);
+  string_append(buf, SV(")"));
 }
 
-static void print_function_type(FunctionType const *restrict function_type,
-                                FILE *restrict file) {
-  file_write("fn ", file);
+static void emit_function_type(FunctionType const *restrict function_type,
+                               String *restrict buf) {
+  string_append(buf, SV("fn "));
   TupleType const *tuple_type = &function_type->argument_types;
-  print_tuple_type(tuple_type, file);
-  file_write(" -> ", file);
-  print_type(function_type->return_type, file);
+  emit_tuple_type(tuple_type, buf);
+  string_append(buf, SV(" -> "));
+  emit_type(function_type->return_type, buf);
+}
+
+void emit_type(Type const *restrict T, String *restrict buf) {
+  switch (T->kind) {
+  case TYPEKIND_NIL:      string_append(buf, SV("nil")); break;
+  case TYPEKIND_BOOLEAN:  string_append(buf, SV("bool")); break;
+  case TYPEKIND_I64:      string_append(buf, SV("i64")); break;
+  case TYPEKIND_TUPLE:    emit_tuple_type(&T->tuple_type, buf); break;
+  case TYPEKIND_FUNCTION: emit_function_type(&T->function_type, buf); break;
+
+  default: EXP_UNREACHABLE;
+  }
 }
 
 void print_type(Type const *restrict T, FILE *restrict file) {
-  switch (T->kind) {
-  case TYPEKIND_NIL:      file_write("nil", file); break;
-  case TYPEKIND_BOOLEAN:  file_write("bool", file); break;
-  case TYPEKIND_I64:      file_write("i64", file); break;
-  case TYPEKIND_TUPLE:    print_tuple_type(&T->tuple_type, file); break;
-  case TYPEKIND_FUNCTION: print_function_type(&T->function_type, file); break;
-
-  default: file_write("undefined", file);
-  }
+  String buf = string_create();
+  emit_type(T, &buf);
+  print_string_view(string_to_view(&buf), file);
 }

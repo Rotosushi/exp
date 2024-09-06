@@ -64,8 +64,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     LocalVariable *local = context_lookup_ssa(c, operand.ssa);
     Type *type           = local->type;
     if (type == NULL) {
-      StringView sv = string_view_from_str("", 0);
-      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(sv));
+      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(SV("")));
     }
 
     return success(type);
@@ -112,7 +111,11 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   try(Bty, typecheck_operand(c, I.B));
 
   if (Bty->kind != TYPEKIND_FUNCTION) {
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+    String buf = string_create();
+    string_append(&buf, SV("Type is not callable ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   FunctionType *function_type     = &Bty->function_type;
@@ -120,7 +123,12 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   ActualArgumentList *actual_args = context_call_at(c, I.C.index);
 
   if (formal_types->size != actual_args->size) {
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+    String buf = string_create();
+    string_append(&buf, SV("Expected "));
+    string_append_u64(&buf, formal_types->size);
+    string_append(&buf, SV(" arguments, have "));
+    string_append_u64(&buf, actual_args->size);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   for (u8 i = 0; i < actual_args->size; ++i) {
@@ -129,7 +137,13 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     try(actual_type, typecheck_operand(c, operand));
 
     if (!type_equality(actual_type, formal_type)) {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+      String buf = string_create();
+      string_append(&buf, SV("Expected ["));
+      emit_type(formal_type, &buf);
+      string_append(&buf, SV("] Actual ["));
+      emit_type(actual_type, &buf);
+      string_append(&buf, SV("]"));
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
   }
 
@@ -146,7 +160,11 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
   try(Bty, typecheck_operand(c, I.B));
 
   if (Bty->kind != TYPEKIND_TUPLE) {
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(SV("")));
+    String buf = string_create();
+    string_append(&buf, SV("Type is not a tuple ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   TupleType *tuple = &Bty->tuple_type;
@@ -159,8 +177,12 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
   i64 index = I.C.immediate;
 
   if (tuple_index_out_of_bounds(index, tuple)) {
-    return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS,
-                 string_from_view(SV("")));
+    String buf = string_create();
+    string_append(&buf, SV("The given index "));
+    string_append_i64(&buf, index);
+    string_append(&buf, SV(" is not in the valid range of 0.."));
+    string_append_u64(&buf, tuple->size);
+    return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, buf);
   }
 
   local->type = tuple->types[index];
@@ -173,8 +195,11 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -189,13 +214,19 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Cty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -210,13 +241,19 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Cty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -231,13 +268,19 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Cty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -252,13 +295,19 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Cty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -273,13 +322,19 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Bty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   if (!type_equality(Bty, Cty)) {
-    StringView sv = string_view_from_str("", 0);
-    return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+    String buf = string_create();
+    string_append(&buf, SV("Expected [i64] Actual ["));
+    emit_type(Cty, &buf);
+    string_append(&buf, SV("]"));
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   local->type = Bty;
@@ -299,8 +354,13 @@ static TResult typecheck_function(Context *restrict c) {
       try(Bty, typecheck_ret(c, I));
 
       if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-        StringView sv = string_view_from_str("", 0);
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_from_view(sv));
+        String buf = string_create();
+        string_append(&buf, SV("Previous return statement had type ["));
+        emit_type(return_type, &buf);
+        string_append(&buf, SV("] this return statement has type ["));
+        emit_type(Bty, &buf);
+        string_append(&buf, SV("]"));
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
       }
 
       return_type = Bty;
@@ -385,7 +445,13 @@ static TResult typecheck_global(Context *restrict c,
 
     if ((body->return_type != NULL) &&
         (!type_equality(Rty, body->return_type))) {
-      return error(ERROR_TYPECHECK_TYPE_MISMATCH, string_create());
+      String buf = string_create();
+      string_append(&buf, SV("Function was annotated with type ["));
+      emit_type(body->return_type, &buf);
+      string_append(&buf, SV("] actual returned type ["));
+      emit_type(Rty, &buf);
+      string_append(&buf, SV("]"));
+      return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
 
     body->return_type   = Rty;
