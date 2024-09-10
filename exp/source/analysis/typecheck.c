@@ -20,7 +20,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "core/typecheck.h"
+#include "analysis/typecheck.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
 

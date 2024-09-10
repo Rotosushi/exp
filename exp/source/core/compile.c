@@ -18,11 +18,11 @@
  */
 #include <stdlib.h>
 
+#include "core/analyze.h"
 #include "core/assemble.h"
 #include "core/codegen.h"
 #include "core/compile.h"
 #include "core/link.h"
-#include "core/typecheck.h"
 #include "env/cli_options.h"
 #include "env/context.h"
 #include "frontend/parser.h"
@@ -30,7 +30,7 @@
 static i32 compile_context(Context *restrict c) {
   if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-  if (typecheck(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
+  if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
   codegen(c);
 

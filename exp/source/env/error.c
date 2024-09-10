@@ -65,8 +65,8 @@ Error error_create() {
 }
 
 Error error_construct(ErrorCode code, StringView sv) {
-  Error error;
-  error.code = code;
+  Error error = error_create();
+  error.code  = code;
   string_assign(&error.message, sv);
   return error;
 }
@@ -96,4 +96,3 @@ void error_print(Error *restrict error, StringView file, u64 line) {
   log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
   string_destroy(&msg);
 }
-

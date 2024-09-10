@@ -36,12 +36,15 @@ void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
     x64_Allocation *A = x64_context_allocate(context, local, Idx);
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     assert(B->location.kind == LOCATION_ADDRESS);
+    assert(B->type->kind == TYPEKIND_TUPLE);
     x64_Address *tuple_address = &B->location.address;
     x64_Address element_address =
         x64_get_element_address(tuple_address, B->type, index);
+    TupleType *tuple_type = &B->type->tuple_type;
+    Type *element_type    = tuple_type->types[index];
 
     x64_codegen_copy_allocation_from_memory(
-        A, &element_address, B->type, Idx, context);
+        A, &element_address, element_type, Idx, context);
     break;
   }
 

@@ -4,6 +4,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
+  ${EXP_SOURCE_DIR}/analysis/typecheck.c
+  
   ${EXP_SOURCE_DIR}/backend/directives.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
 
@@ -35,11 +37,11 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/registers.c
   ${EXP_SOURCE_DIR}/backend/x64/symbols.c
 
+  ${EXP_SOURCE_DIR}/core/analyze.c
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c
   ${EXP_SOURCE_DIR}/core/compile.c
   ${EXP_SOURCE_DIR}/core/link.c
-  ${EXP_SOURCE_DIR}/core/typecheck.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/context_options.c
