@@ -217,8 +217,8 @@ Token lexer_scan(Lexer *restrict lexer) {
 
   case '-': return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
   case '+': return TOK_PLUS;
-  case '/': return TOK_SLASH;
-  case '*': return TOK_STAR;
+  case '/': return lexer_match(lexer, '*') ? TOK_BEGIN_COMMENT : TOK_SLASH;
+  case '*': return lexer_match(lexer, '/') ? TOK_END_COMMENT : TOK_STAR;
   case '%': return TOK_PERCENT;
 
   case '!': return lexer_match(lexer, '=') ? TOK_BANG_EQUAL : TOK_BANG;
@@ -299,4 +299,3 @@ Token lexer_scan(Lexer *restrict lexer) {
   default: return TOK_ERROR_UNEXPECTED_CHAR;
   }
 }
-

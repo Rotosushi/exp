@@ -27,6 +27,8 @@ typedef enum Token {
   TOK_ERROR_UNEXPECTED_CHAR,
   TOK_ERROR_UNMATCHED_DOUBLE_QUOTE,
 
+  TOK_BEGIN_COMMENT,
+  TOK_END_COMMENT,
   TOK_BEGIN_PAREN,
   TOK_END_PAREN,
   TOK_BEGIN_BRACE,
@@ -72,4 +74,3 @@ typedef enum Token {
 } Token;
 
 #endif // !EXP_FRONTEND_TOKEN_H
-

@@ -38,6 +38,7 @@ create_test_sourcelist(Tests exp_e2e_tests.c
   pemdas.c
   call.c
   tuple.c
+  comment.c
 )
 
 add_executable (exp_e2e_tests ${Tests})

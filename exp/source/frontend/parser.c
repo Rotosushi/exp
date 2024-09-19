@@ -113,12 +113,37 @@ static u64 curline(Parser *restrict parser) {
 //   return lexer_current_column(&parser->lexer);
 // }
 
-static void nexttok(Parser *restrict parser) {
+static bool peek(Parser *restrict parser, Token token) {
+  return parser->curtok == token;
+}
+
+static void comment(Parser *restrict parser) {
+  // a comment starts with '/*' and lasts until
+  // it's matching '*/'.
+  // we handle any number of comment blocks to
+  // appear sequentially. and if a comment
+  // block begins within a comment block that starts
+  // a new comment block, meaning that two '*/' are
+  // needed to leave the 'comment' state.
+  // # TODO do we want to do anything special with markup here?
+  while (parser->curtok != TOK_END_COMMENT) {
+    parser->curtok = lexer_scan(&parser->lexer);
+
+    // TODO comment should return an error here, and by
+    // extension so should nexttok.
+    if (peek(parser, TOK_END)) { PANIC("No end to comment."); }
+    if (peek(parser, TOK_BEGIN_COMMENT)) { comment(parser); }
+  }
+
+  // eat '*/'
   parser->curtok = lexer_scan(&parser->lexer);
 }
 
-static bool peek(Parser *restrict parser, Token token) {
-  return parser->curtok == token;
+static void nexttok(Parser *restrict parser) {
+  parser->curtok = lexer_scan(&parser->lexer);
+
+  while (parser->curtok == TOK_BEGIN_COMMENT)
+    comment(parser);
 }
 
 static bool expect(Parser *restrict parser, Token token) {
@@ -190,10 +215,11 @@ parse_type(Parser *restrict p, Context *restrict c, Type **type) {
   default: return error(p, ERROR_PARSER_EXPECTED_TYPE);
   }
 
-  nexttok(p); // eat <scalar-type>
+  nexttok(p); // eat scalar-type
   return success(zero());
 }
 
+// formal-argument = identifier ":" type
 static ParserResult parse_formal_argument(Parser *restrict p,
                                           Context *restrict c,
                                           FormalArgument *arg) {
@@ -216,6 +242,7 @@ static ParserResult parse_formal_argument(Parser *restrict p,
   return success(zero());
 }
 
+// formal-argument-list = "(" (formal-argument ("," formal-argument)*)? ")"
 static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                Context *restrict c,
                                                FunctionBody *body) {
@@ -246,7 +273,7 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
   return success(zero());
 }
 
-// "return" <expression> ";"
+// return = "return" expression ";"
 static ParserResult return_(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat "return"
 
@@ -261,7 +288,7 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
   return success(zero());
 }
 
-// "const" identifier "=" <expression> ";"
+// constant = "const" identifier "=" expression ";"
 static ParserResult constant(Parser *restrict p, Context *restrict c) {
   nexttok(p); // eat 'const'
 
@@ -284,6 +311,9 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
   return success(zero());
 }
 
+// statement = return
+//           | constant
+//           | expression
 static ParserResult statement(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
   case TOK_RETURN: return return_(p, c);
@@ -549,14 +579,16 @@ static ParseRule *get_rule(Token token) {
       [TOK_ERROR_UNEXPECTED_CHAR]        = {         NULL,  NULL,   PREC_NONE},
       [TOK_ERROR_UNMATCHED_DOUBLE_QUOTE] = {         NULL,  NULL,   PREC_NONE},
 
-      [TOK_BEGIN_PAREN] = {       parens,  call,   PREC_CALL},
-      [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
-      [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
-      [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
-      [TOK_DOT]         = {         NULL, binop,   PREC_CALL},
-      [TOK_SEMICOLON]   = {         NULL,  NULL,   PREC_NONE},
-      [TOK_COLON]       = {         NULL,  NULL,   PREC_NONE},
-      [TOK_RIGHT_ARROW] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_BEGIN_COMMENT] = {         NULL,  NULL,   PREC_NONE},
+      [TOK_END_COMMENT]   = {         NULL,  NULL,   PREC_NONE},
+      [TOK_BEGIN_PAREN]   = {       parens,  call,   PREC_CALL},
+      [TOK_END_PAREN]     = {         NULL,  NULL,   PREC_NONE},
+      [TOK_BEGIN_BRACE]   = {         NULL,  NULL,   PREC_NONE},
+      [TOK_COMMA]         = {         NULL,  NULL,   PREC_NONE},
+      [TOK_DOT]           = {         NULL, binop,   PREC_CALL},
+      [TOK_SEMICOLON]     = {         NULL,  NULL,   PREC_NONE},
+      [TOK_COLON]         = {         NULL,  NULL,   PREC_NONE},
+      [TOK_RIGHT_ARROW]   = {         NULL,  NULL,   PREC_NONE},
 
       [TOK_MINUS]         = {         unop, binop,   PREC_TERM},
       [TOK_PLUS]          = {         NULL, binop,   PREC_TERM},
