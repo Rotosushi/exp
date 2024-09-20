@@ -30,6 +30,7 @@ StringView error_code_sv(ErrorCode code) {
 
   case ERROR_INTEGER_TO_LARGE: return SV("Integer literal too large.");
 
+  case ERROR_PARSER_EXPECTED_END_COMMENT: return SV("Expected: [*/]. Found: ");
   case ERROR_PARSER_EXPECTED_BEGIN_BRACE: return SV("Expected: [{]. Found: ");
   case ERROR_PARSER_EXPECTED_END_BRACE:   return SV("Expected: [}]. Found: ");
   case ERROR_PARSER_EXPECTED_BEGIN_PAREN: return SV("Expected: [(]. Found: ");
