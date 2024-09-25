@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "backend/x64/codegen/load.h"
+#include "backend/x64/codegen/move.h"
 #include "backend/x64/intrinsics/load.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_load(Instruction I, u64 Idx, x64_Context *restrict context) {
-  LocalVariable *local = x64_context_lookup_ssa(context, I.A);
+static void
+x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
+  LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
@@ -45,5 +46,21 @@ void x64_codegen_load(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   case OPRFMT_LABEL:
   default:           EXP_UNREACHABLE;
+  }
+}
+
+void x64_codegen_move(Instruction I, u64 Idx, x64_Context *restrict context) {
+  switch (I.A.format) {
+  case OPRFMT_SSA: {
+    x64_codegen_move_to_ssa(I, Idx, context);
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    x64_codegen_move_to_label(I, Idx, context);
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }

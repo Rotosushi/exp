@@ -20,10 +20,11 @@
 #include "backend/x64/emit.h"
 #include "backend/directives.h"
 #include "utility/config.h"
+#include "utility/unreachable.h"
 
-static void x64_emit_symbol(x64_Symbol *restrict sym,
-                            String *restrict buffer,
-                            Context *restrict context) {
+static void x64_emit_function(x64_Symbol *restrict sym,
+                              String *restrict buffer,
+                              Context *restrict context) {
   directive_text(buffer);
   directive_globl(sym->name, buffer);
   directive_type(sym->name, STT_FUNC, buffer);
@@ -33,6 +34,37 @@ static void x64_emit_symbol(x64_Symbol *restrict sym,
 
   directive_size_label_relative(sym->name, buffer);
   string_append(buffer, SV("\n"));
+}
+
+static void
+x64_emit_global_constant(x64_Symbol *restrict sym,
+                         String *restrict buffer,
+                         [[maybe_unused]] Context *restrict context) {
+  /* #TODO since these are global constants, they have to be known
+   * at compile time. Thus it is a natural optimization to place these
+   * comptime constants in the (usually) unalterable 'text' section of
+   * an executable. Note however that since we are initializing these
+   * constants at runtime (due to ease of implementation) we have to place
+   * them in the 'data' section.
+   * We can further note that this is where any global variables would be
+   * placed, if we ever implement global variables
+   */
+  directive_data(buffer);
+  directive_globl(sym->name, buffer);
+  directive_type(sym->name, STT_OBJECT, buffer);
+  directive_label(sym->name, buffer);
+
+  string_append(buffer, SV("\n"));
+}
+
+static void x64_emit_symbol(x64_Symbol *restrict sym,
+                            String *restrict buffer,
+                            Context *restrict context) {
+  switch (sym->kind) {
+  case X64SYM_FUNCTION: x64_emit_function(sym, buffer, context); break;
+  case X64SYM_CONSTANT: x64_emit_global_constant(sym, buffer, context); break;
+  default:              EXP_UNREACHABLE;
+  }
 }
 
 static void x64_emit_file_prolouge(Context *restrict context,
@@ -67,4 +99,3 @@ void x64_emit(x64_Context *restrict x64context) {
 
   string_destroy(&buffer);
 }
-

@@ -26,9 +26,11 @@
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
 SymbolTable symbol_table_create() {
-  SymbolTable symbol_table;
-  symbol_table.capacity = symbol_table.count = 0;
-  symbol_table.elements                      = NULL;
+  SymbolTable symbol_table = {
+      .count    = 0,
+      .capacity = 0,
+      .elements = nullptr,
+  };
   return symbol_table;
 }
 
@@ -37,7 +39,11 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table) {
 
   for (u64 i = 0; i < symbol_table->capacity; ++i) {
     SymbolTableElement *element = symbol_table->elements + i;
-    function_body_destroy(&element->function_body);
+    switch (element->kind) {
+    case STE_UNDEFINED: break;
+    case STE_CONSTANT:
+    case STE_FUNCTION:  function_body_destroy(&element->function_body); break;
+    }
   }
 
   symbol_table->count    = 0;
@@ -134,4 +140,3 @@ bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
 
   return iter->element == iter->end;
 }
-

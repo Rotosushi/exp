@@ -24,13 +24,31 @@ typedef enum x64_LocationKind : u8 {
   LOCATION_ADDRESS,
 } x64_LocationKind;
 
-typedef struct x64_OptionalGPR {
-  bool present;
-  x64_GPR gpr;
-} x64_OptionalGPR;
+typedef enum x64_AddressOperandKind {
+  X64AOPR_GPR,
+  X64AOPR_INDEX,
+} x64_AddressOperandKind;
 
-x64_OptionalGPR x64_optional_gpr_empty();
-x64_OptionalGPR x64_optional_gpr(x64_GPR gpr);
+typedef struct x64_AddressOperand {
+  x64_AddressOperandKind kind;
+  union {
+    x64_GPR gpr;
+    u64 index;
+  };
+} x64_AddressOperand;
+
+x64_AddressOperand x64_address_operand_gpr(x64_GPR gpr);
+x64_AddressOperand x64_address_operand_index(u64 index);
+bool x64_address_operand_equals(x64_AddressOperand one, x64_AddressOperand two);
+
+typedef struct x64_OptionalAddressOperand {
+  bool present;
+  x64_AddressOperand operand;
+} x64_OptionalAddressOperand;
+
+x64_OptionalAddressOperand x64_optional_address_operand_empty();
+x64_OptionalAddressOperand
+x64_optional_address_operand(x64_AddressOperand operand);
 
 typedef struct x64_OptionalU8 {
   bool present;
@@ -49,14 +67,14 @@ x64_OptionalI64 x64_optional_i64_empty();
 x64_OptionalI64 x64_optional_i64(i64 value);
 
 typedef struct x64_Address {
-  x64_GPR base;
-  x64_OptionalGPR index;
+  x64_AddressOperand base;
+  x64_OptionalAddressOperand index;
   x64_OptionalU8 scale;
   x64_OptionalI64 offset;
 } x64_Address;
 
-x64_Address x64_address_construct(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
+x64_Address x64_address_construct(x64_AddressOperand base,
+                                  x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset);
 void x64_address_increment_offset(x64_Address *restrict address, i64 offset);
@@ -70,8 +88,8 @@ typedef struct x64_Location {
 } x64_Location;
 
 x64_Location x64_location_gpr(x64_GPR gpr);
-x64_Location x64_location_address(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
+x64_Location x64_location_address(x64_AddressOperand base,
+                                  x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset);
 bool x64_location_eq(x64_Location A, x64_Location B);

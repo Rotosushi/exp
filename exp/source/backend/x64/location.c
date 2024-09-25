@@ -22,13 +22,25 @@
 #include "backend/x64/location.h"
 #include "utility/panic.h"
 
-x64_OptionalGPR x64_optional_gpr_empty() {
-  x64_OptionalGPR opt = {.present = false};
-  return opt;
+x64_AddressOperand x64_address_operand_gpr(x64_GPR gpr) {
+  x64_AddressOperand operand = {.kind = X64AOPR_GPR, .gpr = gpr};
+  return operand;
 }
-x64_OptionalGPR x64_optional_gpr(x64_GPR gpr) {
-  x64_OptionalGPR opt = {.present = true, .gpr = gpr};
-  return opt;
+
+x64_AddressOperand x64_address_operand_index(u64 index) {
+  x64_AddressOperand operand = {.kind = X64AOPR_INDEX, .index = index};
+  return operand;
+}
+
+x64_OptionalAddressOperand x64_optional_address_operand_empty() {
+  x64_OptionalAddressOperand result = {.present = false};
+  return result;
+}
+
+x64_OptionalAddressOperand
+x64_optional_address_operand(x64_AddressOperand operand) {
+  x64_OptionalAddressOperand result = {.present = true, .operand = operand};
+  return result;
 }
 
 x64_OptionalU8 x64_optional_u8_empty() {
@@ -56,8 +68,8 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
   return a;
 }
 
-x64_Address x64_address_construct(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
+x64_Address x64_address_construct(x64_AddressOperand base,
+                                  x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset) {
   x64_Address address = {.base   = base,
@@ -86,8 +98,8 @@ void x64_address_increment_offset(x64_Address *restrict address, i64 offset) {
   }
 }
 
-x64_Location x64_location_address(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
+x64_Location x64_location_address(x64_AddressOperand base,
+                                  x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset) {
   validate_scale(optional_scale);
@@ -101,8 +113,11 @@ x64_Location x64_location_address(x64_GPR base,
   return a;
 }
 
-static bool x64_optional_gpr_equality(x64_OptionalGPR A, x64_OptionalGPR B) {
-  if (A.present && B.present) { return A.gpr == B.gpr; }
+static bool x64_optional_address_operand_equals(x64_OptionalAddressOperand A,
+                                                x64_OptionalAddressOperand B) {
+  if (A.present && B.present) {
+    return x64_address_operand_equals(A.operand, B.operand);
+  }
   if (!A.present && !B.present) { return true; }
   return false;
 }
@@ -125,9 +140,12 @@ bool x64_location_eq(x64_Location A, x64_Location B) {
   switch (A.kind) {
   case LOCATION_GPR:     return A.gpr == B.gpr;
   case LOCATION_ADDRESS: {
-    if (A.address.base != B.address.base) { return false; }
+    if (!x64_address_operand_equals(A.address.base, B.address.base)) {
+      return false;
+    }
 
-    if (!x64_optional_gpr_equality(A.address.index, B.address.index)) {
+    if (!x64_optional_address_operand_equals(A.address.index,
+                                             B.address.index)) {
       return false;
     }
 

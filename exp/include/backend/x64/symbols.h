@@ -19,7 +19,13 @@
 
 #include "backend/x64/function_body.h"
 
+typedef enum x64_SymbolKind : u8 {
+  X64SYM_FUNCTION,
+  X64SYM_CONSTANT,
+} x64_SymbolKind;
+
 typedef struct x64_Symbol {
+  x64_SymbolKind kind;
   StringView name;
   x64_FunctionBody body;
 } x64_Symbol;

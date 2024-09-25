@@ -24,6 +24,7 @@
 typedef enum SymbolTableElementKind {
   STE_UNDEFINED,
   STE_FUNCTION,
+  STE_CONSTANT,
 } SymbolTableElementKind;
 
 typedef struct SymbolTableElement {

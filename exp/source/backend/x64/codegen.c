@@ -24,8 +24,8 @@
 #include "backend/x64/codegen/call.h"
 #include "backend/x64/codegen/div.h"
 #include "backend/x64/codegen/dot.h"
-#include "backend/x64/codegen/load.h"
 #include "backend/x64/codegen/mod.h"
+#include "backend/x64/codegen/move.h"
 #include "backend/x64/codegen/mul.h"
 #include "backend/x64/codegen/neg.h"
 #include "backend/x64/codegen/ret.h"
@@ -33,19 +33,6 @@
 #include "backend/x64/context.h"
 #include "backend/x64/emit.h"
 #include "utility/unreachable.h"
-
-/*
- * #TODO #CLEANUP
- *  so, this code is rather difficult to read and modify.
- *  as it is all handrolled nested switch statements.
- *  The best thing for now is going to be factoring out
- *  each case into it's own function. This is going to
- *  create a lot more functions, but hopefully it will make
- *  them all easier to read, and hopefully maintain.
- *
- *  a popular replacement for this handrolling is to generate
- *  these switches based on some form of x64 specification language.
- */
 
 static void x64_codegen_bytecode(x64_Context *restrict context) {
   Bytecode *bc = current_bc(context);
@@ -68,8 +55,8 @@ static void x64_codegen_bytecode(x64_Context *restrict context) {
       break;
     }
 
-    case OPC_LOAD: {
-      x64_codegen_load(I, idx, context);
+    case OPC_MOVE: {
+      x64_codegen_move(I, idx, context);
       break;
     }
 
@@ -126,6 +113,10 @@ static void x64_codegen_function(x64_Context *restrict context) {
   x64_codegen_function_header(context);
 }
 
+static void x64_codegen_global_constant(x64_Context *restrict context) {
+  x64_codegen_bytecode(context);
+}
+
 static void x64_codegen_ste(SymbolTableElement *restrict ste,
                             x64_Context *restrict context) {
   StringView name = ste->name;
@@ -137,10 +128,27 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
   }
 
   case STE_FUNCTION: {
-    x64_context_enter_function(context, name);
+    x64_context_enter_global(context, name);
     x64_codegen_function(context);
-    x64_context_leave_function(context);
+    x64_context_leave_global(context);
     break;
+  }
+
+  case STE_CONSTANT: {
+    // Where do we place the code which initializes the
+    // global constant, when it exists outside of any
+    // function? and the only valid place to have assembly
+    // is within a function body. I think we could create
+    // a 'init' function which is called before main.
+    // place all initialization code there, and that would work.
+    // That's great, how do we get the code to the init function?
+    // I think that can happen at the emit step. and since we are
+    // pretending that each global constant is defined within an
+    // lambda we can just pretend to enter that functions context
+    // here.
+    x64_context_enter_global(context, name);
+    x64_codegen_global_constant(context);
+    x64_context_leave_global(context);
   }
 
   default: EXP_UNREACHABLE;

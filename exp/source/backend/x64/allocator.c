@@ -195,10 +195,11 @@ x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
 
   i64 offset = stack_allocations->total_stack_size;
 
-  allocation->location = x64_location_address(X64GPR_RBP,
-                                              x64_optional_gpr_empty(),
-                                              x64_optional_u8_empty(),
-                                              x64_optional_i64(-offset));
+  allocation->location =
+      x64_location_address(x64_address_operand_gpr(X64GPR_RBP),
+                           x64_optional_address_operand_empty(),
+                           x64_optional_u8_empty(),
+                           x64_optional_i64(-offset));
 
   x64_stack_allocations_append(stack_allocations, allocation);
 }
@@ -491,10 +492,11 @@ x64_Allocation *x64_allocator_allocate_to_stack(
   x64_Allocation *allocation = x64_allocation_buffer_append(
       &allocator->allocations, local->ssa, lifetime, local->type);
 
-  allocation->location = x64_location_address(X64GPR_RBP,
-                                              x64_optional_gpr_empty(),
-                                              x64_optional_u8_empty(),
-                                              x64_optional_i64(offset));
+  allocation->location =
+      x64_location_address(x64_address_operand_gpr(X64GPR_RBP),
+                           x64_optional_address_operand_empty(),
+                           x64_optional_u8_empty(),
+                           x64_optional_i64(offset));
 
   x64_stack_allocations_append(&allocator->stack_allocations, allocation);
   return allocation;

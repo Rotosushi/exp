@@ -16,7 +16,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/ret.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/load.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/move.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/mul.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/neg.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c

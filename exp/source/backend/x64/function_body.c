@@ -63,8 +63,8 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
   } else {
     x64_body.result = x64_allocator_allocate_result(
         allocator,
-        x64_location_address(X64GPR_RDI,
-                             x64_optional_gpr_empty(),
+        x64_location_address(x64_address_operand_gpr(X64GPR_RDI),
+                             x64_optional_address_operand_empty(),
                              x64_optional_u8_empty(),
                              x64_optional_i64_empty()),
         body->return_type);
@@ -93,6 +93,11 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
 
   return x64_body;
 }
+
+// x64_FunctionBody
+// x64_function_body_create_default(x64_Context *restrict context) {
+//
+// }
 
 void x64_function_body_destroy(x64_FunctionBody *restrict body) {
   assert(body != NULL);

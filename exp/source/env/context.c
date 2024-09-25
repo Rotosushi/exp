@@ -20,15 +20,19 @@
 #include <stdlib.h>
 
 #include "env/context.h"
+#include "utility/unreachable.h"
 
 Context context_create(CLIOptions *restrict options) {
   assert(options != NULL);
-  Context context = {.options             = context_options_create(options),
-                     .string_interner     = string_interner_create(),
-                     .type_interner       = type_interner_create(),
-                     .global_symbol_table = symbol_table_create(),
-                     .global_labels       = global_labels_create(),
-                     .values              = values_create()};
+  Context context = {
+      .options             = context_options_create(options),
+      .string_interner     = string_interner_create(),
+      .type_interner       = type_interner_create(),
+      .global_symbol_table = symbol_table_create(),
+      .global_labels       = global_labels_create(),
+      .values              = values_create(),
+      .current_ste         = nullptr,
+  };
   return context;
 }
 
@@ -132,23 +136,49 @@ context_global_symbol_table_iterator(Context *restrict context) {
   return symbol_table_iterator_create(&context->global_symbol_table);
 }
 
-FunctionBody *context_enter_function(Context *restrict c, StringView name) {
-  assert(c != NULL);
-  SymbolTableElement *element = symbol_table_at(&c->global_symbol_table, name);
-  if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
+SymbolTableElement *context_enter_global(Context *restrict c, StringView name) {
+  SymbolTableElement *element = context_global_symbol_table_at(c, name);
+  c->current_ste              = element;
+  return element;
+}
 
-  c->current_function = &element->function_body;
-  return c->current_function;
+SymbolTableElement *context_current_ste(Context *restrict c) {
+  assert(c != nullptr);
+  assert(c->current_ste != nullptr);
+  return c->current_ste;
+}
+
+bool context_at_global_scope(Context *restrict c) {
+  if (c->current_ste == nullptr) return true;
+  switch (c->current_ste->kind) {
+  case STE_UNDEFINED: EXP_UNREACHABLE;
+  case STE_FUNCTION:  return false;
+  case STE_CONSTANT:  return true;
+  default:            EXP_UNREACHABLE;
+  }
+}
+
+void context_leave_global(Context *restrict c) {
+  assert(c != nullptr);
+  c->current_ste = nullptr;
 }
 
 FunctionBody *context_current_function(Context *restrict c) {
-  assert(c != NULL);
-  assert(c->current_function != NULL);
-  return c->current_function;
+  SymbolTableElement *ste = context_current_ste(c);
+  switch (ste->kind) {
+  case STE_UNDEFINED: EXP_UNREACHABLE;
+  case STE_CONSTANT:  return &c->_init;
+  case STE_FUNCTION:  return &ste->function_body;
+  }
 }
 
 Bytecode *context_active_bytecode(Context *restrict c) {
-  return &(context_current_function(c)->bc);
+  SymbolTableElement *ste = context_current_ste(c);
+  switch (ste->kind) {
+  case STE_UNDEFINED: EXP_UNREACHABLE;
+  case STE_CONSTANT:  return &c->_init.bc;
+  case STE_FUNCTION:  return &ste->function_body.bc;
+  }
 }
 
 static Operand context_new_ssa(Context *restrict c) {
@@ -163,11 +193,16 @@ ActualArgumentList *context_call_at(Context *restrict c, u64 idx) {
   return function_body_call_at(context_current_function(c), idx);
 }
 
-void context_def_local_const(Context *restrict c,
-                             StringView name,
-                             Operand value) {
-  Operand A = context_emit_load(c, value);
-  function_body_new_local(context_current_function(c), name, A.ssa);
+void context_def_constant(Context *restrict c, StringView name, Operand value) {
+  if (context_at_global_scope(c)) {
+    u64 idx   = context_global_labels_insert(c, name);
+    Operand A = operand_label(idx);
+    context_emit_move(c, A, value);
+  } else {
+    Operand A = context_new_ssa(c);
+    context_emit_move(c, A, value);
+    function_body_new_local(context_current_function(c), name, A.ssa);
+  }
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
@@ -187,11 +222,6 @@ FormalArgument *context_lookup_argument(Context *restrict c, StringView name) {
 FormalArgument *context_argument_at(Context *restrict c, u8 index) {
   return formal_argument_list_at(&(context_current_function(c)->arguments),
                                  index);
-}
-
-void context_leave_function(Context *restrict c) {
-  assert(c != NULL);
-  c->current_function = NULL;
 }
 
 Operand context_values_append(Context *restrict context, Value value) {
@@ -226,11 +256,10 @@ Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
   return A;
 }
 
-Operand context_emit_load(Context *restrict c, Operand B) {
+Operand context_emit_move(Context *restrict c, Operand A, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
-  Operand A    = context_new_ssa(c);
-  bytecode_append(bc, instruction_load(A, B));
+  bytecode_append(bc, instruction_move(A, B));
   return A;
 }
 

@@ -20,6 +20,7 @@
 
 #include "backend/x64/context.h"
 #include "env/context.h"
+#include "utility/unreachable.h"
 
 x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
@@ -27,7 +28,8 @@ x64_Context x64_context_create(Context *restrict context) {
       .context  = context,
       .body     = NULL,
       .x64_body = NULL,
-      .symbols  = x64_symbol_table_create(context->global_symbol_table.count)};
+      //._init    =,
+      .symbols = x64_symbol_table_create(context->global_symbol_table.count)};
   return x64_context;
 }
 
@@ -47,19 +49,26 @@ StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
   return context_global_labels_at(x64_context->context, idx);
 }
 
-void x64_context_enter_function(x64_Context *restrict x64_context,
-                                StringView name) {
+void x64_context_enter_global(x64_Context *restrict x64_context,
+                              StringView name) {
   assert(x64_context != NULL);
-  x64_context->body     = context_enter_function(x64_context->context, name);
-  x64_Symbol *symbol    = x64_symbol_table_at(&x64_context->symbols, name);
+  SymbolTableElement *ste = context_enter_global(x64_context->context, name);
+  x64_context->body       = &ste->function_body;
+  x64_Symbol *symbol      = x64_symbol_table_at(&x64_context->symbols, name);
+  if (ste->kind == STE_FUNCTION) {
+    symbol->kind = X64SYM_FUNCTION;
+  } else if (ste->kind == STE_CONSTANT) {
+    symbol->kind = X64SYM_CONSTANT;
+  } else {
+    EXP_UNREACHABLE;
+  }
+  symbol->body = x64_function_body_create(x64_context->body, x64_context);
   x64_context->x64_body = &symbol->body;
-  *x64_context->x64_body =
-      x64_function_body_create(x64_context->body, x64_context);
 }
 
-void x64_context_leave_function(x64_Context *restrict x64_context) {
+void x64_context_leave_global(x64_Context *restrict x64_context) {
   assert(x64_context != NULL);
-  context_leave_function(x64_context->context);
+  context_leave_global(x64_context->context);
   x64_context->body     = NULL;
   x64_context->x64_body = NULL;
 }

@@ -25,9 +25,11 @@ to my eyes, string-literals are really string-views into global constants.
 and string-views are implemented as a pair of an i64 and a character pointer.
 and pairs can be generalized to tuples.
 
+characters leads into a discussion on utf-8 strings.
+and utf-8 string processing.
 string-literals are then used to implement the import mechanism.
 which leads directly to modules and namespaces.
-string-literals are used to implement for error messages.
+string-literals are used to implement error messages.
 and tuples are used alongside unions to implement a result type,
 which is the basis for error handling in the language.
 then we add a more robust suite of scalar types, alongside more binary 
@@ -40,16 +42,25 @@ pointers leads to dynamic memory allocation.
 
 
 so, to start, we are adding support for tuples.
-This feature requires argument passing to be essentially finished.
-(passing and returning non-scalar values is the only thing I can think
-of that needs to be added to the implementation of monomorphic functions.)
-and it will force clarification of working with larger than scalar
-types, when assembly instructions can only work with scalar types.
-(The dot operator works to convert the non-scalar tuple type into a
-element. which may or may not be scalar sized. Though, thinking of
-it now, I may use the square brackets operator instead. as it already
-makes sense to place an integer constant there. Which leads to the 
-handling of a dynamic index, which is runtime bounds checked obviously,
-which then causes a panic, or exit. along with an error message.
-this error message is itself a tuple. so already we can see the usefulness 
-of tuples.)
+now that we have those what is the next most basic thing?
+well, it's a toss up between utf-8 strings (and thus utf-8 characters),
+pointers, and global constants other than functions.
+
+okay, so I think global constants other than functions is the next thing I want to 
+work on. because that is essentially "filling out" the existing language.
+We have global constants already except only functions. so supporting global constant 
+scalars and composite values just adds functionality where one would expect it.
+and it can be noted that the machinery needed to declare global constants is going to 
+be the same that is used to embed string-literals into the binary.
+
+
+and that reminds me that I haven't added use-before-definition yet, nor have I allowed 
+for recursive functions. (it doesn't make sense to add recursion before conditionals though).
+however, use-before-def is required for mutually recursive functions.
+
+
+
+
+
+
+

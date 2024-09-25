@@ -1,0 +1,44 @@
+okay, global constants are tricky for a few reasons:
+
+    - A global constant needs to be initialized to some value.
+      and since assignment doesn't exist this value must be comptime.
+      Local constants are initialized by the bytecode instruction "load".
+      This works because locals exist within a function body and the 
+      body of a function has an associated chunk of bytecode.
+      at global scope there is no associated bytecode. so how do we initialize 
+      globals? 
+      Associate globals with some bytecode.
+      okay, so each global gets it's own chunk? or one chunk per global namespace?
+      well I think one "global" chunk per compilation environment.
+
+      Well that's easy enough. 
+        - add a global chunk member to environment
+        - when getting the current_bytecode() use 
+            the global chunk as the fallback when we 
+            aren't currently 'within' a function.
+        - thus we will emit instructions into the global 
+            chunk when we aren't within a function, 
+        - thus analysis and codegen can both 'see' the 
+            initializers to the global constant.
+        - analysis and codegen can also be given a function 
+            to tell if they are currently in global scope 
+            or local scope.
+
+
+okay, that sounds easy, but what about the representation of global constants in the IR?
+well, that is easy, we have operands which stand in for an identifier, and we can use that 
+identifier to represent that usage of that global in expressions.
+alright. so what about the initialization expression of a global identifier?
+we have assumed that initialization expressions are within a local scope, so we use bytecode 
+instructions to construct said expression. however global constants are defined by the fact that 
+they are not within a local scope. so where does the initialization expression live?
+well, I can think of two possibilities right now, both from the perspective of representing the 
+initialization expression using the existing IR. Either all initialization expressions live in the 
+same global scope bytecode array. and we somehow associate different global constants with different 
+subsections of the global bytecode. such that we can read back the initialization expression when 
+typechecking and generating assembly. 
+
+or we can use a seperate bytecode for each global constant. This makes it easy to know where the initialization
+expression is. however it raises another question, since the format of our IR is so deeply tied with the concept 
+of being in a local scope, we don't have a way of expressing intermediate values, that is, the way a complex 
+arithmetic expression is carried out, without the use of unnamed "temporary" local variables. 

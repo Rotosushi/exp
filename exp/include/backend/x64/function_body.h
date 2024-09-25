@@ -46,6 +46,8 @@ typedef struct x64_FunctionBody {
 struct x64_Context;
 x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
                                           struct x64_Context *restrict context);
+// x64_FunctionBody
+// x64_function_body_create_default(struct x64_Context *restrict context);
 void x64_function_body_destroy(x64_FunctionBody *restrict body);
 
 #endif // !EXP_BACKEND_X64_FUNCTION_BODY_H

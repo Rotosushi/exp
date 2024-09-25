@@ -35,8 +35,9 @@ typedef struct Context {
   TypeInterner type_interner;
   SymbolTable global_symbol_table;
   GlobalLabels global_labels;
-  FunctionBody *current_function;
   Values values;
+  FunctionBody _init;
+  SymbolTableElement *current_ste;
 } Context;
 
 /**
@@ -84,23 +85,24 @@ SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
 SymbolTableIterator
 context_global_symbol_table_iterator(Context *restrict context);
 
-// function functions
-FunctionBody *context_enter_function(Context *restrict c, StringView name);
-FunctionBody *context_current_function(Context *restrict c);
-Bytecode *context_active_bytecode(Context *restrict c);
+// global constant functions
+SymbolTableElement *context_enter_global(Context *restrict c, StringView name);
 
+SymbolTableElement *context_current_ste(Context *restrict c);
+
+bool context_at_global_scope(Context *restrict c);
+
+void context_leave_global(Context *restrict c);
+
+// function functions
 CallPair context_new_call(Context *restrict c);
 ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
-void context_def_local_const(Context *restrict c,
-                             StringView name,
-                             Operand value);
+void context_def_constant(Context *restrict c, StringView name, Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
 LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa);
 FormalArgument *context_lookup_argument(Context *restrict c, StringView name);
 FormalArgument *context_argument_at(Context *restrict c, u8 index);
-
-void context_leave_function(Context *restrict c);
 
 // Values functions
 Operand context_values_append(Context *restrict context, Value value);
@@ -110,7 +112,7 @@ Value *context_values_at(Context *restrict context, u64 index);
 void context_emit_return(Context *restrict c, Operand B);
 Operand context_emit_call(Context *restrict c, Operand B, Operand C);
 Operand context_emit_dot(Context *restrict c, Operand B, Operand C);
-Operand context_emit_load(Context *restrict c, Operand B);
+Operand context_emit_move(Context *restrict c, Operand A, Operand B);
 Operand context_emit_neg(Context *restrict c, Operand B);
 Operand context_emit_add(Context *restrict c, Operand B, Operand C);
 Operand context_emit_sub(Context *restrict c, Operand B, Operand C);

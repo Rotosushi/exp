@@ -367,7 +367,7 @@ static ParserResult constant(Parser *restrict p, Context *restrict c) {
   EXPECT(semicolon, TOK_SEMICOLON);
   if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
 
-  context_def_local_const(c, name, maybe.result);
+  context_def_constant(c, name, maybe.result);
   return success(zero());
 }
 
@@ -417,7 +417,10 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   StringView name = context_intern(c, curtxt(p));
   NEXTTOK(p);
 
-  FunctionBody *body = context_enter_function(c, name);
+  SymbolTableElement *ste = context_enter_global(c, name);
+  assert(ste->kind == STE_UNDEFINED);
+  ste->kind          = STE_FUNCTION;
+  FunctionBody *body = &ste->function_body;
 
   { TRY(maybe, parse_formal_argument_list(p, c, body)); }
 
@@ -433,13 +436,41 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   file_write("\n", stdout);
 #endif
 
-  context_leave_function(c);
+  context_leave_global(c);
+  return success(zero());
+}
+
+static ParserResult global_constant(Parser *restrict p, Context *restrict c) {
+  NEXTTOK(p); // eat 'const'
+
+  if (!peek(p, TOK_IDENTIFIER)) {
+    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
+  }
+
+  StringView name = context_intern(c, curtxt(p));
+  NEXTTOK(p); // eat identifier
+
+  SymbolTableElement *ste = context_enter_global(c, name);
+  assert(ste->kind == STE_UNDEFINED);
+  ste->kind = STE_CONSTANT;
+
+  EXPECT(equal, TOK_EQUAL);
+  if (!equal.found) { return error(p, ERROR_PARSER_EXPECTED_EQUAL); }
+
+  TRY(maybe, expression(p, c));
+
+  EXPECT(semicolon, TOK_SEMICOLON);
+  if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+
+  context_def_constant(c, name, maybe.result);
+  context_leave_global(c);
   return success(zero());
 }
 
 static ParserResult definition(Parser *restrict p, Context *restrict c) {
   switch (p->curtok) {
-  case TOK_FN: return function(p, c);
+  case TOK_FN:    return function(p, c);
+  case TOK_CONST: return global_constant(p, c);
 
   default: return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
   }

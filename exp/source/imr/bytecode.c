@@ -73,7 +73,7 @@ static void print_AB(char const *restrict inst,
                      Context *restrict context) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand_ssa(I.A, file, context);
+  print_operand(I.A, file, context);
   file_write(", ", file);
   print_operand(I.B, file, context);
 }
@@ -84,7 +84,7 @@ static void print_ABC(char const *restrict inst,
                       Context *restrict context) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand_ssa(I.A, file, context);
+  print_operand(I.A, file, context);
   file_write(", ", file);
   print_operand(I.B, file, context);
   file_write(", ", file);
@@ -158,7 +158,7 @@ static void print_instruction(Instruction I,
   case OPC_RET:  print_ret(I, file, context); break;
   case OPC_CALL: print_call(I, file, context); break;
   case OPC_DOT:  print_dot(I, file, context); break;
-  case OPC_LOAD: print_load(I, file, context); break;
+  case OPC_MOVE: print_load(I, file, context); break;
   case OPC_NEG:  print_neg(I, file, context); break;
   case OPC_ADD:  print_add(I, file, context); break;
   case OPC_SUB:  print_sub(I, file, context); break;

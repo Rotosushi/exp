@@ -21,6 +21,6 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_load(Instruction I, u64 Idx, x64_Context *restrict context);
+void x64_codegen_move(Instruction I, u64 Idx, x64_Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_CODEGEN_LOAD_H

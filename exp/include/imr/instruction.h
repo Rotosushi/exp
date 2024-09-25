@@ -37,18 +37,26 @@ typedef enum Opcode : u8 {
   OPC_RET, // B -- R = B,    <return>
            // B -- R = Values[B], <return>
            // B -- R = SSA[B], <return>
+           // B -- R = GlobalSymbol[B], <return>
 
   OPC_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
   OPC_DOT, // ABC -- SSA[A] = SSA[B].C
            // ABC -- SSA[A] = Values[B].C
+           // ABC -- SSA[A] = GlobalSymbol[B].C
 
-  OPC_LOAD, // AB  -- SSA[A] = B
-            // AB  -- SSA[A] = Values[B]
-            // AB  -- SSA[A] = SSA[B]
+  OPC_MOVE, // AB -- SSA[A] = B
+            // AB -- SSA[A] = Values[B]
+            // AB -- SSA[A] = SSA[B]
+            // AB -- SSA[A] = GlobalSymbol[B]
+            // AB -- GlobalSymbol[A] = B
+            // AB -- GlobalSymbol[A] = Values[B]
+            // AB -- GlobalSymbol[A] = SSA[B]
+            // AB -- GlobalSymbol[A] = GlobalSymbol[B]
 
-  OPC_NEG, // AB  -- SSA[A] = -(B)
-           // AB  -- SSA[A] = -(SSA[B])
+  OPC_NEG, // AB -- SSA[A] = -(B)
+           // AB -- SSA[A] = -(SSA[B])
+           // AB -- SSA[A] = GlobalSymbol[B]
 
   OPC_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
            // ABC -- SSA[A] = SSA[B] + C
@@ -88,7 +96,7 @@ typedef enum InstructionFormat : u8 {
 typedef struct Instruction {
   Opcode opcode;
   InstructionFormat format;
-  u64 A;
+  Operand A;
   Operand B;
   Operand C;
 } Instruction;
@@ -96,7 +104,7 @@ typedef struct Instruction {
 Instruction instruction_ret(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
-Instruction instruction_load(Operand dst, Operand src);
+Instruction instruction_move(Operand dst, Operand src);
 Instruction instruction_neg(Operand dst, Operand src);
 Instruction instruction_add(Operand dst, Operand left, Operand right);
 Instruction instruction_sub(Operand dst, Operand left, Operand right);

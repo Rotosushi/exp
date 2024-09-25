@@ -24,6 +24,7 @@ typedef struct x64_Context {
   Context *context;
   FunctionBody *body;
   x64_FunctionBody *x64_body;
+  // x64_FunctionBody _init;
   x64_SymbolTable symbols;
 } x64_Context;
 
@@ -40,9 +41,9 @@ StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
                                         u64 idx);
 
 // context x64 function functions
-void x64_context_enter_function(x64_Context *restrict x64_context,
-                                StringView name);
-void x64_context_leave_function(x64_Context *restrict context);
+void x64_context_enter_global(x64_Context *restrict x64_context,
+                              StringView name);
+void x64_context_leave_global(x64_Context *restrict context);
 
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
                                         u64 idx);
