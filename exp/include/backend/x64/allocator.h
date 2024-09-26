@@ -104,6 +104,10 @@ void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
                                      x64_Allocation *restrict active,
                                      x64_Bytecode *restrict x64bc);
 
+void x64_allocator_unspill(x64_Allocator *restrict allocator,
+                           x64_Allocation *restrict active,
+                           x64_Bytecode *restrict x64bc);
+
 x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                           x64_Bytecode *restrict x64bc);
 

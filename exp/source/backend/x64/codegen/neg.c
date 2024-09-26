@@ -18,10 +18,11 @@
  */
 
 #include "backend/x64/codegen/neg.h"
+#include "backend/x64/intrinsics/copy.h"
 #include "utility/unreachable.h"
 
 void x64_codegen_neg(Instruction I, u64 Idx, x64_Context *restrict context) {
-  LocalVariable *local = x64_context_lookup_ssa(context, I.A);
+  LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
@@ -34,12 +35,21 @@ void x64_codegen_neg(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   case OPRFMT_IMMEDIATE: {
     x64_Allocation *A = x64_context_allocate(context, local, Idx);
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
     x64_context_append(context, x64_neg(x64_operand_alloc(A)));
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  case OPRFMT_LABEL: {
+    x64_Address label = x64_address_from_label(I.B.index);
+    x64_Allocation *A = x64_context_allocate(context, local, Idx);
+    x64_codegen_copy_allocation_from_memory(A, &label, A->type, Idx, context);
+    x64_context_append(context, x64_neg(x64_operand_alloc(A)));
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }

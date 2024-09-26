@@ -77,6 +77,7 @@ x64_Address x64_address_construct(x64_AddressOperand base,
                                   x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,
                                   x64_OptionalI64 optional_offset);
+x64_Address x64_address_from_label(u64 index);
 void x64_address_increment_offset(x64_Address *restrict address, i64 offset);
 
 typedef struct x64_Location {

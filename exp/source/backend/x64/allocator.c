@@ -528,15 +528,27 @@ void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
   }
 }
 
+void x64_allocator_unspill(x64_Allocator *restrict allocator,
+                           x64_Allocation *restrict active,
+                           x64_Bytecode *restrict x64bc) {
+  if (active->location.kind == LOCATION_GPR) { return; }
+  if (!type_is_scalar(active->type)) { return; }
+
+  x64_Location prev = active->location;
+  x64_GPR gpr       = x64_allocator_spill_oldest_active(allocator, x64bc);
+  x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, active);
+
+  x64_bytecode_append(
+      x64bc, x64_mov(x64_operand_gpr(gpr), x64_operand_location(prev)));
+}
+
 x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                           x64_Bytecode *restrict x64bc) {
   x64_Allocation *oldest = x64_gprp_oldest_allocation(&allocator->gprp);
-  if (oldest != NULL) {
-    x64_GPR gpr = oldest->location.gpr;
-    x64_allocator_spill_allocation(allocator, oldest, x64bc);
-    return gpr;
-  }
-  assert(0);
+  assert(oldest != nullptr);
+  x64_GPR gpr = oldest->location.gpr;
+  x64_allocator_spill_allocation(allocator, oldest, x64bc);
+  return gpr;
 }
 
 x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,

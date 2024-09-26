@@ -60,7 +60,7 @@ static void operand_array_append(OperandArray *restrict array,
 }
 
 void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
-  LocalVariable *local     = x64_context_lookup_ssa(context, I.A);
+  LocalVariable *local     = x64_context_lookup_ssa(context, I.A.ssa);
   u8 scalar_argument_count = 0;
 
   if (type_is_scalar(local->type)) {
@@ -96,10 +96,11 @@ void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
   }
 
   i64 actual_arguments_stack_size = 0;
-  x64_Address arg_address         = x64_address_construct(X64GPR_RSP,
-                                                  x64_optional_gpr_empty(),
-                                                  x64_optional_u8_empty(),
-                                                  x64_optional_i64_empty());
+  x64_Address arg_address =
+      x64_address_construct(x64_address_operand_gpr(X64GPR_RSP),
+                            x64_optional_address_operand_empty(),
+                            x64_optional_u8_empty(),
+                            x64_optional_i64_empty());
 
   for (u8 i = 0; i < stack_args.size; ++i) {
     Operand *arg   = stack_args.buffer + i;

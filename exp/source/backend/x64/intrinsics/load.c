@@ -87,15 +87,17 @@ static void x64_codegen_load_address_from_scalar_operand(
     break;
   }
 
-  case OPRFMT_LABEL: {
-    PANIC("#TODO");
-    break;
-  }
-
   case OPRFMT_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     assert(type_equality(type, type_of_value(value, context->context)));
     x64_codegen_load_address_from_scalar_value(dst, value, context);
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    x64_Address label = x64_address_from_label(src->index);
+    x64_codegen_copy_memory(
+        dst, &label, type_of_operand(src, context->context), Idx, context);
     break;
   }
 
@@ -145,7 +147,9 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
   }
 
   case OPRFMT_LABEL: {
-    PANIC("#TODO");
+    x64_Address label = x64_address_from_label(src->index);
+    x64_codegen_copy_memory(
+        dst, &label, type_of_operand(src, context->context), Idx, context);
     break;
   }
 
@@ -195,7 +199,9 @@ static void x64_codegen_load_argument_from_scalar_operand(
   }
 
   case OPRFMT_LABEL: {
-    PANIC("#TODO");
+    x64_Address label = x64_address_from_label(src->index);
+    x64_codegen_copy_memory(
+        dst, &label, type_of_operand(src, context->context), Idx, context);
     break;
   }
 
@@ -213,9 +219,7 @@ static void x64_codegen_load_argument_from_composite_operand(
   switch (src->format) {
   case OPRFMT_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
-
     assert(allocation->location.kind == LOCATION_ADDRESS);
-
     x64_codegen_copy_composite_memory(
         dst, &allocation->location.address, type, Idx, context);
     break;
@@ -246,7 +250,9 @@ static void x64_codegen_load_argument_from_composite_operand(
   }
 
   case OPRFMT_LABEL: {
-    PANIC("#TODO");
+    x64_Address label = x64_address_from_label(src->index);
+    x64_codegen_copy_memory(
+        dst, &label, type_of_operand(src, context->context), Idx, context);
     break;
   }
 
@@ -287,10 +293,15 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
     break;
   }
 
+  case OPRFMT_LABEL: {
+    x64_Address label = x64_address_from_label(src->index);
+    x64_context_append(
+        context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(label)));
+    break;
+  }
+
   // we don't create scalar values (yet)
   case OPRFMT_VALUE:
-  // we don't create globals that are not functions (yet)
-  case OPRFMT_LABEL:
   default:           EXP_UNREACHABLE;
   }
 }

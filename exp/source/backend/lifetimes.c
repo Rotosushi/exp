@@ -84,8 +84,10 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     }
 
     case IFMT_AB: {
-      Lifetime *Al  = lifetimes_at(&lifetimes, I.A);
-      Al->first_use = inst;
+      if (I.A.format == OPRFMT_SSA) {
+        Lifetime *Al  = lifetimes_at(&lifetimes, I.A.ssa);
+        Al->first_use = inst;
+      }
 
       if (I.B.format == OPRFMT_SSA) {
         Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
@@ -107,8 +109,10 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     }
 
     case IFMT_ABC: {
-      Lifetime *Al  = lifetimes_at(&lifetimes, I.A);
-      Al->first_use = inst;
+      if (I.A.format == OPRFMT_SSA) {
+        Lifetime *Al  = lifetimes_at(&lifetimes, I.A.ssa);
+        Al->first_use = inst;
+      }
 
       if (I.B.format == OPRFMT_SSA) {
         Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);

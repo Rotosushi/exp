@@ -17,7 +17,9 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "backend/x64/codegen/move.h"
+#include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
+#include "intrinsics/type_of.h"
 #include "utility/unreachable.h"
 
 static void
@@ -44,9 +46,27 @@ x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
     break;
   }
 
-  case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE;
+  case OPRFMT_LABEL: {
+    x64_Address label = x64_address_from_label(I.B.index);
+    x64_Allocation *A = x64_context_allocate(context, local, Idx);
+    x64_codegen_copy_allocation_from_memory(A, &label, A->type, Idx, context);
+    break;
   }
+
+  default: EXP_UNREACHABLE;
+  }
+}
+
+void x64_codegen_move_to_label(Instruction I,
+                               u64 Idx,
+                               x64_Context *restrict context) {
+  x64_Address label_address = x64_address_from_label(I.A.index);
+
+  x64_codegen_load_address_from_operand(&label_address,
+                                        &I.B,
+                                        type_of_operand(&I.B, context->context),
+                                        Idx,
+                                        context);
 }
 
 void x64_codegen_move(Instruction I, u64 Idx, x64_Context *restrict context) {

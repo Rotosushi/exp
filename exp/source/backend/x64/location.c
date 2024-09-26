@@ -68,6 +68,13 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
   return a;
 }
 
+x64_Address x64_address_from_label(u64 index) {
+  return x64_address_construct(x64_address_operand_index(index),
+                               x64_optional_address_operand_empty(),
+                               x64_optional_u8_empty(),
+                               x64_optional_i64_empty());
+}
+
 x64_Address x64_address_construct(x64_AddressOperand base,
                                   x64_OptionalAddressOperand optional_index,
                                   x64_OptionalU8 optional_scale,

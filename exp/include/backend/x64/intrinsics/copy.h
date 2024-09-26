@@ -44,6 +44,11 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              u64 Idx,
                                              x64_Context *restrict context);
 
+void x64_codegen_copy_memory_from_allocation(x64_Address *restrict dst,
+                                             x64_Allocation *restrict src,
+                                             u64 Idx,
+                                             x64_Context *restrict context);
+
 void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                  x64_Allocation *restrict src,
                                  u64 Idx,

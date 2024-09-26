@@ -55,6 +55,14 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
   return context_function_type(context, body->return_type, argument_types);
 }
 
+Type *type_of_label(u64 index, Context *restrict context) {
+  StringView label           = context_global_labels_at(context, index);
+  SymbolTableElement *symbol = context_global_symbol_table_at(context, label);
+  assert(!string_view_empty(symbol->name));
+  assert(symbol->type != NULL);
+  return symbol->type;
+}
+
 Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
   switch (operand->format) {
   case OPRFMT_SSA: {
@@ -75,11 +83,7 @@ Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    StringView label = context_global_labels_at(context, operand->index);
-    SymbolTableElement *symbol = context_global_symbol_table_at(context, label);
-    assert(!string_view_empty(symbol->name));
-    assert(symbol->type != NULL);
-    return symbol->type;
+    return type_of_label(operand->index, context);
     break;
   }
 

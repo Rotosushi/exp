@@ -19,7 +19,6 @@
 #include "backend/x64/codegen/ret.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
-#include "utility/panic.h"
 #include "utility/unreachable.h"
 
 void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
@@ -46,16 +45,9 @@ void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    /*
-     * #NOTE #TODO #FEATURE eventually we will add support for
-     * global constants (global variables are in limbo until
-     * proven vital). When these exist, it will be possible to
-     * access them via OPRFMT_LABEL operands. Since we do not
-     * have them yet, this case is effecively unreachable.
-     * (right now OPRFMT_LABEL is used exclusively for global
-     *  functions. which are global constants.)
-     */
-    PANIC("#TODO");
+    x64_Address label = x64_address_from_label(I.B.index);
+    x64_codegen_copy_allocation_from_memory(
+        body->result, &label, body->result->type, Idx, context);
     break;
   }
 

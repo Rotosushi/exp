@@ -107,6 +107,9 @@ x64_Allocation *x64_context_allocate_result(x64_Context *restrict x64_context,
 void x64_context_reallocate_active(x64_Context *restrict x64_context,
                                    x64_Allocation *restrict active);
 
+void x64_context_unspill(x64_Context *restrict x64_context,
+                         x64_Allocation *restrict active);
+
 x64_GPR x64_context_aquire_any_gpr(x64_Context *restrict x64_context, u64 Idx);
 
 // x64 symbol table functions
