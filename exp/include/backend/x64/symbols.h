@@ -27,6 +27,7 @@ typedef enum x64_SymbolKind : u8 {
 typedef struct x64_Symbol {
   x64_SymbolKind kind;
   StringView name;
+  Type *type;
   x64_FunctionBody body;
 } x64_Symbol;
 

@@ -85,8 +85,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     SymbolTableElement *global = context_global_symbol_table_at(c, name);
     Type *type                 = global->type;
     if (type == NULL) {
-      try(Gty, typecheck_global(c, global));
-      type = Gty;
+      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(name));
     }
 
     return success(type);
@@ -96,11 +95,25 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
   }
 }
 
-static TResult typecheck_load(Context *restrict c, Instruction I) {
-  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
-  local->type = Bty;
-  return success(Bty);
+static TResult typecheck_move(Context *restrict c, Instruction I) {
+  // The load instruction is currently only used to initialize
+  // symbols and ssa locals. it could be renamed to define or something similar.
+  // The type of the symbol or ssa local is inferred to be the type
+  // of the initializer.
+  if (I.A.format == OPRFMT_SSA) {
+    LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+    try(Bty, typecheck_operand(c, I.B));
+    local->type = Bty;
+    return success(Bty);
+  } else if (I.A.format == OPRFMT_LABEL) {
+    StringView label           = context_global_labels_at(c, I.A.index);
+    SymbolTableElement *global = context_global_symbol_table_at(c, label);
+    try(Bty, typecheck_operand(c, I.B));
+    global->type = Bty;
+    return success(Bty);
+  } else {
+    EXP_UNREACHABLE;
+  }
 }
 
 static TResult typecheck_ret(Context *restrict c, Instruction I) {
@@ -346,14 +359,16 @@ static TResult typecheck_function(Context *restrict c) {
   Type *return_type       = NULL;
   SymbolTableElement *ste = context_current_ste(c);
   assert(ste->kind == STE_FUNCTION);
-  FunctionBody *body = &ste->function_body;
-  Bytecode *bc       = &body->bc;
+  FunctionBody *body   = &ste->function_body;
+  Bytecode *bc         = &body->bc;
+  bool explicit_return = false;
 
   Instruction *ip = bc->buffer;
   for (u16 idx = 0; idx < bc->length; ++idx) {
     Instruction I = ip[idx];
     switch (I.opcode) {
     case OPC_RET: {
+      explicit_return = true;
       try(Bty, typecheck_ret(c, I));
 
       if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
@@ -381,7 +396,7 @@ static TResult typecheck_function(Context *restrict c) {
     }
 
     case OPC_MOVE: {
-      try(Bty, typecheck_load(c, I));
+      try(Bty, typecheck_move(c, I));
       break;
     }
 
@@ -419,6 +434,12 @@ static TResult typecheck_function(Context *restrict c) {
     }
   }
 
+  if (!explicit_return) {
+    Operand index = context_values_append(c, value_create_nil());
+    bytecode_append(bc, instruction_ret(index));
+    return_type = context_nil_type(c);
+  }
+
   return success(return_type);
 }
 
@@ -439,7 +460,7 @@ static TResult typecheck_constant(Context *restrict c) {
     }
 
     case OPC_MOVE: {
-      try(Aty, typecheck_load(c, I));
+      try(Aty, typecheck_move(c, I));
       result = Aty;
       break;
     }

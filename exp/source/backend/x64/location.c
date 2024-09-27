@@ -21,6 +21,7 @@
 
 #include "backend/x64/location.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
 
 x64_AddressOperand x64_address_operand_gpr(x64_GPR gpr) {
   x64_AddressOperand operand = {.kind = X64AOPR_GPR, .gpr = gpr};
@@ -30,6 +31,24 @@ x64_AddressOperand x64_address_operand_gpr(x64_GPR gpr) {
 x64_AddressOperand x64_address_operand_index(u64 index) {
   x64_AddressOperand operand = {.kind = X64AOPR_INDEX, .index = index};
   return operand;
+}
+
+bool x64_address_operand_equals(x64_AddressOperand A, x64_AddressOperand B) {
+  if (A.kind != B.kind) { return false; }
+
+  switch (A.kind) {
+  case X64AOPR_GPR: {
+    return A.gpr == B.gpr;
+    break;
+  }
+
+  case X64AOPR_INDEX: {
+    return A.index == B.index;
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
+  }
 }
 
 x64_OptionalAddressOperand x64_optional_address_operand_empty() {

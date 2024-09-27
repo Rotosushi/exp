@@ -198,6 +198,7 @@ void x64_codegen_sub(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   case OPRFMT_LABEL: {
     x64_codegen_sub_label(I, local, Idx, context);
+    break;
   }
 
   default: EXP_UNREACHABLE;

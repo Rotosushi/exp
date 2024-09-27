@@ -148,6 +148,15 @@ SymbolTableElement *context_current_ste(Context *restrict c) {
   return c->current_ste;
 }
 
+SymbolTableElement *context_global_init(Context *restrict c) {
+  assert(c != nullptr);
+  SymbolTableElement *init = context_global_symbol_table_at(c, SV("_init"));
+  if (init->kind != STE_UNDEFINED) { return init; }
+
+  init->kind = STE_FUNCTION;
+  return init;
+}
+
 bool context_at_global_scope(Context *restrict c) {
   if (c->current_ste == nullptr) return true;
   switch (c->current_ste->kind) {
@@ -167,18 +176,13 @@ FunctionBody *context_current_function(Context *restrict c) {
   SymbolTableElement *ste = context_current_ste(c);
   switch (ste->kind) {
   case STE_UNDEFINED: EXP_UNREACHABLE;
-  case STE_CONSTANT:  return &c->_init;
+  case STE_CONSTANT:  return &context_global_init(c)->function_body;
   case STE_FUNCTION:  return &ste->function_body;
   }
 }
 
 Bytecode *context_active_bytecode(Context *restrict c) {
-  SymbolTableElement *ste = context_current_ste(c);
-  switch (ste->kind) {
-  case STE_UNDEFINED: EXP_UNREACHABLE;
-  case STE_CONSTANT:  return &c->_init.bc;
-  case STE_FUNCTION:  return &ste->function_body.bc;
-  }
+  return &context_current_function(c)->bc;
 }
 
 static Operand context_new_ssa(Context *restrict c) {

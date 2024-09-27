@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 1 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "489e39540da413efe26a28029149c46853c4d93f"
+#define EXP_GIT_REVISION "2068b70fc581cb7a72f19342d010759229ff7582"
 #define EXP_TEST_DIR "/home/elise/Projects/exp/test"
 #define EXP_BUILD_DIR "/home/elise/Projects/exp/build"
 #define EXP_LIB_DIR "/home/elise/Projects/exp/build/libexp"
@@ -31,7 +31,7 @@
 /* #undef EXP_HOST_OS_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-09-24 18:43:51) git revision (489e39540da413efe26a28029149c46853c4d93f)"
+#define EXP_VERSION_STRING "exp version (0.1.0) built at (2024-09-26 15:00:15) git revision (2068b70fc581cb7a72f19342d010759229ff7582)"
 // NOLINTEND
 // clang-format on
 

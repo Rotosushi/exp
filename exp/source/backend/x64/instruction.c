@@ -22,6 +22,7 @@
 #include "backend/x64/instruction.h"
 #include "backend/x64/location.h"
 #include "backend/x64/registers.h"
+#include "utility/unreachable.h"
 
 static x64_Instruction x64_instruction(x64_Opcode opcode) {
   x64_Instruction I = {.opcode = opcode};
@@ -111,6 +112,48 @@ static void x64_emit_mnemonic(StringView mnemonic,
   string_append(buffer, SV("q\t"));
 }
 
+static void x64_emit_address_operand(x64_AddressOperand operand,
+                                     String *restrict buffer,
+                                     Context *restrict context) {
+  switch (operand.kind) {
+  case X64AOPR_GPR: {
+    string_append(buffer, SV("%"));
+    string_append(buffer, x64_gpr_to_sv(operand.gpr));
+    break;
+  }
+
+  case X64AOPR_INDEX: {
+    string_append(buffer, context_global_labels_at(context, operand.index));
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
+  }
+}
+
+static void x64_emit_address(x64_Address address,
+                             String *restrict buffer,
+                             Context *restrict context) {
+  if (address.offset.present) {
+    string_append_i64(buffer, address.offset.value);
+  }
+
+  string_append(buffer, SV("("));
+  x64_emit_address_operand(address.base, buffer, context);
+
+  if (address.index.present) {
+    string_append(buffer, SV(", "));
+    x64_emit_address_operand(address.index.operand, buffer, context);
+    string_append(buffer, SV(","));
+    if (address.scale.present) {
+      string_append(buffer, SV(" "));
+      string_append_u64(buffer, address.scale.value);
+    }
+  }
+
+  string_append(buffer, SV(")"));
+}
+
 static void x64_emit_operand(x64_Operand operand,
                              String *restrict buffer,
                              Context *restrict context) {
@@ -122,25 +165,7 @@ static void x64_emit_operand(x64_Operand operand,
   }
 
   case X64OPRFMT_ADDRESS: {
-    x64_Address *address = &operand.address;
-    if (address->offset.present) {
-      string_append_i64(buffer, address->offset.value);
-    }
-
-    string_append(buffer, SV("(%"));
-    string_append(buffer, x64_gpr_to_sv(address->base));
-
-    if (address->index.present) {
-      string_append(buffer, SV(", "));
-      string_append(buffer, x64_gpr_to_sv(address->index.gpr));
-      string_append(buffer, SV(","));
-      if (address->scale.present) {
-        string_append(buffer, SV(" "));
-        string_append_u64(buffer, address->scale.value);
-      }
-    }
-
-    string_append(buffer, SV(")"));
+    x64_emit_address(operand.address, buffer, context);
     break;
   }
 

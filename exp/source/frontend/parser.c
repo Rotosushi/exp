@@ -430,7 +430,7 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
   { TRY(maybe, parse_block(p, c)); }
 
 #if EXP_DEBUG
-  file_write("parsed a function: \nfn ", stdout);
+  file_write("\nparsed a function: \nfn ", stdout);
   print_string_view(name, stdout);
   print_function_body(body, stdout, c);
   file_write("\n", stdout);
@@ -461,6 +461,12 @@ static ParserResult global_constant(Parser *restrict p, Context *restrict c) {
 
   EXPECT(semicolon, TOK_SEMICOLON);
   if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+
+#if EXP_DEBUG
+  file_write("\nparsed a constant: \nconst ", stdout);
+  print_string_view(name, stdout);
+  file_write("\n", stdout);
+#endif
 
   context_def_constant(c, name, maybe.result);
   context_leave_global(c);
@@ -731,6 +737,12 @@ i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
       return EXIT_FAILURE;
     }
   }
+
+#if EXP_DEBUG
+  file_write("\nfn _init", stdout);
+  print_function_body(&context_global_init(c)->function_body, stdout, c);
+  file_write("\n", stdout);
+#endif
 
   return EXIT_SUCCESS;
 }

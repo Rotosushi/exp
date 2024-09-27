@@ -15,48 +15,24 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-The current plan is to extend the compilers functionality.
-reaching for a stable and useful base language. which is then 
-extended via a standard library.
-
-the current subgoal here is adding support for string-literals.
-
-to my eyes, string-literals are really string-views into global constants.
-and string-views are implemented as a pair of an i64 and a character pointer.
-and pairs can be generalized to tuples.
-
-characters leads into a discussion on utf-8 strings.
-and utf-8 string processing.
-string-literals are then used to implement the import mechanism.
-which leads directly to modules and namespaces.
-string-literals are used to implement error messages.
-and tuples are used alongside unions to implement a result type,
-which is the basis for error handling in the language.
-then we add a more robust suite of scalar types, alongside more binary 
-and unary operators. which leads to literals of different types.
-which leads directly into casting.
-and casting leads to type reflection (and uses the error handling mechanism).
-and binary and unary operators touch on function overloading and function 
-templates.
-pointers leads to dynamic memory allocation.
+--
+ - add an evaluator, and use it to do constant value reductions on the input source code.
+ - when we address labels (global symbols) in instructions, we should access them relative to 
+    the %rip register. this allows the resulting assembly to be position independent code. 
+    and decreases code size.
+ - add support for string-literals
+    - add support for tuples
+    - add support for utf8
+    - add support for pointers
+ 
+--
+    regarding %rip relative assembly. this is fine except for one snag implementation wise.
+    We use the offset to address elements of tuples already. so we would need to be able to 
+    encode something like label + offset(%rip). which is possible if the offset is comptime.
+    because the assembler will fold the expression.
 
 
-so, to start, we are adding support for tuples.
-now that we have those what is the next most basic thing?
-well, it's a toss up between utf-8 strings (and thus utf-8 characters),
-pointers, and global constants other than functions.
 
-okay, so I think global constants other than functions is the next thing I want to 
-work on. because that is essentially "filling out" the existing language.
-We have global constants already except only functions. so supporting global constant 
-scalars and composite values just adds functionality where one would expect it.
-and it can be noted that the machinery needed to declare global constants is going to 
-be the same that is used to embed string-literals into the binary.
-
-
-and that reminds me that I haven't added use-before-definition yet, nor have I allowed 
-for recursive functions. (it doesn't make sense to add recursion before conditionals though).
-however, use-before-def is required for mutually recursive functions.
 
 
 

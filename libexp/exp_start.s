@@ -4,6 +4,7 @@
 .globl _start
 .type _start, @function
 _start:
+  call _init
   call main
   mov %rax, %rdi
   call _exp_sysexit

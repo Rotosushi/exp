@@ -24,7 +24,7 @@ typedef struct x64_Context {
   Context *context;
   FunctionBody *body;
   x64_FunctionBody *x64_body;
-  // x64_FunctionBody _init;
+  x64_FunctionBody _init;
   x64_SymbolTable symbols;
 } x64_Context;
 

@@ -19,6 +19,7 @@
 
 #include "backend/x64/emit.h"
 #include "backend/directives.h"
+#include "intrinsics/size_of.h"
 #include "utility/config.h"
 #include "utility/unreachable.h"
 
@@ -26,6 +27,7 @@ static void x64_emit_function(x64_Symbol *restrict sym,
                               String *restrict buffer,
                               Context *restrict context) {
   directive_text(buffer);
+  directive_balign(8, buffer);
   directive_globl(sym->name, buffer);
   directive_type(sym->name, STT_FUNC, buffer);
   directive_label(sym->name, buffer);
@@ -50,9 +52,14 @@ x64_emit_global_constant(x64_Symbol *restrict sym,
    * placed, if we ever implement global variables
    */
   directive_data(buffer);
+  directive_balign(8, buffer);
   directive_globl(sym->name, buffer);
   directive_type(sym->name, STT_OBJECT, buffer);
+  u64 size = size_of(sym->type);
+  directive_size(sym->name, size, buffer);
   directive_label(sym->name, buffer);
+
+  directive_zero(size, buffer);
 
   string_append(buffer, SV("\n"));
 }

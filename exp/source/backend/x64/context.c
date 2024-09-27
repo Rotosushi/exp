@@ -28,8 +28,7 @@ x64_Context x64_context_create(Context *restrict context) {
       .context  = context,
       .body     = NULL,
       .x64_body = NULL,
-      //._init    =,
-      .symbols = x64_symbol_table_create(context->global_symbol_table.count)};
+      .symbols  = x64_symbol_table_create(context->global_symbol_table.count)};
   return x64_context;
 }
 
@@ -55,15 +54,16 @@ void x64_context_enter_global(x64_Context *restrict x64_context,
   SymbolTableElement *ste = context_enter_global(x64_context->context, name);
   x64_context->body       = &ste->function_body;
   x64_Symbol *symbol      = x64_symbol_table_at(&x64_context->symbols, name);
+  symbol->type            = ste->type;
   if (ste->kind == STE_FUNCTION) {
     symbol->kind = X64SYM_FUNCTION;
+    symbol->body = x64_function_body_create(x64_context->body, x64_context);
+    x64_context->x64_body = &symbol->body;
   } else if (ste->kind == STE_CONSTANT) {
     symbol->kind = X64SYM_CONSTANT;
   } else {
     EXP_UNREACHABLE;
   }
-  symbol->body = x64_function_body_create(x64_context->body, x64_context);
-  x64_context->x64_body = &symbol->body;
 }
 
 void x64_context_leave_global(x64_Context *restrict x64_context) {

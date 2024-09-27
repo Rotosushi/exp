@@ -20,6 +20,13 @@
 #include "backend/x64/codegen/mul.h"
 #include "utility/unreachable.h"
 
+/*
+  #NOTE:
+    imul takes a single reg/mem argument,
+    and expects the other argument to be in %rax
+    and stores the result in %rdx:%rax.
+*/
+
 static void x64_codegen_mul_ssa(Instruction I,
                                 LocalVariable *restrict local,
                                 u64 Idx,
@@ -28,7 +35,7 @@ static void x64_codegen_mul_ssa(Instruction I,
   switch (I.C.format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
-    if ((B->location.kind == LOCATION_GPR) && (B->location.gpr == X64GPR_RAX)) {
+    if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
       x64_context_allocate_from_active(context, local, B, Idx);
 
       x64_context_release_gpr(context, X64GPR_RDX, Idx);
@@ -37,7 +44,7 @@ static void x64_codegen_mul_ssa(Instruction I,
       break;
     }
 
-    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
+    if (x64_allocation_location_eq(C, x64_location_gpr(X64GPR_RAX))) {
       x64_context_allocate_from_active(context, local, C, Idx);
 
       x64_context_release_gpr(context, X64GPR_RDX, Idx);
@@ -72,6 +79,7 @@ static void x64_codegen_mul_ssa(Instruction I,
       break;
     }
 
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
     x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
     x64_context_append(context,
                        x64_mov(x64_operand_gpr(X64GPR_RAX),
@@ -80,9 +88,28 @@ static void x64_codegen_mul_ssa(Instruction I,
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  case OPRFMT_LABEL: {
+    if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
+      x64_context_allocate_from_active(context, local, B, Idx);
+
+      x64_context_release_gpr(context, X64GPR_RDX, Idx);
+      x64_context_append(
+          context,
+          x64_imul(x64_operand_address(x64_address_from_label(I.C.index))));
+      break;
+    }
+
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_gpr(X64GPR_RAX),
+                x64_operand_address(x64_address_from_label(I.C.index))));
+    x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -126,9 +153,20 @@ static void x64_codegen_mul_immediate(Instruction I,
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  case OPRFMT_LABEL: {
+    x64_Allocation *A =
+        x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+    x64_context_append(
+        context,
+        x64_imul(x64_operand_address(x64_address_from_label(I.C.index))));
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }
 
@@ -136,17 +174,53 @@ static void x64_codegen_mul_label(Instruction I,
                                   LocalVariable *restrict local,
                                   u64 Idx,
                                   x64_Context *restrict context) {
+  x64_Address B = x64_address_from_label(I.B.index);
 
-  switch (I.C.format) {}
+  switch (I.C.format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+    if (x64_location_eq(C->location, x64_location_gpr(X64GPR_RAX))) {
+      x64_context_allocate_from_active(context, local, C, Idx);
+      x64_context_release_gpr(context, X64GPR_RDX, Idx);
+
+      x64_context_append(context, x64_imul(x64_operand_address(B)));
+      break;
+    }
+
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
+    x64_context_append(
+        context, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_address(B)));
+    x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(X64GPR_RAX),
+                               x64_operand_immediate(I.C.immediate)));
+    x64_context_append(context, x64_imul(x64_operand_address(B)));
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    x64_Address C = x64_address_from_label(I.C.index);
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_release_gpr(context, X64GPR_RDX, Idx);
+    x64_context_append(
+        context, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_address(B)));
+    x64_context_append(context, x64_imul(x64_operand_address(C)));
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
+  }
 }
 
 void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context) {
-  /*
-  #NOTE:
-    imul takes a single reg/mem argument,
-    and expects the other argument to be in %rax
-    and stores the result in %rdx:%rax.
-  */
+
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
   switch (I.B.format) {
   case OPRFMT_SSA: {

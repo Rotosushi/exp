@@ -21,6 +21,7 @@
 
 #include "backend/lifetimes.h"
 #include "utility/alloc.h"
+#include "utility/unreachable.h"
 
 Lifetime lifetime_immortal() {
   Lifetime lifetime = {.first_use = 0, .last_use = u64_MAX};
@@ -44,6 +45,57 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
   return lifetiems->buffer + ssa;
 }
 
+static void compute_operand(Operand operand,
+                            u64 inst,
+                            Lifetimes *restrict lifetimes,
+                            Context *restrict context);
+
+static void compute_value(Value *restrict value,
+                          u64 inst,
+                          Lifetimes *restrict lifetimes,
+                          Context *restrict context) {
+  switch (value->kind) {
+  case VALUEKIND_TUPLE: {
+    Tuple *tuple = &value->tuple;
+    for (u64 i = 0; i < tuple->size; ++i) {
+      compute_operand(tuple->elements[i], inst, lifetimes, context);
+    }
+    break;
+  }
+
+  default: return;
+  }
+}
+
+static void compute_operand(Operand operand,
+                            u64 inst,
+                            Lifetimes *restrict lifetimes,
+                            Context *restrict context) {
+  switch (operand.format) {
+  case OPRFMT_SSA: {
+    Lifetime *lifetime = lifetimes_at(lifetimes, operand.ssa);
+    if (inst > lifetime->last_use) { lifetime->last_use = inst; }
+    break;
+  }
+
+  case OPRFMT_VALUE: {
+    Value *value = context_values_at(context, operand.index);
+    compute_value(value, inst, lifetimes, context);
+    break;
+  }
+
+  case OPRFMT_CALL: {
+    ActualArgumentList *list = context_call_at(context, operand.index);
+    for (u64 i = 0; i < list->size; ++i) {
+      compute_operand(list->list[i], inst, lifetimes, context);
+    }
+    break;
+  }
+
+  default: return;
+  }
+}
+
 // walk the bytecode representing the function body.
 // if an instruction assigns a value to a SSA local
 // that is the first use of the SSA local.
@@ -64,93 +116,24 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     Instruction I = bc->buffer[inst];
     switch (I.format) {
     case IFMT_B: {
-      if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
-        if (inst > Bl->last_use) { Bl->last_use = inst; }
-      } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_values_at(context, I.B.index);
-        assert(value->kind == VALUEKIND_TUPLE);
-        Tuple *tuple = &value->tuple;
-
-        for (u64 i = 0; i < tuple->size; ++i) {
-          Operand element = tuple->elements[i];
-          if (element.format == OPRFMT_SSA) {
-            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
-            if (inst > el->last_use) { el->last_use = inst; }
-          }
-        }
-      }
+      compute_operand(I.B, inst, &lifetimes, context);
       break;
     }
 
     case IFMT_AB: {
-      if (I.A.format == OPRFMT_SSA) {
-        Lifetime *Al  = lifetimes_at(&lifetimes, I.A.ssa);
-        Al->first_use = inst;
-      }
-
-      if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
-        if (inst > Bl->last_use) { Bl->last_use = inst; }
-      } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_values_at(context, I.B.index);
-        assert(value->kind == VALUEKIND_TUPLE);
-        Tuple *tuple = &value->tuple;
-
-        for (u64 i = 0; i < tuple->size; ++i) {
-          Operand element = tuple->elements[i];
-          if (element.format == OPRFMT_SSA) {
-            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
-            if (inst > el->last_use) { el->last_use = inst; }
-          }
-        }
-      }
+      compute_operand(I.A, inst, &lifetimes, context);
+      compute_operand(I.B, inst, &lifetimes, context);
       break;
     }
 
     case IFMT_ABC: {
-      if (I.A.format == OPRFMT_SSA) {
-        Lifetime *Al  = lifetimes_at(&lifetimes, I.A.ssa);
-        Al->first_use = inst;
-      }
-
-      if (I.B.format == OPRFMT_SSA) {
-        Lifetime *Bl = lifetimes_at(&lifetimes, I.B.ssa);
-        if (inst > Bl->last_use) { Bl->last_use = inst; }
-      } else if (I.B.format == OPRFMT_VALUE) {
-        Value *value = context_values_at(context, I.B.index);
-        assert(value->kind == VALUEKIND_TUPLE);
-        Tuple *tuple = &value->tuple;
-
-        for (u64 i = 0; i < tuple->size; ++i) {
-          Operand element = tuple->elements[i];
-          if (element.format == OPRFMT_SSA) {
-            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
-            if (inst > el->last_use) { el->last_use = inst; }
-          }
-        }
-      }
-
-      if (I.C.format == OPRFMT_SSA) {
-        Lifetime *Cl = lifetimes_at(&lifetimes, I.C.ssa);
-        if (inst > Cl->last_use) { Cl->last_use = inst; }
-      } else if (I.C.format == OPRFMT_VALUE) {
-        Value *value = context_values_at(context, I.C.index);
-        assert(value->kind == VALUEKIND_TUPLE);
-        Tuple *tuple = &value->tuple;
-
-        for (u64 i = 0; i < tuple->size; ++i) {
-          Operand element = tuple->elements[i];
-          if (element.format == OPRFMT_SSA) {
-            Lifetime *el = lifetimes_at(&lifetimes, element.ssa);
-            if (inst > el->last_use) { el->last_use = inst; }
-          }
-        }
-      }
+      compute_operand(I.A, inst, &lifetimes, context);
+      compute_operand(I.B, inst, &lifetimes, context);
+      compute_operand(I.C, inst, &lifetimes, context);
       break;
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE;
     }
   }
 

@@ -149,19 +149,19 @@ static void x64_codegen_add_label(Instruction I,
                                   LocalVariable *restrict local,
                                   u64 Idx,
                                   x64_Context *restrict context) {
-  x64_Address label = x64_address_from_label(I.B.index);
+  x64_Address B = x64_address_from_label(I.B.index);
   switch (I.C.format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     x64_Allocation *A =
         x64_context_allocate_from_active(context, local, C, Idx);
     if (A->location.kind == LOCATION_GPR) {
-      x64_context_append(
-          context, x64_add(x64_operand_alloc(A), x64_operand_address(label)));
+      x64_context_append(context,
+                         x64_add(x64_operand_alloc(A), x64_operand_address(B)));
     } else {
       x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
-      x64_context_append(
-          context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(label)));
+      x64_context_append(context,
+                         x64_mov(x64_operand_gpr(gpr), x64_operand_address(B)));
       x64_context_append(context,
                          x64_add(x64_operand_alloc(A), x64_operand_gpr(gpr)));
       x64_context_release_gpr(context, gpr, Idx);
@@ -174,8 +174,8 @@ static void x64_codegen_add_label(Instruction I,
     x64_context_append(
         context,
         x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
-    x64_context_append(
-        context, x64_add(x64_operand_alloc(A), x64_operand_address(label)));
+    x64_context_append(context,
+                       x64_add(x64_operand_alloc(A), x64_operand_address(B)));
     break;
   }
 
@@ -185,18 +185,19 @@ static void x64_codegen_add_label(Instruction I,
     x64_codegen_copy_allocation_from_memory(A, &label_C, A->type, Idx, context);
 
     if (A->location.kind == LOCATION_GPR) {
-      x64_context_append(
-          context, x64_add(x64_operand_alloc(A), x64_operand_address(label)));
+      x64_context_append(context,
+                         x64_add(x64_operand_alloc(A), x64_operand_address(B)));
     } else {
       x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
 
-      x64_context_append(
-          context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(label)));
+      x64_context_append(context,
+                         x64_mov(x64_operand_gpr(gpr), x64_operand_address(B)));
       x64_context_append(context,
                          x64_add(x64_operand_alloc(A), x64_operand_gpr(gpr)));
 
       x64_context_release_gpr(context, gpr, Idx);
     }
+    break;
   }
 
   default: EXP_UNREACHABLE;

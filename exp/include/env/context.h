@@ -36,7 +36,6 @@ typedef struct Context {
   SymbolTable global_symbol_table;
   GlobalLabels global_labels;
   Values values;
-  FunctionBody _init;
   SymbolTableElement *current_ste;
 } Context;
 
@@ -89,7 +88,7 @@ context_global_symbol_table_iterator(Context *restrict context);
 SymbolTableElement *context_enter_global(Context *restrict c, StringView name);
 
 SymbolTableElement *context_current_ste(Context *restrict c);
-
+SymbolTableElement *context_global_init(Context *restrict c);
 bool context_at_global_scope(Context *restrict c);
 
 void context_leave_global(Context *restrict c);

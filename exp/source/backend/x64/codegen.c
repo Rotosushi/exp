@@ -113,10 +113,6 @@ static void x64_codegen_function(x64_Context *restrict context) {
   x64_codegen_function_header(context);
 }
 
-static void x64_codegen_global_constant(x64_Context *restrict context) {
-  x64_codegen_bytecode(context);
-}
-
 static void x64_codegen_ste(SymbolTableElement *restrict ste,
                             x64_Context *restrict context) {
   StringView name = ste->name;
@@ -146,9 +142,12 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
     // pretending that each global constant is defined within an
     // lambda we can just pretend to enter that functions context
     // here.
+    // representing this init function can be an implicit symbol table
+    // element named _init. and global constants can be parsed into
+    // this function body like any other.
     x64_context_enter_global(context, name);
-    x64_codegen_global_constant(context);
     x64_context_leave_global(context);
+    break;
   }
 
   default: EXP_UNREACHABLE;

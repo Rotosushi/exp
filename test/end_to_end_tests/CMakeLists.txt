@@ -39,6 +39,7 @@ create_test_sourcelist(Tests exp_e2e_tests.c
   call.c
   tuple.c
   comment.c
+  global_constant.c
 )
 
 add_executable (exp_e2e_tests ${Tests})
