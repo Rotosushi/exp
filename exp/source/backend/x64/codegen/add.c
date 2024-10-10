@@ -137,7 +137,7 @@ static void x64_codegen_add_immediate(Instruction I,
     x64_codegen_copy_allocation_from_memory(A, &label, A->type, Idx, context);
     x64_context_append(
         context,
-        x64_add(x64_operand_alloc(A), x64_operand_immediate(I.C.immediate)));
+        x64_add(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
     break;
   }
 

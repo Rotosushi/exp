@@ -41,9 +41,20 @@ typedef enum Opcode : u8 {
 
   OPC_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
+  // why not
+  // OPC_GEA, // ABC -- SSA[A] = get_element_address(SSA[B], C)
+  //          // ABC -- SSA[A] = get_element_address(Values[B], C)
+  //          // ABC -- SSA[A] = get_element_address(GlobalSymbols[B], C)
+  // plus
+  // OPC_DEREF, // AB -- SSA[A] = deref(SSA[B])
+  //            // AB -- SSA[A] = deref(GlobalSymbols[B])
+  // which can be combined to create both "A.B" and "A[B]"
   OPC_DOT, // ABC -- SSA[A] = SSA[B].C
            // ABC -- SSA[A] = Values[B].C
            // ABC -- SSA[A] = GlobalSymbol[B].C
+
+  OPC_LEA, // AB -- SSA[A] = address_of(SSA[B])
+           // AB -- SSA[A] = address_of(GlobalSymbol[B])
 
   OPC_MOVE, // AB -- SSA[A] = B
             // AB -- SSA[A] = Values[B]

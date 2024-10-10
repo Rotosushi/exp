@@ -256,7 +256,34 @@ Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  bytecode_append(bc, instruction_dot(A, B, C));
+  switch (B.format) {
+  case OPRFMT_SSA:
+  case OPRFMT_VALUE: {
+    bytecode_append(bc, instruction_dot(A, B, C));
+    break;
+  }
+
+  case OPRFMT_LABEL: {
+    // I think we generate an lea instruction here
+    // in order to access global tuples correctly.
+    // the only time a global tuple is an operand
+    // is when they are accessed via a dot operation.
+    // so we only generate a lea instruction here
+    // when the programmer explicitly accesses a global
+    // tuple. This can only happen multiple times
+    // if the programmer accesses the same global tuple
+    // multiple times in the function body.
+    // it would be even more efficient if we somehow
+    // coalesce all lea instructions generated this way
+    // into a single lea the first time it happens.
+    // but we currently have no way of doing this.
+    // we would have to write optimization code to do
+    // that
+    break;
+  }
+
+  default: EXP_UNREACHABLE;
+  }
   return A;
 }
 

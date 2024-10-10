@@ -25,6 +25,35 @@
 #include "intrinsics/type_of.h"
 #include "utility/unreachable.h"
 
+/* #NOTE:
+ *  There are a few considerations of the dot operation that
+ *  have yet to be accounted for.
+ *  - most pressing is that we cannot properly address tuples
+ *    which reside in global scope. This is because we use the
+ *    addressing form (label) to access globals. This form is
+ *    not accepted by GAS when we try to access relative to it.
+ *    that is 8(label) is not considered a valid address.
+ *    The proper way to do this is to load a register with a
+ *    pointer to the global.
+ *    lea <gpr>, (label)
+ *    then we can use the gpr in the addressing form
+ *    8(<gpr>)
+ *    16(<gpr>)
+ *    or anything else.
+ *    The question then becomes when do we generate the lea?
+ *
+ *    optimally we want to generate one lea right before we need it,
+ *    only in functions which access the tuple.
+ *    This sort of rules out generating it in x64_codegen_dot, because
+ *    then we naievely generate a lea per dot. we could guard generation
+ *    only if we are accessing a global tuple.
+ *    Thats all well and good, but if we create an lea that is essentially
+ *    another allocation, another local variable which is unaccounted.
+ *    I think we want to move generating the lea instruction into the
+ *    bytecode generation. That is, move it to the parser, and implement
+ *    global tuple names as pointers.
+ */
+
 void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
 
@@ -56,7 +85,9 @@ void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   case OPRFMT_LABEL: {
     x64_Address label = x64_address_from_label(I.B.index);
-    Type *label_type  = type_of_label(I.B.index, context->context);
+    // x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
+
+    Type *label_type = type_of_label(I.B.index, context->context);
     assert(label_type->kind == TYPEKIND_TUPLE);
     TupleType *tuple = &label_type->tuple_type;
     assert(tuple->size > index);
