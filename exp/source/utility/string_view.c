@@ -18,6 +18,7 @@
  */
 #include <string.h>
 
+#include "adt/string.h"
 #include "utility/panic.h"
 #include "utility/string_view.h"
 
@@ -28,8 +29,8 @@ StringView string_view_create() {
   return sv;
 }
 
-StringView string_view_from_str(char const *string, u64 length) {
-  StringView sv = {length, string};
+StringView string_view(u64 length, char const *ptr) {
+  StringView sv = {length, ptr};
   return sv;
 }
 
@@ -46,8 +47,8 @@ bool string_view_eq(StringView sv1, StringView sv2) {
 
 bool string_view_empty(StringView sv) { return sv.length == 0; }
 
-void print_string_view(StringView sv, FILE *restrict file) {
+void print_string_view(String *restrict out, StringView sv) {
   for (u64 i = 0; i < sv.length; ++i) {
-    if (fputc(sv.ptr[i], file) == EOF) { PANIC_ERRNO("fputc failed"); }
+    string_append(out, sv);
   }
 }

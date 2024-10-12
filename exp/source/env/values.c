@@ -86,13 +86,12 @@ Value *values_at(Values *restrict values, u64 index) {
 }
 
 void print_values(Values const *restrict values,
-                  FILE *restrict file,
+                  String *restrict out,
                   Context *restrict context) {
   for (u64 i = 0; i < values->length; ++i) {
-    file_write_u64(i, file);
-    file_write(": ", file);
-    file_write("[", file);
-    print_value(values->buffer + i, file, context);
-    file_write("]\n", file);
+    string_append_u64(out, i);
+    string_append(out, SV(": ["));
+    print_value(values->buffer + i, out, context);
+    string_append(out, SV("]\n"));
   }
 }

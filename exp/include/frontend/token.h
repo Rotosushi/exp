@@ -17,6 +17,8 @@
 #ifndef EXP_FRONTEND_TOKEN_H
 #define EXP_FRONTEND_TOKEN_H
 
+#include "utility/string_view.h"
+
 /**
  * @brief the Tokens that the Lexer returns
  *
@@ -72,5 +74,7 @@ typedef enum Token {
   TOK_TYPE_BOOL,
   TOK_TYPE_I64,
 } Token;
+
+StringView token_to_view(Token token);
 
 #endif // !EXP_FRONTEND_TOKEN_H

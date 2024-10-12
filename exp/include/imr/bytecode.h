@@ -38,8 +38,7 @@ void bytecode_destroy(Bytecode *restrict bytecode);
 void bytecode_append(Bytecode *restrict bytecode, Instruction I);
 
 struct Context;
-
 void print_bytecode(Bytecode const *restrict bc,
-                    FILE *restrict file,
+                    String *restrict out,
                     struct Context *restrict context);
 #endif // !EXP_IMR_BYTECODE_H

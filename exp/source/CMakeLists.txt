@@ -48,6 +48,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/global_labels.c
+  ${EXP_SOURCE_DIR}/env/source_locations.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
@@ -55,6 +56,8 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c
+  ${EXP_SOURCE_DIR}/frontend/source_location.c
+  ${EXP_SOURCE_DIR}/frontend/token.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function_body.c

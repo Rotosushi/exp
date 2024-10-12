@@ -26,7 +26,7 @@ static void x64_codegen_add_ssa(Instruction I,
                                 u64 Idx,
                                 x64_Context *restrict context) {
   x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     // if B or C is in a gpr we use it as the allocation point of A
@@ -108,7 +108,7 @@ static void x64_codegen_add_immediate(Instruction I,
                                       LocalVariable *restrict local,
                                       u64 Idx,
                                       x64_Context *restrict context) {
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     x64_Allocation *A =
@@ -150,7 +150,7 @@ static void x64_codegen_add_label(Instruction I,
                                   u64 Idx,
                                   x64_Context *restrict context) {
   x64_Address B = x64_address_from_label(I.B.index);
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     x64_Allocation *A =
@@ -206,7 +206,7 @@ static void x64_codegen_add_label(Instruction I,
 
 void x64_codegen_add(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
-  switch (I.B.format) {
+  switch (I.B_format) {
   case OPRFMT_SSA: {
     x64_codegen_add_ssa(I, local, Idx, context);
     break;

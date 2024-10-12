@@ -25,7 +25,7 @@
 static void
 x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
-  switch (I.B.format) {
+  switch (I.B_format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     x64_context_allocate_from_active(context, local, B, Idx);
@@ -60,17 +60,24 @@ x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
 void x64_codegen_move_to_label(Instruction I,
                                u64 Idx,
                                x64_Context *restrict context) {
-  x64_Address label_address = x64_address_from_label(I.A.index);
+  x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
+  x64_context_append(
+      context, x64_lea(x64_operand_gpr(gpr), x64_operand_label(I.A.index)));
+  x64_Address global = x64_address_from_gpr(gpr);
 
-  x64_codegen_load_address_from_operand(&label_address,
-                                        &I.B,
-                                        type_of_operand(&I.B, context->context),
-                                        Idx,
-                                        context);
+  x64_codegen_load_address_from_operand(
+      &global,
+      I.B_format,
+      I.B,
+      type_of_operand(I.B_format, I.B, context->context),
+      Idx,
+      context);
+
+  x64_context_release_gpr(context, gpr, Idx);
 }
 
 void x64_codegen_move(Instruction I, u64 Idx, x64_Context *restrict context) {
-  switch (I.A.format) {
+  switch (I.A_format) {
   case OPRFMT_SSA: {
     x64_codegen_move_to_ssa(I, Idx, context);
     break;

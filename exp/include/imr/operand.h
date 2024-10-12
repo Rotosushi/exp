@@ -16,8 +16,8 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
-#include <stdio.h>
 
+#include "adt/string.h"
 #include "utility/int_types.h"
 
 typedef enum OperandFormat : u8 {
@@ -28,13 +28,15 @@ typedef enum OperandFormat : u8 {
   OPRFMT_CALL,
 } OperandFormat;
 
+typedef union OperandValue {
+  u64 ssa;
+  u64 index;
+  i64 immediate;
+} OperandValue;
+
 typedef struct Operand {
   OperandFormat format;
-  union {
-    u64 ssa;
-    u64 index;
-    i64 immediate;
-  };
+  OperandValue value;
 } Operand;
 
 struct Context;
@@ -45,11 +47,15 @@ Operand operand_immediate(i64 imm);
 Operand operand_label(u64 index);
 Operand operand_call(u64 index);
 bool operand_equality(Operand A, Operand B);
+
+/*
 void print_operand_ssa(u64 ssa,
                        FILE *restrict file,
                        struct Context *restrict context);
-void print_operand(Operand operand,
-                   FILE *restrict file,
+*/
+void print_operand(OperandFormat format,
+                   OperandValue value,
+                   String *restrict out,
                    struct Context *restrict context);
 
 #endif // EXP_IMR_OPERAND_H

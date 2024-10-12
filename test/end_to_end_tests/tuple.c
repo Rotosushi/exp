@@ -77,5 +77,14 @@ int tuple([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
       "fn main() { const x = f(5, 2, 11, 4); return x.1.0; }",
       11);
 
+  result |= test_exp(
+      source_path, "const x = (4, 8); fn main() { return x.0 + x.1; }", 12);
+
+  result |= test_exp(
+      source_path,
+      "const x = (8, 2); fn f() { return x; } fn main() { const a = f();"
+      " return a.0 * a.1; }",
+      16);
+
   return result;
 }

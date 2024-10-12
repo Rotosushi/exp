@@ -19,7 +19,6 @@
 #include <stddef.h>
 
 #include "imr/value.h"
-#include "utility/io.h"
 
 typedef struct Values {
   u64 length;
@@ -61,7 +60,7 @@ Value *values_at(Values *restrict values, u64 index);
 
 struct Context;
 void print_values(Values const *restrict values,
-                  FILE *restrict file,
+                  String *restrict out,
                   struct Context *restrict context);
 
 #endif // !EXP_IMR_CONSTANTS_H

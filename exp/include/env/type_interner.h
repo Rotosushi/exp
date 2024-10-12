@@ -20,6 +20,12 @@
 
 #include "imr/type.h"
 
+typedef struct PointerTypes {
+  u64 size;
+  u64 capacity;
+  Type *types;
+} PointerTypes;
+
 typedef struct FunctionTypes {
   u64 size;
   u64 capacity;
@@ -44,6 +50,7 @@ typedef struct TypeInterner {
   Type nil_type;
   Type boolean_type;
   Type i64_type;
+  PointerTypes pointer_types;
   TupleTypes tuple_types;
   FunctionTypes function_types;
 } TypeInterner;
@@ -85,6 +92,9 @@ Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
  * @return Type*
  */
 Type *type_interner_i64_type(TypeInterner *restrict type_interner);
+
+Type *type_interner_pointer_type(TypeInterner *restrict type_interner,
+                                 Type *restrict pointee_type);
 
 Type *type_interner_tuple_type(TypeInterner *restrict type_interer,
                                TupleType tuple);

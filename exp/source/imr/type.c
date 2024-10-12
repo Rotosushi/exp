@@ -101,6 +101,11 @@ Type type_create_integer() {
   return type;
 }
 
+Type type_create_pointer(Type *restrict pointee) {
+  Type type = {.kind = TYPEKIND_POINTER, .pointer_type.pointee_type = pointee};
+  return type;
+}
+
 Type type_create_tuple(TupleType tuple_type) {
   Type type = {.kind = TYPEKIND_TUPLE, .tuple_type = tuple_type};
   return type;
@@ -134,6 +139,9 @@ bool type_equality(Type const *A, Type const *B) {
   if (A->kind != B->kind) { return 0; }
 
   switch (A->kind) {
+  case TYPEKIND_POINTER:
+    return type_equality(A->pointer_type.pointee_type,
+                         B->pointer_type.pointee_type);
   case TYPEKIND_TUPLE:
     return tuple_type_equality(&A->tuple_type, &B->tuple_type);
   case TYPEKIND_FUNCTION:
@@ -148,7 +156,8 @@ bool type_is_scalar(Type const *T) {
   switch (T->kind) {
   case TYPEKIND_NIL:
   case TYPEKIND_BOOLEAN:
-  case TYPEKIND_I64:     return true;
+  case TYPEKIND_I64:
+  case TYPEKIND_POINTER: return true;
 
   // a tuple type of size two or more cannot be scalar
   // unless we optimize it to be so. which is a TODO.
@@ -158,40 +167,41 @@ bool type_is_scalar(Type const *T) {
   }
 }
 
-static void emit_tuple_type(TupleType const *restrict tuple_type,
-                            String *restrict buf) {
+static void print_pointer_type(PointerType const *restrict pointer,
+                               String *restrict buf) {
+  string_append(buf, SV("*"));
+  print_type(pointer->pointee_type, buf);
+}
+
+static void print_tuple_type(TupleType const *restrict tuple_type,
+                             String *restrict buf) {
   string_append(buf, SV("("));
   for (u64 i = 0; i < tuple_type->size; ++i) {
-    emit_type(tuple_type->types[i], buf);
+    print_type(tuple_type->types[i], buf);
 
     if (i < (tuple_type->size - 1)) { string_append(buf, SV(", ")); }
   }
   string_append(buf, SV(")"));
 }
 
-static void emit_function_type(FunctionType const *restrict function_type,
-                               String *restrict buf) {
+static void print_function_type(FunctionType const *restrict function_type,
+                                String *restrict buf) {
   string_append(buf, SV("fn "));
   TupleType const *tuple_type = &function_type->argument_types;
-  emit_tuple_type(tuple_type, buf);
+  print_tuple_type(tuple_type, buf);
   string_append(buf, SV(" -> "));
-  emit_type(function_type->return_type, buf);
+  print_type(function_type->return_type, buf);
 }
 
-void emit_type(Type const *restrict T, String *restrict buf) {
+void print_type(Type const *restrict T, String *restrict buf) {
   switch (T->kind) {
   case TYPEKIND_NIL:      string_append(buf, SV("nil")); break;
   case TYPEKIND_BOOLEAN:  string_append(buf, SV("bool")); break;
   case TYPEKIND_I64:      string_append(buf, SV("i64")); break;
-  case TYPEKIND_TUPLE:    emit_tuple_type(&T->tuple_type, buf); break;
-  case TYPEKIND_FUNCTION: emit_function_type(&T->function_type, buf); break;
+  case TYPEKIND_POINTER:  print_pointer_type(&T->pointer_type, buf); break;
+  case TYPEKIND_TUPLE:    print_tuple_type(&T->tuple_type, buf); break;
+  case TYPEKIND_FUNCTION: print_function_type(&T->function_type, buf); break;
 
   default: EXP_UNREACHABLE;
   }
-}
-
-void print_type(Type const *restrict T, FILE *restrict file) {
-  String buf = string_create();
-  emit_type(T, &buf);
-  print_string_view(string_to_view(&buf), file);
 }

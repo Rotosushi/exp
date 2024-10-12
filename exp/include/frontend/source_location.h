@@ -1,4 +1,4 @@
-// Copyright (C) 2024 cade
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,24 +14,23 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_LOG_MESSAGE_H
-#define EXP_UTILITY_LOG_MESSAGE_H
-
-#include <stdio.h>
+#ifndef EXP_ENV_SOURCE_LOCATION_H
+#define EXP_ENV_SOURCE_LOCATION_H
 
 #include "utility/string_view.h"
 
-typedef enum LogLevel {
-  LOG_FATAL,
-  LOG_ERROR,
-  LOG_WARNING,
-  LOG_STATUS
-} LogLevel;
+typedef struct SourceLocation {
+  StringView file;
+  u64 line;
+  u64 column;
+} SourceLocation;
 
-void write_note(FILE *restrict stream,
-                LogLevel level,
-                StringView message,
-                StringView file,
-                u64 line);
+SourceLocation source_location_create();
+SourceLocation source_location(StringView file, u64 line, u64 column);
 
-#endif // !EXP_UTILITY_LOG_MESSAGE_H
+bool source_location_equality(SourceLocation A, SourceLocation B);
+
+void print_source_location(struct String *restrict out,
+                           SourceLocation location);
+
+#endif // EXP_ENV_SOURCE_LOCATION_H

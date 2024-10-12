@@ -23,7 +23,7 @@
 
 void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
   x64_FunctionBody *body = current_x64_body(context);
-  switch (I.B.format) {
+  switch (I.B_format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     if (x64_allocation_location_eq(B, body->result->location)) { break; }

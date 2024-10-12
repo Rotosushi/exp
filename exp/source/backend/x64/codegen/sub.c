@@ -26,7 +26,7 @@ static void x64_codegen_sub_ssa(Instruction I,
                                 u64 Idx,
                                 x64_Context *restrict context) {
   x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     // #NOTE since subtraction is not commutative we have to allocate A from B
@@ -98,7 +98,7 @@ static void x64_codegen_sub_immediate(Instruction I,
       context,
       x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(I.B.immediate)));
 
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     x64_context_append(context,
@@ -134,7 +134,7 @@ static void x64_codegen_sub_label(Instruction I,
   x64_Allocation *A = x64_context_allocate(context, local, Idx);
   x64_codegen_copy_allocation_from_memory(A, &B, A->type, Idx, context);
 
-  switch (I.C.format) {
+  switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     if ((A->location.kind == LOCATION_GPR) ||
@@ -185,7 +185,7 @@ static void x64_codegen_sub_label(Instruction I,
 
 void x64_codegen_sub(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
-  switch (I.B.format) {
+  switch (I.B_format) {
   case OPRFMT_SSA: {
     x64_codegen_sub_ssa(I, local, Idx, context);
     break;

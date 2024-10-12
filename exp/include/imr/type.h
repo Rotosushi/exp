@@ -23,6 +23,8 @@ typedef enum TypeKind {
   TYPEKIND_NIL,
   TYPEKIND_BOOLEAN,
   TYPEKIND_I64,
+
+  TYPEKIND_POINTER,
   TYPEKIND_TUPLE,
   TYPEKIND_FUNCTION,
 } TypeKind;
@@ -40,6 +42,10 @@ typedef struct IntegerType {
 } IntegerType;
 
 struct Type;
+
+typedef struct PointerType {
+  struct Type *pointee_type;
+} PointerType;
 
 typedef struct TupleType {
   u64 size;
@@ -75,6 +81,7 @@ typedef struct Type {
     NilType nil_type;
     BooleanType boolean_type;
     IntegerType integer_type;
+    PointerType pointer_type;
     TupleType tuple_type;
     FunctionType function_type;
   };
@@ -85,6 +92,8 @@ Type type_create_nil();
 Type type_create_boolean();
 
 Type type_create_integer();
+
+Type type_create_pointer(Type *pointee);
 
 Type type_create_tuple(TupleType tuple_type);
 
@@ -102,8 +111,6 @@ bool type_equality(Type const *t1, Type const *t2);
 
 bool type_is_scalar(Type const *t);
 
-void emit_type(Type const *restrict t, String *restrict buf);
-
-void print_type(Type const *restrict t, FILE *restrict file);
+void print_type(Type const *restrict t, String *restrict buf);
 
 #endif // !EXP_IMR_TYPE_H

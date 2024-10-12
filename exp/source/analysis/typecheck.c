@@ -59,8 +59,10 @@ static TResult success(Type *type) {
 static TResult typecheck_global(Context *restrict c,
                                 SymbolTableElement *restrict element);
 
-static TResult typecheck_operand(Context *restrict c, Operand operand) {
-  switch (operand.format) {
+static TResult typecheck_operand(Context *restrict c,
+                                 OperandFormat format,
+                                 OperandValue operand) {
+  switch (format) {
   case OPRFMT_SSA: {
     LocalVariable *local = context_lookup_ssa(c, operand.ssa);
     Type *type           = local->type;
@@ -85,7 +87,8 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     SymbolTableElement *global = context_global_symbol_table_at(c, name);
     Type *type                 = global->type;
     if (type == NULL) {
-      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(name));
+      try(Gty, typecheck_global(c, global));
+      type = Gty;
     }
 
     return success(type);
@@ -100,34 +103,38 @@ static TResult typecheck_move(Context *restrict c, Instruction I) {
   // symbols and ssa locals. it could be renamed to define or something similar.
   // The type of the symbol or ssa local is inferred to be the type
   // of the initializer.
-  if (I.A.format == OPRFMT_SSA) {
+  switch (I.A_format) {
+  case OPRFMT_SSA: {
     LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    try(Bty, typecheck_operand(c, I.B_format, I.B));
     local->type = Bty;
     return success(Bty);
-  } else if (I.A.format == OPRFMT_LABEL) {
+  }
+
+  case OPRFMT_LABEL: {
     StringView label           = context_global_labels_at(c, I.A.index);
     SymbolTableElement *global = context_global_symbol_table_at(c, label);
-    try(Bty, typecheck_operand(c, I.B));
+    try(Bty, typecheck_operand(c, I.B_format, I.B));
     global->type = Bty;
     return success(Bty);
-  } else {
-    EXP_UNREACHABLE;
+  }
+
+  default: EXP_UNREACHABLE;
   }
 }
 
 static TResult typecheck_ret(Context *restrict c, Instruction I) {
-  return typecheck_operand(c, I.B);
+  return typecheck_operand(c, I.B_format, I.B);
 }
 
 static TResult typecheck_call(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
   if (Bty->kind != TYPEKIND_FUNCTION) {
     String buf = string_create();
     string_append(&buf, SV("Type is not callable ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -148,14 +155,14 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   for (u8 i = 0; i < actual_args->size; ++i) {
     Type *formal_type = formal_types->types[i];
     Operand operand   = actual_args->list[i];
-    try(actual_type, typecheck_operand(c, operand));
+    try(actual_type, typecheck_operand(c, operand.format, operand.value));
 
     if (!type_equality(actual_type, formal_type)) {
       String buf = string_create();
       string_append(&buf, SV("Expected ["));
-      emit_type(formal_type, &buf);
+      print_type(formal_type, &buf);
       string_append(&buf, SV("] Actual ["));
-      emit_type(actual_type, &buf);
+      print_type(actual_type, &buf);
       string_append(&buf, SV("]"));
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -171,19 +178,19 @@ static bool tuple_index_out_of_bounds(i64 index, TupleType *tuple) {
 
 static TResult typecheck_dot(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
   if (Bty->kind != TYPEKIND_TUPLE) {
     String buf = string_create();
     string_append(&buf, SV("Type is not a tuple ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   TupleType *tuple = &Bty->tuple_type;
 
-  if (I.C.format != OPRFMT_IMMEDIATE) {
+  if (I.C_format != OPRFMT_IMMEDIATE) {
     return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
                  string_from_view(SV("")));
   }
@@ -203,15 +210,24 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
   return success(tuple->types[index]);
 }
 
+static TResult typecheck_lea(Context *restrict c, Instruction I) {
+  LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
+
+  Type *pointer = context_pointer_type(c, Bty);
+  local->type   = pointer;
+  return success(pointer);
+}
+
 static TResult typecheck_neg(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -222,15 +238,15 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 
 static TResult typecheck_add(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, I.C));
+  try(Cty, typecheck_operand(c, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -238,7 +254,7 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
   if (!type_equality(Bty, Cty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Cty, &buf);
+    print_type(Cty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -249,15 +265,15 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 
 static TResult typecheck_sub(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, I.C));
+  try(Cty, typecheck_operand(c, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -265,7 +281,7 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
   if (!type_equality(Bty, Cty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Cty, &buf);
+    print_type(Cty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -276,15 +292,15 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 
 static TResult typecheck_mul(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, I.C));
+  try(Cty, typecheck_operand(c, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -292,7 +308,7 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
   if (!type_equality(Bty, Cty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Cty, &buf);
+    print_type(Cty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -303,15 +319,15 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 
 static TResult typecheck_div(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, I.C));
+  try(Cty, typecheck_operand(c, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -319,7 +335,7 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
   if (!type_equality(Bty, Cty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Cty, &buf);
+    print_type(Cty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -330,15 +346,15 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 
 static TResult typecheck_mod(Context *restrict c, Instruction I) {
   LocalVariable *local = context_lookup_ssa(c, I.A.ssa);
-  try(Bty, typecheck_operand(c, I.B));
+  try(Bty, typecheck_operand(c, I.B_format, I.B));
 
-  try(Cty, typecheck_operand(c, I.C));
+  try(Cty, typecheck_operand(c, I.C_format, I.C));
 
   Type *i64ty = context_i64_type(c);
   if (!type_equality(i64ty, Bty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Bty, &buf);
+    print_type(Bty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -346,7 +362,7 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
   if (!type_equality(Bty, Cty)) {
     String buf = string_create();
     string_append(&buf, SV("Expected [i64] Actual ["));
-    emit_type(Cty, &buf);
+    print_type(Cty, &buf);
     string_append(&buf, SV("]"));
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
@@ -374,9 +390,9 @@ static TResult typecheck_function(Context *restrict c) {
       if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
         String buf = string_create();
         string_append(&buf, SV("Previous return statement had type ["));
-        emit_type(return_type, &buf);
+        print_type(return_type, &buf);
         string_append(&buf, SV("] this return statement has type ["));
-        emit_type(Bty, &buf);
+        print_type(Bty, &buf);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
       }
@@ -392,6 +408,11 @@ static TResult typecheck_function(Context *restrict c) {
 
     case OPC_DOT: {
       try(Aty, typecheck_dot(c, I));
+      break;
+    }
+
+    case OPC_LEA: {
+      try(Aty, typecheck_lea(c, I));
       break;
     }
 
@@ -536,9 +557,9 @@ static TResult typecheck_global(Context *restrict c,
         (!type_equality(Rty, body->return_type))) {
       String buf = string_create();
       string_append(&buf, SV("Function was annotated with type ["));
-      emit_type(body->return_type, &buf);
+      print_type(body->return_type, &buf);
       string_append(&buf, SV("] actual returned type ["));
-      emit_type(Rty, &buf);
+      print_type(Rty, &buf);
       string_append(&buf, SV("]"));
       return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -570,7 +591,7 @@ i32 typecheck(Context *restrict context) {
   while (!symbol_table_iterator_done(&iter)) {
     TResult tr = typecheck_global(context, iter.element);
     if (tr.has_error) {
-      error_print(&tr.error, context_source_path(context), 0);
+      write_error(&tr.error, stderr);
       tresult_destroy(&tr);
       result |= EXIT_FAILURE;
     }

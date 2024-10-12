@@ -24,6 +24,7 @@
 #include "adt/string.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/io.h"
 #include "utility/minmax.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
@@ -53,7 +54,7 @@ void string_destroy(String *restrict str) {
 StringView string_to_view(String const *restrict str) {
   assert(str != NULL);
   StringView sv = string_view_create();
-  sv            = string_view_from_str(string_to_cstring(str), str->length);
+  sv            = string_view(str->length, string_to_cstring(str));
   return sv;
 }
 
@@ -98,9 +99,9 @@ String string_from_file(FILE *restrict file) {
   u64 flen = file_length(file);
   string_resize(&s, flen);
   if (flen < sizeof(char *)) {
-    file_read(s.buffer, flen, file);
+    file_read(file, s.buffer, flen);
   } else {
-    file_read(s.ptr, flen, file);
+    file_read(file, s.ptr, flen);
   }
 
   s.length = flen;
@@ -171,7 +172,7 @@ void string_append_i64(String *restrict str, i64 i) {
   char *r = i64_to_str(i, buf);
   if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
-  string_append(str, string_view_from_str(buf, len));
+  string_append(str, string_view(len, buf));
 }
 
 void string_append_u64(String *restrict str, u64 u) {
@@ -180,7 +181,7 @@ void string_append_u64(String *restrict str, u64 u) {
   char *r = u64_to_str(u, buf);
   if (r == NULL) { PANIC("conversion failed"); }
   buf[len] = '\0';
-  string_append(str, string_view_from_str(buf, len));
+  string_append(str, string_view(len, buf));
 }
 
 /*

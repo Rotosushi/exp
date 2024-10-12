@@ -45,7 +45,8 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
   return lifetiems->buffer + ssa;
 }
 
-static void compute_operand(Operand operand,
+static void compute_operand(OperandFormat format,
+                            OperandValue operand,
                             u64 inst,
                             Lifetimes *restrict lifetimes,
                             Context *restrict context);
@@ -58,7 +59,8 @@ static void compute_value(Value *restrict value,
   case VALUEKIND_TUPLE: {
     Tuple *tuple = &value->tuple;
     for (u64 i = 0; i < tuple->size; ++i) {
-      compute_operand(tuple->elements[i], inst, lifetimes, context);
+      Operand element = tuple->elements[i];
+      compute_operand(element.format, element.value, inst, lifetimes, context);
     }
     break;
   }
@@ -67,11 +69,12 @@ static void compute_value(Value *restrict value,
   }
 }
 
-static void compute_operand(Operand operand,
+static void compute_operand(OperandFormat format,
+                            OperandValue operand,
                             u64 inst,
                             Lifetimes *restrict lifetimes,
                             Context *restrict context) {
-  switch (operand.format) {
+  switch (format) {
   case OPRFMT_SSA: {
     Lifetime *lifetime = lifetimes_at(lifetimes, operand.ssa);
     if (inst > lifetime->last_use) { lifetime->last_use = inst; }
@@ -87,7 +90,9 @@ static void compute_operand(Operand operand,
   case OPRFMT_CALL: {
     ActualArgumentList *list = context_call_at(context, operand.index);
     for (u64 i = 0; i < list->size; ++i) {
-      compute_operand(list->list[i], inst, lifetimes, context);
+      Operand argument = list->list[i];
+      compute_operand(
+          argument.format, argument.value, inst, lifetimes, context);
     }
     break;
   }
@@ -116,20 +121,20 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     Instruction I = bc->buffer[inst];
     switch (I.format) {
     case IFMT_B: {
-      compute_operand(I.B, inst, &lifetimes, context);
+      compute_operand(I.B_format, I.B, inst, &lifetimes, context);
       break;
     }
 
     case IFMT_AB: {
-      compute_operand(I.A, inst, &lifetimes, context);
-      compute_operand(I.B, inst, &lifetimes, context);
+      compute_operand(I.A_format, I.A, inst, &lifetimes, context);
+      compute_operand(I.B_format, I.B, inst, &lifetimes, context);
       break;
     }
 
     case IFMT_ABC: {
-      compute_operand(I.A, inst, &lifetimes, context);
-      compute_operand(I.B, inst, &lifetimes, context);
-      compute_operand(I.C, inst, &lifetimes, context);
+      compute_operand(I.A_format, I.A, inst, &lifetimes, context);
+      compute_operand(I.B_format, I.B, inst, &lifetimes, context);
+      compute_operand(I.C_format, I.C, inst, &lifetimes, context);
       break;
     }
 

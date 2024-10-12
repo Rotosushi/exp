@@ -285,22 +285,22 @@ Operand function_body_new_ssa(FunctionBody *restrict function) {
   return operand_ssa(local.ssa);
 }
 
-static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
-  file_write(arg->name.ptr, file);
-  file_write(": ", file);
-  print_type(arg->type, file);
+static void print_formal_argument(FormalArgument *arg, String *restrict out) {
+  string_append(out, arg->name);
+  string_append(out, SV(": "));
+  print_type(arg->type, out);
 }
 
 void print_function_body(FunctionBody const *restrict f,
-                         FILE *restrict file,
+                         String *restrict out,
                          Context *restrict context) {
-  file_write("(", file);
+  string_append(out, SV("("));
   FormalArgumentList const *args = &f->arguments;
   for (u8 i = 0; i < args->size; ++i) {
-    print_formal_argument(args->list + i, file);
+    print_formal_argument(args->list + i, out);
 
-    if (i < (u8)(args->size - 1)) { file_write(", ", file); }
+    if (i < (u8)(args->size - 1)) { string_append(out, SV(", ")); }
   }
-  file_write(")\n", file);
-  print_bytecode(&f->bc, file, context);
+  string_append(out, SV(")\n"));
+  print_bytecode(&f->bc, out, context);
 }

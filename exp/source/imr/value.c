@@ -156,32 +156,47 @@ bool value_equality(Value *A, Value *B) {
 }
 
 static void print_tuple(Tuple const *restrict tuple,
-                        FILE *restrict file,
+                        String *restrict out,
                         Context *restrict context) {
-  file_write("(", file);
+  string_append(out, SV("("));
   for (u64 i = 0; i < tuple->size; ++i) {
-    print_operand(tuple->elements[i], file, context);
+    Operand operand = tuple->elements[i];
+    print_operand(operand.format, operand.value, out, context);
 
-    if (i < (tuple->size - 1)) { file_write(", ", file); }
+    if (i < (tuple->size - 1)) { string_append(out, SV(", ")); }
   }
-  file_write(")", file);
+  string_append(out, SV(")"));
 }
 
 void print_value(Value const *restrict v,
-                 FILE *restrict file,
+                 String *restrict out,
                  Context *restrict context) {
   switch (v->kind) {
   case VALUEKIND_UNINITIALIZED:
-  case VALUEKIND_NIL:           file_write("()", file); break;
-
-  case VALUEKIND_BOOLEAN: {
-    (v->boolean) ? file_write("true", file) : file_write("false", file);
+  case VALUEKIND_NIL:           {
+    string_append(out, SV("()"));
     break;
   }
 
-  case VALUEKIND_I64:   file_write_i64(v->integer_64, file); break;
-  case VALUEKIND_TUPLE: print_tuple(&v->tuple, file, context); break;
+  case VALUEKIND_BOOLEAN: {
+    (v->boolean) ? string_append(out, SV("true"))
+                 : string_append(out, SV("false"));
+    break;
+  }
 
-  default: file_write("undefined", file); break;
+  case VALUEKIND_I64: {
+    string_append_i64(out, v->integer_64);
+    break;
+  }
+
+  case VALUEKIND_TUPLE: {
+    print_tuple(&v->tuple, out, context);
+    break;
+  }
+
+  default: {
+    string_append(out, SV("undefined"));
+    break;
+  }
   }
 }

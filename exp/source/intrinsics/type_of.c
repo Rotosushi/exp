@@ -31,7 +31,8 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
     Tuple *tuple         = &value->tuple;
     TupleType tuple_type = tuple_type_create();
     for (u64 i = 0; i < tuple->size; ++i) {
-      Type *T = type_of_operand(tuple->elements + i, context);
+      Operand element = tuple->elements[i];
+      Type *T         = type_of_operand(element.format, element.value, context);
       tuple_type_append(&tuple_type, T);
     }
     return context_tuple_type(context, tuple_type);
@@ -63,16 +64,18 @@ Type *type_of_label(u64 index, Context *restrict context) {
   return symbol->type;
 }
 
-Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
-  switch (operand->format) {
+Type *type_of_operand(OperandFormat format,
+                      OperandValue operand,
+                      Context *restrict context) {
+  switch (format) {
   case OPRFMT_SSA: {
-    LocalVariable *local = context_lookup_ssa(context, operand->ssa);
+    LocalVariable *local = context_lookup_ssa(context, operand.ssa);
     return local->type;
     break;
   }
 
   case OPRFMT_VALUE: {
-    Value *constant = context_values_at(context, operand->index);
+    Value *constant = context_values_at(context, operand.index);
     return type_of_value(constant, context);
     break;
   }
@@ -83,7 +86,7 @@ Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    return type_of_label(operand->index, context);
+    return type_of_label(operand.index, context);
     break;
   }
 

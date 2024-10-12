@@ -23,6 +23,49 @@
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 
+static PointerTypes pointer_types_create() {
+  PointerTypes types = {.size = 0, .capacity = 0, .types = nullptr};
+  return types;
+}
+
+static void pointer_types_destroy(PointerTypes *restrict pointer_types) {
+  for (u64 i = 0; i < pointer_types->size; ++i) {
+    type_destroy(pointer_types->types + i);
+  }
+
+  pointer_types->size     = 0;
+  pointer_types->capacity = 0;
+  deallocate(pointer_types->types);
+  pointer_types->types = nullptr;
+}
+
+static bool pointer_types_full(PointerTypes *restrict pointer_types) {
+  return (pointer_types->size + 1) >= pointer_types->capacity;
+}
+
+static void pointer_types_grow(PointerTypes *restrict pointer_types) {
+  Growth g =
+      array_growth_u64(pointer_types->capacity, sizeof(*pointer_types->types));
+  pointer_types->types    = reallocate(pointer_types->types, g.alloc_size);
+  pointer_types->capacity = g.new_capacity;
+}
+
+static Type *pointer_types_append(PointerTypes *restrict pointer_types,
+                                  Type *restrict pointee_type) {
+  Type type = type_create_pointer(pointee_type);
+
+  for (u64 i = 0; i < pointer_types->size; ++i) {
+    if (type_equality(&type, pointer_types->types + i))
+      return pointer_types->types + i;
+  }
+
+  if (pointer_types_full(pointer_types)) { pointer_types_grow(pointer_types); }
+
+  Type *result = pointer_types->types + pointer_types->size;
+  *result      = type;
+  return result;
+}
+
 static FunctionTypes function_types_create() {
   FunctionTypes function_types;
   function_types.capacity = 0;
@@ -130,17 +173,18 @@ static Type *tuple_types_append(TupleTypes *restrict tuple_types,
 }
 
 TypeInterner type_interner_create() {
-  TypeInterner type_interner;
-  type_interner.nil_type       = type_create_nil();
-  type_interner.boolean_type   = type_create_boolean();
-  type_interner.i64_type       = type_create_integer();
-  type_interner.tuple_types    = tuple_types_create();
-  type_interner.function_types = function_types_create();
+  TypeInterner type_interner = {.nil_type       = type_create_nil(),
+                                .boolean_type   = type_create_boolean(),
+                                .i64_type       = type_create_integer(),
+                                .pointer_types  = pointer_types_create(),
+                                .tuple_types    = tuple_types_create(),
+                                .function_types = function_types_create()};
   return type_interner;
 }
 
 void type_interner_destroy(TypeInterner *restrict type_interner) {
   assert(type_interner != NULL);
+  pointer_types_destroy(&type_interner->pointer_types);
   tuple_types_destroy(&type_interner->tuple_types);
   function_types_destroy(&type_interner->function_types);
   return;
@@ -159,6 +203,12 @@ Type *type_interner_boolean_type(TypeInterner *restrict type_interner) {
 Type *type_interner_i64_type(TypeInterner *restrict type_interner) {
   assert(type_interner != NULL);
   return &(type_interner->i64_type);
+}
+
+Type *type_interner_pointer_type(TypeInterner *restrict type_interner,
+                                 Type *restrict pointee) {
+  assert(type_interner != NULL);
+  return pointer_types_append(&type_interner->pointer_types, pointee);
 }
 
 Type *type_interner_tuple_type(TypeInterner *restrict type_interner,

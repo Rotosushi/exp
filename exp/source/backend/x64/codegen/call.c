@@ -74,22 +74,25 @@ void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
                                x64_operand_address(result->location.address)));
   }
 
+  assert(I.C_format == OPRFMT_CALL);
   ActualArgumentList *args    = x64_context_call_at(context, I.C.index);
   u64 current_bytecode_offset = x64_context_current_offset(context);
   OperandArray stack_args     = operand_array_create();
 
   for (u8 i = 0; i < args->size; ++i) {
-    Operand *arg   = args->list + i;
-    Type *arg_type = type_of_operand(arg, context->context);
+    Operand arg    = args->list[i];
+    Type *arg_type = type_of_operand(arg.format, arg.value, context->context);
 
     if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
       x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-      x64_codegen_load_gpr_from_operand(gpr, arg, Idx, context);
+      x64_codegen_load_gpr_from_operand(
+          gpr, arg.format, arg.value, Idx, context);
     } else {
-      operand_array_append(&stack_args, *arg);
+      operand_array_append(&stack_args, arg);
     }
   }
 
+  assert(I.B_format == OPRFMT_LABEL);
   if (stack_args.size == 0) {
     x64_context_append(context, x64_call(x64_operand_label(I.B.index)));
     return;
@@ -103,15 +106,15 @@ void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
                             x64_optional_i64_empty());
 
   for (u8 i = 0; i < stack_args.size; ++i) {
-    Operand *arg   = stack_args.buffer + i;
-    Type *arg_type = type_of_operand(arg, context->context);
+    Operand arg    = stack_args.buffer[i];
+    Type *arg_type = type_of_operand(arg.format, arg.value, context->context);
     u64 arg_size   = size_of(arg_type);
     assert(arg_size <= i64_MAX);
     i64 offset = (i64)(arg_size);
     actual_arguments_stack_size += offset;
 
     x64_codegen_load_address_from_operand(
-        &arg_address, arg, arg_type, Idx, context);
+        &arg_address, arg.format, arg.value, arg_type, Idx, context);
 
     x64_address_increment_offset(&arg_address, offset);
   }

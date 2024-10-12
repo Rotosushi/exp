@@ -23,7 +23,7 @@
 
 void x64_codegen_neg(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
-  switch (I.B.format) {
+  switch (I.B_format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     x64_Allocation *A =

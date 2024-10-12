@@ -19,13 +19,13 @@
 
 #include <stdio.h>
 
-#include "utility/int_types.h"
+#include "utility/string_view.h"
 
-FILE *file_open(char const *restrict path, char const *restrict modes);
+FILE *file_open(StringView path, StringView modes);
 
 void file_close(FILE *restrict file);
 
-void file_remove(char const *restrict path);
+void file_remove(StringView path);
 
 /**
  * @brief write <buffer> to <stream>
@@ -38,21 +38,21 @@ void file_remove(char const *restrict path);
  * @param stream the stream to write to
  * @return u64 the number of chars written
  */
-void file_write(const char *restrict buffer, FILE *restrict stream);
+void file_write(FILE *restrict out, StringView buffer);
 
-void file_write_i64(i64 value, FILE *restrict stream);
+void file_write_i64(FILE *restrict out, i64 value);
 
-void file_write_u64(u64 value, FILE *restrict stream);
+void file_write_u64(FILE *restrict out, u64 value);
 
 /**
  * @brief read <length> chars into <buffer> from <stream>
  *
  * @param buffer the buffer to store chars into
  * @param length the number of chars to read
- * @param stream the stream to read from.
+ * @param file the stream to read from.
  * @return u64 the number of chars actually read.
  */
-u64 file_read(char *buffer, u64 length, FILE *restrict stream);
+u64 file_read(FILE *restrict file, char *buffer, u64 length);
 
 u64 file_length(FILE *restrict file);
 

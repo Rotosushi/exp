@@ -18,40 +18,14 @@
 #define EXP_ENV_ERROR_H
 
 #include "adt/string.h"
-#include "utility/log.h"
+#include "frontend/source_location.h"
 
 typedef enum ErrorCode : u8 {
   ERROR_NONE,
 
-  ERROR_LEXER_ERROR_UNEXPECTED_CHAR,
-  ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE,
-
-  ERROR_INTEGER_TO_LARGE,
-
-  ERROR_PARSER_EXPECTED_END_COMMENT,
-  ERROR_PARSER_EXPECTED_BEGIN_BRACE,
-  ERROR_PARSER_EXPECTED_END_BRACE,
-  ERROR_PARSER_EXPECTED_BEGIN_PAREN,
-  ERROR_PARSER_EXPECTED_END_PAREN,
-  ERROR_PARSER_EXPECTED_RIGHT_ARROW,
-  ERROR_PARSER_EXPECTED_SEMICOLON,
-  ERROR_PARSER_EXPECTED_COLON,
-  ERROR_PARSER_EXPECTED_EQUAL,
-
-  ERROR_PARSER_EXPECTED_KEYWORD_CONST,
-  ERROR_PARSER_EXPECTED_KEYWORD_FN,
-
-  ERROR_PARSER_EXPECTED_EXPRESSION,
-  ERROR_PARSER_EXPECTED_STATEMENT,
-  ERROR_PARSER_EXPECTED_IDENTIFIER,
-  ERROR_PARSER_EXPECTED_TYPE,
-
-  ERROR_PARSER_UNEXPECTED_TOKEN,
-
-  ERROR_TYPECHECK_UNDEFINED_SYMBOL,
-  ERROR_TYPECHECK_TYPE_MISMATCH,
-  ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
-  ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS,
+  ERROR_PRECISION,
+  ERROR_SYNTAX,
+  ERROR_SEMANTICS,
 } ErrorCode;
 
 StringView error_code_sv(ErrorCode code);
@@ -69,15 +43,14 @@ StringView error_code_sv(ErrorCode code);
 typedef struct Error {
   ErrorCode code;
   String message;
+  SourceLocation location;
 } Error;
 
 Error error_create();
-Error error_construct(ErrorCode code, StringView sv);
-Error error_from_string(ErrorCode code, String str);
+Error error(ErrorCode code, String message, SourceLocation location);
 void error_destroy(Error *restrict error);
 
-void error_assign(Error *restrict error, ErrorCode code, StringView sv);
-
-void error_print(Error *restrict error, StringView file, u64 line);
+void print_error(Error *restrict error, String *restrict out);
+void write_error(Error *restrict error, FILE *restrict out);
 
 #endif // !EXP_ENV_ERROR_H

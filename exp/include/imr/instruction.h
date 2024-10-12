@@ -16,6 +16,7 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_INSTRUCTION_H
 #define EXP_IMR_INSTRUCTION_H
+#include "adt/string.h"
 #include "imr/operand.h"
 
 /**
@@ -101,20 +102,65 @@ typedef enum InstructionFormat : u8 {
   IFMT_ABC,
 } InstructionFormat;
 
+/*typedef union Operand {
+ *  u64 ssa;
+ *  u64 index;
+ *  i64 immediate;
+ *} Operand;
+ *
+ *
+ *typedef struct Instruction {
+ *  Opcode opcode
+ *  OperandFormat A_format;
+ *  OperandFormat B_format;
+ *  OperandFormat C_format;
+ *  Operand A;
+ *  Operand B;
+ *  Operand C;
+ *};
+
+ since all enums are based on u8
+ and sizeof(u8) == 1
+ and sizeof(u64) == sizeof(i64) == 8
+ sizeof(Instruction) == 1 + 1 + 1 + 1 + 4 (padding) + 8 + 8 + 8 == 64
+ (which is a common single cache line width)
+ This might improve data-access time when considering
+ looping through instructions.
+
+ with the current declaration
+ typedef struct Instruction {
+   Opcode opcode;
+   InstructionFormat format;
+   Operand A;
+   Operand B;
+   Operand C;
+ } Instruction;
+
+ the size is
+  1 + 1 + 6 (padding)
+  + 1 + 7 (padding) + 8
+  + 1 + 7 (padding) + 8
+  + 1 + 7 (padding) + 8 == 112
+ */
+
 /**
  * @brief represents a bytecode instruction
  */
 typedef struct Instruction {
   Opcode opcode;
   InstructionFormat format;
-  Operand A;
-  Operand B;
-  Operand C;
+  OperandFormat A_format;
+  OperandFormat B_format;
+  OperandFormat C_format;
+  OperandValue A;
+  OperandValue B;
+  OperandValue C;
 } Instruction;
 
 Instruction instruction_ret(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
+Instruction instruction_lea(Operand dst, Operand src);
 Instruction instruction_move(Operand dst, Operand src);
 Instruction instruction_neg(Operand dst, Operand src);
 Instruction instruction_add(Operand dst, Operand left, Operand right);
@@ -122,5 +168,9 @@ Instruction instruction_sub(Operand dst, Operand left, Operand right);
 Instruction instruction_mul(Operand dst, Operand left, Operand right);
 Instruction instruction_div(Operand dst, Operand left, Operand right);
 Instruction instruction_mod(Operand dst, Operand left, Operand right);
+
+void print_instruction(Instruction I,
+                       String *restrict out,
+                       struct Context *restrict context);
 
 #endif // !EXP_IMR_INSTRUCTION_H

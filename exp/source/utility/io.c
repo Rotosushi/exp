@@ -25,10 +25,17 @@
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-FILE *file_open(char const *restrict path, char const *restrict modes) {
-  assert(path != NULL);
-  assert(modes != NULL);
-  FILE *file = fopen(path, modes);
+#define TO_BUF(buf, sv)                                                        \
+  char buf[sv.length + 1];                                                     \
+  memcpy(buf, sv.ptr, sv.length);                                              \
+  buf[sv.length] = '\0'
+
+FILE *file_open(StringView path, StringView modes) {
+  assert(!string_view_empty(path));
+  assert(!string_view_empty(modes));
+  TO_BUF(pbuf, path);
+  TO_BUF(mbuf, modes);
+  FILE *file = fopen(pbuf, mbuf);
   if (file == NULL) { PANIC_ERRNO("fopen failed"); }
   return file;
 }
@@ -38,28 +45,36 @@ void file_close(FILE *restrict file) {
   if (fclose(file) == EOF) { PANIC_ERRNO("fclose failed"); }
 }
 
-void file_remove(char const *restrict path) {
-  if (remove(path)) { PANIC_ERRNO("remove failed"); }
+void file_remove(StringView path) {
+  TO_BUF(buf, path);
+  if (remove(buf)) { PANIC_ERRNO("remove failed"); }
 }
 
-void file_write(const char *restrict buffer, FILE *restrict stream) {
-  i32 code = fputs(buffer, stream);
-  if ((code == EOF) && (ferror(stream))) { PANIC_ERRNO("fputs failed"); }
+void file_write(FILE *restrict out, StringView buffer) {
+  for (u64 i = 0; i < buffer.length; ++i) {
+    int c = fputc(buffer.ptr[i], out);
+    if (c == EOF) {
+      panic(
+          string_view_from_cstring(strerror(ferror(out))), __FILE__, __LINE__);
+    }
+  }
 }
 
-void file_write_i64(i64 value, FILE *restrict stream) {
-  char buf[i64_safe_strlen(value) + 1] = {};
+void file_write_i64(FILE *restrict out, i64 value) {
+  u64 len           = i64_safe_strlen(value);
+  char buf[len + 1] = {};
   if (i64_to_str(value, buf) == NULL) { PANIC("i64_to_str failed"); }
-  file_write(buf, stream);
+  file_write(out, string_view(len, buf));
 }
 
-void file_write_u64(u64 value, FILE *restrict stream) {
+void file_write_u64(FILE *restrict out, u64 value) {
+  u64 len                              = u64_safe_strlen(value);
   char buf[u64_safe_strlen(value) + 1] = {};
   if (u64_to_str(value, buf) == NULL) { PANIC("u64_to_str failed"); }
-  file_write(buf, stream);
+  file_write(out, string_view(len, buf));
 }
 
-u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
+u64 file_read(FILE *restrict stream, char *buffer, u64 length) {
   u64 count = fread(buffer, sizeof(*buffer), length, stream);
   int error = ferror(stream);
   if (error != 0) { PANIC(strerror(error)); }

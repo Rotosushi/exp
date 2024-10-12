@@ -23,7 +23,6 @@
 
 #include "utility/io.h"
 #include "utility/log.h"
-#include "utility/numeric_conversions.h"
 
 #define LOG_FATAL_MSG     "fatal"
 #define LOG_ERROR_MSG     "error"
@@ -31,31 +30,34 @@
 #define LOG_STATUS_MSG    "status"
 #define BAD_LOG_LEVEL_MSG "unknown log level"
 
-void log_message(LogLevel level,
-                 const char *restrict file,
-                 u64 line,
-                 const char *restrict message,
-                 FILE *restrict stream) {
-  file_write("[", stream);
-
+void write_log_level(FILE *restrict out, LogLevel level) {
   switch (level) {
-  case LOG_FATAL:   file_write(LOG_FATAL_MSG, stream); break;
-  case LOG_ERROR:   file_write(LOG_ERROR_MSG, stream); break;
-  case LOG_WARNING: file_write(LOG_WARNING_MSG, stream); break;
-  case LOG_STATUS:  file_write(LOG_STATUS_MSG, stream); break;
-  default:          file_write(BAD_LOG_LEVEL_MSG, stream); abort();
+  case LOG_FATAL:   file_write(out, SV(LOG_FATAL_MSG)); break;
+  case LOG_ERROR:   file_write(out, SV(LOG_ERROR_MSG)); break;
+  case LOG_WARNING: file_write(out, SV(LOG_WARNING_MSG)); break;
+  case LOG_STATUS:  file_write(out, SV(LOG_STATUS_MSG)); break;
+  default:          file_write(out, SV(BAD_LOG_LEVEL_MSG)); break;
+  }
+}
+
+void write_note(FILE *restrict out,
+                LogLevel level,
+                StringView message,
+                StringView file,
+                u64 line) {
+  file_write(out, SV("[#"));
+  write_log_level(out, level);
+
+  if (!string_view_empty(file)) {
+    file_write(out, SV(" @"));
+    file_write(out, file);
+    file_write(out, SV(":"));
+    file_write_u64(out, line);
   }
 
-  if (file != NULL) {
-    file_write(" @ ", stream);
-    file_write(file, stream);
-    file_write(":", stream);
-    file_write_u64(line, stream);
-  }
-
-  file_write("] ", stream);
-  file_write(message, stream);
-  file_write("\n", stream);
+  file_write(out, SV("] "));
+  file_write(out, message);
+  file_write(out, SV("\n"));
 }
 
 #undef LOG_FATAL_MSG

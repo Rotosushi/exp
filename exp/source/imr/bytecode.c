@@ -23,7 +23,6 @@
 #include "imr/bytecode.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/io.h"
 
 Bytecode bytecode_create() {
   Bytecode bc;
@@ -58,127 +57,15 @@ void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
   bytecode->length += 1;
 }
 
-static void print_B(char const *restrict inst,
-                    Instruction I,
-                    FILE *restrict file,
-                    Context *restrict context) {
-  file_write(inst, file);
-  file_write(" ", file);
-  print_operand(I.B, file, context);
-}
-
-static void print_AB(char const *restrict inst,
-                     Instruction I,
-                     FILE *restrict file,
-                     Context *restrict context) {
-  file_write(inst, file);
-  file_write(" ", file);
-  print_operand(I.A, file, context);
-  file_write(", ", file);
-  print_operand(I.B, file, context);
-}
-
-static void print_ABC(char const *restrict inst,
-                      Instruction I,
-                      FILE *restrict file,
-                      Context *restrict context) {
-  file_write(inst, file);
-  file_write(" ", file);
-  print_operand(I.A, file, context);
-  file_write(", ", file);
-  print_operand(I.B, file, context);
-  file_write(", ", file);
-  print_operand(I.C, file, context);
-}
-
-// "ret <B>"
-static void
-print_ret(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_B("ret", I, file, context);
-}
-
-// "call SSA[<A>], GlobalSymbols[GlobalLabels[B]](Calls[C])"
-static void
-print_call(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("call", I, file, context);
-}
-
-// "dot SSA[<A>], <B>, <C>"
-static void
-print_dot(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("dot", I, file, context);
-}
-
-// "move SSA[<A>], <B>"
-static void
-print_move(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_AB("move", I, file, context);
-}
-
-// "neg SSA[<A>], <B>"
-static void
-print_neg(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_AB("neg", I, file, context);
-}
-
-// "add SSA[<A>], <B>, <C>"
-static void
-print_add(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("add", I, file, context);
-}
-
-// "sub SSA[<A>], <B>, <C>"
-static void
-print_sub(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("sub", I, file, context);
-}
-
-// "mul SSA[<A>], <B>, <C>"
-static void
-print_mul(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("mul", I, file, context);
-}
-
-// "div SSA[<A>], <B>, <C>"
-static void
-print_div(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("div", I, file, context);
-}
-
-// "mod SSA[<A>], <B>, <C>"
-static void
-print_mod(Instruction I, FILE *restrict file, Context *restrict context) {
-  print_ABC("mod", I, file, context);
-}
-
-static void print_instruction(Instruction I,
-                              FILE *restrict file,
-                              Context *restrict context) {
-  switch (I.opcode) {
-  case OPC_RET:  print_ret(I, file, context); break;
-  case OPC_CALL: print_call(I, file, context); break;
-  case OPC_DOT:  print_dot(I, file, context); break;
-  case OPC_MOVE: print_move(I, file, context); break;
-  case OPC_NEG:  print_neg(I, file, context); break;
-  case OPC_ADD:  print_add(I, file, context); break;
-  case OPC_SUB:  print_sub(I, file, context); break;
-  case OPC_MUL:  print_mul(I, file, context); break;
-  case OPC_DIV:  print_div(I, file, context); break;
-  case OPC_MOD:  print_mod(I, file, context); break;
-
-  default: unreachable();
-  }
-}
-
 void print_bytecode(Bytecode const *restrict bc,
-                    FILE *restrict file,
+                    String *restrict out,
                     Context *restrict context) {
   // walk the entire buffer and print each instruction
   for (u64 i = 0; i < bc->length; ++i) {
-    file_write("  ", file);
-    file_write_u64(i, file);
-    file_write(": ", file);
-    print_instruction(bc->buffer[i], file, context);
-    file_write("\n", file);
+    string_append(out, SV("  "));
+    string_append_u64(out, i);
+    string_append(out, SV(": "));
+    print_instruction(bc->buffer[i], out, context);
+    string_append(out, SV("\n"));
   }
 }

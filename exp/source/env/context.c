@@ -101,6 +101,11 @@ Type *context_i64_type(Context *restrict context) {
   return type_interner_i64_type(&(context->type_interner));
 }
 
+Type *context_pointer_type(Context *restrict context, Type *restrict pointee) {
+  assert(context != NULL);
+  return type_interner_pointer_type(&context->type_interner, pointee);
+}
+
 Type *context_tuple_type(Context *restrict context, TupleType tuple) {
   assert(context != NULL);
   return type_interner_tuple_type(&context->type_interner, tuple);
@@ -174,11 +179,7 @@ void context_leave_global(Context *restrict c) {
 
 FunctionBody *context_current_function(Context *restrict c) {
   SymbolTableElement *ste = context_current_ste(c);
-  switch (ste->kind) {
-  case STE_UNDEFINED: EXP_UNREACHABLE;
-  case STE_CONSTANT:  return &context_global_init(c)->function_body;
-  case STE_FUNCTION:  return &ste->function_body;
-  }
+  return &ste->function_body;
 }
 
 Bytecode *context_active_bytecode(Context *restrict c) {
@@ -197,16 +198,25 @@ ActualArgumentList *context_call_at(Context *restrict c, u64 idx) {
   return function_body_call_at(context_current_function(c), idx);
 }
 
-void context_def_constant(Context *restrict c, StringView name, Operand value) {
-  if (context_at_global_scope(c)) {
-    u64 idx   = context_global_labels_insert(c, name);
-    Operand A = operand_label(idx);
-    context_emit_move(c, A, value);
-  } else {
+void context_def_constant_global(Context *restrict c,
+                                 StringView name,
+                                 Operand value) {
+  u64 idx   = context_global_labels_insert(c, name);
+  Operand A = operand_label(idx);
+  context_emit_move(c, A, value);
+}
+
+void context_def_constant_local(Context *restrict c,
+                                StringView name,
+                                Operand operand) {
+  if (operand.format != OPRFMT_SSA) {
     Operand A = context_new_ssa(c);
-    context_emit_move(c, A, value);
-    function_body_new_local(context_current_function(c), name, A.ssa);
+    context_emit_move(c, A, operand);
+    function_body_new_local(context_current_function(c), name, A.value.ssa);
+    return;
   }
+
+  function_body_new_local(context_current_function(c), name, operand.value.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {
@@ -256,34 +266,7 @@ Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
-  switch (B.format) {
-  case OPRFMT_SSA:
-  case OPRFMT_VALUE: {
-    bytecode_append(bc, instruction_dot(A, B, C));
-    break;
-  }
-
-  case OPRFMT_LABEL: {
-    // I think we generate an lea instruction here
-    // in order to access global tuples correctly.
-    // the only time a global tuple is an operand
-    // is when they are accessed via a dot operation.
-    // so we only generate a lea instruction here
-    // when the programmer explicitly accesses a global
-    // tuple. This can only happen multiple times
-    // if the programmer accesses the same global tuple
-    // multiple times in the function body.
-    // it would be even more efficient if we somehow
-    // coalesce all lea instructions generated this way
-    // into a single lea the first time it happens.
-    // but we currently have no way of doing this.
-    // we would have to write optimization code to do
-    // that
-    break;
-  }
-
-  default: EXP_UNREACHABLE;
-  }
+  bytecode_append(bc, instruction_dot(A, B, C));
   return A;
 }
 

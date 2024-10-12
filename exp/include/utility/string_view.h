@@ -17,7 +17,6 @@
 #ifndef EXP_UTILITY_STRING_VIEW_H
 #define EXP_UTILITY_STRING_VIEW_H
 #include "utility/int_types.h"
-#include "utility/io.h"
 
 typedef struct StringView {
   u64 length;
@@ -25,12 +24,13 @@ typedef struct StringView {
 } StringView;
 
 StringView string_view_create();
-StringView string_view_from_str(char const *string, u64 length);
+StringView string_view(u64 length, char const *ptr);
 StringView string_view_from_cstring(char const *cstring);
 bool string_view_eq(StringView sv1, StringView sv2);
 bool string_view_empty(StringView sv);
 
-void print_string_view(StringView sv, FILE *restrict file);
+struct String;
+void print_string_view(struct String *restrict out, StringView sv);
 
 #define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
 

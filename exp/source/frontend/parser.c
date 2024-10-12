@@ -23,14 +23,55 @@
 #include "env/error.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
+#include "frontend/source_location.h"
 #include "imr/operand.h"
+#include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"
 
 typedef struct Parser {
   Lexer lexer;
+  SourceLocation curloc;
   Token curtok;
 } Parser;
+
+static Parser parser_create() {
+  Parser parser = {.lexer  = lexer_create(),
+                   .curtok = TOK_END,
+                   .curloc = source_location_create()};
+  return parser;
+}
+
+static void parser_set_filename(Parser *restrict parser, StringView filename) {
+  parser->curloc.file = filename;
+}
+
+static void
+parser_set_view(Parser *restrict parser, char const *buffer, u64 length) {
+  assert(parser != NULL);
+  assert(buffer != NULL);
+  lexer_set_view(&(parser->lexer), buffer, length);
+}
+
+static bool finished(Parser *restrict parser) {
+  return parser->curtok == TOK_END;
+}
+
+static StringView curtxt(Parser *restrict parser) {
+  return lexer_current_text(&parser->lexer);
+}
+
+static u64 curline(Parser *restrict parser) {
+  return lexer_current_line(&parser->lexer);
+}
+
+static u64 curcol(Parser *restrict parser) {
+  return lexer_current_column(&parser->lexer);
+}
+
+static bool peek(Parser *restrict parser, Token token) {
+  return parser->curtok == token;
+}
 
 typedef struct ParserResult {
   bool has_error;
@@ -44,11 +85,97 @@ static void parser_result_destroy(ParserResult *restrict pr) {
   if (pr->has_error) { error_destroy(&pr->error); }
 }
 
-static ParserResult error(Parser *restrict p, ErrorCode code) {
-  ParserResult result = {
-      .has_error = 1,
-      .error     = error_construct(code, lexer_current_text(&p->lexer))};
+static ParserResult
+failure(Parser *restrict p, ErrorCode code, String message) {
+  ParserResult result = {.has_error = 1,
+                         .error     = error(code, message, p->curloc)};
   return result;
+}
+
+static ParserResult syntax_error(Parser *restrict p, String message) {
+  return failure(p, ERROR_SYNTAX, message);
+}
+
+static ParserResult semantic_error(Parser *restrict p, String message) {
+  return failure(p, ERROR_SEMANTICS, message);
+}
+
+/*
+static ParserResult precision_error(Parser *restrict p, String message) {
+  return failure(p, ERROR_PRECISION, message);
+}
+
+
+static ParserResult precision_i64(Parser *restrict p) {
+  String msg = string_create();
+  string_append(&msg, SV("integral literal ["));
+  string_append(&msg, curtxt(p));
+  string_append(&msg, SV("] cannot be represented by integral type [i64]"));
+  return precision_error(p, msg);
+}
+*/
+
+static ParserResult expected_text(Parser *restrict p, StringView expect) {
+  String msg = string_create();
+  string_append(&msg, SV("expected ["));
+  string_append(&msg, expect);
+  string_append(&msg, SV("] actual ["));
+  string_append(&msg, curtxt(p));
+  string_append(&msg, SV("]"));
+  return syntax_error(p, msg);
+}
+
+static ParserResult expected_token(Parser *restrict p, Token expect) {
+  return expected_text(p, token_to_view(expect));
+}
+
+/*
+static String mismatched_type(Type *expect, Type *actual) {
+  String expect_str = string_create();
+  String actual_str = string_create();
+  print_type(expect, &expect_str);
+  print_type(actual, &actual_str);
+
+  String msg =
+      expected_text(string_to_view(&expect_str), string_to_view(&actual_str));
+
+  string_destroy(&expect_str);
+  string_destroy(&actual_str);
+
+  return msg;
+}
+*/
+
+static ParserResult expected_type(Parser *restrict p) {
+  String msg = string_create();
+  string_append(&msg, SV("expected a Type expression, actual ["));
+  string_append(&msg, curtxt(p));
+  string_append(&msg, SV("]"));
+  return syntax_error(p, msg);
+}
+
+static ParserResult expected_declaration(Parser *restrict p) {
+  String msg = string_create();
+  string_append(&msg, SV("expected a declaration, actual ["));
+  string_append(&msg, curtxt(p));
+  string_append(&msg, SV("]"));
+  return syntax_error(p, msg);
+}
+
+static ParserResult expected_expression(Parser *restrict p) {
+  String msg = string_create();
+  string_append(&msg, SV("expected an expression, actual ["));
+  string_append(&msg, curtxt(p));
+  string_append(&msg, SV("]"));
+  return syntax_error(p, msg);
+}
+
+static ParserResult undefined_identifier(Parser *restrict p, StringView id) {
+  String msg = string_create();
+  string_append(&msg, SV("identifier ["));
+  string_append(&msg, id);
+  string_append(&msg, SV("] is undefined in current scope"));
+  return semantic_error(p, msg);
 }
 
 static ParserResult success(Operand result) {
@@ -83,40 +210,6 @@ typedef struct ParseRule {
   Precedence precedence;
 } ParseRule;
 
-static Parser parser_create() {
-  Parser parser;
-  parser.lexer  = lexer_create();
-  parser.curtok = TOK_END;
-  return parser;
-}
-
-static void
-parser_set_view(Parser *restrict parser, char const *buffer, u64 length) {
-  assert(parser != NULL);
-  assert(buffer != NULL);
-  lexer_set_view(&(parser->lexer), buffer, length);
-}
-
-static bool finished(Parser *restrict parser) {
-  return parser->curtok == TOK_END;
-}
-
-static StringView curtxt(Parser *restrict parser) {
-  return lexer_current_text(&parser->lexer);
-}
-
-static u64 curline(Parser *restrict parser) {
-  return lexer_current_line(&parser->lexer);
-}
-
-// static u64 curcol(Parser *restrict parser) {
-//   return lexer_current_column(&parser->lexer);
-// }
-
-static bool peek(Parser *restrict parser, Token token) {
-  return parser->curtok == token;
-}
-
 static ParserResult comment(Parser *restrict parser) {
   // a comment starts with '/*' and lasts until
   // it's matching '*/'.
@@ -130,7 +223,7 @@ static ParserResult comment(Parser *restrict parser) {
     parser->curtok = lexer_scan(&parser->lexer);
 
     if (peek(parser, TOK_END)) {
-      return error(parser, ERROR_PARSER_EXPECTED_END_COMMENT);
+      return expected_token(parser, TOK_END_COMMENT);
     }
 
     if (peek(parser, TOK_BEGIN_COMMENT)) {
@@ -152,6 +245,8 @@ static ParserResult nexttok(Parser *restrict parser) {
     if (result.has_error) { return result; }
   }
 
+  parser->curloc.line   = curline(parser);
+  parser->curloc.column = curcol(parser);
   return success(zero());
 }
 
@@ -196,10 +291,6 @@ static ExpectResult expect(Parser *restrict parser, Token token) {
   }
 }
 
-#define EXPECT(name, token)                                                    \
-  ExpectResult name = expect(p, token);                                        \
-  if (name.has_error) { return from_expect(name); }
-
 #define NEXTTOK(parser)                                                        \
   {                                                                            \
     ParserResult result = nexttok(parser);                                     \
@@ -209,6 +300,26 @@ static ExpectResult expect(Parser *restrict parser, Token token) {
 #define TRY(name, call)                                                        \
   ParserResult name = call;                                                    \
   if (name.has_error) { return name; }
+
+#define EXPECT_RESULT(name, token)                                             \
+  ExpectResult name = expect(p, token);                                        \
+  if (name.has_error) { return from_expect(name); }
+
+#define EXPECT(token)                                                          \
+  {                                                                            \
+    EXPECT_RESULT(result, token);                                              \
+    if (!result.found) { return expected_token(p, token); }                    \
+  }
+
+#define EXPECT_ID(name)                                                        \
+  StringView name = string_view_create();                                      \
+  {                                                                            \
+    if (!peek(p, TOK_IDENTIFIER)) {                                            \
+      return expected_token(p, TOK_IDENTIFIER);                                \
+    }                                                                          \
+    name = context_intern(c, curtxt(p));                                       \
+    NEXTTOK(p);                                                                \
+  }
 
 static ParseRule *get_rule(Token token);
 static ParserResult expression(Parser *restrict p, Context *restrict c);
@@ -224,7 +335,7 @@ parse_tuple_type(Parser *restrict p, Context *restrict c, Type **type) {
   NEXTTOK(p); // eat '('
 
   // an empty tuple type is equivalent to a nil type.
-  EXPECT(nil, TOK_NIL);
+  EXPECT_RESULT(nil, TOK_NIL);
   if (nil.found) {
     *type = context_nil_type(c);
     return success(zero());
@@ -240,12 +351,11 @@ parse_tuple_type(Parser *restrict p, Context *restrict c, Type **type) {
 
     tuple_type_append(&tuple_type, element);
 
-    EXPECT(comma, TOK_COMMA);
+    EXPECT_RESULT(comma, TOK_COMMA);
     found_comma = comma.found;
   } while (found_comma);
 
-  EXPECT(end_paren, TOK_END_PAREN);
-  if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+  EXPECT(TOK_END_PAREN);
 
   // a tuple type of length 1 is equivalent to that type.
   if (tuple_type.size == 1) {
@@ -270,7 +380,7 @@ parse_type(Parser *restrict p, Context *restrict c, Type **type) {
   case TOK_TYPE_BOOL: *type = context_boolean_type(c); break;
   case TOK_TYPE_I64:  *type = context_i64_type(c); break;
 
-  default: return error(p, ERROR_PARSER_EXPECTED_TYPE);
+  default: return expected_type(p);
   }
 
   NEXTTOK(p); // eat scalar-type
@@ -281,15 +391,9 @@ parse_type(Parser *restrict p, Context *restrict c, Type **type) {
 static ParserResult parse_formal_argument(Parser *restrict p,
                                           Context *restrict c,
                                           FormalArgument *arg) {
-  if (!peek(p, TOK_IDENTIFIER)) {
-    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
-  }
+  EXPECT_ID(name);
 
-  StringView name = context_intern(c, curtxt(p));
-  NEXTTOK(p);
-
-  EXPECT(colon, TOK_COLON);
-  if (!colon.found) { return error(p, ERROR_PARSER_EXPECTED_COLON); }
+  EXPECT(TOK_COLON);
 
   Type *type = NULL;
   TRY(maybe, parse_type(p, c, &type));
@@ -306,15 +410,12 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
                                                FunctionBody *body) {
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list. so we parse it as such
-  EXPECT(nil, TOK_NIL);
+  EXPECT_RESULT(nil, TOK_NIL);
   if (nil.found) { return success(zero()); }
 
-  EXPECT(begin_paren, TOK_BEGIN_PAREN);
-  if (!begin_paren.found) {
-    return error(p, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
-  }
+  EXPECT(TOK_BEGIN_PAREN);
 
-  EXPECT(end_paren, TOK_END_PAREN);
+  EXPECT_RESULT(end_paren, TOK_END_PAREN);
   if (!end_paren.found) {
     u8 index         = 0;
     bool comma_found = false;
@@ -325,12 +426,11 @@ static ParserResult parse_formal_argument_list(Parser *restrict p,
 
       function_body_new_argument(body, arg);
 
-      EXPECT(comma, TOK_COMMA);
+      EXPECT_RESULT(comma, TOK_COMMA);
       comma_found = comma.found;
     } while (comma_found);
 
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+    EXPECT(TOK_END_PAREN);
   }
 
   return success(zero());
@@ -342,8 +442,7 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
 
   TRY(maybe, expression(p, c));
 
-  EXPECT(semicolon, TOK_SEMICOLON);
-  if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+  EXPECT(TOK_SEMICOLON);
 
   context_emit_return(c, maybe.result);
   return success(zero());
@@ -353,21 +452,15 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
 static ParserResult constant(Parser *restrict p, Context *restrict c) {
   NEXTTOK(p); // eat 'const'
 
-  if (!peek(p, TOK_IDENTIFIER)) {
-    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
-  }
-  StringView name = context_intern(c, curtxt(p));
-  NEXTTOK(p);
+  EXPECT_ID(name);
 
-  EXPECT(equal, TOK_EQUAL);
-  if (!equal.found) { return error(p, ERROR_PARSER_EXPECTED_EQUAL); }
+  EXPECT(TOK_EQUAL);
 
-  TRY(maybe, expression(p, c));
+  TRY(exp, expression(p, c));
 
-  EXPECT(semicolon, TOK_SEMICOLON);
-  if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+  EXPECT(TOK_SEMICOLON);
 
-  context_def_constant(c, name, maybe.result);
+  context_def_constant_local(c, name, exp.result);
   return success(zero());
 }
 
@@ -382,8 +475,7 @@ static ParserResult statement(Parser *restrict p, Context *restrict c) {
   default: {
     TRY(result, expression(p, c));
 
-    EXPECT(semicolon, TOK_SEMICOLON);
-    if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+    EXPECT(TOK_SEMICOLON);
 
     return result;
   }
@@ -391,16 +483,13 @@ static ParserResult statement(Parser *restrict p, Context *restrict c) {
 }
 
 static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
-  EXPECT(begin_brace, TOK_BEGIN_BRACE);
-  if (!begin_brace.found) {
-    return error(p, ERROR_PARSER_EXPECTED_BEGIN_BRACE);
-  }
+  EXPECT(TOK_BEGIN_BRACE);
 
-  EXPECT(end_brace, TOK_END_BRACE);
+  EXPECT_RESULT(end_brace, TOK_END_BRACE);
   bool found_end_brace = end_brace.found;
   while (!found_end_brace) {
     TRY(maybe, statement(p, c));
-    EXPECT(end_brace, TOK_END_BRACE);
+    EXPECT_RESULT(end_brace, TOK_END_BRACE);
     found_end_brace = end_brace.found;
   }
 
@@ -410,30 +499,24 @@ static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
 static ParserResult function(Parser *restrict p, Context *restrict c) {
   NEXTTOK(p); // eat "fn"
 
-  if (!peek(p, TOK_IDENTIFIER)) {
-    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
-  }
-
-  StringView name = context_intern(c, curtxt(p));
-  NEXTTOK(p);
+  EXPECT_ID(name);
 
   SymbolTableElement *ste = context_enter_global(c, name);
   assert(ste->kind == STE_UNDEFINED);
   ste->kind          = STE_FUNCTION;
   FunctionBody *body = &ste->function_body;
 
-  { TRY(maybe, parse_formal_argument_list(p, c, body)); }
+  { TRY(args, parse_formal_argument_list(p, c, body)); }
 
-  EXPECT(right_arrow, TOK_RIGHT_ARROW);
-  if (right_arrow.found) { TRY(maybe, parse_type(p, c, &body->return_type)); }
+  EXPECT(TOK_RIGHT_ARROW);
 
-  { TRY(maybe, parse_block(p, c)); }
+  { TRY(block, parse_block(p, c)); }
 
 #if EXP_DEBUG
-  file_write("\nparsed a function: \nfn ", stdout);
-  print_string_view(name, stdout);
-  print_function_body(body, stdout, c);
-  file_write("\n", stdout);
+  file_write(stderr, SV("\nparsed a function: \nfn "));
+  file_write(stderr, name);
+  write_function_body(stderr, body, c);
+  file_write(stderr, SV("\n"));
 #endif
 
   context_leave_global(c);
@@ -443,32 +526,25 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
 static ParserResult global_constant(Parser *restrict p, Context *restrict c) {
   NEXTTOK(p); // eat 'const'
 
-  if (!peek(p, TOK_IDENTIFIER)) {
-    return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
-  }
-
-  StringView name = context_intern(c, curtxt(p));
-  NEXTTOK(p); // eat identifier
+  EXPECT_ID(name);
 
   SymbolTableElement *ste = context_enter_global(c, name);
   assert(ste->kind == STE_UNDEFINED);
   ste->kind = STE_CONSTANT;
 
-  EXPECT(equal, TOK_EQUAL);
-  if (!equal.found) { return error(p, ERROR_PARSER_EXPECTED_EQUAL); }
+  EXPECT(TOK_EQUAL);
 
-  TRY(maybe, expression(p, c));
+  TRY(exp, expression(p, c));
 
-  EXPECT(semicolon, TOK_SEMICOLON);
-  if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+  EXPECT(TOK_SEMICOLON);
 
 #if EXP_DEBUG
-  file_write("\nparsed a constant: \nconst ", stdout);
-  print_string_view(name, stdout);
-  file_write("\n", stdout);
+  file_write(stderr, SV("\nparsed a constant: \nconst "));
+  file_write(stderr, name);
+  file_write(stderr, SV("\n"));
 #endif
 
-  context_def_constant(c, name, maybe.result);
+  context_def_constant_global(c, name, exp.result);
   context_leave_global(c);
   return success(zero());
 }
@@ -478,7 +554,7 @@ static ParserResult definition(Parser *restrict p, Context *restrict c) {
   case TOK_FN:    return function(p, c);
   case TOK_CONST: return global_constant(p, c);
 
-  default: return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
+  default: return expected_declaration(p);
   }
 }
 
@@ -491,12 +567,11 @@ static ParserResult parens(Parser *restrict p, Context *restrict c) {
     TRY(result, expression(p, c));
     tuple_append(&tuple, result.result);
 
-    EXPECT(comma, TOK_COMMA);
+    EXPECT_RESULT(comma, TOK_COMMA);
     found_comma = comma.found;
   } while (found_comma);
 
-  EXPECT(end_paren, TOK_END_PAREN);
-  if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+  EXPECT(TOK_END_PAREN);
 
   Operand result;
 
@@ -553,12 +628,12 @@ parse_actual_argument_list(Parser *restrict p,
                            ActualArgumentList *restrict list) {
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
-  EXPECT(nil, TOK_NIL);
+  EXPECT_RESULT(nil, TOK_NIL);
   if (nil.found) { return success(zero()); }
 
   NEXTTOK(p); // eat '('
 
-  EXPECT(end_paren, TOK_END_PAREN);
+  EXPECT_RESULT(end_paren, TOK_END_PAREN);
   if (!end_paren.found) {
     bool comma_found = false;
     do {
@@ -566,12 +641,11 @@ parse_actual_argument_list(Parser *restrict p,
 
       actual_argument_list_append(list, maybe.result);
 
-      EXPECT(comma, TOK_COMMA);
+      EXPECT_RESULT(comma, TOK_COMMA);
       comma_found = comma.found;
     } while (comma_found);
 
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+    EXPECT(TOK_END_PAREN);
   }
 
   return success(zero());
@@ -624,9 +698,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
   if (var != NULL) { return success(operand_ssa(var->ssa)); }
 
   SymbolTableElement *global = context_global_symbol_table_at(c, name);
-  if (string_view_empty(global->name)) {
-    return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
-  }
+  if (string_view_empty(global->name)) { return undefined_identifier(p, name); }
 
   u64 idx = context_global_labels_insert(c, name);
   return success(operand_label(idx));
@@ -640,9 +712,7 @@ static ParserResult parse_precedence(Parser *restrict p,
                                      Context *restrict c,
                                      Precedence precedence) {
   ParseRule *rule = get_rule(p->curtok);
-  if (rule->prefix == NULL) {
-    return error(p, ERROR_PARSER_EXPECTED_EXPRESSION);
-  }
+  if (rule->prefix == NULL) { return expected_expression(p); }
 
   // Parse the right hand side of the expression
   TRY(right, rule->prefix(p, c));
@@ -724,7 +794,7 @@ i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
   parser_set_view(&p, buffer, length);
   ParserResult result = nexttok(&p);
   if (result.has_error) {
-    error_print(&result.error, context_source_path(c), curline(&p));
+    write_error(&result.error, stderr);
     parser_result_destroy(&result);
     return EXIT_FAILURE;
   }
@@ -732,16 +802,16 @@ i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
   while (!finished(&p)) {
     ParserResult maybe = definition(&p, c);
     if (maybe.has_error) {
-      error_print(&maybe.error, context_source_path(c), curline(&p));
+      write_error(&result.error, stderr);
       parser_result_destroy(&maybe);
       return EXIT_FAILURE;
     }
   }
 
 #if EXP_DEBUG
-  file_write("\nfn _init", stdout);
-  print_function_body(&context_global_init(c)->function_body, stdout, c);
-  file_write("\n", stdout);
+  file_write(stderr, SV("\nfn _init"));
+  write_function_body(stderr, &context_global_init(c)->function_body, c);
+  file_write(stderr, SV("\n"));
 #endif
 
   return EXIT_SUCCESS;
@@ -750,7 +820,7 @@ i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
 i32 parse_source(Context *restrict c) {
   assert(c != NULL);
   StringView path = context_source_path(c);
-  FILE *file      = file_open(path.ptr, "r");
+  FILE *file      = file_open(path, SV("r"));
   String buffer   = string_from_file(file);
   file_close(file);
   i32 result = parse_buffer(string_to_cstring(&buffer), buffer.length, c);
@@ -760,4 +830,5 @@ i32 parse_source(Context *restrict c) {
 
 #undef TRY
 #undef EXPECT
+#undef EXPECT_RESULT
 #undef NEXTTOK

@@ -17,8 +17,8 @@
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 
+#include "adt/string.h"
 #include "imr/operand.h"
-#include "utility/io.h"
 
 typedef enum ValueKind {
   VALUEKIND_UNINITIALIZED,
@@ -118,7 +118,7 @@ bool value_equality(Value *v1, Value *v2);
 
 struct Context;
 void print_value(Value const *restrict v,
-                 FILE *restrict file,
+                 String *restrict out,
                  struct Context *restrict context);
 
 #endif // !EXP_IMR_VALUE_H

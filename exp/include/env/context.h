@@ -67,6 +67,7 @@ StringView context_intern(Context *restrict context, StringView sv);
 Type *context_nil_type(Context *restrict context);
 Type *context_boolean_type(Context *restrict context);
 Type *context_i64_type(Context *restrict context);
+Type *context_pointer_type(Context *restrict context, Type *restrict pointee);
 Type *context_tuple_type(Context *restrict context, TupleType tuple);
 Type *context_function_type(Context *restrict context,
                             Type *return_type,
@@ -97,7 +98,12 @@ void context_leave_global(Context *restrict c);
 CallPair context_new_call(Context *restrict c);
 ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
-void context_def_constant(Context *restrict c, StringView name, Operand value);
+void context_def_constant_global(Context *restrict c,
+                                 StringView name,
+                                 Operand value);
+void context_def_constant_local(Context *restrict c,
+                                StringView name,
+                                Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
 LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa);
 FormalArgument *context_lookup_argument(Context *restrict c, StringView name);

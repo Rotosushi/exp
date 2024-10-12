@@ -21,14 +21,14 @@
 #include "utility/array_growth.h"
 
 GlobalLabels global_labels_create() {
-  GlobalLabels symbols = {.size = 0, .capacity = 0, .buffer = NULL};
+  GlobalLabels symbols = {.size = 0, .capacity = 0, .buffer = nullptr};
   return symbols;
 }
 
 void global_labels_destroy(GlobalLabels *restrict symbols) {
-  assert(symbols != NULL);
+  assert(symbols != nullptr);
   deallocate(symbols->buffer);
-  symbols->buffer   = NULL;
+  symbols->buffer   = nullptr;
   symbols->size     = 0;
   symbols->capacity = 0;
 }
@@ -44,7 +44,7 @@ static void global_labels_grow(GlobalLabels *restrict symbols) {
 }
 
 u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
-  assert(symbols != NULL);
+  assert(symbols != nullptr);
 
   if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
@@ -60,7 +60,7 @@ u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
 }
 
 StringView global_labels_at(GlobalLabels *restrict symbols, u64 idx) {
-  assert(symbols != NULL);
+  assert(symbols != nullptr);
   assert(idx < symbols->size);
   return symbols->buffer[idx];
 }
