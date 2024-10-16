@@ -35,6 +35,7 @@ typedef struct Bytecode {
 Bytecode bytecode_create();
 void bytecode_destroy(Bytecode *restrict bytecode);
 
+u64 bytecode_current_index(Bytecode *restrict bytecode);
 void bytecode_append(Bytecode *restrict bytecode, Instruction I);
 
 struct Context;

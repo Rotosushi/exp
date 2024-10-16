@@ -35,6 +35,7 @@ Context context_create(CLIOptions *restrict options) {
 void context_destroy(Context *restrict context) {
   assert(context != NULL);
   context_options_destroy(&(context->options));
+  source_locations_destroy(&context->source_locations);
   string_interner_destroy(&(context->string_interner));
   type_interner_destroy(&(context->type_interner));
   symbol_table_destroy(&(context->global_symbol_table));
@@ -75,6 +76,17 @@ StringView context_object_path(Context *restrict context) {
 StringView context_output_path(Context *restrict context) {
   assert(context != NULL);
   return string_to_view(&(context->options.output));
+}
+
+SourceLocation context_lookup_source_location(Context *restrict context,
+                                              u64 Idx) {
+  return source_locations_lookup(&context->source_locations, Idx);
+}
+
+static void context_insert_source_location(Context *restrict context,
+                                           SourceLocation location,
+                                           u64 Idx) {
+  source_locations_insert(&context->source_locations, location, Idx);
 }
 
 StringView context_intern(Context *restrict context, StringView sv) {
@@ -141,6 +153,19 @@ FunctionBody *context_enter_function(Context *restrict c, StringView name) {
   return c->current_function;
 }
 
+// we can check if the current symbol is a constant
+// and replace the individual function body for each constant
+// with the single _init function. and I can get that to
+// work with the backend. I am struggling to figure out how
+// to get the backend to emit the initializer expressions
+// into the single _init body from multiple functions.
+// this is because we precompute lifetime information
+// for a given function and use that information to drive
+// the register allocator.
+// We can precompute the lifetime information for a given
+// initializer function, and generate a stub function.
+// and then the emitter can collect all the stubs into the
+// single function body.
 FunctionBody *context_current_function(Context *restrict c) {
   assert(c != NULL);
   assert(c->current_function != NULL);
@@ -204,24 +229,35 @@ Value *context_values_at(Context *restrict context, u64 index) {
   return values_at(&(context->values), index);
 }
 
-void context_emit_return(Context *restrict c, Operand B) {
+void context_emit_return(Context *restrict c,
+                         SourceLocation location,
+                         Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_ret(B));
 }
 
-Operand context_emit_call(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_call(Context *restrict c,
+                          SourceLocation location,
+                          Operand B,
+                          Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_call(A, B, C));
   return A;
 }
 
-Operand context_emit_dot(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_dot(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_dot(A, B, C));
   return A;
 }
@@ -234,50 +270,72 @@ Operand context_emit_load(Context *restrict c, Operand B) {
   return A;
 }
 
-Operand context_emit_neg(Context *restrict c, Operand B) {
+Operand
+context_emit_neg(Context *restrict c, SourceLocation location, Operand B) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_neg(A, B));
   return A;
 }
 
-Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_add(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_add(A, B, C));
   return A;
 }
 
-Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_sub(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_sub(A, B, C));
   return A;
 }
 
-Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mul(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_mul(A, B, C));
   return A;
 }
 
-Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_div(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_div(A, B, C));
   return A;
 }
 
-Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mod(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C) {
   assert(c != NULL);
   Bytecode *bc = context_active_bytecode(c);
   Operand A    = context_new_ssa(c);
+  context_insert_source_location(c, location, bytecode_current_index(bc));
   bytecode_append(bc, instruction_mod(A, B, C));
   return A;
 }

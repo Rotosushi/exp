@@ -345,7 +345,7 @@ static ParserResult return_(Parser *restrict p, Context *restrict c) {
   EXPECT(semicolon, TOK_SEMICOLON);
   if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
 
-  context_emit_return(c, maybe.result);
+  context_emit_return(c, p->curloc, maybe.result);
   return success(zero());
 }
 
@@ -483,7 +483,7 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
   TRY(maybe, parse_precedence(p, c, PREC_UNARY));
 
   switch (op) {
-  case TOK_MINUS: return success(context_emit_neg(c, maybe.result));
+  case TOK_MINUS: return success(context_emit_neg(c, p->curloc, maybe.result));
 
   default: EXP_UNREACHABLE;
   }
@@ -499,12 +499,12 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   Operand right = maybe.result;
 
   switch (op) {
-  case TOK_DOT:     return success(context_emit_dot(c, left, right));
-  case TOK_PLUS:    return success(context_emit_add(c, left, right));
-  case TOK_MINUS:   return success(context_emit_sub(c, left, right));
-  case TOK_STAR:    return success(context_emit_mul(c, left, right));
-  case TOK_SLASH:   return success(context_emit_div(c, left, right));
-  case TOK_PERCENT: return success(context_emit_mod(c, left, right));
+  case TOK_DOT:     return success(context_emit_dot(c, p->curloc, left, right));
+  case TOK_PLUS:    return success(context_emit_add(c, p->curloc, left, right));
+  case TOK_MINUS:   return success(context_emit_sub(c, p->curloc, left, right));
+  case TOK_STAR:    return success(context_emit_mul(c, p->curloc, left, right));
+  case TOK_SLASH:   return success(context_emit_div(c, p->curloc, left, right));
+  case TOK_PERCENT: return success(context_emit_mod(c, p->curloc, left, right));
 
   default: EXP_UNREACHABLE;
   }
@@ -546,7 +546,8 @@ call(Parser *restrict p, Context *restrict c, Operand left) {
 
   TRY(maybe, parse_actual_argument_list(p, c, pair.list));
 
-  return success(context_emit_call(c, left, operand_call(pair.index)));
+  return success(
+      context_emit_call(c, p->curloc, left, operand_call(pair.index)));
 }
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
@@ -678,13 +679,18 @@ static ParseRule *get_rule(Token token) {
   return &rules[token];
 }
 
-i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
-  assert(buffer != NULL);
+i32 parse_source(Context *restrict c) {
   assert(c != NULL);
+  StringView path = context_source_path(c);
+  FILE *file      = file_open(path, SV("r"));
+  String buffer   = string_from_file(file);
+  file_close(file);
+  StringView view = string_to_view(&buffer);
 
   Parser p = parser_create();
+  parser_set_filename(&p, path);
 
-  parser_set_view(&p, buffer, length);
+  parser_set_view(&p, view.ptr, view.length);
   ParserResult result = nexttok(&p);
   if (result.has_error) {
     error_print(&result.error, context_source_path(c), curline(&p));
@@ -712,7 +718,7 @@ i32 parse_source(Context *restrict c) {
   file_close(file);
   i32 result = parse_buffer(string_to_cstring(&buffer), buffer.length, c);
   string_destroy(&buffer);
-  return result;
+  return EXIT_SUCCESS;
 }
 
 #undef TRY

@@ -23,7 +23,7 @@
 
 bool test_values(Values *restrict values, Value value) {
   Operand index   = values_add(values, value);
-  Value *constant = values_at(values, index.index);
+  Value *constant = values_at(values, index.value.index);
 
   if (value_equality(constant, &value)) {
     return 0;

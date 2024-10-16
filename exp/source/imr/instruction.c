@@ -34,7 +34,9 @@ static Instruction instruction_ABC(Opcode opcode, u64 A, Operand B, Operand C) {
   return I;
 }
 
-Instruction instruction_ret(Operand result) { return instruction_B(OPC_RET, result); }
+Instruction instruction_ret(Operand result) {
+  return instruction_B(OPC_RET, result);
+}
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
   return instruction_ABC(OPC_CALL, dst.ssa, label, args);

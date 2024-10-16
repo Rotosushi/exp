@@ -23,11 +23,10 @@
 
 x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
-  x64_Context x64_context = {
-      .context  = context,
-      .body     = NULL,
-      .x64_body = NULL,
-      .symbols  = x64_symbol_table_create(context->global_symbol_table.count)};
+  x64_Context x64_context = {.context  = context,
+                             .body     = NULL,
+                             .x64_body = NULL,
+                             .symbols  = x64_symbol_table_create()};
   return x64_context;
 }
 
@@ -96,7 +95,7 @@ x64_FunctionBody *current_x64_body(x64_Context *restrict x64_context) {
 
 x64_Bytecode *current_x64_bc(x64_Context *restrict x64_context) {
   assert(x64_context->x64_body != NULL);
-  return &x64_context->x64_body->bc;
+  return &current_x64_body(x64_context)->bc;
 }
 
 x64_Allocator *current_allocator(x64_Context *restrict x64_context) {
