@@ -19,6 +19,7 @@
 
 #include "env/context_options.h"
 #include "env/global_labels.h"
+#include "env/source_locations.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
@@ -31,6 +32,7 @@
  */
 typedef struct Context {
   ContextOptions options;
+  SourceLocations source_locations;
   StringInterner string_interner;
   TypeInterner type_interner;
   SymbolTable global_symbol_table;
@@ -59,6 +61,10 @@ StringView context_source_path(Context *restrict context);
 StringView context_assembly_path(Context *restrict context);
 StringView context_object_path(Context *restrict context);
 StringView context_output_path(Context *restrict context);
+
+// source locations functions
+SourceLocation context_lookup_source_location(Context *restrict context,
+                                              u64 Idx);
 
 // string interner functions
 StringView context_intern(Context *restrict context, StringView sv);
@@ -99,9 +105,11 @@ CallPair context_new_call(Context *restrict c);
 ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
 void context_def_constant_global(Context *restrict c,
+                                 SourceLocation location,
                                  StringView name,
                                  Operand value);
 void context_def_constant_local(Context *restrict c,
+                                SourceLocation location,
                                 StringView name,
                                 Operand value);
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
@@ -114,15 +122,42 @@ Operand context_values_append(Context *restrict context, Value value);
 Value *context_values_at(Context *restrict context, u64 index);
 
 // Bytecode functions
-void context_emit_return(Context *restrict c, Operand B);
-Operand context_emit_call(Context *restrict c, Operand B, Operand C);
-Operand context_emit_dot(Context *restrict c, Operand B, Operand C);
-Operand context_emit_move(Context *restrict c, Operand A, Operand B);
-Operand context_emit_neg(Context *restrict c, Operand B);
-Operand context_emit_add(Context *restrict c, Operand B, Operand C);
-Operand context_emit_sub(Context *restrict c, Operand B, Operand C);
-Operand context_emit_mul(Context *restrict c, Operand B, Operand C);
-Operand context_emit_div(Context *restrict c, Operand B, Operand C);
-Operand context_emit_mod(Context *restrict c, Operand B, Operand C);
+void context_emit_return(Context *restrict c,
+                         SourceLocation location,
+                         Operand B);
+Operand context_emit_call(Context *restrict c,
+                          SourceLocation location,
+                          Operand B,
+                          Operand C);
+Operand context_emit_dot(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
+Operand context_emit_move(Context *restrict c,
+                          SourceLocation location,
+                          Operand A,
+                          Operand B);
+Operand
+context_emit_neg(Context *restrict c, SourceLocation location, Operand B);
+Operand context_emit_add(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
+Operand context_emit_sub(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
+Operand context_emit_mul(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
+Operand context_emit_div(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
+Operand context_emit_mod(Context *restrict c,
+                         SourceLocation location,
+                         Operand B,
+                         Operand C);
 
 #endif // !EXP_ENV_CONTEXT_H

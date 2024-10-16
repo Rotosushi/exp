@@ -40,6 +40,10 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
   bytecode->buffer = NULL;
 }
 
+u64 bytecode_current_index(Bytecode *restrict bytecode) {
+  return bytecode->length;
+}
+
 static bool bytecode_full(Bytecode *restrict bytecode) {
   return bytecode->capacity <= (bytecode->length + 1);
 }

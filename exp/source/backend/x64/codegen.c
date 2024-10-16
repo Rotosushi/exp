@@ -113,6 +113,14 @@ static void x64_codegen_function(x64_Context *restrict context) {
   x64_codegen_function_header(context);
 }
 
+static void x64_codegen_constant(x64_Context *restrict context) {
+  // we generate a stub out of the given initializer expression.
+  // then since we know by definition all of the lifetimes of
+  // the above bytecode are over, we are free to simply emit
+  // each of these stubs into the _init function body.
+  x64_codegen_bytecode(context);
+}
+
 static void x64_codegen_ste(SymbolTableElement *restrict ste,
                             x64_Context *restrict context) {
   StringView name = ste->name;
@@ -131,21 +139,8 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
   }
 
   case STE_CONSTANT: {
-    // Where do we place the code which initializes the
-    // global constant, when it exists outside of any
-    // function? and the only valid place to have assembly
-    // is within a function body. I think we could create
-    // a 'init' function which is called before main.
-    // place all initialization code there, and that would work.
-    // That's great, how do we get the code to the init function?
-    // I think that can happen at the emit step. and since we are
-    // pretending that each global constant is defined within an
-    // lambda we can just pretend to enter that functions context
-    // here.
-    // representing this init function can be an implicit symbol table
-    // element named _init. and global constants can be parsed into
-    // this function body like any other.
     x64_context_enter_global(context, name);
+    x64_codegen_constant(context);
     x64_context_leave_global(context);
     break;
   }

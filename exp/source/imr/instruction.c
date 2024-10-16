@@ -186,7 +186,7 @@ print_mod(Instruction I, String *restrict out, Context *restrict context) {
   print_ABC(SV("mod"), I, out, context);
 }
 
-void instruction_print(Instruction I,
+void print_instruction(Instruction I,
                        String *restrict out,
                        Context *restrict context) {
   switch (I.opcode) {

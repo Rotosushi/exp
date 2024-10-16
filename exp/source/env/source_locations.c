@@ -40,7 +40,8 @@ void source_locations_insert(SourceLocations *restrict source_locations,
                              u64 Idx) {
   if (source_locations->buffer == nullptr) {
     source_locations_grow(source_locations);
-    source_locations->buffer[0] = location_region(Idx, Idx, location);
+    source_locations->buffer[source_locations->size++] =
+        location_region(Idx, Idx, location);
     return;
   }
 

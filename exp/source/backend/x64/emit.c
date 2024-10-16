@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 
-#include "backend/x64/emit.h"
 #include "backend/directives.h"
+#include "backend/x64/emit.h"
 #include "intrinsics/size_of.h"
 #include "utility/config.h"
-#include "utility/unreachable.h"
+#include "utility/io.h"
+#include "utility/panic.h"
 
 static void x64_emit_function(x64_Symbol *restrict sym,
                               String *restrict buffer,
@@ -38,10 +40,18 @@ static void x64_emit_function(x64_Symbol *restrict sym,
   string_append(buffer, SV("\n"));
 }
 
-static void
-x64_emit_global_constant(x64_Symbol *restrict sym,
-                         String *restrict buffer,
-                         [[maybe_unused]] Context *restrict context) {
+static void x64_emit_functions(x64_Symbol **restrict symbols,
+                               u64 size,
+                               String *restrict buffer,
+                               Context *restrict context) {
+  for (u64 i = 0; i < size; ++i) {
+    x64_emit_function(symbols[i], buffer, context);
+  }
+}
+
+static void x64_emit_constant(x64_Symbol *restrict sym,
+                              String *restrict buffer,
+                              [[maybe_unused]] Context *restrict context) {
   /* #TODO since these are global constants, they have to be known
    * at compile time. Thus it is a natural optimization to place these
    * comptime constants in the (usually) unalterable 'text' section of
@@ -64,14 +74,36 @@ x64_emit_global_constant(x64_Symbol *restrict sym,
   string_append(buffer, SV("\n"));
 }
 
-static void x64_emit_symbol(x64_Symbol *restrict sym,
-                            String *restrict buffer,
-                            Context *restrict context) {
-  switch (sym->kind) {
-  case X64SYM_FUNCTION: x64_emit_function(sym, buffer, context); break;
-  case X64SYM_CONSTANT: x64_emit_global_constant(sym, buffer, context); break;
-  default:              EXP_UNREACHABLE;
+static void x64_emit_constants(x64_Symbol **restrict symbols,
+                               u64 size,
+                               Context *restrict context,
+                               String *restrict buffer) {
+  for (u64 i = 0; i < size; ++i) {
+    x64_emit_constant(symbols[i], buffer, context);
   }
+}
+
+static void x64_emit_init(Context *restrict context,
+                          String *restrict buffer,
+                          x64_Symbol **symbols,
+                          u64 length) {
+  StringView name = SV("_init");
+  directive_text(buffer);
+  directive_balign(8, buffer);
+  directive_globl(name, buffer);
+  directive_type(name, STT_FUNC, buffer);
+  directive_label(name, buffer);
+
+  for (u64 i = 0; i < length; ++i) {
+    x64_Symbol *symbol = symbols[i];
+    assert(symbol->kind == X64SYM_CONSTANT);
+    x64_FunctionBody *body = &symbol->body;
+    x64_Bytecode *bc       = &body->bc;
+    x64_bytecode_emit(bc, buffer, context);
+  }
+
+  directive_size_label_relative(name, buffer);
+  string_append(buffer, SV("\n"));
 }
 
 static void x64_emit_file_prolouge(Context *restrict context,
@@ -86,22 +118,39 @@ static void x64_emit_file_epilouge(String *restrict buffer) {
   directive_noexecstack(buffer);
 }
 
-void x64_emit(x64_Context *restrict x64context) {
-  String buffer = string_create();
+void x64_emit(x64_Context *restrict x64_context) {
+  u64 size  = x64_context->symbols.size;
+  u64 c_len = 0, f_len = 0;
+  // #TODO: this is obviously wasteful...
+  x64_Symbol *constants[size];
+  x64_Symbol *functions[size];
 
-  x64_emit_file_prolouge(x64context->context, &buffer);
+  x64_SymbolIterator iter = x64_context_symbol_iterator(x64_context);
+  for (u64 i = 0; !x64_symbol_iterator_done(&iter) && (i < size);
+       x64_symbol_iterator_next(&iter), ++i) {
+    switch (iter.symbol->kind) {
+    case X64SYM_UNDEFINED: PANIC("bug in x64_symbol_iterator"); break;
 
-  x64_SymbolTable *symbols = &x64context->symbols;
-  for (u64 i = 0; i < symbols->count; ++i) {
-    x64_Symbol *sym = symbols->buffer + i;
-    x64_emit_symbol(sym, &buffer, x64context->context);
+    case X64SYM_FUNCTION: functions[f_len++] = iter.symbol; break;
+    case X64SYM_CONSTANT: constants[c_len++] = iter.symbol; break;
+    default:              PANIC("unknown x64 symbol kind"); break;
+    }
   }
+
+  String buffer = string_create();
+  x64_emit_file_prolouge(x64_context->context, &buffer);
+
+  x64_emit_constants(constants, c_len, x64_context->context, &buffer);
+
+  x64_emit_functions(functions, f_len, &buffer, x64_context->context);
+
+  x64_emit_init(x64_context->context, &buffer, constants, c_len);
 
   x64_emit_file_epilouge(&buffer);
 
-  StringView path = context_assembly_path(x64context->context);
-  FILE *file      = file_open(path.ptr, "w");
-  file_write(string_to_cstring(&buffer), file);
+  StringView path = context_assembly_path(x64_context->context);
+  FILE *file      = file_open(path, SV("w"));
+  file_write(file, string_to_view(&buffer));
   file_close(file);
 
   string_destroy(&buffer);

@@ -24,11 +24,10 @@
 
 x64_Context x64_context_create(Context *restrict context) {
   assert(context != NULL);
-  x64_Context x64_context = {
-      .context  = context,
-      .body     = NULL,
-      .x64_body = NULL,
-      .symbols  = x64_symbol_table_create(context->global_symbol_table.count)};
+  x64_Context x64_context = {.context  = context,
+                             .body     = NULL,
+                             .x64_body = NULL,
+                             .symbols  = x64_symbol_table_create()};
   return x64_context;
 }
 
@@ -48,6 +47,22 @@ StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
   return context_global_labels_at(x64_context->context, idx);
 }
 
+x64_Symbol *x64_context_global_init(x64_Context *restrict x64_context) {
+  x64_Symbol *init = x64_symbol_table_at(&x64_context->symbols, SV("_init"));
+  if (init->kind == X64SYM_UNDEFINED) {
+    init->kind                  = X64SYM_FUNCTION;
+    SymbolTableElement *element = context_global_init(x64_context->context);
+    init->body = x64_function_body_create(&element->function_body, x64_context);
+  }
+
+  return init;
+}
+
+x64_SymbolIterator
+x64_context_symbol_iterator(x64_Context *restrict x64_context) {
+  return x64_symbol_iterator(&x64_context->symbols);
+}
+
 void x64_context_enter_global(x64_Context *restrict x64_context,
                               StringView name) {
   assert(x64_context != NULL);
@@ -61,6 +76,8 @@ void x64_context_enter_global(x64_Context *restrict x64_context,
     x64_context->x64_body = &symbol->body;
   } else if (ste->kind == STE_CONSTANT) {
     symbol->kind = X64SYM_CONSTANT;
+    symbol->body = x64_function_body_create(x64_context->body, x64_context);
+    x64_context->x64_body = &symbol->body;
   } else {
     EXP_UNREACHABLE;
   }
@@ -105,7 +122,7 @@ x64_FunctionBody *current_x64_body(x64_Context *restrict x64_context) {
 
 x64_Bytecode *current_x64_bc(x64_Context *restrict x64_context) {
   assert(x64_context->x64_body != NULL);
-  return &x64_context->x64_body->bc;
+  return &current_x64_body(x64_context)->bc;
 }
 
 x64_Allocator *current_allocator(x64_Context *restrict x64_context) {
