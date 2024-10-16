@@ -518,9 +518,13 @@ static TResult typecheck_global(Context *restrict c,
   case STE_CONSTANT: {
     SymbolTableElement *ste = context_enter_global(c, element->name);
     assert(ste->kind == STE_CONSTANT);
+    FunctionBody *body = &ste->function_body;
+
     try(Ty, typecheck_constant(c));
     context_leave_global(c);
-    element->type = Ty;
+
+    body->return_type = context_nil_type(c);
+    element->type     = Ty;
     return success(Ty);
   }
 

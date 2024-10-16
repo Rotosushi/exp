@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stddef.h>
 
+#include "backend/x64/intrinsics/address_of.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
@@ -96,9 +97,9 @@ static void x64_codegen_load_address_from_scalar_operand(
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(operand.index);
+    x64_Address global = x64_address_of_global(operand.index, Idx, context);
     x64_codegen_copy_memory(dst,
-                            &label,
+                            &global,
                             type_of_operand(format, operand, context->context),
                             Idx,
                             context);
@@ -158,9 +159,9 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(operand.index);
+    x64_Address global = x64_address_of_global(operand.index, Idx, context);
     x64_codegen_copy_memory(dst,
-                            &label,
+                            &global,
                             type_of_operand(format, operand, context->context),
                             Idx,
                             context);
@@ -217,9 +218,9 @@ static void x64_codegen_load_argument_from_scalar_operand(
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(operand.index);
+    x64_Address global = x64_address_of_global(operand.index, Idx, context);
     x64_codegen_copy_memory(dst,
-                            &label,
+                            &global,
                             type_of_operand(format, operand, context->context),
                             Idx,
                             context);
@@ -278,9 +279,9 @@ static void x64_codegen_load_argument_from_composite_operand(
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(operand.index);
+    x64_Address global = x64_address_of_global(operand.index, Idx, context);
     x64_codegen_copy_memory(dst,
-                            &label,
+                            &global,
                             type_of_operand(format, operand, context->context),
                             Idx,
                             context);
@@ -329,9 +330,9 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(operand.index);
+    x64_Address global = x64_address_of_global(operand.index, Idx, context);
     x64_context_append(
-        context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(label)));
+        context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(global)));
     break;
   }
 

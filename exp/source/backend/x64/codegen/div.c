@@ -18,6 +18,7 @@
  */
 
 #include "backend/x64/codegen/div.h"
+#include "backend/x64/intrinsics/address_of.h"
 #include "utility/unreachable.h"
 
 /*
@@ -112,7 +113,7 @@ static void x64_codegen_div_ssa(Instruction I,
   }
 
   case OPRFMT_LABEL: {
-    x64_Address C = x64_address_from_label(I.C.index);
+    x64_Address C = x64_address_of_global(I.C.index, Idx, context);
     if (x64_location_eq(B->location, x64_location_gpr(X64GPR_RAX))) {
       x64_context_allocate_from_active(context, local, B, Idx);
     } else {
@@ -202,11 +203,15 @@ static void x64_codegen_div_immediate(Instruction I,
         context,
         x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
 
+    // #NOTE: #TODO: x64_address_of_global calls x64_context_aquire_any_gpr
+    //          can this call spill gpr in this scope and choose the same
+    //          gpr? because that would cause a bug. and this scenario
+    //          happens more than just here...
     x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_gpr(gpr),
-                x64_operand_address(x64_address_from_label(I.C.index))));
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(gpr),
+                               x64_operand_address(x64_address_of_global(
+                                   I.C.index, Idx, context))));
 
     x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
     x64_context_release_gpr(context, gpr, Idx);
@@ -222,7 +227,7 @@ static void x64_codegen_div_label(Instruction I,
                                   LocalVariable *restrict local,
                                   u64 Idx,
                                   x64_Context *restrict context) {
-  x64_Address B = x64_address_from_label(I.B.index);
+  x64_Address B = x64_address_of_global(I.B.index, Idx, context);
   switch (I.C_format) {
   case OPRFMT_SSA: {
     x64_context_aquire_gpr(context, X64GPR_RDX, Idx);
@@ -277,10 +282,10 @@ static void x64_codegen_div_label(Instruction I,
                        x64_mov(x64_operand_alloc(A), x64_operand_address(B)));
 
     x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_gpr(gpr),
-                x64_operand_address(x64_address_from_label(I.C.index))));
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(gpr),
+                               x64_operand_address(x64_address_of_global(
+                                   I.C.index, Idx, context))));
 
     x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
     x64_context_release_gpr(context, gpr, Idx);

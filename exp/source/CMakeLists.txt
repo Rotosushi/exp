@@ -9,6 +9,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/directives.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
 
+  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/address_of.c
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/copy.c
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c

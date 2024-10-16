@@ -113,7 +113,7 @@ x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
 x64_SymbolIterator x64_symbol_iterator(x64_SymbolTable *restrict table) {
   x64_SymbolIterator iter = {.symbol = table->buffer,
                              .end    = table->buffer + table->capacity};
-  while ((iter.symbol != iter.end) && (iter.symbol->kind != X64SYM_UNDEFINED)) {
+  while ((iter.symbol != iter.end) && (iter.symbol->kind == X64SYM_UNDEFINED)) {
     iter.symbol = iter.symbol + 1;
   }
 
@@ -122,7 +122,13 @@ x64_SymbolIterator x64_symbol_iterator(x64_SymbolTable *restrict table) {
 
 void x64_symbol_iterator_next(x64_SymbolIterator *restrict iter) {
   if (iter->symbol == iter->end) { return; }
+
   iter->symbol += 1;
+
+  while ((iter->symbol != iter->end) &&
+         (iter->symbol->kind == X64SYM_UNDEFINED)) {
+    iter->symbol += 1;
+  }
 }
 
 bool x64_symbol_iterator_done(x64_SymbolIterator *restrict iter) {

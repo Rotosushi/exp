@@ -102,6 +102,8 @@ static void x64_emit_init(Context *restrict context,
     x64_bytecode_emit(bc, buffer, context);
   }
 
+  string_append(buffer, SV("ret\n"));
+
   directive_size_label_relative(name, buffer);
   string_append(buffer, SV("\n"));
 }

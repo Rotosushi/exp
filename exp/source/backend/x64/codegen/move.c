@@ -17,6 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "backend/x64/codegen/move.h"
+#include "backend/x64/intrinsics/address_of.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
 #include "intrinsics/type_of.h"
@@ -47,9 +48,9 @@ x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(I.B.index);
-    x64_Allocation *A = x64_context_allocate(context, local, Idx);
-    x64_codegen_copy_allocation_from_memory(A, &label, A->type, Idx, context);
+    x64_Address global = x64_address_of_global(I.B.index, Idx, context);
+    x64_Allocation *A  = x64_context_allocate(context, local, Idx);
+    x64_codegen_copy_allocation_from_memory(A, &global, A->type, Idx, context);
     break;
   }
 
@@ -60,10 +61,7 @@ x64_codegen_move_to_ssa(Instruction I, u64 Idx, x64_Context *restrict context) {
 void x64_codegen_move_to_label(Instruction I,
                                u64 Idx,
                                x64_Context *restrict context) {
-  x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
-  x64_context_append(
-      context, x64_lea(x64_operand_gpr(gpr), x64_operand_label(I.A.index)));
-  x64_Address global = x64_address_from_gpr(gpr);
+  x64_Address global = x64_address_of_global(I.B.index, Idx, context);
 
   x64_codegen_load_address_from_operand(
       &global,
@@ -72,8 +70,6 @@ void x64_codegen_move_to_label(Instruction I,
       type_of_operand(I.B_format, I.B, context->context),
       Idx,
       context);
-
-  x64_context_release_gpr(context, gpr, Idx);
 }
 
 void x64_codegen_move(Instruction I, u64 Idx, x64_Context *restrict context) {

@@ -17,6 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "backend/x64/codegen/ret.h"
+#include "backend/x64/intrinsics/address_of.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
 #include "utility/unreachable.h"
@@ -45,9 +46,9 @@ void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
   }
 
   case OPRFMT_LABEL: {
-    x64_Address label = x64_address_from_label(I.B.index);
+    x64_Address global = x64_address_of_global(I.B.index, Idx, context);
     x64_codegen_copy_allocation_from_memory(
-        body->result, &label, body->result->type, Idx, context);
+        body->result, &global, body->result->type, Idx, context);
     break;
   }
 

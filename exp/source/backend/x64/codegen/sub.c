@@ -18,6 +18,7 @@
  */
 
 #include "backend/x64/codegen/sub.h"
+#include "backend/x64/intrinsics/address_of.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "utility/unreachable.h"
 
@@ -65,7 +66,7 @@ static void x64_codegen_sub_ssa(Instruction I,
   case OPRFMT_LABEL: {
     x64_Allocation *A =
         x64_context_allocate_from_active(context, local, B, Idx);
-    x64_Address C = x64_address_from_label(I.C.index);
+    x64_Address C = x64_address_of_global(I.C.index, Idx, context);
 
     if (A->location.kind == LOCATION_GPR) {
       x64_context_append(context,
@@ -114,10 +115,10 @@ static void x64_codegen_sub_immediate(Instruction I,
   }
 
   case OPRFMT_LABEL: {
-    x64_context_append(
-        context,
-        x64_sub(x64_operand_alloc(A),
-                x64_operand_address(x64_address_from_label(I.C.index))));
+    x64_context_append(context,
+                       x64_sub(x64_operand_alloc(A),
+                               x64_operand_address(x64_address_of_global(
+                                   I.C.index, Idx, context))));
     break;
   }
 
@@ -130,7 +131,7 @@ static void x64_codegen_sub_label(Instruction I,
                                   LocalVariable *restrict local,
                                   u64 Idx,
                                   x64_Context *restrict context) {
-  x64_Address B     = x64_address_from_label(I.B.index);
+  x64_Address B     = x64_address_of_global(I.B.index, Idx, context);
   x64_Allocation *A = x64_context_allocate(context, local, Idx);
   x64_codegen_copy_allocation_from_memory(A, &B, A->type, Idx, context);
 
@@ -159,19 +160,19 @@ static void x64_codegen_sub_label(Instruction I,
 
   case OPRFMT_LABEL: {
     if (A->location.kind == LOCATION_GPR) {
-      x64_context_append(
-          context,
-          x64_sub(x64_operand_alloc(A),
-                  x64_operand_address(x64_address_from_label(I.C.index))));
+      x64_context_append(context,
+                         x64_sub(x64_operand_alloc(A),
+                                 x64_operand_address(x64_address_of_global(
+                                     I.C.index, Idx, context))));
       break;
     }
 
     x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
 
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_gpr(gpr),
-                x64_operand_address(x64_address_from_label(I.C.index))));
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(gpr),
+                               x64_operand_address(x64_address_of_global(
+                                   I.C.index, Idx, context))));
     x64_context_append(context,
                        x64_sub(x64_operand_alloc(A), x64_operand_gpr(gpr)));
 
