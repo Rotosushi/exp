@@ -21,28 +21,35 @@
 
 #include "backend/lifetimes.h"
 #include "utility/alloc.h"
+#include "utility/array_growth.h"
 #include "utility/unreachable.h"
 
-Lifetime lifetime_immortal() {
-  Lifetime lifetime = {.first_use = 0, .last_use = u64_MAX};
+static Lifetime lifetime_create(u64 first_use, u64 last_use) {
+  Lifetime lifetime = {.first_use = first_use, .last_use = last_use};
   return lifetime;
 }
 
+Lifetime lifetime_immortal(u64 Idx) { return lifetime_create(Idx, u64_MAX); }
+
+Lifetime lifetime_one_shot(u64 Idx) { return lifetime_create(Idx, Idx); }
+
 Lifetimes lifetimes_create(u64 count) {
-  Lifetimes lifetiems = {.count  = count,
-                         .buffer = callocate(count, sizeof(Lifetime))};
-  return lifetiems;
+  Lifetimes lifetimes = {.count    = count,
+                         .capacity = count,
+                         .buffer   = callocate(count, sizeof(Lifetime))};
+  return lifetimes;
 }
 
-void lifetimes_destroy(Lifetimes *restrict lifetiems) {
-  lifetiems->count = 0;
-  deallocate(lifetiems->buffer);
-  lifetiems->buffer = NULL;
+void lifetimes_destroy(Lifetimes *restrict lifetimes) {
+  lifetimes->count    = 0;
+  lifetimes->capacity = 0;
+  deallocate(lifetimes->buffer);
+  lifetimes->buffer = NULL;
 }
 
-Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
-  assert(ssa < lifetiems->count);
-  return lifetiems->buffer + ssa;
+Lifetime lifetimes_at(Lifetimes *restrict lifetimes, u64 ssa) {
+  assert(ssa < lifetimes->count);
+  return lifetimes->buffer[ssa];
 }
 
 static void compute_operand(OperandFormat format,
@@ -143,4 +150,20 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
   }
 
   return lifetimes;
+}
+
+static bool lifetimes_full(Lifetimes *restrict lifetimes) {
+  return (lifetimes->count + 1) >= lifetimes->capacity;
+}
+
+static void lifetimes_grow(Lifetimes *restrict lifetimes) {
+  Growth g            = array_growth_u64(lifetimes->capacity, sizeof(Lifetime));
+  lifetimes->buffer   = reallocate(lifetimes->buffer, g.alloc_size);
+  lifetimes->capacity = g.new_capacity;
+}
+
+void lifetimes_add(Lifetimes *restrict lifetimes, Lifetime lifetime) {
+  if (lifetimes_full(lifetimes)) { lifetimes_grow(lifetimes); }
+
+  lifetimes->buffer[lifetimes->count++] = lifetime;
 }

@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "backend/directives.h"
+#include "backend/x64/directives.h"
 #include "backend/x64/emit.h"
 #include "intrinsics/size_of.h"
 #include "utility/config.h"

@@ -47,6 +47,12 @@ StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
   return context_global_labels_at(x64_context->context, idx);
 }
 
+x64_Symbol *x64_context_symbol(x64_Context *restrict x64_context,
+                               StringView name) {
+  assert(x64_context != NULL);
+  return x64_symbol_table_at(&x64_context->symbols, name);
+}
+
 x64_Symbol *x64_context_global_init(x64_Context *restrict x64_context) {
   x64_Symbol *init = x64_symbol_table_at(&x64_context->symbols, SV("_init"));
   if (init->kind == X64SYM_UNDEFINED) {
@@ -168,6 +174,7 @@ x64_Allocation *x64_context_allocation_of(x64_Context *restrict x64_context,
   return x64_allocator_allocation_of(current_allocator(x64_context), ssa);
 }
 
+/*
 void x64_context_release_gpr(x64_Context *restrict x64_context,
                              x64_GPR gpr,
                              u64 Idx) {
@@ -183,6 +190,7 @@ void x64_context_aquire_gpr(x64_Context *restrict x64_context,
   x64_allocator_aquire_gpr(
       current_allocator(x64_context), gpr, Idx, current_x64_bc(x64_context));
 }
+*/
 
 x64_Allocation *x64_context_allocate(x64_Context *restrict x64_context,
                                      LocalVariable *restrict local,
@@ -231,6 +239,7 @@ x64_Allocation *x64_context_allocate_result(x64_Context *restrict x64_context,
       current_allocator(x64_context), location, type);
 }
 
+/*
 void x64_context_reallocate_active(x64_Context *restrict x64_context,
                                    x64_Allocation *restrict active) {
   x64_allocator_reallocate_active(
@@ -247,9 +256,4 @@ x64_GPR x64_context_aquire_any_gpr(x64_Context *restrict x64_context, u64 Idx) {
   return x64_allocator_aquire_any_gpr(
       current_allocator(x64_context), Idx, current_x64_bc(x64_context));
 }
-
-x64_Symbol *x64_context_symbol(x64_Context *restrict x64_context,
-                               StringView name) {
-  assert(x64_context != NULL);
-  return x64_symbol_table_at(&x64_context->symbols, name);
-}
+*/

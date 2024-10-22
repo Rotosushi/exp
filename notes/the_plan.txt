@@ -57,6 +57,100 @@ and it can be noted that the machinery needed to declare global constants is goi
 be the same that is used to embed string-literals into the binary.
 
 
+---------------------------------------------------------------------------------
+
+regarding the speed of the compiler, I think that fundamentally the running time 
+of the compiler should be O(N) where N is the size of the input source.
+that is, how fast the compilation goes is proportional to the size of the 
+input. This only seems to be complicated if the compiler must do complex analysis 
+or optimizations that are themselves O(N^M) or similar.
+
+Think about it:
+
+while (haven't parsed all source)
+    parse source into IR
+
+...
+
+while (haven't typechecked all IR)
+    typecheck IR
+
+...
+
+while (haven't translated all IR)
+    translate IR into ASM
+
+...
+
+while (haven't emitted all ASM)
+    emit ASM
+
+unless one of those steps needs to itself loop through
+everything else, the running speed of the step is O(N).
+
+global optimizations can get in the way of this.
+
+imagine an optimization which to operate properly in it's 
+local space, must consider the state of the whole program.
+To consider the state of the whole program we have to loop 
+through all of that state.
+This would combine to be something like
+
+while (haven't applied all optimizations)
+    apply optimizations
+    ...
+    while (haven't considered all global state)
+        consider global state.
+
+where the "..." probably refers to several stack frames and 
+whatever else.
+
+this becomes O(N^2).
+
+----------------------------------------------------------------------------------
+
+regarding optimization:
+
+it seems like the process of optimization is about adding, removing, or 
+rewriting the input code to be more efficient in some particular way.
+
+This means that fundamentally we have to support adding instructions 
+into the bytecode anywhere in the array. 
+(this is supported by the bytecode_insert function already) 
+    (- we can note that if we are adding instructions, 
+we dont have to do anything special, and the existing code will
+not break.)
+
+
+removing bytecode from the array
+    if we remove a local which is referenced by later code
+    we have to replace that incoming value with something, 
+    which implies
+
+that we also need to modify existing instructions within the array.
+
+we also need to compute when to do the optimizations.
+this means reading the bytecode and computing various properties 
+(I can imagine, "how much bigger does the executable get when I 
+inline this function everywhere?"
+how many instruction cycles do we expect this procedure to take?
+how filled will the pipeline be? 
+How filled is the ALU? FPU?
+how much memory will this operation cost me?
+how much time?
+
+can we get numbers?
+orders of magnitude?
+greater than less than?
+
+how long did it take to compile said function file project library?
+how much memory did that take?
+where are the hotspots in spacetime?
+can I get a heat map?
+4 dimensional?
+
+
+)
 
 
 

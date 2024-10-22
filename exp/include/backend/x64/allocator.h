@@ -65,15 +65,18 @@ i64 x64_allocator_total_stack_size(x64_Allocator *restrict allocator);
 x64_Allocation *x64_allocator_allocation_of(x64_Allocator *restrict allocator,
                                             u64 ssa);
 
-void x64_allocator_release_gpr(x64_Allocator *restrict allocator,
-                               x64_GPR gpr,
-                               u64 Idx,
-                               x64_Bytecode *restrict x64bc);
+void x64_allocator_add_lifetime(x64_Allocator *restrict allocator,
+                                Lifetime lifetime);
 
-void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
-                              x64_GPR gpr,
-                              u64 Idx,
-                              x64_Bytecode *restrict x64bc);
+// void x64_allocator_release_gpr(x64_Allocator *restrict allocator,
+//                                x64_GPR gpr,
+//                                u64 Idx,
+//                                x64_Bytecode *restrict x64bc);
+
+// void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
+//                               x64_GPR gpr,
+//                               u64 Idx,
+//                               x64_Bytecode *restrict x64bc);
 
 x64_Allocation *x64_allocator_allocate(x64_Allocator *restrict allocator,
                                        u64 Idx,
@@ -100,19 +103,19 @@ x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
                                               x64_Location location,
                                               Type *type);
 
-void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
-                                     x64_Allocation *restrict active,
-                                     x64_Bytecode *restrict x64bc);
+// void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
+//                                      x64_Allocation *restrict active,
+//                                      x64_Bytecode *restrict x64bc);
 
-void x64_allocator_unspill(x64_Allocator *restrict allocator,
-                           x64_Allocation *restrict active,
-                           x64_Bytecode *restrict x64bc);
+// void x64_allocator_unspill(x64_Allocator *restrict allocator,
+//                            x64_Allocation *restrict active,
+//                            x64_Bytecode *restrict x64bc);
 
-x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
-                                          x64_Bytecode *restrict x64bc);
+// x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
+//                                           x64_Bytecode *restrict x64bc);
 
-x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
-                                     u64 Idx,
-                                     x64_Bytecode *restrict x64bc);
+// x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
+//                                      u64 Idx,
+//                                      x64_Bytecode *restrict x64bc);
 
 #endif // !EXP_BACKEND_X64_ALLOCATOR_H

@@ -20,6 +20,9 @@
 #include "backend/x64/symbols.h"
 #include "env/context.h"
 
+/** @brief the compilation context for x64 translation
+ *
+ */
 typedef struct x64_Context {
   Context *context;
   FunctionBody *body;
@@ -28,26 +31,32 @@ typedef struct x64_Context {
   x64_SymbolTable symbols;
 } x64_Context;
 
-// x64 context functions
+// x64 context api
 x64_Context x64_context_create(Context *restrict context);
 void x64_context_destroy(x64_Context *restrict x64_context);
 
-// context functions
-// context constants functions
+// values api
 Value *x64_context_value_at(x64_Context *restrict context, u64 index);
 
-// context global symbol table functions
+// exp global symbol table api
 StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
                                         u64 idx);
 
+SymbolTableElement *x64_context_global_symbol(x64_Context *restrict x64_context,
+                                              u64 index);
+
+// x64 symbol table functions
 x64_SymbolIterator
 x64_context_symbol_iterator(x64_Context *restrict x64_context);
 
-// context x64 function functions
 void x64_context_enter_global(x64_Context *restrict x64_context,
                               StringView name);
 void x64_context_leave_global(x64_Context *restrict context);
 
+x64_Symbol *x64_context_symbol(x64_Context *restrict x64_context,
+                               StringView name);
+
+// active function api
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
                                         u64 idx);
 FormalArgument *x64_context_argument_at(x64_Context *restrict x64_context,
@@ -60,6 +69,7 @@ x64_FunctionBody *current_x64_body(x64_Context *restrict x64_context);
 x64_Bytecode *current_x64_bc(x64_Context *restrict x64_context);
 x64_Allocator *current_x64_allocator(x64_Context *restrict x64_context);
 
+// active function bytecode api
 u64 x64_context_current_offset(x64_Context *restrict x64_context);
 void x64_context_insert(x64_Context *restrict x64_context,
                         x64_Instruction I,
@@ -67,6 +77,7 @@ void x64_context_insert(x64_Context *restrict x64_context,
 void x64_context_prepend(x64_Context *restrict x64_context, x64_Instruction I);
 void x64_context_append(x64_Context *restrict x64_context, x64_Instruction I);
 
+// active function allocator api
 LocalVariable *x64_context_lookup_ssa(x64_Context *restrict x64_context,
                                       u64 ssa);
 
@@ -76,13 +87,21 @@ i64 x64_context_stack_size(x64_Context *restrict x64_context);
 x64_Allocation *x64_context_allocation_of(x64_Context *restrict x64_context,
                                           u64 ssa);
 
-void x64_context_release_gpr(x64_Context *restrict x64_context,
-                             x64_GPR gpr,
-                             u64 Idx);
+LocalVariable *x64_context_new_ssa(x64_Context *restrict x64_context,
+                                   Type *restrict type,
+                                   Lifetime lifetime,
+                                   u64 Idx);
 
-void x64_context_aquire_gpr(x64_Context *restrict x64_context,
-                            x64_GPR gpr,
-                            u64 Idx);
+// void x64_context_release_gpr(x64_Context *restrict x64_context,
+//                              x64_GPR gpr,
+//                              u64 Idx);
+
+// void x64_context_aquire_gpr(x64_Context *restrict x64_context,
+//                             x64_GPR gpr,
+//                             u64 Idx);
+
+void x64_context_unspill(x64_Context *restrict x64_context,
+                         x64_Allocation *restrict active);
 
 x64_Allocation *x64_context_allocate(x64_Context *restrict x64_context,
                                      LocalVariable *restrict local,
@@ -107,16 +126,10 @@ x64_Allocation *x64_context_allocate_result(x64_Context *restrict x64_context,
                                             x64_Location location,
                                             Type *restrict type);
 
-void x64_context_reallocate_active(x64_Context *restrict x64_context,
-                                   x64_Allocation *restrict active);
+// void x64_context_reallocate_active(x64_Context *restrict x64_context,
+//                                    x64_Allocation *restrict active);
 
-void x64_context_unspill(x64_Context *restrict x64_context,
-                         x64_Allocation *restrict active);
-
-x64_GPR x64_context_aquire_any_gpr(x64_Context *restrict x64_context, u64 Idx);
-
-// x64 symbol table functions
-x64_Symbol *x64_context_symbol(x64_Context *restrict x64_context,
-                               StringView name);
+// x64_GPR x64_context_aquire_any_gpr(x64_Context *restrict x64_context, u64
+// Idx);
 
 #endif // !EXP_BACKEND_X64_CONTEXT_H

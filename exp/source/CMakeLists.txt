@@ -6,7 +6,6 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/analysis/typecheck.c
   
-  ${EXP_SOURCE_DIR}/backend/directives.c
   ${EXP_SOURCE_DIR}/backend/lifetimes.c
 
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/address_of.c
@@ -30,6 +29,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/bytecode.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen.c
   ${EXP_SOURCE_DIR}/backend/x64/context.c
+  ${EXP_SOURCE_DIR}/backend/x64/directives.c
   ${EXP_SOURCE_DIR}/backend/x64/emit.c
   ${EXP_SOURCE_DIR}/backend/x64/function_body.c
   ${EXP_SOURCE_DIR}/backend/x64/instruction.c
