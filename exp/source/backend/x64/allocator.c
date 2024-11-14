@@ -534,7 +534,7 @@ x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
     x64_allocator_spill_allocation(allocator, oldest, x64bc);
     return gpr;
   }
-  assert(0);
+  EXP_UNREACHABLE;
 }
 
 x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,

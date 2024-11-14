@@ -369,46 +369,55 @@ static TResult typecheck_function(Context *restrict c) {
 
     case OPC_CALL: {
       try(Aty, typecheck_call(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_DOT: {
       try(Aty, typecheck_dot(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_LOAD: {
       try(Bty, typecheck_load(c, I));
+      (void)Bty;
       break;
     }
 
     case OPC_NEG: {
       try(Bty, typecheck_neg(c, I));
+      (void)Bty;
       break;
     }
 
     case OPC_ADD: {
       try(Aty, typecheck_add(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_SUB: {
       try(Aty, typecheck_sub(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_MUL: {
       try(Aty, typecheck_mul(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_DIV: {
       try(Aty, typecheck_div(c, I));
+      (void)Aty;
       break;
     }
 
     case OPC_MOD: {
       try(Aty, typecheck_mod(c, I));
+      (void)Aty;
       break;
     }
 

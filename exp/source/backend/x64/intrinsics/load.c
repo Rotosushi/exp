@@ -125,6 +125,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     Type *type   = type_of_value(value, context->context);
     assert(value->kind == VALUEKIND_TUPLE);
     assert(!type_is_scalar(type));
+    (void)type;
     Tuple *tuple = &value->tuple;
 
     x64_Address dst_element_address = *dst;
@@ -226,6 +227,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     Type *type   = type_of_value(value, context->context);
     assert(value->kind == VALUEKIND_TUPLE);
     assert(!type_is_scalar(type));
+    (void)type;
     Tuple *tuple = &value->tuple;
 
     x64_Address dst_element_address = *dst;
@@ -313,8 +315,8 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
                                             x64_Context *restrict context) {
   Value *value = x64_context_value_at(context, index);
   Type *type   = type_of_value(value, context->context);
-
   assert(type_equality(dst->type, type));
+  (void)type;
 
   switch (value->kind) {
   case VALUEKIND_UNINITIALIZED: break;
