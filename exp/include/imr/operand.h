@@ -16,6 +16,7 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "utility/int_types.h"

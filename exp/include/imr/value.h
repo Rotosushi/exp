@@ -16,6 +16,7 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
+#include <stdbool.h>
 
 #include "imr/operand.h"
 #include "utility/io.h"

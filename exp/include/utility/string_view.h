@@ -16,6 +16,8 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_STRING_VIEW_H
 #define EXP_UTILITY_STRING_VIEW_H
+#include <stdbool.h>
+
 #include "utility/int_types.h"
 #include "utility/io.h"
 

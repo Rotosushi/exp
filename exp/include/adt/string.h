@@ -18,6 +18,7 @@
  */
 #ifndef EXP_UTILITY_STRING_H
 #define EXP_UTILITY_STRING_H
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "utility/string_view.h"
