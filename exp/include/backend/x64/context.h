@@ -39,9 +39,6 @@ Value *x64_context_value_at(x64_Context *restrict context, u64 index);
 StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
                                         u64 idx);
 
-x64_SymbolIterator
-x64_context_symbol_iterator(x64_Context *restrict x64_context);
-
 // context x64 function functions
 void x64_context_enter_function(x64_Context *restrict x64_context,
                                 StringView name);

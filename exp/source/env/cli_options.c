@@ -23,24 +23,25 @@
 #include "env/cli_options.h"
 #include "utility/config.h"
 #include "utility/io.h"
+#include "utility/log.h"
 
 #define SET_BIT(B, r) ((B) |= (u64)(1 << r))
 #define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
 static void print_version(FILE *file) {
-  file_write(file, SV(EXP_VERSION_STRING));
-  file_write(file, SV("\n"));
+  file_write(EXP_VERSION_STRING, file);
+  file_write("\n", file);
 }
 
 static void print_help(FILE *file) {
-  file_write(file, SV("exp [options] <source-file>\n\n"));
-  file_write(file, SV("\t-h print help.\n"));
-  file_write(file, SV("\t-v print version.\n"));
-  file_write(file, SV("\t-o <filename> set output filename.\n"));
-  file_write(file, SV("\t-c emit an object file.\n"));
-  file_write(file, SV("\t-s emit an assembly file.\n"));
-  file_write(file, SV("\n"));
+  file_write("exp [options] <source-file>\n\n", file);
+  file_write("\t-h print help.\n", file);
+  file_write("\t-v print version.\n", file);
+  file_write("\t-o <filename> set output filename.\n", file);
+  file_write("\t-c emit an object file.\n", file);
+  file_write("\t-s emit an assembly file.\n", file);
+  file_write("\n", file);
 }
 
 CLIOptions cli_options_create() {
@@ -99,9 +100,9 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
     default: {
       char buf[2] = {(char)option, '\0'};
-      file_write(stderr, SV("unknown option ["));
-      file_write(stderr, string_view_from_cstring(buf));
-      file_write(stderr, SV("]\n"));
+      file_write("unknown option [", stderr);
+      file_write(buf, stderr);
+      file_write("]\n", stderr);
       break;
     }
     }
@@ -110,7 +111,8 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
   if (optind < argc) {
     string_assign(&(options.source), string_view_from_cstring(argv[optind]));
   } else { // no input file given
-    file_write(stderr, SV("[#fatal an input file must be specified]\n"));
+    log_message(
+        LOG_ERROR, NULL, 0, "an input file must be specified.\n", stderr);
     exit(EXIT_SUCCESS);
   }
 

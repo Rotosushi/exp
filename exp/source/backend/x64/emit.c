@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
+#include "backend/x64/emit.h"
 #include "backend/directives.h"
 #include "utility/config.h"
 
@@ -47,40 +47,24 @@ static void x64_emit_file_epilouge(String *restrict buffer) {
   directive_noexecstack(buffer);
 }
 
-void x64_emit(x64_Context *restrict x64_context) {
-  u64 size  = x64_context->symbols.size;
-  u64 c_len = 0, f_len = 0;
-  // #TODO: this is obviously wasteful...
-  x64_Symbol *constants[size];
-  x64_Symbol *functions[size];
-
-  x64_SymbolIterator iter = x64_context_symbol_iterator(x64_context);
-  for (u64 i = 0; !x64_symbol_iterator_done(&iter) && (i < size);
-       x64_symbol_iterator_next(&iter), ++i) {
-    switch (iter.symbol->kind) {
-    case X64SYM_UNDEFINED: PANIC("bug in x64_symbol_iterator"); break;
-
-    case X64SYM_FUNCTION: functions[f_len++] = iter.symbol; break;
-    case X64SYM_CONSTANT: constants[c_len++] = iter.symbol; break;
-    default:              PANIC("unknown x64 symbol kind"); break;
-    }
-  }
-
+void x64_emit(x64_Context *restrict x64context) {
   String buffer = string_create();
-  x64_emit_file_prolouge(x64_context->context, &buffer);
 
-  x64_emit_constants(constants, c_len, x64_context->context, &buffer);
+  x64_emit_file_prolouge(x64context->context, &buffer);
 
-  x64_emit_functions(functions, f_len, &buffer, x64_context->context);
-
-  x64_emit_init(x64_context->context, &buffer, constants, c_len);
+  x64_SymbolTable *symbols = &x64context->symbols;
+  for (u64 i = 0; i < symbols->count; ++i) {
+    x64_Symbol *sym = symbols->buffer + i;
+    x64_emit_symbol(sym, &buffer, x64context->context);
+  }
 
   x64_emit_file_epilouge(&buffer);
 
-  StringView path = context_assembly_path(x64_context->context);
-  FILE *file      = file_open(path, SV("w"));
-  file_write(file, string_to_view(&buffer));
+  StringView path = context_assembly_path(x64context->context);
+  FILE *file      = file_open(path.ptr, "w");
+  file_write(string_to_cstring(&buffer), file);
   file_close(file);
 
   string_destroy(&buffer);
 }
+

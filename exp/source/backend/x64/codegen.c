@@ -126,14 +126,6 @@ static void x64_codegen_function(x64_Context *restrict context) {
   x64_codegen_function_header(context);
 }
 
-static void x64_codegen_constant(x64_Context *restrict context) {
-  // we generate a stub out of the given initializer expression.
-  // then since we know by definition all of the lifetimes of
-  // the above bytecode are over, we are free to simply emit
-  // each of these stubs into the _init function body.
-  x64_codegen_bytecode(context);
-}
-
 static void x64_codegen_ste(SymbolTableElement *restrict ste,
                             x64_Context *restrict context) {
   StringView name = ste->name;

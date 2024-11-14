@@ -26,7 +26,6 @@
 #include "env/cli_options.h"
 #include "env/context.h"
 #include "frontend/parser.h"
-#include "utility/io.h"
 
 static i32 compile_context(Context *restrict c) {
   if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
@@ -54,10 +53,10 @@ i32 compile(i32 argc, char const *argv[]) {
 
   if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
     StringView asm_path = context_assembly_path(&context);
-    file_remove(asm_path);
+    file_remove(asm_path.ptr);
 
     StringView obj_path = context_object_path(&context);
-    file_remove(obj_path);
+    file_remove(obj_path.ptr);
   }
 
   context_destroy(&context);

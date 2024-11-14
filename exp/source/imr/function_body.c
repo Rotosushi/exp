@@ -24,7 +24,6 @@
 #include "imr/function_body.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/io.h"
 
 FormalArgumentList formal_argument_list_create() {
   FormalArgumentList fal;
@@ -304,13 +303,4 @@ void print_function_body(FunctionBody const *restrict f,
   }
   file_write(")\n", file);
   print_bytecode(&f->bc, file, context);
-}
-
-void write_function_body(FILE *restrict out,
-                         FunctionBody const *restrict f,
-                         Context *restrict context) {
-  String buf = string_create();
-  print_function_body(&buf, f, context);
-  file_write(out, string_to_view(&buf));
-  string_destroy(&buf);
 }

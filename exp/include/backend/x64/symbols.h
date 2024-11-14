@@ -27,25 +27,13 @@ typedef struct x64_Symbol {
 void x64_symbol_destroy(x64_Symbol *restrict symbol);
 
 typedef struct x64_SymbolTable {
-  u64 size;
-  u64 capacity;
+  u64 count;
   x64_Symbol *buffer;
 } x64_SymbolTable;
 
-x64_SymbolTable x64_symbol_table_create();
+x64_SymbolTable x64_symbol_table_create(u64 count);
 void x64_symbol_table_destroy(x64_SymbolTable *restrict symbols);
 x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
                                 StringView name);
-
-typedef struct x64_SymbolIterator {
-  x64_Symbol *symbol;
-  x64_Symbol *end;
-} x64_SymbolIterator;
-
-x64_SymbolIterator x64_symbol_iterator(x64_SymbolTable *restrict table);
-
-void x64_symbol_iterator_next(x64_SymbolIterator *restrict iter);
-
-bool x64_symbol_iterator_done(x64_SymbolIterator *restrict iter);
 
 #endif // !EXP_BACKEND_X64_SYMBOLS_H

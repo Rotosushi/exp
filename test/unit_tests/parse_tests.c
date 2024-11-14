@@ -17,32 +17,26 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdlib.h>
+#include <string.h>
 
 #include "frontend/parser.h"
-#include "utility/config.h"
-#include "utility/io.h"
 
-bool test_parse(StringView body) {
-  StringView path = SV(EXP_TEST_DIR "/parse.exp");
-  FILE *file      = file_open(path, SV("w"));
-  file_write(file, body);
-  file_close(file);
+static Context init_context() {
+  CLIOptions options = cli_options_create();
+  Context result     = context_create(&options);
+  return result;
+}
 
-  char const *exp    = EXP_BUILD_DIR "/exp/source/exp";
-  int argc           = 2;
-  char const *argv[] = {exp, path.ptr, nullptr};
+bool test_parse(char const *body) {
+  Context context = init_context();
 
-  CLIOptions options = parse_cli_options(argc, argv);
-  Context context    = context_create(&options);
-
-  bool failure = (parse_source(&context) == EXIT_FAILURE);
+  bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 
   context_destroy(&context);
-  file_remove(path);
 
   if (failure) {
-    file_write(stderr, SV("failed to parse "));
-    file_write(stderr, body);
+    fputs(body, stderr);
+    fputs(" failed to parse.", stderr);
   }
 
   return failure;
@@ -51,11 +45,10 @@ bool test_parse(StringView body) {
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
   bool failure = 0;
 
-  failure |= test_parse(SV("fn f() { return 0; }"));
-  failure |= test_parse(SV("fn f() { return 3 + 3; }"));
-  failure |= test_parse(SV("fn f() { return 3 - 5 * 9; }"));
-  failure |=
-      test_parse(SV("fn f() { return 12; }\n fn g() { return f() + 12; }"));
+  failure |= test_parse("fn f() { return 0; }");
+  failure |= test_parse("fn f() { return 3 + 3; }");
+  failure |= test_parse("fn f() { return 3 - 5 * 9; }");
+  failure |= test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
 
   if (failure) {
     return EXIT_FAILURE;
@@ -63,3 +56,4 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     return EXIT_SUCCESS;
   }
 }
+

@@ -35,8 +35,8 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
   string_replace_extension(&exe, SV(""));
   char const *exe_path = string_to_cstring(&exe);
 
-  FILE *file = file_open(source_path, SV("w"));
-  file_write(file, string_view_from_cstring(contents));
+  FILE *file = file_open(source_path.ptr, "w");
+  file_write(contents, file);
   file_close(file);
 
   char const *exp_args[] = {exp_path, source_path.ptr, NULL};
@@ -47,18 +47,18 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     char const *test_args[] = {exe_path, NULL};
     i32 test_result         = process(exe_path, test_args);
     if (test_result != expected_code) {
-      file_write(stderr, SV("expected code: "));
-      file_write_i64(stderr, expected_code);
-      file_write(stderr, SV(" actual code: "));
-      file_write_i64(stderr, test_result);
-      file_write(stderr, SV("\n"));
+      file_write("expected code: ", stderr);
+      file_write_i64(expected_code, stderr);
+      file_write(" actual code: ", stderr);
+      file_write_i64(test_result, stderr);
+      file_write("\n", stderr);
       result |= EXIT_FAILURE;
     }
 
-    file_remove(string_view_from_cstring(exe_path));
+    file_remove(exe_path);
   }
 
-  file_remove(source_path);
+  file_remove(source_path.ptr);
   string_destroy(&exe);
   return result;
 }

@@ -36,85 +36,9 @@ static void tresult_destroy(TResult *restrict tr) {
   if (tr->has_error) { error_destroy(&tr->error); }
 }
 
-static TResult failure(ErrorCode code, String msg, SourceLocation location) {
-  TResult result = {.has_error = 1, .error = error(code, msg, location)};
+static TResult error(ErrorCode code, String msg) {
+  TResult result = {.has_error = 1, .error = error_from_string(code, msg)};
   return result;
-}
-
-static TResult semantic_error(String msg, SourceLocation location) {
-  return failure(ERROR_SEMANTICS, msg, location);
-}
-
-static TResult undefined_symbol(StringView symbol, SourceLocation location) {
-  String msg = string_create();
-  string_append(&msg, SV("symbol ["));
-  string_append(&msg, symbol);
-  string_append(&msg, SV("] is not defined at the current scope"));
-  return semantic_error(msg, location);
-}
-
-static TResult expected_return(SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("expected a return statement"));
-  return semantic_error(buf, location);
-}
-
-static TResult
-expected_type(Type *expected, Type *actual, SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("Expected ["));
-  print_type(expected, &buf);
-  string_append(&buf, SV("] Actual ["));
-  print_type(actual, &buf);
-  string_append(&buf, SV("]"));
-  return semantic_error(buf, location);
-}
-
-static TResult type_not_callable(Type *type, SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("Type is not callable ["));
-  print_type(type, &buf);
-  string_append(&buf, SV("]"));
-  return semantic_error(buf, location);
-}
-
-static TResult type_not_indexable(Type *type, SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("Type is indexable ["));
-  print_type(type, &buf);
-  string_append(&buf, SV("]"));
-  return semantic_error(buf, location);
-}
-
-static TResult index_not_comptime(SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("index is not known at comptime"));
-  return semantic_error(buf, location);
-}
-
-static TResult
-index_out_of_bounds(i64 index, u64 bound, SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("The given index "));
-  string_append_i64(&buf, index);
-  string_append(&buf, SV(" is not in the valid range of 0.."));
-  string_append_u64(&buf, bound);
-  return semantic_error(buf, location);
-}
-
-static TResult
-args_size_mismatch(u64 formal, u64 actual, SourceLocation location) {
-  String buf = string_create();
-  string_append(&buf, SV("Expected "));
-  string_append_u64(&buf, formal);
-  string_append(&buf, SV(" arguments, have "));
-  string_append_u64(&buf, actual);
-  return semantic_error(buf, location);
-}
-
-static TResult
-arg_type_mismatch(Type *formal, Type *actual, SourceLocation location) {
-  return expected_type(formal, actual, location);
 }
 
 static TResult success(Type *type) {
@@ -139,7 +63,9 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
   case OPRFMT_SSA: {
     LocalVariable *local = context_lookup_ssa(c, operand.ssa);
     Type *type           = local->type;
-    if (type == NULL) { return undefined_symbol(SV(""), curloc(c, Idx)); }
+    if (type == NULL) {
+      return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, string_from_view(SV("")));
+    }
 
     return success(type);
   }
@@ -197,8 +123,12 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
   ActualArgumentList *actual_args = context_call_at(c, I.C.index);
 
   if (formal_types->size != actual_args->size) {
-    return args_size_mismatch(
-        formal_types->size, actual_args->size, curloc(c, Idx));
+    String buf = string_create();
+    string_append(&buf, SV("Expected "));
+    string_append_u64(&buf, formal_types->size);
+    string_append(&buf, SV(" arguments, have "));
+    string_append_u64(&buf, actual_args->size);
+    return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
   for (u8 i = 0; i < actual_args->size; ++i) {
@@ -247,7 +177,12 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
   i64 index = I.C.immediate;
 
   if (tuple_index_out_of_bounds(index, tuple)) {
-    return index_out_of_bounds(index, tuple->size, curloc(c, Idx));
+    String buf = string_create();
+    string_append(&buf, SV("The given index "));
+    string_append_i64(&buf, index);
+    string_append(&buf, SV(" is not in the valid range of 0.."));
+    string_append_u64(&buf, tuple->size);
+    return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, buf);
   }
 
   local->type = tuple->types[index];
@@ -412,8 +347,7 @@ static TResult typecheck_function(Context *restrict c) {
   Bytecode *bc       = &body->bc;
 
   Instruction *ip = bc->buffer;
-  u64 idx         = 0;
-  for (; idx < bc->length; ++idx) {
+  for (u16 idx = 0; idx < bc->length; ++idx) {
     Instruction I = ip[idx];
     switch (I.opcode) {
     case OPC_RET: {
@@ -434,12 +368,12 @@ static TResult typecheck_function(Context *restrict c) {
     }
 
     case OPC_CALL: {
-      try(Aty, typecheck_call(c, idx, I));
+      try(Aty, typecheck_call(c, I));
       break;
     }
 
     case OPC_DOT: {
-      try(Aty, typecheck_dot(c, idx, I));
+      try(Aty, typecheck_dot(c, I));
       break;
     }
 
@@ -449,32 +383,32 @@ static TResult typecheck_function(Context *restrict c) {
     }
 
     case OPC_NEG: {
-      try(Bty, typecheck_neg(c, idx, I));
+      try(Bty, typecheck_neg(c, I));
       break;
     }
 
     case OPC_ADD: {
-      try(Aty, typecheck_add(c, idx, I));
+      try(Aty, typecheck_add(c, I));
       break;
     }
 
     case OPC_SUB: {
-      try(Aty, typecheck_sub(c, idx, I));
+      try(Aty, typecheck_sub(c, I));
       break;
     }
 
     case OPC_MUL: {
-      try(Aty, typecheck_mul(c, idx, I));
+      try(Aty, typecheck_mul(c, I));
       break;
     }
 
     case OPC_DIV: {
-      try(Aty, typecheck_div(c, idx, I));
+      try(Aty, typecheck_div(c, I));
       break;
     }
 
     case OPC_MOD: {
-      try(Aty, typecheck_mod(c, idx, I));
+      try(Aty, typecheck_mod(c, I));
       break;
     }
 
