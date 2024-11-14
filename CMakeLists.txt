@@ -11,7 +11,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
   )
 else()
   set(EXP_HOST_OS_LINUX 0)
-  message(FATAL_ERROR "Unsupported Host OS")
+  message(FATAL_ERROR "Unsupported Host OS: ${CMAKE_HOST_SYSTEM_NAME}")
 endif()
 
 
@@ -25,6 +25,7 @@ endif()
 
 set(C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 23)
+message(STATUS "C standard ${CMAKE_C_STANDARD}")
 
 project(EXP LANGUAGES C ASM VERSION 0.1.0 DESCRIPTION "A hobby programming language.")
 
@@ -37,20 +38,22 @@ set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
 set(EXP_LIB_DIR "${PROJECT_BINARY_DIR}/libexp")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
-set(EXP_SAN -fsanitize=address,undefined,leak)
-set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} )
-set(EXP_LINK_OPTIONS )
+set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
 
 execute_process(
-  COMMAND git rev-parse HEAD 
+  COMMAND git rev-parse --short HEAD 
   OUTPUT_VARIABLE EXP_GIT_REVISION
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(EXP_DEBUG 1)
+  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_SANITIZERS})
+  set(EXP_LINK_OPTIONS ${EXP_SANITIZERS})
 else()
   set(EXP_DEBUG 0)
+  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})
+  set(EXP_LINK_OPTIONS)
 endif()
 
 string(TIMESTAMP EXP_BUILD_TIME "%Y-%m-%d %H:%M:%S")

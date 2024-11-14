@@ -27,7 +27,7 @@ int tuple([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   StringView source_path = SV(EXP_TEST_DIR "/tuple.exp");
 
   result |=
-      test_exp(source_path, "fn main() { const x = (2, 4); return x.1; }", 4);
+      test_exp(source_path, "fn main() { const x = (2, 4); return x.1; } ", 4);
 
   result |= test_exp(
       source_path, "fn main() { const x = (2, 4); return x.0 * x.1; }", 8);

@@ -145,6 +145,11 @@ static ParserResult comment(Parser *restrict parser) {
 }
 
 static ParserResult nexttok(Parser *restrict parser) {
+  if (lexer_at_end(&parser->lexer)) {
+    parser->curtok = TOK_END;
+    return success(zero());
+  }
+
   parser->curtok = lexer_scan(&parser->lexer);
 
   while (parser->curtok == TOK_BEGIN_COMMENT) {

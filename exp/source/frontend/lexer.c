@@ -48,7 +48,7 @@ void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length) {
 
 bool lexer_at_end(Lexer *restrict lexer) {
   assert(lexer != NULL);
-  return (u64)(lexer->cursor - lexer->buffer) == lexer->length;
+  return (u64)(lexer->cursor - lexer->buffer) >= lexer->length;
 }
 
 static u64 lexer_current_text_length(Lexer const *restrict lexer) {
@@ -92,6 +92,7 @@ static char lexer_peek_next(Lexer *restrict lexer) {
 
 static void lexer_skip_whitespace(Lexer *restrict lexer) {
   while (1) {
+    if (lexer_at_end(lexer)) break;
     switch (lexer_peek(lexer)) {
     case '\n':
       lexer->column = 1;

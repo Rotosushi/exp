@@ -194,4 +194,5 @@ void print_type(Type const *restrict T, FILE *restrict file) {
   String buf = string_create();
   emit_type(T, &buf);
   print_string_view(string_to_view(&buf), file);
+  string_destroy(&buf);
 }
