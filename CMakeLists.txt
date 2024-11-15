@@ -31,9 +31,9 @@ project(EXP LANGUAGES C ASM VERSION 0.1.0 DESCRIPTION "A hobby programming langu
 set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
 set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
-set(EXP_LIB_DIR "${PROJECT_SOURCE_DIR}/libexp")
-set(EXP_BUILD_DIR "${PROJECT_BINARY_DIR}")
-set(EXP_LIB_BIN_DIR "${EXP_BUILD_DIR}/libexp")
+set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
+set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
+set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
@@ -75,7 +75,7 @@ configure_file(
 )
 
 add_subdirectory(${EXP_SOURCE_DIR})
-add_subdirectory(${EXP_LIB_DIR})
+add_subdirectory(${EXP_LIBEXP_RUNTIME_SOURCE_DIR})
 
 include(CTest)
 add_subdirectory(${EXP_TEST_DIR})

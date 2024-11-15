@@ -17,31 +17,21 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(EXP_LIBSTART_SOURCES
-  ${EXP_LIB_DIR}/exp_start.s
+  ${EXP_LIBEXP_RUNTIME_SOURCE_DIR}/exp_start.s
 )
 
-add_library(libexp_start
+add_library(exp_runtime_start
   ${EXP_LIBSTART_SOURCES}
 )
 
-set_target_properties(libexp_start
-  PROPERTIES
-  ARCHIVE_OUTPUT_NAME exp_start
+set(EXP_LIBEXP_RUNTIME_SOURCES
+  ${EXP_LIBEXP_RUNTIME_SOURCE_DIR}/exp_syscalls.s
+  ${EXP_LIBEXP_RUNTIME_SOURCE_DIR}/exp_byte.s
 )
 
-
-set(EXP_LIB_SOURCES
-  ${EXP_LIB_DIR}/exp_syscalls.s
-  ${EXP_LIB_DIR}/exp_byte.s
+add_library(exp_runtime
+  ${EXP_LIBEXP_RUNTIME_SOURCES}
 )
 
-add_library(libexp
-  ${EXP_LIB_SOURCES}
-)
-
-set_target_properties(libexp
-  PROPERTIES
-  ARCHIVE_OUTPUT_NAME exp
-)
 
 

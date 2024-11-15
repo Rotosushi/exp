@@ -25,7 +25,7 @@
 #include "utility/io.h"
 #include "utility/process.h"
 
-static char const *exp_path = EXP_BUILD_DIR "/exp/source/exp";
+static char const *exp_path = EXP_BINARY_DIR "/exp/source/exp";
 
 i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
   i32 result = EXIT_SUCCESS;

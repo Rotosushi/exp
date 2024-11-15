@@ -34,9 +34,9 @@ i32 link(Context *restrict context) {
       "ld",
       "-o",
       out_path.ptr,
-      ("-L" EXP_LIB_BIN_DIR),
-      "-lexp_start",
-      "-lexp",
+      ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
+      "-lexp_runtime_start",
+      "-lexp_runtime",
       obj_path.ptr,
       NULL,
   };
