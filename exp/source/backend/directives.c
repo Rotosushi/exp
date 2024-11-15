@@ -18,7 +18,7 @@
  */
 
 #include "backend/directives.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 void directive_file(StringView path, String *restrict str) {
   string_append(str, SV("\t.file \""));
@@ -101,14 +101,10 @@ void directive_type(StringView name, STT_Type kind, String *restrict str) {
 
   switch (kind) {
   case STT_OBJECT: string_append(str, SV("@object\n")); break;
-
-  case STT_FUNC: string_append(str, SV("@function\n")); break;
-
-  case STT_TLS: string_append(str, SV("@tls_object\n")); break;
-
+  case STT_FUNC:   string_append(str, SV("@function\n")); break;
+  case STT_TLS:    string_append(str, SV("@tls_object\n")); break;
   case STT_COMMON: string_append(str, SV("@common\n")); break;
-
-  default: PANIC("bad STT_Type"); break;
+  default:         EXP_UNREACHABLE();
   }
 }
 

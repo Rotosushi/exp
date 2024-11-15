@@ -19,6 +19,7 @@
 #include <stddef.h>
 
 #include "backend/x64/operand.h"
+#include "utility/unreachable.h"
 
 x64_Operand x64_operand_gpr(x64_GPR gpr) {
   x64_Operand opr = {.format = X64OPRFMT_GPR, .gpr = gpr};
@@ -40,7 +41,7 @@ x64_Operand x64_operand_location(x64_Location location) {
     return x64_operand_address(location.address);
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }
 

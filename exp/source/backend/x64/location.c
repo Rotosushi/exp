@@ -21,6 +21,7 @@
 
 #include "backend/x64/location.h"
 #include "utility/panic.h"
+#include "utility/unreachable.h"
 
 x64_OptionalGPR x64_optional_gpr_empty() {
   x64_OptionalGPR opt = {.present = false};
@@ -138,6 +139,6 @@ bool x64_location_eq(x64_Location A, x64_Location B) {
     return x64_optional_i64_equality(A.address.offset, B.address.offset);
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }

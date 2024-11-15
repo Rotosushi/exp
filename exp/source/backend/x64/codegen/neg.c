@@ -40,6 +40,6 @@ void x64_codegen_neg(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   case OPRFMT_LABEL:
   case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }

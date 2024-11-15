@@ -21,7 +21,7 @@
 #include "utility/config.h"
 #include "utility/panic.h"
 
-#if defined(EXP_HOST_OS_LINUX)
+#if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -54,4 +54,3 @@ i32 process(char const *cmd, char const *args[]) {
 #else
 #error "unsupported host OS"
 #endif
-

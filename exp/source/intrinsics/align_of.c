@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/align_of.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 u64 align_of(Type *restrict type) {
   assert(type != NULL);
@@ -42,6 +42,6 @@ u64 align_of(Type *restrict type) {
   case TYPEKIND_I64:     return 8;
   case TYPEKIND_TUPLE:   return 8;
 
-  default: PANIC("bad TYPEKIND");
+  default: EXP_UNREACHABLE();
   }
 }

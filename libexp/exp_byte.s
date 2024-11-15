@@ -1,9 +1,9 @@
 .file "exp_byte.s"
 
 // #NOTE: #TODO byte_copy (memcpy) on it's own could probably fill 
-// a whole semester course on optimization as it touches so much 
-// how how to make computers go fast. We are not doing any of that 
-// here. saving the optimization for another time.
+//  a whole semester course on optimization as it touches so much 
+//  how how to make computers go fast. We are not doing any of that 
+//  here. saving the optimization for another time.
 
 // void _exp_byte_copy(u8 *restrict dst, u8 *restrict src, u64 count)
 // %rdi - dst

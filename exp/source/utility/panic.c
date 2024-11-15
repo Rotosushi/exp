@@ -25,14 +25,13 @@
 #include "utility/panic.h"
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
-  EXP_BREAK()
 
   log_message(LOG_FATAL, file, (u64)line, msg.ptr, stderr);
+  EXP_BREAK();
   exit(EXIT_FAILURE);
 }
 
 [[noreturn]] void panic_errno(StringView msg, const char *file, i32 line) {
-  EXP_BREAK()
 
   static char const *text = " errno: ";
   char const *errmsg      = strerror(errno);
@@ -45,6 +44,6 @@
   buf[buflen] = '\0';
 
   log_message(LOG_FATAL, file, (u64)line, buf, stderr);
+  EXP_BREAK();
   exit(EXIT_FAILURE);
 }
-

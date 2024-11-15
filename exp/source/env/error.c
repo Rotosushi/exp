@@ -17,7 +17,7 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "env/error.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 StringView error_code_sv(ErrorCode code) {
   switch (code) {
@@ -54,7 +54,7 @@ StringView error_code_sv(ErrorCode code) {
   case ERROR_TYPECHECK_TYPE_MISMATCH:
     return SV("Expected Type does not match Actual Type: ");
 
-  default: PANIC("bad ErrorCode");
+  default: EXP_UNREACHABLE();
   }
 }
 

@@ -42,7 +42,7 @@ x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
     break;
   }
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 
   return result;

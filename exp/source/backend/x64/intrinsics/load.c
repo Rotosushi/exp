@@ -54,7 +54,7 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
   }
 
   case VALUEKIND_TUPLE:
-  default:              EXP_UNREACHABLE;
+  default:              EXP_UNREACHABLE();
   }
 }
 
@@ -99,7 +99,7 @@ static void x64_codegen_load_address_from_scalar_operand(
     break;
   }
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }
 
@@ -151,7 +151,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
   }
 
   case OPRFMT_IMMEDIATE:
-  default:               EXP_UNREACHABLE;
+  default:               EXP_UNREACHABLE();
   }
 }
 
@@ -201,7 +201,7 @@ static void x64_codegen_load_argument_from_scalar_operand(
   }
 
   case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }
 
@@ -253,7 +253,7 @@ static void x64_codegen_load_argument_from_composite_operand(
   }
 
   case OPRFMT_IMMEDIATE:
-  default:               EXP_UNREACHABLE;
+  default:               EXP_UNREACHABLE();
   }
 }
 
@@ -293,7 +293,7 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
   case OPRFMT_VALUE:
   // we don't create globals that are not functions (yet)
   case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }
 
@@ -360,6 +360,6 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
     break;
   }
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }

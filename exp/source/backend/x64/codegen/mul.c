@@ -92,7 +92,7 @@ void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context) {
 
     case OPRFMT_LABEL:
     case OPRFMT_VALUE:
-    default:           EXP_UNREACHABLE;
+    default:           EXP_UNREACHABLE();
     }
     break;
   }
@@ -137,13 +137,13 @@ void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context) {
 
     case OPRFMT_LABEL:
     case OPRFMT_VALUE:
-    default:           EXP_UNREACHABLE;
+    default:           EXP_UNREACHABLE();
     }
     break;
   }
 
   case OPRFMT_LABEL:
   case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }

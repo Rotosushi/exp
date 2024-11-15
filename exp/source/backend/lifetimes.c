@@ -21,6 +21,7 @@
 
 #include "backend/lifetimes.h"
 #include "utility/alloc.h"
+#include "utility/unreachable.h"
 
 Lifetime lifetime_immortal() {
   Lifetime lifetime = {.first_use = 0, .last_use = u64_MAX};
@@ -146,7 +147,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
       break;
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE();
     }
   }
 

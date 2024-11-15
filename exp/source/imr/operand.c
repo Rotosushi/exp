@@ -55,7 +55,7 @@ bool operand_equality(Operand A, Operand B) {
   case OPRFMT_IMMEDIATE: return A.immediate == B.immediate;
   case OPRFMT_LABEL:     return A.index == B.index;
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }
 
@@ -109,6 +109,6 @@ void print_operand(Operand operand,
   case OPRFMT_LABEL: print_operand_global(operand.index, file, context); break;
   case OPRFMT_CALL:  print_operand_call(operand.index, file, context); break;
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }

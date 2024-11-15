@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/type_of.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 Type *type_of_value(Value *restrict value, Context *restrict context) {
   switch (value->kind) {
@@ -37,7 +37,7 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
     return context_tuple_type(context, tuple_type);
   }
 
-  default: PANIC("bad VALUEKIND");
+  default: EXP_UNREACHABLE();
   }
 }
 
@@ -83,6 +83,6 @@ Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }

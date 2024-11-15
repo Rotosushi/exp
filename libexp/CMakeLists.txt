@@ -16,12 +16,12 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set(LIBEXP_START_SOURCES
-  ${LIBEXP_SOURCE_DIR}/exp_start.s
+set(EXP_LIBSTART_SOURCES
+  ${EXP_LIB_DIR}/exp_start.s
 )
 
 add_library(libexp_start
-  ${LIBEXP_START_SOURCES}
+  ${EXP_LIBSTART_SOURCES}
 )
 
 set_target_properties(libexp_start
@@ -30,13 +30,13 @@ set_target_properties(libexp_start
 )
 
 
-set(LIBEXP_SOURCES
-  ${LIBEXP_SOURCE_DIR}/exp_syscalls.s
-  ${LIBEXP_SOURCE_DIR}/exp_byte.s
+set(EXP_LIB_SOURCES
+  ${EXP_LIB_DIR}/exp_syscalls.s
+  ${EXP_LIB_DIR}/exp_byte.s
 )
 
 add_library(libexp
-  ${LIBEXP_SOURCES}
+  ${EXP_LIB_SOURCES}
 )
 
 set_target_properties(libexp

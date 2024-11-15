@@ -23,7 +23,6 @@
 
 #include "utility/io.h"
 #include "utility/log.h"
-#include "utility/numeric_conversions.h"
 
 #define LOG_FATAL_MSG     "fatal"
 #define LOG_ERROR_MSG     "error"

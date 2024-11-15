@@ -186,7 +186,7 @@ void emit_type(Type const *restrict T, String *restrict buf) {
   case TYPEKIND_TUPLE:    emit_tuple_type(&T->tuple_type, buf); break;
   case TYPEKIND_FUNCTION: emit_function_type(&T->function_type, buf); break;
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }
 

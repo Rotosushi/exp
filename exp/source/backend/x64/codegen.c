@@ -103,7 +103,7 @@ static void x64_codegen_bytecode(x64_Context *restrict context) {
       break;
     }
 
-    default: EXP_UNREACHABLE;
+    default: EXP_UNREACHABLE();
     }
   }
 }
@@ -143,7 +143,7 @@ static void x64_codegen_ste(SymbolTableElement *restrict ste,
     break;
   }
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }
 

@@ -490,7 +490,7 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
   switch (op) {
   case TOK_MINUS: return success(context_emit_neg(c, maybe.result));
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }
 
@@ -511,7 +511,7 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   case TOK_SLASH:   return success(context_emit_div(c, left, right));
   case TOK_PERCENT: return success(context_emit_mod(c, left, right));
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 }
 

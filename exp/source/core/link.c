@@ -34,7 +34,7 @@ i32 link(Context *restrict context) {
       "ld",
       "-o",
       out_path.ptr,
-      "-L" EXP_LIB_DIR,
+      ("-L" EXP_LIB_BIN_DIR),
       "-lexp_start",
       "-lexp",
       obj_path.ptr,
@@ -43,4 +43,3 @@ i32 link(Context *restrict context) {
 
   return process("ld", args);
 }
-

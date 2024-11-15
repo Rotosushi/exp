@@ -239,7 +239,7 @@ x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
     x64_Allocation *cursor = stack_allocations->buffer[i];
     if (cursor->ssa == ssa) { return cursor; }
   }
-  EXP_UNREACHABLE;
+  EXP_UNREACHABLE();
 }
 
 static x64_AllocationBuffer x64_allocation_buffer_create() {
@@ -534,7 +534,7 @@ x64_GPR x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
     x64_allocator_spill_allocation(allocator, oldest, x64bc);
     return gpr;
   }
-  EXP_UNREACHABLE;
+  EXP_UNREACHABLE();
 }
 
 x64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,

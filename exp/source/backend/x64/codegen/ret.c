@@ -59,7 +59,7 @@ void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
     break;
   }
 
-  default: EXP_UNREACHABLE;
+  default: EXP_UNREACHABLE();
   }
 
   x64_context_append(

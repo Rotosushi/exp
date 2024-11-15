@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(LIBE2E_SOURCES
-  ${EXP_TEST_E2E_DIR}/test_exp.c
+  ${EXP_TEST_DIR}/end_to_end_tests/test_exp.c
 )
 
 add_library(exp_e2e ${LIBE2E_SOURCES})

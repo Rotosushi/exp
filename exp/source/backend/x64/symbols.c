@@ -20,7 +20,7 @@
 
 #include "backend/x64/symbols.h"
 #include "utility/alloc.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 void x64_symbol_destroy(x64_Symbol *restrict symbol) {
   x64_function_body_destroy(&symbol->body);
@@ -54,5 +54,5 @@ x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
 
     if (string_view_equality(sym->name, name)) { return sym; }
   }
-  PANIC("unreachable");
+  EXP_UNREACHABLE();
 }

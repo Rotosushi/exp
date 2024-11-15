@@ -22,6 +22,7 @@
 #include "backend/x64/instruction.h"
 #include "backend/x64/location.h"
 #include "backend/x64/registers.h"
+#include "utility/unreachable.h"
 
 static x64_Instruction x64_instruction(x64_Opcode opcode) {
   x64_Instruction I = {.opcode = opcode};
@@ -237,6 +238,6 @@ void x64_instruction_emit(x64_Instruction I,
     break;
   }
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }

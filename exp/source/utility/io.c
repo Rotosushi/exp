@@ -67,7 +67,7 @@ u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
   return count;
 }
 
-#if defined(EXP_HOST_OS_LINUX)
+#if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

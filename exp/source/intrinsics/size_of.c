@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/size_of.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 u64 size_of(Type *restrict type) {
   assert(type != NULL);
@@ -38,6 +38,6 @@ u64 size_of(Type *restrict type) {
     return acc;
   }
 
-  default: PANIC("bad TYPEKIND");
+  default: EXP_UNREACHABLE();
   }
 }

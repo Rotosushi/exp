@@ -24,6 +24,7 @@
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/io.h"
+#include "utility/unreachable.h"
 
 Bytecode bytecode_create() {
   Bytecode bc;
@@ -166,7 +167,7 @@ static void print_instruction(Instruction I,
   case OPC_DIV:  print_div(I, file, context); break;
   case OPC_MOD:  print_mod(I, file, context); break;
 
-  default: unreachable();
+  default: EXP_UNREACHABLE();
   }
 }
 

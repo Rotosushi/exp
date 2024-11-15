@@ -58,7 +58,7 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
   string_destroy(&cli_options->source);
 }
 
-#if defined(EXP_HOST_OS_LINUX)
+#if defined(EXP_HOST_SYSTEM_LINUX)
 #include <getopt.h>
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {

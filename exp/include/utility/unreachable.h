@@ -19,14 +19,13 @@
 
 #include <stddef.h>
 
-#include "utility/debug.h"
-
-#if EXP_DEBUG
 #include "utility/panic.h"
-#define EXP_UNREACHABLE PANIC("unreachable")
+
+#ifndef NDEBUG
+#include "utility/panic.h"
+#define EXP_UNREACHABLE() PANIC("unreachable")
 #else
-#define EXP_UNREACHABLE unreachable()
-#endif // !EXP_DEBUG
+#define EXP_UNREACHABLE() unreachable()
+#endif // NDEBUG
 
 #endif // !EXP_UTILITY_UNREACHABLE_H
-

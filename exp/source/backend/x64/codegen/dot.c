@@ -58,6 +58,6 @@ void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
   case OPRFMT_IMMEDIATE:
   // we don't support globals which are not functions yet
   case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }

@@ -44,6 +44,6 @@ void x64_codegen_load(Instruction I, u64 Idx, x64_Context *restrict context) {
   }
 
   case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE;
+  default:           EXP_UNREACHABLE();
   }
 }

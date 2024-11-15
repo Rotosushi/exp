@@ -1,5 +1,28 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(EXP_UTILITY_SOURCE_FILES
+  ${EXP_SOURCE_DIR}/utility/alloc.c
+  ${EXP_SOURCE_DIR}/utility/array_growth.c
+  ${EXP_SOURCE_DIR}/utility/hash.c
+  ${EXP_SOURCE_DIR}/utility/io.c
+  ${EXP_SOURCE_DIR}/utility/log.c
+  ${EXP_SOURCE_DIR}/utility/minmax.c
+  ${EXP_SOURCE_DIR}/utility/nearest_power.c
+  ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
+  ${EXP_SOURCE_DIR}/utility/panic.c
+  ${EXP_SOURCE_DIR}/utility/process.c
+  ${EXP_SOURCE_DIR}/utility/string_view.c
+)
+
+add_library(exp_utility
+  ${EXP_UTILITY_SOURCE_FILES}
+)
+target_include_directories(exp_utility PUBLIC ${EXP_INCLUDE_DIR})
+target_compile_options(exp_utility PUBLIC ${EXP_COMPILE_OPTIONS})
+target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
+
+
+
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
@@ -66,19 +89,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/intrinsics/align_of.c
   ${EXP_SOURCE_DIR}/intrinsics/size_of.c
   ${EXP_SOURCE_DIR}/intrinsics/type_of.c
-
-  ${EXP_SOURCE_DIR}/utility/alloc.c
-  ${EXP_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_SOURCE_DIR}/utility/hash.c
-  ${EXP_SOURCE_DIR}/utility/io.c
-  ${EXP_SOURCE_DIR}/utility/log.c
-  ${EXP_SOURCE_DIR}/utility/minmax.c
-  ${EXP_SOURCE_DIR}/utility/nearest_power.c
-  ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
-  ${EXP_SOURCE_DIR}/utility/panic.c
-  ${EXP_SOURCE_DIR}/utility/process.c
-  ${EXP_SOURCE_DIR}/utility/string_view.c
-  
 )
 
 add_library(exp_common
@@ -87,6 +97,7 @@ add_library(exp_common
 target_include_directories(exp_common PUBLIC ${EXP_INCLUDE_DIR})
 target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
+target_link_libraries(exp_common PUBLIC exp_utility)
 
 add_executable(exp 
   ${EXP_SOURCE_DIR}/main.c

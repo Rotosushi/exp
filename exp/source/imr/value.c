@@ -22,7 +22,7 @@
 #include "imr/value.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
+#include "utility/unreachable.h"
 
 Tuple tuple_create() {
   Tuple tuple = {.capacity = 0, .size = 0, .elements = NULL};
@@ -151,7 +151,7 @@ bool value_equality(Value *A, Value *B) {
     return tuple_equal(&A->tuple, &B->tuple);
   }
 
-  default: PANIC("bad VALUEKIND");
+  default: EXP_UNREACHABLE();
   }
 }
 
@@ -182,6 +182,6 @@ void print_value(Value const *restrict v,
   case VALUEKIND_I64:   file_write_i64(v->i64_, file); break;
   case VALUEKIND_TUPLE: print_tuple(&v->tuple, file, context); break;
 
-  default: file_write("undefined", file); break;
+  default: EXP_UNREACHABLE();
   }
 }

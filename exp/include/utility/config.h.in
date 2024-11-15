@@ -25,10 +25,10 @@
 #define EXP_TEST_DIR "@EXP_TEST_DIR@"
 #define EXP_BUILD_DIR "@EXP_BUILD_DIR@"
 #define EXP_LIB_DIR "@EXP_LIB_DIR@"
-#cmakedefine01 EXP_DEBUG
-#cmakedefine EXP_HOST_OS_LINUX
-#cmakedefine EXP_HOST_OS_WINDOWS
-#cmakedefine EXP_HOST_OS_APPLE
+#define EXP_LIB_BIN_DIR "${EXP_LIB_BIN_DIR}"
+#cmakedefine EXP_HOST_SYSTEM_LINUX
+#cmakedefine EXP_HOST_SYSTEM_WINDOWS
+#cmakedefine EXP_HOST_SYSTEM_APPLE
 #cmakedefine EXP_HOST_CPU_x64
 
 #define EXP_VERSION_STRING "@EXP_VERSION_STRING@"

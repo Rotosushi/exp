@@ -16,22 +16,16 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_DEBUG_H
 #define EXP_UTILITY_DEBUG_H
-#include "utility/config.h"
 
-#if EXP_DEBUG
-#if defined(EXP_HOST_OS_LINUX)
+#ifndef NDEBUG
 #if defined(__GNUC__) || defined(__clang__)
-#define EXP_BREAK() __builtin_trap();
+#define EXP_BREAK() __builtin_trap()
 #else
 #include <stdlib.h>
-#define EXP_BREAK() abort();
+#define EXP_BREAK() abort()
 #endif // if defined(__GNUC__) || defined(__clang__)
-#else
-#error "unsupported host OS"
-#endif // if defined(EXP_HOST_OS_LINUX)
 #else
 #define EXP_BREAK()
 #endif // if EXP_DEBUG
 
 #endif // !EXP_UTILITY_DEBUG_H
-
