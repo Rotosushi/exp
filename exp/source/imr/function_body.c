@@ -75,7 +75,7 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
 
   for (u8 i = 0; i < fal->size; ++i) {
     FormalArgument *arg = fal->list + i;
-    if (string_view_eq(arg->name, name)) { return arg; }
+    if (string_view_equality(arg->name, name)) { return arg; }
   }
 
   return NULL;
@@ -126,7 +126,7 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name) {
   for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
-    if (string_view_eq(var->name, name)) { return var; }
+    if (string_view_equality(var->name, name)) { return var; }
   }
   return NULL;
 }

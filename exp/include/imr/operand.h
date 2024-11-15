@@ -29,6 +29,16 @@ typedef enum OperandFormat : u8 {
   OPRFMT_CALL,
 } OperandFormat;
 
+/*
+ * #TODO:
+ *   typedef struct Operand {
+ *     unsigned kind : 8;
+ *     unsigned      : 8;
+ *     unsigned data : 16;
+ *   } Operand;
+ *   sizeof(Operand) == sizeof(u32) == 4
+ */
+
 typedef struct Operand {
   OperandFormat format;
   union {

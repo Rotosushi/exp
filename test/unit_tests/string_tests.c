@@ -50,7 +50,7 @@ bool test_string_to_view(StringView sv) {
 
   StringView sv0 = string_to_view(&str);
 
-  if (!string_view_eq(sv0, sv)) {
+  if (!string_view_equality(sv0, sv)) {
     // fputs(str.buffer, stderr);
     failed |= 1;
   } else {

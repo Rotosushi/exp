@@ -47,9 +47,9 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
   }
 
   case VALUEKIND_I64: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_address(*dst),
-                               x64_operand_immediate(value->integer_64)));
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_address(*dst), x64_operand_immediate(value->i64_)));
     break;
   }
 
@@ -335,9 +335,9 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
   }
 
   case VALUEKIND_I64: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_alloc(dst),
-                               x64_operand_immediate(value->integer_64)));
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_alloc(dst), x64_operand_immediate(value->i64_)));
     break;
   }
 

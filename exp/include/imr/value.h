@@ -48,7 +48,7 @@ typedef struct Value {
   union {
     bool nil;
     bool boolean;
-    i64 integer_64;
+    i64 i64_;
     Tuple tuple;
   };
 } Value;

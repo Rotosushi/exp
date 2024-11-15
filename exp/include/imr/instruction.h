@@ -85,14 +85,14 @@ typedef enum InstructionFormat : u8 {
 /*
  * #TODO:
  *  typedef struct Instruction {
- *    unsigned opcode   : 8;
- *    unsigned A_format : 2;
- *    unsigned B_format : 3;
- *    unsigned C_format : 3;
- *    unsigned A        : 16;
- *    unsigned B        : 16;
- *    unsigned C        : 16;
- *  };
+ *    unsigned opcode : 7;
+ *    unsigned A_kind : 3;
+ *    unsigned B_kind : 3;
+ *    unsigned C_kind : 3;
+ *    unsigned A      : 16;
+ *    unsigned B      : 16;
+ *    unsigned C      : 16;
+ *  } Instruction;
  *  if I am not mistaken:
  *  sizeof(Instruction) == sizeof(u64) == 8
  */

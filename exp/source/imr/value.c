@@ -100,7 +100,7 @@ Value value_create_boolean(bool b) {
 }
 
 Value value_create_i64(i64 i) {
-  Value value = {.kind = VALUEKIND_I64, .integer_64 = i};
+  Value value = {.kind = VALUEKIND_I64, .i64_ = i};
   return value;
 }
 
@@ -144,7 +144,7 @@ bool value_equality(Value *A, Value *B) {
   case VALUEKIND_I64: {
     if (B->kind != VALUEKIND_I64) { return 0; }
 
-    return A->integer_64 == B->integer_64;
+    return A->i64_ == B->i64_;
   }
 
   case VALUEKIND_TUPLE: {
@@ -179,7 +179,7 @@ void print_value(Value const *restrict v,
     break;
   }
 
-  case VALUEKIND_I64:   file_write_i64(v->integer_64, file); break;
+  case VALUEKIND_I64:   file_write_i64(v->i64_, file); break;
   case VALUEKIND_TUPLE: print_tuple(&v->tuple, file, context); break;
 
   default: file_write("undefined", file); break;

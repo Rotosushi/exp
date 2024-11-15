@@ -51,7 +51,8 @@ static SymbolTableElement *symbol_table_find(
   u64 index = hash_cstring(name.ptr, name.length) % capacity;
   while (1) {
     SymbolTableElement *element = &(elements[index]);
-    if ((element->name.ptr == NULL) || string_view_eq(name, element->name)) {
+    if ((element->name.ptr == NULL) ||
+        string_view_equality(name, element->name)) {
       return element;
     }
 
@@ -134,4 +135,3 @@ bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
 
   return iter->element == iter->end;
 }
-

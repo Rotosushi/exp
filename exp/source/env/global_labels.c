@@ -50,7 +50,7 @@ u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
 
   for (u64 i = 0; i < symbols->size; ++i) {
     StringView s = symbols->buffer[i];
-    if (string_view_eq(s, symbol)) { return i; }
+    if (string_view_equality(s, symbol)) { return i; }
   }
 
   u64 idx              = symbols->size;

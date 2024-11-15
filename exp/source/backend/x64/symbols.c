@@ -52,8 +52,7 @@ x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
       return sym;
     }
 
-    if (string_view_eq(sym->name, name)) { return sym; }
+    if (string_view_equality(sym->name, name)) { return sym; }
   }
   PANIC("unreachable");
 }
-
