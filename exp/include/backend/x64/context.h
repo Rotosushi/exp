@@ -44,8 +44,10 @@ void x64_context_enter_function(x64_Context *restrict x64_context,
                                 StringView name);
 void x64_context_leave_function(x64_Context *restrict context);
 
+/*
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
                                         u64 idx);
+*/
 FormalArgument *x64_context_argument_at(x64_Context *restrict x64_context,
                                         u8 index);
 

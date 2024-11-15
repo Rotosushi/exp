@@ -67,7 +67,10 @@ Operand values_add(Values *restrict values, Value value) {
   for (u64 i = 0; i < values->length; ++i) {
     if (i == u64_MAX) { PANIC("constant index out of bounds"); }
     Value *v = values->buffer + i;
-    if (value_equality(v, &value)) { return operand_constant(i); }
+    if (value_equality(v, &value)) {
+      value_destroy(&value);
+      return operand_constant(i);
+    }
   }
 
   if (values_full(values)) { values_grow(values); }

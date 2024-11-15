@@ -76,12 +76,14 @@ void x64_codegen_call(Instruction I,
                                x64_operand_address(result->location.address)));
   }
 
-  ActualArgumentList *args    = x64_context_call_at(context, I.C.index);
+  Value *value = x64_context_value_at(context, I.C.index);
+  assert(value->kind == VALUEKIND_TUPLE);
+  Tuple *args                 = &value->tuple;
   u64 current_bytecode_offset = x64_context_current_offset(context);
   OperandArray stack_args     = operand_array_create();
 
   for (u8 i = 0; i < args->size; ++i) {
-    Operand *arg   = args->list + i;
+    Operand *arg   = args->elements + i;
     Type *arg_type = type_of_operand(arg, context->context);
 
     if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {

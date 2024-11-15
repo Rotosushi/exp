@@ -140,6 +140,7 @@ LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
   return NULL;
 }
 
+/*
 static ActualArgumentList actual_argument_list_create() {
   ActualArgumentList list = {.list = NULL, .size = 0, .capacity = 0};
   return list;
@@ -225,27 +226,29 @@ static ActualArgumentList *call_list_at(CallList *restrict list, u64 idx) {
 
   return list->list + idx;
 }
+*/
 
 FunctionBody function_body_create() {
-  FunctionBody function = {.arguments   = formal_argument_list_create(),
-                           .calls       = call_list_create(),
-                           .locals      = local_variables_create(),
-                           .return_type = NULL,
-                           .bc          = bytecode_create(),
-                           .ssa_count   = 0};
+  FunctionBody function = {
+      .arguments = formal_argument_list_create(),
+      //                          .calls       = call_list_create(),
+      .locals      = local_variables_create(),
+      .return_type = NULL,
+      .bc          = bytecode_create(),
+      .ssa_count   = 0};
   return function;
 }
 
 void function_body_destroy(FunctionBody *restrict function) {
   assert(function != NULL);
   formal_argument_list_destroy(&function->arguments);
-  call_list_destroy(&function->calls);
+  // call_list_destroy(&function->calls);
   local_variables_destroy(&function->locals);
   bytecode_destroy(&function->bc);
   function->return_type = NULL;
   function->ssa_count   = 0;
 }
-
+/*
 CallPair function_body_new_call(FunctionBody *restrict function) {
   assert(function != NULL);
   return call_list_new_call(&function->calls);
@@ -256,7 +259,7 @@ ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
   assert(function != NULL);
   return call_list_at(&function->calls, idx);
 }
-
+*/
 void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument argument) {
   assert(function != NULL);

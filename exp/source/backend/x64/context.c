@@ -64,11 +64,13 @@ void x64_context_leave_function(x64_Context *restrict x64_context) {
   x64_context->x64_body = NULL;
 }
 
+/*
 ActualArgumentList *x64_context_call_at(x64_Context *restrict x64_context,
                                         u64 idx) {
   assert(x64_context != NULL);
   return context_call_at(x64_context->context, idx);
 }
+*/
 
 FormalArgument *x64_context_argument_at(x64_Context *restrict x64_context,
                                         u8 index) {

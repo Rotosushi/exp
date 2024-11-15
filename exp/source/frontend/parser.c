@@ -515,10 +515,9 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
   }
 }
 
-static ParserResult
-parse_actual_argument_list(Parser *restrict p,
-                           Context *restrict c,
-                           ActualArgumentList *restrict list) {
+static ParserResult parse_actual_argument_list(Parser *restrict p,
+                                               Context *restrict c,
+                                               Tuple *restrict argument_list) {
   // #note: the nil literal is spelled "()", which is
   // lexically identical to an empty argument list
   EXPECT(nil, TOK_NIL);
@@ -532,7 +531,7 @@ parse_actual_argument_list(Parser *restrict p,
     do {
       TRY(maybe, expression(p, c));
 
-      actual_argument_list_append(list, maybe.result);
+      tuple_append(argument_list, maybe.result);
 
       EXPECT(comma, TOK_COMMA);
       comma_found = comma.found;
@@ -547,11 +546,13 @@ parse_actual_argument_list(Parser *restrict p,
 
 static ParserResult
 call(Parser *restrict p, Context *restrict c, Operand left) {
-  CallPair pair = context_new_call(c);
+  Tuple argument_list = tuple_create();
 
-  TRY(maybe, parse_actual_argument_list(p, c, pair.list));
+  TRY(maybe, parse_actual_argument_list(p, c, &argument_list));
 
-  return success(context_emit_call(c, left, operand_call(pair.index)));
+  Operand actual_arguments =
+      context_values_append(c, value_create_tuple(argument_list));
+  return success(context_emit_call(c, left, actual_arguments));
 }
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {

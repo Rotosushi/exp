@@ -89,8 +89,8 @@ FunctionBody *context_enter_function(Context *restrict c, StringView name);
 FunctionBody *context_current_function(Context *restrict c);
 Bytecode *context_active_bytecode(Context *restrict c);
 
-CallPair context_new_call(Context *restrict c);
-ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
+// CallPair context_new_call(Context *restrict c);
+// ActualArgumentList *context_call_at(Context *restrict c, u64 idx);
 
 void context_def_local_const(Context *restrict c,
                              StringView name,

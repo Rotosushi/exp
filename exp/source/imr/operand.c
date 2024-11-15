@@ -42,10 +42,12 @@ Operand operand_label(u64 index) {
   return opr;
 }
 
+/*
 Operand operand_call(u64 index) {
   Operand operand = {.format = OPRFMT_CALL, .index = index};
   return operand;
 }
+*/
 
 bool operand_equality(Operand A, Operand B) {
   if (A.format != B.format) { return false; }
@@ -84,6 +86,7 @@ static void print_operand_global(u64 index,
   file_write(name.ptr, file);
 }
 
+/*
 static void
 print_operand_call(u64 index, FILE *restrict file, Context *restrict context) {
   ActualArgumentList *args = context_call_at(context, index);
@@ -96,6 +99,7 @@ print_operand_call(u64 index, FILE *restrict file, Context *restrict context) {
   }
   file_write(")", file);
 }
+*/
 
 void print_operand(Operand operand,
                    FILE *restrict file,
@@ -106,8 +110,11 @@ void print_operand(Operand operand,
   case OPRFMT_IMMEDIATE:
     print_operand_immediate(operand.immediate, file);
     break;
-  case OPRFMT_LABEL: print_operand_global(operand.index, file, context); break;
-  case OPRFMT_CALL:  print_operand_call(operand.index, file, context); break;
+  case OPRFMT_LABEL:
+    print_operand_global(operand.index, file, context);
+    break;
+    // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);
+    // break;
 
   default: EXP_UNREACHABLE();
   }

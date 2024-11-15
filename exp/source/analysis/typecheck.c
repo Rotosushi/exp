@@ -118,9 +118,11 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
   }
 
-  FunctionType *function_type     = &Bty->function_type;
-  TupleType *formal_types         = &function_type->argument_types;
-  ActualArgumentList *actual_args = context_call_at(c, I.C.index);
+  FunctionType *function_type = &Bty->function_type;
+  TupleType *formal_types     = &function_type->argument_types;
+  Value *value                = context_values_at(c, I.C.index);
+  assert(value->kind == VALUEKIND_TUPLE);
+  Tuple *actual_args = &value->tuple;
 
   if (formal_types->size != actual_args->size) {
     String buf = string_create();
@@ -133,7 +135,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
 
   for (u8 i = 0; i < actual_args->size; ++i) {
     Type *formal_type = formal_types->types[i];
-    Operand operand   = actual_args->list[i];
+    Operand operand   = actual_args->elements[i];
     try(actual_type, typecheck_operand(c, operand));
 
     if (!type_equality(actual_type, formal_type)) {

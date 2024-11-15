@@ -17,14 +17,11 @@
 #ifndef EXP_UTILITY_UNREACHABLE_H
 #define EXP_UTILITY_UNREACHABLE_H
 
-#include <stddef.h>
-
-#include "utility/panic.h"
-
 #ifndef NDEBUG
 #include "utility/panic.h"
 #define EXP_UNREACHABLE() PANIC("unreachable")
 #else
+#include <stddef.h>
 #define EXP_UNREACHABLE() unreachable()
 #endif // NDEBUG
 

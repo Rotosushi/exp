@@ -155,6 +155,7 @@ static Operand context_new_ssa(Context *restrict c) {
   return function_body_new_ssa(context_current_function(c));
 }
 
+/*
 CallPair context_new_call(Context *restrict c) {
   return function_body_new_call(context_current_function(c));
 }
@@ -162,7 +163,7 @@ CallPair context_new_call(Context *restrict c) {
 ActualArgumentList *context_call_at(Context *restrict c, u64 idx) {
   return function_body_call_at(context_current_function(c), idx);
 }
-
+*/
 void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value) {
