@@ -22,10 +22,10 @@
 #include "utility/int_types.h"
 
 typedef enum OperandFormat : u8 {
-  OPRFMT_SSA,
-  OPRFMT_VALUE,
-  OPRFMT_IMMEDIATE,
-  OPRFMT_LABEL,
+  OPERAND_KIND_SSA,
+  OPERAND_KIND_VALUE,
+  OPERAND_KIND_IMMEDIATE,
+  OPERAND_KIND_LABEL,
 } OperandFormat;
 
 /*

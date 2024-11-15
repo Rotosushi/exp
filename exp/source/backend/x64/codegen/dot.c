@@ -29,12 +29,12 @@ void x64_codegen_dot(Instruction I,
                      x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A);
 
-  assert(I.C.format == OPRFMT_IMMEDIATE);
+  assert(I.C.format == OPERAND_KIND_IMMEDIATE);
   assert((I.C.immediate >= 0) && (I.C.immediate <= i64_MAX));
   u64 index = (u64)I.C.immediate;
 
   switch (I.B.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     assert(B->location.kind == LOCATION_ADDRESS);
@@ -50,16 +50,16 @@ void x64_codegen_dot(Instruction I,
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_codegen_load_allocation_from_value(A, I.B.index, block_index, context);
     break;
   }
 
   // we will never store tuples as immediates
-  case OPRFMT_IMMEDIATE:
+  case OPERAND_KIND_IMMEDIATE:
   // we don't support globals which are not functions yet
-  case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  default:                 EXP_UNREACHABLE();
   }
 }

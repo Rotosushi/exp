@@ -23,22 +23,22 @@
 #include "utility/unreachable.h"
 
 Operand operand_ssa(u64 ssa) {
-  Operand opr = {.format = OPRFMT_SSA, .ssa = ssa};
+  Operand opr = {.format = OPERAND_KIND_SSA, .ssa = ssa};
   return opr;
 }
 
 Operand operand_constant(u64 index) {
-  Operand opr = {.format = OPRFMT_VALUE, .index = index};
+  Operand opr = {.format = OPERAND_KIND_VALUE, .index = index};
   return opr;
 }
 
 Operand operand_immediate(i64 immediate) {
-  Operand opr = {.format = OPRFMT_IMMEDIATE, .immediate = immediate};
+  Operand opr = {.format = OPERAND_KIND_IMMEDIATE, .immediate = immediate};
   return opr;
 }
 
 Operand operand_label(u64 index) {
-  Operand opr = {.format = OPRFMT_LABEL, .index = index};
+  Operand opr = {.format = OPERAND_KIND_LABEL, .index = index};
   return opr;
 }
 
@@ -52,10 +52,10 @@ Operand operand_call(u64 index) {
 bool operand_equality(Operand A, Operand B) {
   if (A.format != B.format) { return false; }
   switch (A.format) {
-  case OPRFMT_SSA:       return A.ssa == B.ssa;
-  case OPRFMT_VALUE:     return A.index == B.index;
-  case OPRFMT_IMMEDIATE: return A.immediate == B.immediate;
-  case OPRFMT_LABEL:     return A.index == B.index;
+  case OPERAND_KIND_SSA:       return A.ssa == B.ssa;
+  case OPERAND_KIND_VALUE:     return A.index == B.index;
+  case OPERAND_KIND_IMMEDIATE: return A.immediate == B.immediate;
+  case OPERAND_KIND_LABEL:     return A.index == B.index;
 
   default: EXP_UNREACHABLE();
   }
@@ -105,12 +105,14 @@ void print_operand(Operand operand,
                    FILE *restrict file,
                    Context *restrict context) {
   switch (operand.format) {
-  case OPRFMT_SSA:   print_operand_ssa(operand.ssa, file, context); break;
-  case OPRFMT_VALUE: print_operand_value(operand.index, file, context); break;
-  case OPRFMT_IMMEDIATE:
+  case OPERAND_KIND_SSA: print_operand_ssa(operand.ssa, file, context); break;
+  case OPERAND_KIND_VALUE:
+    print_operand_value(operand.index, file, context);
+    break;
+  case OPERAND_KIND_IMMEDIATE:
     print_operand_immediate(operand.immediate, file);
     break;
-  case OPRFMT_LABEL:
+  case OPERAND_KIND_LABEL:
     print_operand_global(operand.index, file, context);
     break;
     // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);

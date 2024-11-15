@@ -139,127 +139,24 @@ LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
   }
   return NULL;
 }
-
-/*
-static ActualArgumentList actual_argument_list_create() {
-  ActualArgumentList list = {.list = NULL, .size = 0, .capacity = 0};
-  return list;
-}
-
-static void actual_argument_list_destroy(ActualArgumentList *restrict list) {
-  assert(list != NULL);
-  deallocate(list->list);
-  list->capacity = 0;
-  list->size     = 0;
-}
-
-static bool actual_argument_list_full(ActualArgumentList *restrict list) {
-  assert(list != NULL);
-  return (list->size + 1) >= list->capacity;
-}
-
-static void actual_argument_list_grow(ActualArgumentList *restrict list) {
-  Growth g       = array_growth_u8(list->capacity, sizeof(Operand));
-  list->list     = reallocate(list->list, g.alloc_size);
-  list->capacity = (u8)g.new_capacity;
-}
-
-void actual_argument_list_append(ActualArgumentList *restrict list,
-                                 Operand operand) {
-  assert(list != NULL);
-  if (actual_argument_list_full(list)) { actual_argument_list_grow(list); }
-
-  list->list[list->size] = operand;
-  list->size += 1;
-}
-
-static CallList call_list_create() {
-  CallList list = {.list = NULL, .capacity = 0, .size = 0};
-  return list;
-}
-
-static void call_list_destroy(CallList *restrict list) {
-  assert(list != NULL);
-  for (u64 i = 0; i < list->size; ++i) {
-    actual_argument_list_destroy(list->list + i);
-  }
-  deallocate(list->list);
-  list->capacity = 0;
-  list->size     = 0;
-}
-
-static bool call_list_full(CallList *restrict list) {
-  assert(list != NULL);
-  return (list->size + 1) >= list->capacity;
-}
-
-static void call_list_grow(CallList *restrict list) {
-  Growth g       = array_growth_u64(list->capacity, sizeof(ActualArgumentList));
-  list->list     = reallocate(list->list, g.alloc_size);
-  list->capacity = g.new_capacity;
-}
-
-static CallPair call_pair(u64 idx, ActualArgumentList *list) {
-  CallPair pair = {.index = idx, .list = list};
-  return pair;
-}
-
-static CallPair call_list_new_call(CallList *restrict list) {
-  assert(list != NULL);
-  if (call_list_full(list)) { call_list_grow(list); }
-
-  ActualArgumentList *call = list->list + list->size;
-  *call                    = actual_argument_list_create();
-
-  CallPair pair = call_pair(list->size, call);
-  list->size += 1;
-  return pair;
-}
-
-[[maybe_unused]] static bool index_inbounds(CallList *restrict list, u64 idx) {
-  return idx < list->size;
-}
-
-static ActualArgumentList *call_list_at(CallList *restrict list, u64 idx) {
-  assert(list != NULL);
-  assert(index_inbounds(list, idx));
-
-  return list->list + idx;
-}
-*/
-
 FunctionBody function_body_create() {
-  FunctionBody function = {
-      .arguments = formal_argument_list_create(),
-      //                          .calls       = call_list_create(),
-      .locals      = local_variables_create(),
-      .return_type = NULL,
-      .bc          = bytecode_create(),
-      .ssa_count   = 0};
+  FunctionBody function = {.arguments   = formal_argument_list_create(),
+                           .locals      = local_variables_create(),
+                           .return_type = NULL,
+                           .bc          = bytecode_create(),
+                           .ssa_count   = 0};
   return function;
 }
 
 void function_body_destroy(FunctionBody *restrict function) {
   assert(function != NULL);
   formal_argument_list_destroy(&function->arguments);
-  // call_list_destroy(&function->calls);
   local_variables_destroy(&function->locals);
   bytecode_destroy(&function->bc);
   function->return_type = NULL;
   function->ssa_count   = 0;
 }
-/*
-CallPair function_body_new_call(FunctionBody *restrict function) {
-  assert(function != NULL);
-  return call_list_new_call(&function->calls);
-}
 
-ActualArgumentList *function_body_call_at(FunctionBody *restrict function,
-                                          u64 idx) {
-  assert(function != NULL);
-  return call_list_at(&function->calls, idx);
-}
-*/
 void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument argument) {
   assert(function != NULL);

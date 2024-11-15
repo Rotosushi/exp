@@ -57,24 +57,24 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
 
 Type *type_of_operand(Operand *restrict operand, Context *restrict context) {
   switch (operand->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     LocalVariable *local = context_lookup_ssa(context, operand->ssa);
     return local->type;
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     Value *constant = context_values_at(context, operand->index);
     return type_of_value(constant, context);
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     return context_i64_type(context);
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     StringView label = context_global_labels_at(context, operand->index);
     SymbolTableElement *symbol = context_global_symbol_table_at(context, label);
     assert(!string_view_empty(symbol->name));

@@ -25,19 +25,19 @@ void x64_codegen_load(Instruction I,
                       x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A);
   switch (I.B.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     x64_context_allocate_from_active(context, local, B, block_index);
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_codegen_load_allocation_from_value(A, I.B.index, block_index, context);
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_context_append(
         context,
@@ -45,7 +45,7 @@ void x64_codegen_load(Instruction I,
     break;
   }
 
-  case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  default:                 EXP_UNREACHABLE();
   }
 }

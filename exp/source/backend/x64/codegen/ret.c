@@ -27,27 +27,27 @@ void x64_codegen_ret(Instruction I,
                      x64_Context *restrict context) {
   x64_FunctionBody *body = current_x64_body(context);
   switch (I.B.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     if (x64_allocation_location_eq(B, body->result->location)) { break; }
     x64_codegen_copy_allocation(body->result, B, block_index, context);
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     x64_codegen_load_allocation_from_value(
         body->result, I.B.index, block_index, context);
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_context_append(context,
                        x64_mov(x64_operand_alloc(body->result),
                                x64_operand_immediate(I.B.immediate)));
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     /*
      * #NOTE #TODO #FEATURE eventually we will add support for
      * global constants (global variables are in limbo until

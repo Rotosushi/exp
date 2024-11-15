@@ -67,7 +67,7 @@ static void x64_codegen_load_address_from_scalar_operand(
   assert(type_is_scalar(type));
 
   switch (src->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
     if (allocation->location.kind == LOCATION_GPR) {
       x64_context_append(context,
@@ -80,19 +80,19 @@ static void x64_codegen_load_address_from_scalar_operand(
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_context_append(context,
                        x64_mov(x64_operand_address(*dst),
                                x64_operand_immediate(src->immediate)));
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     PANIC("#TODO");
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     assert(type_equality(type, type_of_value(value, context->context)));
     x64_codegen_load_address_from_scalar_value(dst, value, context);
@@ -110,7 +110,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
                                                 u64 Idx,
                                                 x64_Context *restrict context) {
   switch (src->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
 
     assert(allocation->location.kind == LOCATION_ADDRESS);
@@ -120,7 +120,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     Type *type   = type_of_value(value, context->context);
     assert(value->kind == VALUEKIND_TUPLE);
@@ -145,13 +145,13 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     PANIC("#TODO");
     break;
   }
 
-  case OPRFMT_IMMEDIATE:
-  default:               EXP_UNREACHABLE();
+  case OPERAND_KIND_IMMEDIATE:
+  default:                     EXP_UNREACHABLE();
   }
 }
 
@@ -175,7 +175,7 @@ static void x64_codegen_load_argument_from_scalar_operand(
     u64 Idx,
     x64_Context *restrict context) {
   switch (src->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
     if (allocation->location.kind == LOCATION_GPR) {
       x64_context_append(context,
@@ -188,20 +188,20 @@ static void x64_codegen_load_argument_from_scalar_operand(
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_context_append(context,
                        x64_mov(x64_operand_address(*dst),
                                x64_operand_immediate(src->immediate)));
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     PANIC("#TODO");
     break;
   }
 
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_VALUE:
+  default:                 EXP_UNREACHABLE();
   }
 }
 
@@ -212,7 +212,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     u64 Idx,
     x64_Context *restrict context) {
   switch (src->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
 
     assert(allocation->location.kind == LOCATION_ADDRESS);
@@ -222,7 +222,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     break;
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     Value *value = x64_context_value_at(context, src->index);
     Type *type   = type_of_value(value, context->context);
     assert(value->kind == VALUEKIND_TUPLE);
@@ -247,13 +247,13 @@ static void x64_codegen_load_argument_from_composite_operand(
     break;
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     PANIC("#TODO");
     break;
   }
 
-  case OPRFMT_IMMEDIATE:
-  default:               EXP_UNREACHABLE();
+  case OPERAND_KIND_IMMEDIATE:
+  default:                     EXP_UNREACHABLE();
   }
 }
 
@@ -275,14 +275,14 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
                                        [[maybe_unused]] u64 Idx,
                                        x64_Context *restrict context) {
   switch (src->format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
     x64_context_append(
         context, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_context_append(
         context,
         x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(src->immediate)));
@@ -290,10 +290,10 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
   }
 
   // we don't create scalar values (yet)
-  case OPRFMT_VALUE:
+  case OPERAND_KIND_VALUE:
   // we don't create globals that are not functions (yet)
-  case OPRFMT_LABEL:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  default:                 EXP_UNREACHABLE();
   }
 }
 

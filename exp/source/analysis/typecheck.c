@@ -60,7 +60,7 @@ static TResult typecheck_global(Context *restrict c,
 
 static TResult typecheck_operand(Context *restrict c, Operand operand) {
   switch (operand.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     LocalVariable *local = context_lookup_ssa(c, operand.ssa);
     Type *type           = local->type;
     if (type == NULL) {
@@ -70,16 +70,16 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     return success(type);
   }
 
-  case OPRFMT_VALUE: {
+  case OPERAND_KIND_VALUE: {
     Value *value = context_values_at(c, operand.index);
     return success(type_of_value(value, c));
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     return success(context_i64_type(c));
   }
 
-  case OPRFMT_LABEL: {
+  case OPERAND_KIND_LABEL: {
     StringView name            = context_global_labels_at(c, operand.index);
     SymbolTableElement *global = context_global_symbol_table_at(c, name);
     Type *type                 = global->type;
@@ -171,7 +171,7 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
 
   TupleType *tuple = &Bty->tuple_type;
 
-  if (I.C.format != OPRFMT_IMMEDIATE) {
+  if (I.C.format != OPERAND_KIND_IMMEDIATE) {
     return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
                  string_from_view(SV("")));
   }

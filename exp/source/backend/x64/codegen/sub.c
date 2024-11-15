@@ -26,7 +26,7 @@ static void x64_codegen_subtract_ssa(Instruction I,
                                      x64_Context *context) {
   x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
   switch (I.C.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
     // #NOTE since subtraction is not commutative we have to allocate A from B
     // regardless of which of B or C is in a register.
@@ -52,7 +52,7 @@ static void x64_codegen_subtract_ssa(Instruction I,
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_Allocation *A =
         x64_context_allocate_from_active(context, local, B, block_index);
 
@@ -62,9 +62,9 @@ static void x64_codegen_subtract_ssa(Instruction I,
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  case OPERAND_KIND_VALUE:
+  default:                 EXP_UNREACHABLE();
   }
 }
 
@@ -79,7 +79,7 @@ static void x64_codegen_subtract_immediate(Instruction I,
      * value of B into a gpr and allocate A there.
      * Then we can emit the sub instruction.
      */
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
 
     x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
@@ -94,7 +94,7 @@ static void x64_codegen_subtract_immediate(Instruction I,
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_context_append(
         context,
@@ -105,9 +105,9 @@ static void x64_codegen_subtract_immediate(Instruction I,
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  case OPERAND_KIND_VALUE:
+  default:                 EXP_UNREACHABLE();
   }
 }
 
@@ -116,18 +116,18 @@ void x64_codegen_sub(Instruction I,
                      x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A);
   switch (I.B.format) {
-  case OPRFMT_SSA: {
+  case OPERAND_KIND_SSA: {
     x64_codegen_subtract_ssa(I, block_index, local, context);
     break;
   }
 
-  case OPRFMT_IMMEDIATE: {
+  case OPERAND_KIND_IMMEDIATE: {
     x64_codegen_subtract_immediate(I, block_index, local, context);
     break;
   }
 
-  case OPRFMT_LABEL:
-  case OPRFMT_VALUE:
-  default:           EXP_UNREACHABLE();
+  case OPERAND_KIND_LABEL:
+  case OPERAND_KIND_VALUE:
+  default:                 EXP_UNREACHABLE();
   }
 }
