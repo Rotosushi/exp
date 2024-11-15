@@ -22,19 +22,21 @@
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_ret(Instruction I, u64 Idx, x64_Context *restrict context) {
+void x64_codegen_ret(Instruction I,
+                     u64 block_index,
+                     x64_Context *restrict context) {
   x64_FunctionBody *body = current_x64_body(context);
   switch (I.B.format) {
   case OPRFMT_SSA: {
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     if (x64_allocation_location_eq(B, body->result->location)) { break; }
-    x64_codegen_copy_allocation(body->result, B, Idx, context);
+    x64_codegen_copy_allocation(body->result, B, block_index, context);
     break;
   }
 
   case OPRFMT_VALUE: {
     x64_codegen_load_allocation_from_value(
-        body->result, I.B.index, Idx, context);
+        body->result, I.B.index, block_index, context);
     break;
   }
 

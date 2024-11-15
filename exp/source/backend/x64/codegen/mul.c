@@ -20,7 +20,121 @@
 #include "backend/x64/codegen/mul.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context) {
+static void x64_codegen_multiply_ssa(Instruction I,
+                                     u64 block_index,
+                                     LocalVariable *local,
+                                     x64_Context *context) {
+  x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
+  switch (I.C.format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+    if ((B->location.kind == LOCATION_GPR) && (B->location.gpr == X64GPR_RAX)) {
+      x64_context_allocate_from_active(context, local, B, block_index);
+
+      x64_context_release_gpr(context, X64GPR_RDX, block_index);
+
+      x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+      break;
+    }
+
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      x64_context_allocate_from_active(context, local, C, block_index);
+
+      x64_context_release_gpr(context, X64GPR_RDX, block_index);
+
+      x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+      break;
+    }
+
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+    x64_context_release_gpr(context, X64GPR_RDX, block_index);
+    if ((B->lifetime.last_use <= C->lifetime.last_use)) {
+      x64_context_append(
+          context, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
+      x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+    } else {
+      x64_context_append(
+          context, x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(C)));
+      x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+    }
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
+      x64_context_allocate_from_active(context, local, B, block_index);
+
+      x64_context_release_gpr(context, X64GPR_RDX, block_index);
+      x64_context_append(context,
+                         x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                 x64_operand_immediate(I.C.immediate)));
+      x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+      break;
+    }
+
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(X64GPR_RAX),
+                               x64_operand_immediate(I.C.immediate)));
+    x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+    break;
+  }
+
+  case OPRFMT_LABEL:
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE();
+  }
+}
+
+static void x64_codegen_multiply_immediate(Instruction I,
+                                           u64 block_index,
+                                           LocalVariable *local,
+                                           x64_Context *context) {
+  switch (I.C.format) {
+  case OPRFMT_SSA: {
+    x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+    if ((C->location.kind == LOCATION_GPR) && (C->location.gpr == X64GPR_RAX)) {
+      x64_context_allocate_from_active(context, local, C, block_index);
+
+      x64_context_release_gpr(context, X64GPR_RDX, block_index);
+      x64_context_append(context,
+                         x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                 x64_operand_immediate(I.B.immediate)));
+      x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+      break;
+    }
+
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(X64GPR_RAX),
+                               x64_operand_immediate(I.B.immediate)));
+    x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+    break;
+  }
+
+  case OPRFMT_IMMEDIATE: {
+    x64_Allocation *A =
+        x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+    x64_context_release_gpr(context, X64GPR_RDX, block_index);
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
+    x64_context_append(context,
+                       x64_mov(x64_operand_gpr(X64GPR_RDX),
+                               x64_operand_immediate(I.C.immediate)));
+    x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+    break;
+  }
+
+  case OPRFMT_LABEL:
+  case OPRFMT_VALUE:
+  default:           EXP_UNREACHABLE();
+  }
+}
+
+void x64_codegen_mul(Instruction I,
+                     u64 block_index,
+                     x64_Context *restrict context) {
   /*
   #NOTE:
     imul takes a single reg/mem argument,
@@ -30,115 +144,12 @@ void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A);
   switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-    switch (I.C.format) {
-    case OPRFMT_SSA: {
-      x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
-      if ((B->location.kind == LOCATION_GPR) &&
-          (B->location.gpr == X64GPR_RAX)) {
-        x64_context_allocate_from_active(context, local, B, Idx);
-
-        x64_context_release_gpr(context, X64GPR_RDX, Idx);
-
-        x64_context_append(context, x64_imul(x64_operand_alloc(C)));
-        break;
-      }
-
-      if ((C->location.kind == LOCATION_GPR) &&
-          (C->location.gpr == X64GPR_RAX)) {
-        x64_context_allocate_from_active(context, local, C, Idx);
-
-        x64_context_release_gpr(context, X64GPR_RDX, Idx);
-
-        x64_context_append(context, x64_imul(x64_operand_alloc(B)));
-        break;
-      }
-
-      x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
-      x64_context_release_gpr(context, X64GPR_RDX, Idx);
-      if ((B->lifetime.last_use <= C->lifetime.last_use)) {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(C)));
-      } else {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(C)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(B)));
-      }
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
-        x64_context_allocate_from_active(context, local, B, Idx);
-
-        x64_context_release_gpr(context, X64GPR_RDX, Idx);
-        x64_context_append(context,
-                           x64_mov(x64_operand_gpr(X64GPR_RDX),
-                                   x64_operand_immediate(I.C.immediate)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
-        break;
-      }
-
-      x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
-      x64_context_append(context,
-                         x64_mov(x64_operand_gpr(X64GPR_RAX),
-                                 x64_operand_immediate(I.C.immediate)));
-      x64_context_append(context, x64_imul(x64_operand_alloc(B)));
-      break;
-    }
-
-    case OPRFMT_LABEL:
-    case OPRFMT_VALUE:
-    default:           EXP_UNREACHABLE();
-    }
+    x64_codegen_multiply_ssa(I, block_index, local, context);
     break;
   }
 
   case OPRFMT_IMMEDIATE: {
-    switch (I.C.format) {
-    case OPRFMT_SSA: {
-      x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
-      if ((C->location.kind == LOCATION_GPR) &&
-          (C->location.gpr == X64GPR_RAX)) {
-        x64_context_allocate_from_active(context, local, C, Idx);
-
-        x64_context_release_gpr(context, X64GPR_RDX, Idx);
-        x64_context_append(context,
-                           x64_mov(x64_operand_gpr(X64GPR_RDX),
-                                   x64_operand_immediate(I.B.immediate)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
-        break;
-      }
-
-      x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
-      x64_context_append(context,
-                         x64_mov(x64_operand_gpr(X64GPR_RAX),
-                                 x64_operand_immediate(I.B.immediate)));
-      x64_context_append(context, x64_imul(x64_operand_alloc(C)));
-      break;
-    }
-
-    case OPRFMT_IMMEDIATE: {
-      x64_Allocation *A =
-          x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
-      x64_context_release_gpr(context, X64GPR_RDX, Idx);
-      x64_context_append(
-          context,
-          x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
-      x64_context_append(context,
-                         x64_mov(x64_operand_gpr(X64GPR_RDX),
-                                 x64_operand_immediate(I.C.immediate)));
-      x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
-      break;
-    }
-
-    case OPRFMT_LABEL:
-    case OPRFMT_VALUE:
-    default:           EXP_UNREACHABLE();
-    }
+    x64_codegen_multiply_immediate(I, block_index, local, context);
     break;
   }
 

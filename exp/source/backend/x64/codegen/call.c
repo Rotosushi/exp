@@ -59,14 +59,16 @@ static void operand_array_append(OperandArray *restrict array,
   array->buffer[array->size++] = operand;
 }
 
-void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
+void x64_codegen_call(Instruction I,
+                      u64 block_index,
+                      x64_Context *restrict context) {
   LocalVariable *local     = x64_context_lookup_ssa(context, I.A);
   u8 scalar_argument_count = 0;
 
   if (type_is_scalar(local->type)) {
-    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, Idx);
+    x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
   } else {
-    x64_Allocation *result = x64_context_allocate(context, local, Idx);
+    x64_Allocation *result = x64_context_allocate(context, local, block_index);
     assert(result->location.kind == LOCATION_ADDRESS);
     x64_context_append(context,
                        x64_lea(x64_operand_gpr(x64_scalar_argument_gpr(
@@ -84,7 +86,7 @@ void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
 
     if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
       x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-      x64_codegen_load_gpr_from_operand(gpr, arg, Idx, context);
+      x64_codegen_load_gpr_from_operand(gpr, arg, block_index, context);
     } else {
       operand_array_append(&stack_args, *arg);
     }
@@ -110,7 +112,7 @@ void x64_codegen_call(Instruction I, u64 Idx, x64_Context *restrict context) {
     actual_arguments_stack_size += offset;
 
     x64_codegen_load_address_from_operand(
-        &arg_address, arg, arg_type, Idx, context);
+        &arg_address, arg, arg_type, block_index, context);
 
     x64_address_increment_offset(&arg_address, offset);
   }

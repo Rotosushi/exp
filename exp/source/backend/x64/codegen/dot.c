@@ -24,7 +24,9 @@
 #include "backend/x64/intrinsics/load.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
+void x64_codegen_dot(Instruction I,
+                     u64 block_index,
+                     x64_Context *restrict context) {
   LocalVariable *local = x64_context_lookup_ssa(context, I.A);
 
   assert(I.C.format == OPRFMT_IMMEDIATE);
@@ -33,7 +35,7 @@ void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
 
   switch (I.B.format) {
   case OPRFMT_SSA: {
-    x64_Allocation *A = x64_context_allocate(context, local, Idx);
+    x64_Allocation *A = x64_context_allocate(context, local, block_index);
     x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
     assert(B->location.kind == LOCATION_ADDRESS);
     assert(B->type->kind == TYPEKIND_TUPLE);
@@ -44,13 +46,13 @@ void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context) {
     Type *element_type    = tuple_type->types[index];
 
     x64_codegen_copy_allocation_from_memory(
-        A, &element_address, element_type, Idx, context);
+        A, &element_address, element_type, block_index, context);
     break;
   }
 
   case OPRFMT_VALUE: {
-    x64_Allocation *A = x64_context_allocate(context, local, Idx);
-    x64_codegen_load_allocation_from_value(A, I.B.index, Idx, context);
+    x64_Allocation *A = x64_context_allocate(context, local, block_index);
+    x64_codegen_load_allocation_from_value(A, I.B.index, block_index, context);
     break;
   }
 
