@@ -22,19 +22,21 @@
 #include "utility/config.h"
 
 int addition([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-  int result = EXIT_SUCCESS;
+    int result = EXIT_SUCCESS;
 
-  StringView source_path = SV(EXP_TEST_DIR "/addition.exp");
+    StringView source_path = SV(EXP_TEST_DIR "/addition.exp");
 
-  result |= test_exp(
-      source_path, "fn main() { const x = 3; const y = 3; return x + y; }", 6);
+    result |= test_exp(source_path,
+                       "fn main() { const x = 1; const y = 1; return x + y; }",
+                       2);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return x + 3; }", 6);
+    result |=
+        test_exp(source_path, "fn main() { const x = 1; return x + 2; }", 3);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return 3 + x; }", 6);
+    result |=
+        test_exp(source_path, "fn main() { const x = 2; return 2 + x; }", 4);
 
-  return result;
+    result |= test_exp(source_path, "fn main() { return 2 + 3; }", 5);
+
+    return result;
 }
-
