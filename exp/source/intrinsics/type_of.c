@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/type_of.h"
+#include "utility/panic.h"
 #include "utility/unreachable.h"
 
 Type *type_of_value(Value *restrict value, Context *restrict context) {
