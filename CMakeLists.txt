@@ -26,7 +26,7 @@ set(CMAKE_C_STANDARD 23)
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 message(STATUS "C compiler ${CMAKE_C_COMPILER}")
 
-project(EXP LANGUAGES C ASM VERSION 0.1.0 DESCRIPTION "A hobby programming language.")
+project(EXP LANGUAGES C ASM VERSION 0.2.0 DESCRIPTION "A hobby programming language.")
 
 set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
 set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
@@ -35,7 +35,7 @@ set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
 set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
-set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion)
+set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
