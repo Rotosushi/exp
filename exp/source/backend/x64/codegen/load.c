@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+
 #include "backend/x64/codegen/load.h"
 #include "backend/x64/intrinsics/load.h"
 #include "utility/unreachable.h"
@@ -23,29 +25,31 @@
 void x64_codegen_load(Instruction I,
                       u64 block_index,
                       x64_Context *restrict context) {
-  LocalVariable *local = x64_context_lookup_ssa(context, I.A);
-  switch (I.B.format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-    x64_context_allocate_from_active(context, local, B, block_index);
-    break;
-  }
+    assert(I.A.kind == OPERAND_KIND_SSA);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
+    switch (I.B.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
+        x64_context_allocate_from_active(context, local, B, block_index);
+        break;
+    }
 
-  case OPERAND_KIND_VALUE: {
-    x64_Allocation *A = x64_context_allocate(context, local, block_index);
-    x64_codegen_load_allocation_from_value(A, I.B.index, block_index, context);
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_codegen_load_allocation_from_value(
+            A, I.B.index, block_index, context);
+        break;
+    }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_Allocation *A = x64_context_allocate(context, local, block_index);
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_alloc(A), x64_operand_immediate(I.B.immediate)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(A),
+                                   x64_operand_immediate(I.B.immediate)));
+        break;
+    }
 
-  case OPERAND_KIND_LABEL:
-  default:                 EXP_UNREACHABLE();
-  }
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
 }

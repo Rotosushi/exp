@@ -21,23 +21,26 @@
 
 #include "utility/int_types.h"
 
-typedef enum OperandFormat : u8 {
-  OPERAND_KIND_SSA,
-  OPERAND_KIND_VALUE,
-  OPERAND_KIND_IMMEDIATE,
-  OPERAND_KIND_LABEL,
-} OperandFormat;
+typedef enum OperandKind : u8 {
+  OPERAND_KIND_SSA       = 0x0,
+  OPERAND_KIND_CONSTANT  = 0x1,
+  OPERAND_KIND_IMMEDIATE = 0x2,
+  OPERAND_KIND_LABEL     = 0x3,
+} OperandKind;
 
+typedef struct Operand {
+  OperandKind kind;
+  union {
+    u16 ssa;
+    u16 index;
+    i16 immediate;
+  };
+} Operand;
 /*
- * #TODO:
- *   typedef struct Operand {
- *     unsigned kind : 8;
- *     unsigned      : 8;
- *     unsigned data : 16;
- *   } Operand;
- *   sizeof(Operand) == sizeof(u32) == 4
+ * sizeof(Operand) == sizeof(u32) == 4
  */
 
+/*
 typedef struct Operand {
   OperandFormat format;
   union {
@@ -46,17 +49,18 @@ typedef struct Operand {
     i64 immediate;
   };
 } Operand;
+*/
 
 struct Context;
 
-Operand operand_ssa(u64 ssa);
-Operand operand_constant(u64 index);
-Operand operand_immediate(i64 imm);
-Operand operand_label(u64 index);
+Operand operand_ssa(u16 ssa);
+Operand operand_constant(u16 index);
+Operand operand_immediate(i16 immediate);
+Operand operand_label(u16 index);
 bool operand_equality(Operand A, Operand B);
-void print_operand_ssa(u64 ssa,
-                       FILE *restrict file,
-                       struct Context *restrict context);
+// void print_operand_ssa(u64 ssa,
+//                        FILE *restrict file,
+//                        struct Context *restrict context);
 void print_operand(Operand operand,
                    FILE *restrict file,
                    struct Context *restrict context);

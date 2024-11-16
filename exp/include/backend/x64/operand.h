@@ -19,11 +19,27 @@
 
 #include "backend/x64/allocation.h"
 
+/*
+ * #TODO:
+ *   typedef enum x64_OperandKind : u8 {
+ *     X64OPRFMT_LOCATION,
+ *     X64OPRFMT_CONSTANT,
+ *     X64OPRFMT_IMMEDIATE,
+ *     X64OPRFMT_LABEL,
+ *   } x64_OperandKind;
+ *   typedef struct x64_Operand {
+ *     unsigned kind : 8;
+ *     unsigned      : 8;
+ *     unsigned data : 16;
+ *   } x64_Operand
+ */
+
 typedef enum x64_OperandFormat : u8 {
-  X64OPRFMT_GPR,
-  X64OPRFMT_ADDRESS,
-  X64OPRFMT_IMMEDIATE,
-  X64OPRFMT_LABEL,
+  X64_OPERAND_KIND_GPR,
+  X64_OPERAND_KIND_ADDRESS,
+  X64_OPERAND_KIND_IMMEDIATE,
+  X64_OPERAND_KIND_LABEL,
+  X64_OPERAND_KIND_CONSTANT,
 } x64_OperandFormat;
 
 typedef struct x64_Operand {
@@ -41,6 +57,7 @@ x64_Operand x64_operand_address(x64_Address address);
 x64_Operand x64_operand_location(x64_Location location);
 x64_Operand x64_operand_alloc(x64_Allocation *alloc);
 x64_Operand x64_operand_immediate(i64 value);
+x64_Operand x64_operand_constant(u16 index);
 x64_Operand x64_operand_label(u64 index);
 
 #endif // !EXP_BACKEND_X64_OPERAND_H

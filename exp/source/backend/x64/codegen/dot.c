@@ -27,39 +27,41 @@
 void x64_codegen_dot(Instruction I,
                      u64 block_index,
                      x64_Context *restrict context) {
-  LocalVariable *local = x64_context_lookup_ssa(context, I.A);
+    assert(I.A.kind == OPERAND_KIND_SSA);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
 
-  assert(I.C.format == OPERAND_KIND_IMMEDIATE);
-  assert((I.C.immediate >= 0) && (I.C.immediate <= i64_MAX));
-  u64 index = (u64)I.C.immediate;
+    assert(I.C.kind == OPERAND_KIND_IMMEDIATE);
+    assert(I.C.immediate >= 0);
+    u16 index = (u16)I.C.immediate;
 
-  switch (I.B.format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *A = x64_context_allocate(context, local, block_index);
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-    assert(B->location.kind == LOCATION_ADDRESS);
-    assert(B->type->kind == TYPEKIND_TUPLE);
-    x64_Address *tuple_address = &B->location.address;
-    x64_Address element_address =
-        x64_get_element_address(tuple_address, B->type, index);
-    TupleType *tuple_type = &B->type->tuple_type;
-    Type *element_type    = tuple_type->types[index];
+    switch (I.B.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
+        assert(B->location.kind == LOCATION_ADDRESS);
+        assert(B->type->kind == TYPEKIND_TUPLE);
+        x64_Address *tuple_address = &B->location.address;
+        x64_Address element_address =
+            x64_get_element_address(tuple_address, B->type, index);
+        TupleType *tuple_type = &B->type->tuple_type;
+        Type *element_type    = tuple_type->types[index];
 
-    x64_codegen_copy_allocation_from_memory(
-        A, &element_address, element_type, block_index, context);
-    break;
-  }
+        x64_codegen_copy_allocation_from_memory(
+            A, &element_address, element_type, block_index, context);
+        break;
+    }
 
-  case OPERAND_KIND_VALUE: {
-    x64_Allocation *A = x64_context_allocate(context, local, block_index);
-    x64_codegen_load_allocation_from_value(A, I.B.index, block_index, context);
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_codegen_load_allocation_from_value(
+            A, I.B.index, block_index, context);
+        break;
+    }
 
-  // we will never store tuples as immediates
-  case OPERAND_KIND_IMMEDIATE:
-  // we don't support globals which are not functions yet
-  case OPERAND_KIND_LABEL:
-  default:                 EXP_UNREACHABLE();
-  }
+    // we will never store tuples as immediates
+    case OPERAND_KIND_IMMEDIATE:
+    // we don't support globals which are not functions yet
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
 }

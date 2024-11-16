@@ -103,7 +103,7 @@ typedef enum InstructionFormat : u8 {
 typedef struct Instruction {
   Opcode opcode;
   InstructionFormat format;
-  u64 A;
+  Operand A;
   Operand B;
   Operand C;
 } Instruction;

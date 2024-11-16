@@ -30,32 +30,33 @@ static void
 x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
                                            Value *restrict value,
                                            x64_Context *restrict context) {
-  switch (value->kind) {
-  case VALUEKIND_UNINITIALIZED: break; // don't initialize the uninitialized
+    switch (value->kind) {
+    case VALUEKIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
-  case VALUEKIND_NIL: {
-    x64_context_append(
-        context, x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
-    break;
-  }
+    case VALUEKIND_NIL: {
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
+        break;
+    }
 
-  case VALUEKIND_BOOLEAN: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_address(*dst),
-                               x64_operand_immediate((i64)value->boolean)));
-    break;
-  }
+    case VALUEKIND_BOOLEAN: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(*dst),
+                                   x64_operand_immediate((i64)value->boolean)));
+        break;
+    }
 
-  case VALUEKIND_I64: {
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_address(*dst), x64_operand_immediate(value->i64_)));
-    break;
-  }
+    case VALUEKIND_I64: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(*dst),
+                                   x64_operand_immediate(value->i64_)));
+        break;
+    }
 
-  case VALUEKIND_TUPLE:
-  default:              EXP_UNREACHABLE();
-  }
+    case VALUEKIND_TUPLE:
+    default:              EXP_UNREACHABLE();
+    }
 }
 
 static void x64_codegen_load_address_from_scalar_operand(
@@ -64,43 +65,45 @@ static void x64_codegen_load_address_from_scalar_operand(
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
-  assert(type_is_scalar(type));
+    assert(type_is_scalar(type));
 
-  switch (src->format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
-    if (allocation->location.kind == LOCATION_GPR) {
-      x64_context_append(context,
-                         x64_mov(x64_operand_address(*dst),
-                                 x64_operand_gpr(allocation->location.gpr)));
-    } else {
-      x64_codegen_copy_scalar_memory(
-          dst, &allocation->location.address, Idx, context);
+    switch (src->kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *allocation =
+            x64_context_allocation_of(context, src->ssa);
+        if (allocation->location.kind == LOCATION_GPR) {
+            x64_context_append(
+                context,
+                x64_mov(x64_operand_address(*dst),
+                        x64_operand_gpr(allocation->location.gpr)));
+        } else {
+            x64_codegen_copy_scalar_memory(
+                dst, &allocation->location.address, Idx, context);
+        }
+        break;
     }
-    break;
-  }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_address(*dst),
-                               x64_operand_immediate(src->immediate)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(*dst),
+                                   x64_operand_immediate(src->immediate)));
+        break;
+    }
 
-  case OPERAND_KIND_LABEL: {
-    PANIC("#TODO");
-    break;
-  }
+    case OPERAND_KIND_LABEL: {
+        PANIC("#TODO");
+        break;
+    }
 
-  case OPERAND_KIND_VALUE: {
-    Value *value = x64_context_value_at(context, src->index);
-    assert(type_equality(type, type_of_value(value, context->context)));
-    x64_codegen_load_address_from_scalar_value(dst, value, context);
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        Value *value = x64_context_value_at(context, src->index);
+        assert(type_equality(type, type_of_value(value, context->context)));
+        x64_codegen_load_address_from_scalar_value(dst, value, context);
+        break;
+    }
 
-  default: EXP_UNREACHABLE();
-  }
+    default: EXP_UNREACHABLE();
+    }
 }
 
 static void
@@ -109,50 +112,51 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
                                                 Type *restrict type,
                                                 u64 Idx,
                                                 x64_Context *restrict context) {
-  switch (src->format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
+    switch (src->kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *allocation =
+            x64_context_allocation_of(context, src->ssa);
 
-    assert(allocation->location.kind == LOCATION_ADDRESS);
+        assert(allocation->location.kind == LOCATION_ADDRESS);
 
-    x64_codegen_copy_composite_memory(
-        dst, &allocation->location.address, type, Idx, context);
-    break;
-  }
-
-  case OPERAND_KIND_VALUE: {
-    Value *value = x64_context_value_at(context, src->index);
-    Type *type   = type_of_value(value, context->context);
-    assert(value->kind == VALUEKIND_TUPLE);
-    assert(!type_is_scalar(type));
-    (void)type;
-    Tuple *tuple = &value->tuple;
-
-    x64_Address dst_element_address = *dst;
-    for (u64 i = 0; i < tuple->size; ++i) {
-      Operand *element   = tuple->elements + i;
-      Type *element_type = type_of_operand(element, context->context);
-      u64 element_size   = size_of(element_type);
-
-      x64_codegen_load_address_from_operand(
-          &dst_element_address, element, element_type, Idx, context);
-
-      assert(element_size <= i64_MAX);
-      i64 offset = (i64)element_size;
-      x64_address_increment_offset(&dst_element_address, offset);
+        x64_codegen_copy_composite_memory(
+            dst, &allocation->location.address, type, Idx, context);
+        break;
     }
 
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        Value *value = x64_context_value_at(context, src->index);
+        Type *type   = type_of_value(value, context->context);
+        assert(value->kind == VALUEKIND_TUPLE);
+        assert(!type_is_scalar(type));
+        (void)type;
+        Tuple *tuple = &value->tuple;
 
-  case OPERAND_KIND_LABEL: {
-    PANIC("#TODO");
-    break;
-  }
+        x64_Address dst_element_address = *dst;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            Operand element    = tuple->elements[i];
+            Type *element_type = type_of_operand(element, context->context);
+            u64 element_size   = size_of(element_type);
 
-  case OPERAND_KIND_IMMEDIATE:
-  default:                     EXP_UNREACHABLE();
-  }
+            x64_codegen_load_address_from_operand(
+                &dst_element_address, &element, element_type, Idx, context);
+
+            assert(element_size <= i64_MAX);
+            i64 offset = (i64)element_size;
+            x64_address_increment_offset(&dst_element_address, offset);
+        }
+
+        break;
+    }
+
+    case OPERAND_KIND_LABEL: {
+        PANIC("#TODO");
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE:
+    default:                     EXP_UNREACHABLE();
+    }
 }
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
@@ -160,12 +164,13 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            Type *restrict type,
                                            u64 Idx,
                                            x64_Context *restrict context) {
-  if (type_is_scalar(type)) {
-    x64_codegen_load_address_from_scalar_operand(dst, src, type, Idx, context);
-  } else {
-    x64_codegen_load_address_from_composite_operand(
-        dst, src, type, Idx, context);
-  }
+    if (type_is_scalar(type)) {
+        x64_codegen_load_address_from_scalar_operand(
+            dst, src, type, Idx, context);
+    } else {
+        x64_codegen_load_address_from_composite_operand(
+            dst, src, type, Idx, context);
+    }
 }
 
 static void x64_codegen_load_argument_from_scalar_operand(
@@ -174,35 +179,37 @@ static void x64_codegen_load_argument_from_scalar_operand(
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
-  switch (src->format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
-    if (allocation->location.kind == LOCATION_GPR) {
-      x64_context_append(context,
-                         x64_mov(x64_operand_address(*dst),
-                                 x64_operand_gpr(allocation->location.gpr)));
-    } else {
-      x64_codegen_copy_scalar_memory(
-          dst, &allocation->location.address, Idx, context);
+    switch (src->kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *allocation =
+            x64_context_allocation_of(context, src->ssa);
+        if (allocation->location.kind == LOCATION_GPR) {
+            x64_context_append(
+                context,
+                x64_mov(x64_operand_address(*dst),
+                        x64_operand_gpr(allocation->location.gpr)));
+        } else {
+            x64_codegen_copy_scalar_memory(
+                dst, &allocation->location.address, Idx, context);
+        }
+        break;
     }
-    break;
-  }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_address(*dst),
-                               x64_operand_immediate(src->immediate)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(*dst),
+                                   x64_operand_immediate(src->immediate)));
+        break;
+    }
 
-  case OPERAND_KIND_LABEL: {
-    PANIC("#TODO");
-    break;
-  }
+    case OPERAND_KIND_LABEL: {
+        PANIC("#TODO");
+        break;
+    }
 
-  case OPERAND_KIND_VALUE:
-  default:                 EXP_UNREACHABLE();
-  }
+    case OPERAND_KIND_CONSTANT:
+    default:                    EXP_UNREACHABLE();
+    }
 }
 
 static void x64_codegen_load_argument_from_composite_operand(
@@ -211,50 +218,51 @@ static void x64_codegen_load_argument_from_composite_operand(
     Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
-  switch (src->format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
+    switch (src->kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *allocation =
+            x64_context_allocation_of(context, src->ssa);
 
-    assert(allocation->location.kind == LOCATION_ADDRESS);
+        assert(allocation->location.kind == LOCATION_ADDRESS);
 
-    x64_codegen_copy_composite_memory(
-        dst, &allocation->location.address, type, Idx, context);
-    break;
-  }
-
-  case OPERAND_KIND_VALUE: {
-    Value *value = x64_context_value_at(context, src->index);
-    Type *type   = type_of_value(value, context->context);
-    assert(value->kind == VALUEKIND_TUPLE);
-    assert(!type_is_scalar(type));
-    (void)type;
-    Tuple *tuple = &value->tuple;
-
-    x64_Address dst_element_address = *dst;
-    for (u64 i = 0; i < tuple->size; ++i) {
-      Operand *element   = tuple->elements + i;
-      Type *element_type = type_of_operand(element, context->context);
-      u64 element_size   = size_of(element_type);
-
-      x64_codegen_load_argument_from_operand(
-          &dst_element_address, element, element_type, Idx, context);
-
-      assert(element_size <= i64_MAX);
-      i64 offset = -(i64)element_size;
-      x64_address_increment_offset(&dst_element_address, offset);
+        x64_codegen_copy_composite_memory(
+            dst, &allocation->location.address, type, Idx, context);
+        break;
     }
 
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        Value *value = x64_context_value_at(context, src->index);
+        Type *type   = type_of_value(value, context->context);
+        assert(value->kind == VALUEKIND_TUPLE);
+        assert(!type_is_scalar(type));
+        (void)type;
+        Tuple *tuple = &value->tuple;
 
-  case OPERAND_KIND_LABEL: {
-    PANIC("#TODO");
-    break;
-  }
+        x64_Address dst_element_address = *dst;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            Operand element    = tuple->elements[i];
+            Type *element_type = type_of_operand(element, context->context);
+            u64 element_size   = size_of(element_type);
 
-  case OPERAND_KIND_IMMEDIATE:
-  default:                     EXP_UNREACHABLE();
-  }
+            x64_codegen_load_argument_from_operand(
+                &dst_element_address, &element, element_type, Idx, context);
+
+            assert(element_size <= i64_MAX);
+            i64 offset = -(i64)element_size;
+            x64_address_increment_offset(&dst_element_address, offset);
+        }
+
+        break;
+    }
+
+    case OPERAND_KIND_LABEL: {
+        PANIC("#TODO");
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE:
+    default:                     EXP_UNREACHABLE();
+    }
 }
 
 void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
@@ -262,104 +270,107 @@ void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
                                             Type *restrict type,
                                             u64 Idx,
                                             x64_Context *restrict context) {
-  if (type_is_scalar(type)) {
-    x64_codegen_load_argument_from_scalar_operand(dst, src, type, Idx, context);
-  } else {
-    x64_codegen_load_argument_from_composite_operand(
-        dst, src, type, Idx, context);
-  }
+    if (type_is_scalar(type)) {
+        x64_codegen_load_argument_from_scalar_operand(
+            dst, src, type, Idx, context);
+    } else {
+        x64_codegen_load_argument_from_composite_operand(
+            dst, src, type, Idx, context);
+    }
 }
 
 void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
                                        Operand *restrict src,
                                        [[maybe_unused]] u64 Idx,
                                        x64_Context *restrict context) {
-  switch (src->format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *allocation = x64_context_allocation_of(context, src->ssa);
-    x64_context_append(
-        context, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
-    break;
-  }
+    switch (src->kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *allocation =
+            x64_context_allocation_of(context, src->ssa);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
+        break;
+    }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_gpr(gpr), x64_operand_immediate(src->immediate)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(gpr),
+                                   x64_operand_immediate(src->immediate)));
+        break;
+    }
 
-  // we don't create scalar values (yet)
-  case OPERAND_KIND_VALUE:
-  // we don't create globals that are not functions (yet)
-  case OPERAND_KIND_LABEL:
-  default:                 EXP_UNREACHABLE();
-  }
+    // we don't create scalar values (yet)
+    case OPERAND_KIND_CONSTANT:
+    // we don't create globals that are not functions (yet)
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
 }
 
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               Operand *restrict src,
                                               u64 Idx,
                                               x64_Context *restrict context) {
-  if (dst->location.kind == LOCATION_ADDRESS) {
-    x64_codegen_load_address_from_operand(
-        &dst->location.address, src, dst->type, Idx, context);
-  } else {
-    x64_codegen_load_gpr_from_operand(dst->location.gpr, src, Idx, context);
-  }
+    if (dst->location.kind == LOCATION_ADDRESS) {
+        x64_codegen_load_address_from_operand(
+            &dst->location.address, src, dst->type, Idx, context);
+    } else {
+        x64_codegen_load_gpr_from_operand(dst->location.gpr, src, Idx, context);
+    }
 }
 
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
-                                            u64 index,
+                                            u16 index,
                                             u64 Idx,
                                             x64_Context *restrict context) {
-  Value *value = x64_context_value_at(context, index);
-  Type *type   = type_of_value(value, context->context);
-  assert(type_equality(dst->type, type));
-  (void)type;
+    Value *value = x64_context_value_at(context, index);
+    Type *type   = type_of_value(value, context->context);
+    assert(type_equality(dst->type, type));
+    (void)type;
 
-  switch (value->kind) {
-  case VALUEKIND_UNINITIALIZED: break;
+    switch (value->kind) {
+    case VALUEKIND_UNINITIALIZED: break;
 
-  case VALUEKIND_NIL: {
-    x64_context_append(
-        context, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
-    break;
-  }
-
-  case VALUEKIND_BOOLEAN: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_alloc(dst),
-                               x64_operand_immediate((i64)value->boolean)));
-    break;
-  }
-
-  case VALUEKIND_I64: {
-    x64_context_append(
-        context,
-        x64_mov(x64_operand_alloc(dst), x64_operand_immediate(value->i64_)));
-    break;
-  }
-
-  case VALUEKIND_TUPLE: {
-    assert(dst->location.kind == LOCATION_ADDRESS);
-    Tuple *tuple            = &value->tuple;
-    x64_Address dst_address = dst->location.address;
-    for (u64 i = 0; i < tuple->size; ++i) {
-      Operand *element   = tuple->elements + i;
-      Type *element_type = type_of_operand(element, context->context);
-      u64 element_size   = size_of(element_type);
-
-      x64_codegen_load_address_from_operand(
-          &dst_address, element, element_type, Idx, context);
-
-      assert(element_size <= i64_MAX);
-      i64 offset = (i64)element_size;
-      x64_address_increment_offset(&dst_address, offset);
+    case VALUEKIND_NIL: {
+        x64_context_append(
+            context, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
+        break;
     }
-    break;
-  }
 
-  default: EXP_UNREACHABLE();
-  }
+    case VALUEKIND_BOOLEAN: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(dst),
+                                   x64_operand_immediate((i64)value->boolean)));
+        break;
+    }
+
+    case VALUEKIND_I64: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(dst),
+                                   x64_operand_immediate(value->i64_)));
+        break;
+    }
+
+    case VALUEKIND_TUPLE: {
+        assert(dst->location.kind == LOCATION_ADDRESS);
+        Tuple *tuple            = &value->tuple;
+        x64_Address dst_address = dst->location.address;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            Operand element    = tuple->elements[i];
+            Type *element_type = type_of_operand(element, context->context);
+            u64 element_size   = size_of(element_type);
+
+            x64_codegen_load_address_from_operand(
+                &dst_address, &element, element_type, Idx, context);
+
+            assert(element_size <= i64_MAX);
+            i64 offset = (i64)element_size;
+            x64_address_increment_offset(&dst_address, offset);
+        }
+        break;
+    }
+
+    default: EXP_UNREACHABLE();
+    }
 }

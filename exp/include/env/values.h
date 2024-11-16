@@ -22,8 +22,8 @@
 #include "utility/io.h"
 
 typedef struct Values {
-  u64 length;
-  u64 capacity;
+  u16 count;
+  u16 capacity;
   Value *buffer;
 } Values;
 
@@ -57,7 +57,7 @@ Operand values_add(Values *restrict values, Value value);
  * @param index
  * @return Value*
  */
-Value *values_at(Values *restrict values, u64 index);
+Value *values_at(Values *restrict values, u16 index);
 
 struct Context;
 void print_values(Values const *restrict values,

@@ -74,7 +74,7 @@ static void print_AB(char const *restrict inst,
                      Context *restrict context) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand_ssa(I.A, file, context);
+  print_operand(I.A, file, context);
   file_write(", ", file);
   print_operand(I.B, file, context);
 }
@@ -85,7 +85,7 @@ static void print_ABC(char const *restrict inst,
                       Context *restrict context) {
   file_write(inst, file);
   file_write(" ", file);
-  print_operand_ssa(I.A, file, context);
+  print_operand(I.A, file, context);
   file_write(", ", file);
   print_operand(I.B, file, context);
   file_write(", ", file);

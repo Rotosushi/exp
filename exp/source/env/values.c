@@ -23,11 +23,10 @@
 #include "env/values.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
 
 Values values_create() {
   Values values;
-  values.length   = 0;
+  values.count    = 0;
   values.capacity = 0;
   values.buffer   = NULL;
   return values;
@@ -35,37 +34,31 @@ Values values_create() {
 
 void values_destroy(Values *restrict values) {
   assert(values != NULL);
-  for (u64 i = 0; i < values->length; ++i) {
+  for (u64 i = 0; i < values->count; ++i) {
     Value *constant = values->buffer + i;
     value_destroy(constant);
   }
 
-  values->length   = 0;
+  values->count    = 0;
   values->capacity = 0;
   deallocate(values->buffer);
   values->buffer = NULL;
 }
 
 static bool values_full(Values *restrict values) {
-  return (values->length + 1) >= values->capacity;
+  return (values->count + 1) >= values->capacity;
 }
 
 static void values_grow(Values *restrict values) {
-  Growth g         = array_growth_u64(values->capacity, sizeof(Value));
+  Growth g         = array_growth_u16(values->capacity, sizeof(Value));
   values->buffer   = reallocate(values->buffer, g.alloc_size);
-  values->capacity = g.new_capacity;
-}
-
-[[maybe_unused]] static bool index_inbounds(Values *restrict values,
-                                            u64 index) {
-  return index < values->length;
+  values->capacity = (u16)g.new_capacity;
 }
 
 Operand values_add(Values *restrict values, Value value) {
   assert(values != NULL);
 
-  for (u64 i = 0; i < values->length; ++i) {
-    if (i == u64_MAX) { PANIC("constant index out of bounds"); }
+  for (u16 i = 0; i < values->count; ++i) {
     Value *v = values->buffer + i;
     if (value_equality(v, &value)) {
       value_destroy(&value);
@@ -75,23 +68,23 @@ Operand values_add(Values *restrict values, Value value) {
 
   if (values_full(values)) { values_grow(values); }
 
-  u64 index                      = values->length;
-  values->buffer[values->length] = value;
-  values->length += 1;
+  u16 index                     = values->count;
+  values->buffer[values->count] = value;
+  values->count += 1;
 
   return operand_constant(index);
 }
 
-Value *values_at(Values *restrict values, u64 index) {
+Value *values_at(Values *restrict values, u16 index) {
   assert(values != NULL);
-  assert(index_inbounds(values, index));
+  assert(index < values->count);
   return values->buffer + index;
 }
 
 void print_values(Values const *restrict values,
                   FILE *restrict file,
                   Context *restrict context) {
-  for (u64 i = 0; i < values->length; ++i) {
+  for (u16 i = 0; i < values->count; ++i) {
     file_write_u64(i, file);
     file_write(": ", file);
     file_write("[", file);

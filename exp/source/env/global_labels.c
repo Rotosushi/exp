@@ -21,7 +21,7 @@
 #include "utility/array_growth.h"
 
 GlobalLabels global_labels_create() {
-  GlobalLabels symbols = {.size = 0, .capacity = 0, .buffer = NULL};
+  GlobalLabels symbols = {.count = 0, .capacity = 0, .buffer = NULL};
   return symbols;
 }
 
@@ -29,38 +29,39 @@ void global_labels_destroy(GlobalLabels *restrict symbols) {
   assert(symbols != NULL);
   deallocate(symbols->buffer);
   symbols->buffer   = NULL;
-  symbols->size     = 0;
+  symbols->count    = 0;
   symbols->capacity = 0;
 }
 
 static bool global_labels_full(GlobalLabels *restrict symbols) {
-  return (symbols->size + 1) >= symbols->capacity;
+  return (symbols->count + 1) >= symbols->capacity;
 }
 
 static void global_labels_grow(GlobalLabels *restrict symbols) {
-  Growth g          = array_growth_u64(symbols->capacity, sizeof(StringView));
+  Growth g          = array_growth_u16(symbols->capacity, sizeof(StringView));
   symbols->buffer   = reallocate(symbols->buffer, g.alloc_size);
-  symbols->capacity = g.new_capacity;
+  symbols->capacity = (u16)g.new_capacity;
 }
 
-u64 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
+u16 global_labels_insert(GlobalLabels *restrict symbols, StringView symbol) {
   assert(symbols != NULL);
 
   if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
-  for (u64 i = 0; i < symbols->size; ++i) {
+  for (u64 i = 0; i < symbols->count; ++i) {
+    assert(i < u16_MAX);
     StringView s = symbols->buffer[i];
-    if (string_view_equality(s, symbol)) { return i; }
+    if (string_view_equality(s, symbol)) { return (u16)i; }
   }
 
-  u64 idx              = symbols->size;
-  symbols->buffer[idx] = symbol;
-  symbols->size += 1;
-  return idx;
+  u16 index              = symbols->count;
+  symbols->buffer[index] = symbol;
+  symbols->count += 1;
+  return index;
 }
 
-StringView global_labels_at(GlobalLabels *restrict symbols, u64 idx) {
+StringView global_labels_at(GlobalLabels *restrict symbols, u16 index) {
   assert(symbols != NULL);
-  assert(idx < symbols->size);
-  return symbols->buffer[idx];
+  assert(index < symbols->count);
+  return symbols->buffer[index];
 }

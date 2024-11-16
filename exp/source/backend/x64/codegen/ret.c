@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+
 #include "backend/x64/codegen/ret.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
@@ -25,48 +27,48 @@
 void x64_codegen_ret(Instruction I,
                      u64 block_index,
                      x64_Context *restrict context) {
-  x64_FunctionBody *body = current_x64_body(context);
-  switch (I.B.format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-    if (x64_allocation_location_eq(B, body->result->location)) { break; }
-    x64_codegen_copy_allocation(body->result, B, block_index, context);
-    break;
-  }
+    x64_FunctionBody *body = current_x64_body(context);
+    switch (I.B.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
+        if (x64_allocation_location_eq(B, body->result->location)) { break; }
+        x64_codegen_copy_allocation(body->result, B, block_index, context);
+        break;
+    }
 
-  case OPERAND_KIND_VALUE: {
-    x64_codegen_load_allocation_from_value(
-        body->result, I.B.index, block_index, context);
-    break;
-  }
+    case OPERAND_KIND_CONSTANT: {
+        x64_codegen_load_allocation_from_value(
+            body->result, I.B.index, block_index, context);
+        break;
+    }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_context_append(context,
-                       x64_mov(x64_operand_alloc(body->result),
-                               x64_operand_immediate(I.B.immediate)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(body->result),
+                                   x64_operand_immediate(I.B.immediate)));
+        break;
+    }
 
-  case OPERAND_KIND_LABEL: {
-    /*
-     * #NOTE #TODO #FEATURE eventually we will add support for
-     * global constants (global variables are in limbo until
-     * proven vital). When these exist, it will be possible to
-     * access them via OPRFMT_LABEL operands. Since we do not
-     * have them yet, this case is effecively unreachable.
-     * (right now OPRFMT_LABEL is used exclusively for global
-     *  functions. which are global constants.)
-     */
-    PANIC("#TODO");
-    break;
-  }
+    case OPERAND_KIND_LABEL: {
+        /*
+         * #NOTE #TODO #FEATURE eventually we will add support for
+         * global constants (global variables are in limbo until
+         * proven vital). When these exist, it will be possible to
+         * access them via OPRFMT_LABEL operands. Since we do not
+         * have them yet, this case is effecively unreachable.
+         * (right now OPRFMT_LABEL is used exclusively for global
+         *  functions. which are global constants.)
+         */
+        PANIC("#TODO");
+        break;
+    }
 
-  default: EXP_UNREACHABLE();
-  }
+    default: EXP_UNREACHABLE();
+    }
 
-  x64_context_append(
-      context,
-      x64_mov(x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP)));
-  x64_context_append(context, x64_pop(x64_operand_gpr(X64GPR_RBP)));
-  x64_context_append(context, x64_ret());
+    x64_context_append(
+        context,
+        x64_mov(x64_operand_gpr(X64GPR_RSP), x64_operand_gpr(X64GPR_RBP)));
+    x64_context_append(context, x64_pop(x64_operand_gpr(X64GPR_RBP)));
+    x64_context_append(context, x64_ret());
 }

@@ -111,7 +111,7 @@ void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
 }
 
 static void local_variables_name_ssa(LocalVariables *restrict lv,
-                                     u64 ssa,
+                                     u16 ssa,
                                      StringView name) {
   for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
@@ -132,7 +132,7 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
 }
 
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
-                                          u64 ssa) {
+                                          u16 ssa) {
   for (u64 i = 0; i < lv->size; ++i) {
     LocalVariable *var = lv->buffer + i;
     if (var->ssa == ssa) { return var; }
@@ -161,10 +161,11 @@ void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument argument) {
   assert(function != NULL);
 
-  LocalVariable local_arg = {.name = argument.name,
-                             .type = argument.type,
-                             .ssa  = function->ssa_count++};
-  argument.ssa            = local_arg.ssa;
+  u16 ssa = (u16)(function->ssa_count++);
+  assert(function->ssa_count <= u16_MAX);
+  LocalVariable local_arg = {
+      .name = argument.name, .type = argument.type, .ssa = ssa};
+  argument.ssa = local_arg.ssa;
 
   local_variables_append(&function->locals, local_arg);
   formal_argument_list_append(&function->arguments, argument);
@@ -172,15 +173,16 @@ void function_body_new_argument(FunctionBody *restrict function,
 
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u64 ssa) {
+                             u16 ssa) {
   assert(function != NULL);
   local_variables_name_ssa(&function->locals, ssa, name);
 }
 
 Operand function_body_new_ssa(FunctionBody *restrict function) {
   assert(function != NULL);
-  LocalVariable local = {
-      .name = SV(""), .type = NULL, .ssa = function->ssa_count++};
+  u16 ssa = (u16)(function->ssa_count++);
+  assert(function->ssa_count <= u16_MAX);
+  LocalVariable local = {.name = SV(""), .type = NULL, .ssa = ssa};
   local_variables_append(&function->locals, local);
   return operand_ssa(local.ssa);
 }

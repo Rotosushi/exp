@@ -21,10 +21,10 @@
 #include "env/context.h"
 
 typedef struct x64_Context {
-  Context *context;
-  FunctionBody *body;
-  x64_FunctionBody *x64_body;
-  x64_SymbolTable symbols;
+    Context *context;
+    FunctionBody *body;
+    x64_FunctionBody *x64_body;
+    x64_SymbolTable symbols;
 } x64_Context;
 
 // x64 context functions
@@ -33,11 +33,11 @@ void x64_context_destroy(x64_Context *restrict x64_context);
 
 // context functions
 // context constants functions
-Value *x64_context_value_at(x64_Context *restrict context, u64 index);
+Value *x64_context_value_at(x64_Context *restrict context, u16 index);
 
 // context global symbol table functions
 StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
-                                        u64 idx);
+                                        u16 index);
 
 // context x64 function functions
 void x64_context_enter_function(x64_Context *restrict x64_context,
@@ -66,13 +66,13 @@ void x64_context_prepend(x64_Context *restrict x64_context, x64_Instruction I);
 void x64_context_append(x64_Context *restrict x64_context, x64_Instruction I);
 
 LocalVariable *x64_context_lookup_ssa(x64_Context *restrict x64_context,
-                                      u64 ssa);
+                                      u16 ssa);
 
 bool x64_context_uses_stack(x64_Context *restrict x64_context);
 i64 x64_context_stack_size(x64_Context *restrict x64_context);
 
 x64_Allocation *x64_context_allocation_of(x64_Context *restrict x64_context,
-                                          u64 ssa);
+                                          u16 ssa);
 
 void x64_context_release_gpr(x64_Context *restrict x64_context,
                              x64_GPR gpr,

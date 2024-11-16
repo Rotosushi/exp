@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 
 #include "backend/x64/codegen/neg.h"
 #include "utility/unreachable.h"
@@ -23,25 +24,25 @@
 void x64_codegen_neg(Instruction I,
                      u64 block_index,
                      x64_Context *restrict context) {
-  LocalVariable *local = x64_context_lookup_ssa(context, I.A);
-  switch (I.B.format) {
-  case OPERAND_KIND_SSA: {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
-    x64_Allocation *A =
-        x64_context_allocate_from_active(context, local, B, block_index);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
+    switch (I.B.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
+        x64_Allocation *A =
+            x64_context_allocate_from_active(context, local, B, block_index);
 
-    x64_context_append(context, x64_neg(x64_operand_alloc(A)));
-    break;
-  }
+        x64_context_append(context, x64_neg(x64_operand_alloc(A)));
+        break;
+    }
 
-  case OPERAND_KIND_IMMEDIATE: {
-    x64_Allocation *A = x64_context_allocate(context, local, block_index);
-    x64_context_append(context, x64_neg(x64_operand_alloc(A)));
-    break;
-  }
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(context, x64_neg(x64_operand_alloc(A)));
+        break;
+    }
 
-  case OPERAND_KIND_LABEL:
-  case OPERAND_KIND_VALUE:
-  default:                 EXP_UNREACHABLE();
-  }
+    case OPERAND_KIND_LABEL:
+    case OPERAND_KIND_CONSTANT:
+    default:                    EXP_UNREACHABLE();
+    }
 }

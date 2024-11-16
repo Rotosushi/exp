@@ -26,7 +26,7 @@ typedef struct FormalArgument {
   StringView name;
   Type *type;
   u8 index;
-  u64 ssa;
+  u16 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -45,7 +45,7 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
 typedef struct LocalVariable {
   StringView name;
   Type *type;
-  u64 ssa;
+  u16 ssa;
 } LocalVariable;
 
 typedef struct LocalVariables {
@@ -57,7 +57,7 @@ typedef struct LocalVariables {
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
-LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u64 ssa);
+LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
 
 typedef struct FunctionBody {
   FormalArgumentList arguments;
@@ -74,7 +74,7 @@ void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument arg);
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u64 ssa);
+                             u16 ssa);
 Operand function_body_new_ssa(FunctionBody *restrict function);
 
 struct Context;

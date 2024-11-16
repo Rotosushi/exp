@@ -73,9 +73,8 @@ Type *context_function_type(Context *restrict context,
                             TupleType argument_types);
 
 // global labels functions
-u64 context_global_labels_insert(Context *restrict context, StringView symbol);
-
-StringView context_global_labels_at(Context *restrict context, u64 idx);
+u16 context_global_labels_insert(Context *restrict context, StringView symbol);
+StringView context_global_labels_at(Context *restrict context, u16 index);
 
 // symbol table functions
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
@@ -95,8 +94,10 @@ Bytecode *context_active_bytecode(Context *restrict c);
 void context_def_local_const(Context *restrict c,
                              StringView name,
                              Operand value);
+
 LocalVariable *context_lookup_local(Context *restrict c, StringView name);
-LocalVariable *context_lookup_ssa(Context *restrict c, u64 ssa);
+LocalVariable *context_lookup_ssa(Context *restrict c, u16 ssa);
+
 FormalArgument *context_lookup_argument(Context *restrict c, StringView name);
 FormalArgument *context_argument_at(Context *restrict c, u8 index);
 
@@ -104,7 +105,7 @@ void context_leave_function(Context *restrict c);
 
 // Values functions
 Operand context_values_append(Context *restrict context, Value value);
-Value *context_values_at(Context *restrict context, u64 index);
+Value *context_values_at(Context *restrict context, u16 index);
 
 // Bytecode functions
 void context_emit_return(Context *restrict c, Operand B);
