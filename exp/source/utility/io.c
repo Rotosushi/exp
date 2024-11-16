@@ -48,13 +48,13 @@ void file_write(const char *restrict buffer, FILE *restrict stream) {
 }
 
 void file_write_i64(i64 value, FILE *restrict stream) {
-    char buf[i64_safe_strlen(value) + 1];
+    char buf[i64_safe_strlen(value) + 1] = {};
     if (i64_to_str(value, buf) == NULL) { PANIC("i64_to_str failed"); }
     file_write(buf, stream);
 }
 
 void file_write_u64(u64 value, FILE *restrict stream) {
-    char buf[u64_safe_strlen(value) + 1];
+    char buf[u64_safe_strlen(value) + 1] = {};
     if (u64_to_str(value, buf) == NULL) { PANIC("u64_to_str failed"); }
     file_write(buf, stream);
 }
