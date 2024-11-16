@@ -72,7 +72,7 @@ static void print_operand_immediate(i16 immediate, FILE *restrict file) {
 static void
 print_operand_label(u16 index, FILE *restrict file, Context *restrict context) {
     file_write("%", file);
-    StringView name = context_global_labels_at(context, index);
+    StringView name = context_labels_at(context, index);
     file_write(name.ptr, file);
 }
 

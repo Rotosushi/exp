@@ -20,7 +20,7 @@
 #include <stddef.h>
 
 #include "backend/x64/codegen.h"
-#include "backend/x64/codegen/addition.h"
+#include "backend/x64/codegen/add.h"
 #include "backend/x64/codegen/call.h"
 #include "backend/x64/codegen/divide.h"
 #include "backend/x64/codegen/dot.h"
@@ -79,7 +79,7 @@ static void x64_codegen_bytecode(x64_Context *restrict context) {
         }
 
         case OPCODE_ADDITION: {
-            x64_codegen_addition(I, idx, context);
+            x64_codegen_add(I, idx, context);
             break;
         }
 
