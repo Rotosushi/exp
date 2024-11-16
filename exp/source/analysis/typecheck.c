@@ -363,7 +363,7 @@ static TResult typecheck_function(Context *restrict c) {
     for (u16 idx = 0; idx < bc->length; ++idx) {
         Instruction I = ip[idx];
         switch (I.opcode) {
-        case OPC_RET: {
+        case OPCODE_RETURN: {
             try(Bty, typecheck_ret(c, I));
 
             if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
@@ -380,55 +380,55 @@ static TResult typecheck_function(Context *restrict c) {
             break;
         }
 
-        case OPC_CALL: {
+        case OPCODE_CALL: {
             try(Aty, typecheck_call(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_DOT: {
+        case OPCODE_DOT: {
             try(Aty, typecheck_dot(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_LOAD: {
+        case OPCODE_LOAD: {
             try(Bty, typecheck_load(c, I));
             (void)Bty;
             break;
         }
 
-        case OPC_NEG: {
+        case OPCODE_NEGATE: {
             try(Bty, typecheck_neg(c, I));
             (void)Bty;
             break;
         }
 
-        case OPC_ADD: {
+        case OPCODE_ADDITION: {
             try(Aty, typecheck_add(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_SUB: {
+        case OPCODE_SUBTRACT: {
             try(Aty, typecheck_sub(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_MUL: {
+        case OPCODE_MULTIPLY: {
             try(Aty, typecheck_mul(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_DIV: {
+        case OPCODE_DIVIDE: {
             try(Aty, typecheck_div(c, I));
             (void)Aty;
             break;
         }
 
-        case OPC_MOD: {
+        case OPCODE_MODULUS: {
             try(Aty, typecheck_mod(c, I));
             (void)Aty;
             break;

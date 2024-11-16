@@ -23,63 +23,63 @@
  *
  */
 typedef enum Opcode : u8 {
-  /*
-   * <...> -> side effect
-   * ip    -> the instruction pointer
-   * R     -> the return value location
-   * A|B|C -> an operand
-   * SSA[*]           -> indexing the locals array.
-   * Values[*]     -> indexing the constants array.
-   * GlobalSymbol[*]  -> indexing the global names array followed by
-   *          indexing the global symbol table.
-   * Calls[*]         -> indexing the actual argument lists array.
-   */
-  OPC_RET, // B -- R = B,    <return>
-           // B -- R = Values[B], <return>
-           // B -- R = SSA[B], <return>
+    /*
+     * <...> -> side effect
+     * ip    -> the instruction pointer
+     * R     -> the return value location
+     * A|B|C -> an operand
+     * SSA[*]           -> indexing the locals array.
+     * Values[*]     -> indexing the constants array.
+     * GlobalSymbol[*]  -> indexing the global names array followed by
+     *          indexing the global symbol table.
+     * Calls[*]         -> indexing the actual argument lists array.
+     */
+    OPCODE_RETURN, // B -- R = B,    <return>
+                   // B -- R = Values[B], <return>
+                   // B -- R = SSA[B], <return>
 
-  OPC_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
+    OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
-  OPC_DOT, // ABC -- SSA[A] = SSA[B].C
-           // ABC -- SSA[A] = Values[B].C
+    OPCODE_DOT, // ABC -- SSA[A] = SSA[B].C
+                // ABC -- SSA[A] = Values[B].C
 
-  OPC_LOAD, // AB  -- SSA[A] = B
-            // AB  -- SSA[A] = Values[B]
-            // AB  -- SSA[A] = SSA[B]
+    OPCODE_LOAD, // AB  -- SSA[A] = B
+                 // AB  -- SSA[A] = Values[B]
+                 // AB  -- SSA[A] = SSA[B]
 
-  OPC_NEG, // AB  -- SSA[A] = -(B)
-           // AB  -- SSA[A] = -(SSA[B])
+    OPCODE_NEGATE, // AB  -- SSA[A] = -(B)
+                   // AB  -- SSA[A] = -(SSA[B])
 
-  OPC_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
-           // ABC -- SSA[A] = SSA[B] + C
-           // ABC -- SSA[A] = B    + SSA[C]
-           // ABC -- SSA[A] = B    + C
+    OPCODE_ADDITION, // ABC -- SSA[A] = SSA[B] + SSA[C]
+                     // ABC -- SSA[A] = SSA[B] + C
+                     // ABC -- SSA[A] = B    + SSA[C]
+                     // ABC -- SSA[A] = B    + C
 
-  OPC_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
-           // ABC -- SSA[A] = SSA[B] - C
-           // ABC -- SSA[A] = B    - SSA[C]
-           // ABC -- SSA[A] = B    - C
+    OPCODE_SUBTRACT, // ABC -- SSA[A] = SSA[B] - SSA[C]
+                     // ABC -- SSA[A] = SSA[B] - C
+                     // ABC -- SSA[A] = B    - SSA[C]
+                     // ABC -- SSA[A] = B    - C
 
-  OPC_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
-           // ABC -- SSA[A] = SSA[B] * C
-           // ABC -- SSA[A] = B    * SSA[C]
-           // ABC -- SSA[A] = B    * C
+    OPCODE_MULTIPLY, // ABC -- SSA[A] = SSA[B] * SSA[C]
+                     // ABC -- SSA[A] = SSA[B] * C
+                     // ABC -- SSA[A] = B    * SSA[C]
+                     // ABC -- SSA[A] = B    * C
 
-  OPC_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
-           // ABC -- SSA[A] = SSA[B] / C
-           // ABC -- SSA[A] = B    / SSA[C]
-           // ABC -- SSA[A] = B    / C
+    OPCODE_DIVIDE, // ABC -- SSA[A] = SSA[B] / SSA[C]
+                   // ABC -- SSA[A] = SSA[B] / C
+                   // ABC -- SSA[A] = B    / SSA[C]
+                   // ABC -- SSA[A] = B    / C
 
-  OPC_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
-           // ABC -- SSA[A] = SSA[B] % C
-           // ABC -- SSA[A] = B    % SSA[C]
-           // ABC -- SSA[A] = B    % C
+    OPCODE_MODULUS, // ABC -- SSA[A] = SSA[B] % SSA[C]
+                    // ABC -- SSA[A] = SSA[B] % C
+                    // ABC -- SSA[A] = B    % SSA[C]
+                    // ABC -- SSA[A] = B    % C
 } Opcode;
 
 typedef enum InstructionFormat : u8 {
-  IFMT_B,
-  IFMT_AB,
-  IFMT_ABC,
+    IFMT_B,
+    IFMT_AB,
+    IFMT_ABC,
 } InstructionFormat;
 
 /*
@@ -101,11 +101,11 @@ typedef enum InstructionFormat : u8 {
  * @brief represents a bytecode instruction
  */
 typedef struct Instruction {
-  Opcode opcode;
-  InstructionFormat format;
-  Operand A;
-  Operand B;
-  Operand C;
+    Opcode opcode;
+    InstructionFormat format;
+    Operand A;
+    Operand B;
+    Operand C;
 } Instruction;
 
 Instruction instruction_ret(Operand result);
