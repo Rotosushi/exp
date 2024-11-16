@@ -22,31 +22,31 @@
 #include "env/values.h"
 
 bool test_values(Values *restrict values, Value value) {
-  Operand index   = values_add(values, value);
-  Value *constant = values_at(values, index.index);
+    Operand index   = values_add(values, value);
+    Value *constant = values_at(values, index.data.constant);
 
-  if (value_equality(constant, &value)) {
-    return 0;
-  } else {
-    return 1;
-  }
+    if (value_equality(constant, &value)) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
-  srand((unsigned)time(NULL));
-  Values values = values_create();
-  bool failure  = 0;
+    srand((unsigned)time(NULL));
+    Values values = values_create();
+    bool failure  = 0;
 
-  // #TODO:
-  failure |= test_values(&values, value_create_i64(rand()));
-  failure |= test_values(&values, value_create_i64(rand()));
-  failure |= test_values(&values, value_create_i64(rand()));
-  failure |= test_values(&values, value_create_i64(rand()));
+    // #TODO:
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
 
-  values_destroy(&values);
-  if (failure) {
-    return EXIT_FAILURE;
-  } else {
-    return EXIT_SUCCESS;
-  }
+    values_destroy(&values);
+    if (failure) {
+        return EXIT_FAILURE;
+    } else {
+        return EXIT_SUCCESS;
+    }
 }

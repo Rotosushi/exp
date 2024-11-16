@@ -23,22 +23,23 @@
 #include "utility/unreachable.h"
 
 Operand operand_ssa(u16 ssa) {
-    Operand operand = {.kind = OPERAND_KIND_SSA, .ssa = ssa};
+    Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
     return operand;
 }
 
 Operand operand_constant(u16 index) {
-    Operand operand = {.kind = OPERAND_KIND_CONSTANT, .index = index};
+    Operand operand = {.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
     return operand;
 }
 
 Operand operand_immediate(i16 immediate) {
-    Operand operand = {.kind = OPERAND_KIND_IMMEDIATE, .immediate = immediate};
+    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
+                       .data.immediate = immediate};
     return operand;
 }
 
 Operand operand_label(u16 index) {
-    Operand operand = {.kind = OPERAND_KIND_LABEL, .index = index};
+    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
     return operand;
 }
 
@@ -46,10 +47,10 @@ bool operand_equality(Operand A, Operand B) {
     if (A.kind != B.kind) { return false; }
 
     switch (A.kind) {
-    case OPERAND_KIND_SSA:       return A.ssa == B.ssa;
-    case OPERAND_KIND_CONSTANT:  return A.index == B.index;
-    case OPERAND_KIND_IMMEDIATE: return A.immediate == B.immediate;
-    case OPERAND_KIND_LABEL:     return A.index == B.index;
+    case OPERAND_KIND_SSA:       return A.data.ssa == B.data.ssa;
+    case OPERAND_KIND_CONSTANT:  return A.data.constant == B.data.constant;
+    case OPERAND_KIND_IMMEDIATE: return A.data.immediate == B.data.immediate;
+    case OPERAND_KIND_LABEL:     return A.data.label == B.data.label;
     default:                     EXP_UNREACHABLE();
     }
 }
@@ -80,15 +81,15 @@ void print_operand(Operand operand,
                    FILE *restrict file,
                    Context *restrict context) {
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: print_operand_ssa(operand.ssa, file); break;
+    case OPERAND_KIND_SSA: print_operand_ssa(operand.data.ssa, file); break;
     case OPERAND_KIND_CONSTANT:
-        print_operand_value(operand.index, file, context);
+        print_operand_value(operand.data.constant, file, context);
         break;
     case OPERAND_KIND_IMMEDIATE:
-        print_operand_immediate(operand.immediate, file);
+        print_operand_immediate(operand.data.immediate, file);
         break;
     case OPERAND_KIND_LABEL:
-        print_operand_label(operand.index, file, context);
+        print_operand_label(operand.data.label, file, context);
         break;
         // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);
         // break;

@@ -51,7 +51,7 @@ static void lifetimes_compute_operand(Operand operand,
                                       Context *context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
-        Lifetime *lifetime = lifetimes_at(lifetimes, operand.ssa);
+        Lifetime *lifetime = lifetimes_at(lifetimes, operand.data.ssa);
         if (block_index > lifetime->last_use) {
             lifetime->last_use = block_index;
         }
@@ -59,7 +59,7 @@ static void lifetimes_compute_operand(Operand operand,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_values_at(context, operand.index);
+        Value *constant = context_values_at(context, operand.data.constant);
         if (constant->kind == VALUEKIND_TUPLE) {
             Tuple *tuple = &constant->tuple;
 
