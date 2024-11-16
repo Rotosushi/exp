@@ -18,12 +18,12 @@
  */
 #include <assert.h>
 
-#include "backend/x64/codegen/neg.h"
+#include "backend/x64/codegen/negate.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_neg(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_negate(Instruction I,
+                        u64 block_index,
+                        x64_Context *restrict context) {
     LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
     switch (I.B.kind) {
     case OPERAND_KIND_SSA: {
@@ -37,12 +37,23 @@ void x64_codegen_neg(Instruction I,
 
     case OPERAND_KIND_IMMEDIATE: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(A),
+                                   x64_operand_immediate(I.B.immediate)));
+        x64_context_append(context, x64_neg(x64_operand_alloc(A)));
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
         x64_context_append(context, x64_neg(x64_operand_alloc(A)));
         break;
     }
 
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }

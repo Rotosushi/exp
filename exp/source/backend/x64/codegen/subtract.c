@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "backend/x64/codegen/sub.h"
+#include "backend/x64/codegen/subtract.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_subtract_ssa(Instruction I,
@@ -63,9 +63,18 @@ static void x64_codegen_subtract_ssa(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A =
+            x64_context_allocate_from_active(context, local, B, block_index);
+
+        x64_context_append(
+            context,
+            x64_sub(x64_operand_alloc(A), x64_operand_constant(I.C.index)));
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
@@ -106,15 +115,78 @@ static void x64_codegen_subtract_immediate(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(A),
+                                   x64_operand_immediate(I.B.immediate)));
+        x64_context_append(
+            context,
+            x64_sub(x64_operand_alloc(A), x64_operand_constant(I.C.index)));
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
-void x64_codegen_sub(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_subtract_constant(Instruction I,
+                                   u64 block_index,
+                                   LocalVariable *local,
+                                   x64_Context *context) {
+    switch (I.C.kind) {
+        /*
+         * #NOTE: there is no x64 sub instruction which takes an
+         *  constant value on the lhs. so we have to move the
+         *  value of B into a gpr and allocate A there.
+         *  Then we can emit the sub instruction.
+         */
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+
+        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_constant(I.B.index)));
+        x64_Allocation *A =
+            x64_context_allocate_to_gpr(context, local, gpr, block_index);
+
+        x64_context_append(context,
+                           x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
+        x64_context_append(context,
+                           x64_sub(x64_operand_alloc(A),
+                                   x64_operand_immediate(I.C.immediate)));
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate(context, local, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
+        x64_context_append(
+            context,
+            x64_sub(x64_operand_alloc(A), x64_operand_constant(I.C.index)));
+        break;
+    }
+
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
+}
+
+void x64_codegen_subtract(Instruction I,
+                          u64 block_index,
+                          x64_Context *restrict context) {
     assert(I.A.kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
     switch (I.B.kind) {
@@ -128,8 +200,12 @@ void x64_codegen_sub(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_codegen_subtract_constant(I, block_index, local, context);
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }

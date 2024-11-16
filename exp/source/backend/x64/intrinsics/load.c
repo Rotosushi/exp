@@ -61,16 +61,16 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
 
 static void x64_codegen_load_address_from_scalar_operand(
     x64_Address *restrict dst,
-    Operand *restrict src,
+    Operand src,
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
     assert(type_is_scalar(type));
 
-    switch (src->kind) {
+    switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
-            x64_context_allocation_of(context, src->ssa);
+            x64_context_allocation_of(context, src.ssa);
         if (allocation->location.kind == LOCATION_GPR) {
             x64_context_append(
                 context,
@@ -86,7 +86,7 @@ static void x64_codegen_load_address_from_scalar_operand(
     case OPERAND_KIND_IMMEDIATE: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src->immediate)));
+                                   x64_operand_immediate(src.immediate)));
         break;
     }
 
@@ -96,7 +96,7 @@ static void x64_codegen_load_address_from_scalar_operand(
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src->index);
+        Value *value = x64_context_value_at(context, src.index);
         assert(type_equality(type, type_of_value(value, context->context)));
         x64_codegen_load_address_from_scalar_value(dst, value, context);
         break;
@@ -108,14 +108,14 @@ static void x64_codegen_load_address_from_scalar_operand(
 
 static void
 x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
-                                                Operand *restrict src,
+                                                Operand src,
                                                 Type *restrict type,
                                                 u64 Idx,
                                                 x64_Context *restrict context) {
-    switch (src->kind) {
+    switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
-            x64_context_allocation_of(context, src->ssa);
+            x64_context_allocation_of(context, src.ssa);
 
         assert(allocation->location.kind == LOCATION_ADDRESS);
 
@@ -125,7 +125,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src->index);
+        Value *value = x64_context_value_at(context, src.index);
         Type *type   = type_of_value(value, context->context);
         assert(value->kind == VALUEKIND_TUPLE);
         assert(!type_is_scalar(type));
@@ -139,7 +139,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
             u64 element_size   = size_of(element_type);
 
             x64_codegen_load_address_from_operand(
-                &dst_element_address, &element, element_type, Idx, context);
+                &dst_element_address, element, element_type, Idx, context);
 
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
@@ -154,13 +154,14 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
         break;
     }
 
+    // #NOTE: an immediate value is never composite
     case OPERAND_KIND_IMMEDIATE:
     default:                     EXP_UNREACHABLE();
     }
 }
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
-                                           Operand *restrict src,
+                                           Operand src,
                                            Type *restrict type,
                                            u64 Idx,
                                            x64_Context *restrict context) {
@@ -175,14 +176,14 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
 
 static void x64_codegen_load_argument_from_scalar_operand(
     x64_Address *restrict dst,
-    Operand *restrict src,
+    Operand src,
     [[maybe_unused]] Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
-    switch (src->kind) {
+    switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
-            x64_context_allocation_of(context, src->ssa);
+            x64_context_allocation_of(context, src.ssa);
         if (allocation->location.kind == LOCATION_GPR) {
             x64_context_append(
                 context,
@@ -198,7 +199,7 @@ static void x64_codegen_load_argument_from_scalar_operand(
     case OPERAND_KIND_IMMEDIATE: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src->immediate)));
+                                   x64_operand_immediate(src.immediate)));
         break;
     }
 
@@ -207,21 +208,24 @@ static void x64_codegen_load_argument_from_scalar_operand(
         break;
     }
 
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    case OPERAND_KIND_CONSTANT: {
+        PANIC("#TODO");
+    }
+
+    default: EXP_UNREACHABLE();
     }
 }
 
 static void x64_codegen_load_argument_from_composite_operand(
     x64_Address *restrict dst,
-    Operand *restrict src,
+    Operand src,
     Type *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
-    switch (src->kind) {
+    switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
-            x64_context_allocation_of(context, src->ssa);
+            x64_context_allocation_of(context, src.ssa);
 
         assert(allocation->location.kind == LOCATION_ADDRESS);
 
@@ -231,7 +235,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src->index);
+        Value *value = x64_context_value_at(context, src.index);
         Type *type   = type_of_value(value, context->context);
         assert(value->kind == VALUEKIND_TUPLE);
         assert(!type_is_scalar(type));
@@ -245,7 +249,7 @@ static void x64_codegen_load_argument_from_composite_operand(
             u64 element_size   = size_of(element_type);
 
             x64_codegen_load_argument_from_operand(
-                &dst_element_address, &element, element_type, Idx, context);
+                &dst_element_address, element, element_type, Idx, context);
 
             assert(element_size <= i64_MAX);
             i64 offset = -(i64)element_size;
@@ -260,13 +264,14 @@ static void x64_codegen_load_argument_from_composite_operand(
         break;
     }
 
+    // #NOTE: immediate operands are never composite
     case OPERAND_KIND_IMMEDIATE:
     default:                     EXP_UNREACHABLE();
     }
 }
 
 void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
-                                            Operand *restrict src,
+                                            Operand src,
                                             Type *restrict type,
                                             u64 Idx,
                                             x64_Context *restrict context) {
@@ -280,13 +285,13 @@ void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
 }
 
 void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
-                                       Operand *restrict src,
+                                       Operand src,
                                        [[maybe_unused]] u64 Idx,
                                        x64_Context *restrict context) {
-    switch (src->kind) {
+    switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
-            x64_context_allocation_of(context, src->ssa);
+            x64_context_allocation_of(context, src.ssa);
         x64_context_append(
             context,
             x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
@@ -296,12 +301,15 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
     case OPERAND_KIND_IMMEDIATE: {
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(src->immediate)));
+                                   x64_operand_immediate(src.immediate)));
         break;
     }
 
-    // we don't create scalar values (yet)
-    case OPERAND_KIND_CONSTANT:
+    case OPERAND_KIND_CONSTANT: {
+        PANIC("#TODO");
+        break;
+    }
+
     // we don't create globals that are not functions (yet)
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
@@ -309,7 +317,7 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
 }
 
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
-                                              Operand *restrict src,
+                                              Operand src,
                                               u64 Idx,
                                               x64_Context *restrict context) {
     if (dst->location.kind == LOCATION_ADDRESS) {
@@ -362,7 +370,7 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
             u64 element_size   = size_of(element_type);
 
             x64_codegen_load_address_from_operand(
-                &dst_address, &element, element_type, Idx, context);
+                &dst_address, element, element_type, Idx, context);
 
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;

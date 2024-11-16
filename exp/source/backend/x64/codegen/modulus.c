@@ -19,7 +19,7 @@
 
 #include <assert.h>
 
-#include "backend/x64/codegen/mod.h"
+#include "backend/x64/codegen/modulus.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_modulus_ssa(Instruction I,
@@ -84,9 +84,24 @@ static void x64_codegen_modulus_ssa(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_context_allocate_to_gpr(context, local, X64GPR_RDX, block_index);
+        x64_context_aquire_gpr(context, X64GPR_RAX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(X64GPR_RAX), x64_operand_alloc(B)));
+
+        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_constant(I.C.index)));
+
+        x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
@@ -135,15 +150,106 @@ static void x64_codegen_modulus_immediate(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_context_allocate_to_gpr(context, local, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+        x64_context_aquire_gpr(context, X64GPR_RAX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_immediate(I.B.immediate)));
+
+        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_constant(I.C.index)));
+
+        x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x64_context_release_gpr(context, gpr, block_index);
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
-void x64_codegen_mod(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_modulus_constant(Instruction I,
+                                  u64 block_index,
+                                  LocalVariable *local,
+                                  x64_Context *context) {
+    switch (I.C.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_context_allocate_to_gpr(context, local, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+        x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+        if ((C->location.kind == LOCATION_GPR) &&
+            (C->location.gpr == X64GPR_RAX)) {
+            x64_context_reallocate_active(context, C);
+        }
+
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_constant(I.B.index)));
+        x64_context_append(context, x64_idiv(x64_operand_alloc(C)));
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_context_allocate_to_gpr(context, local, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+        x64_context_aquire_gpr(context, X64GPR_RAX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_immediate(I.B.immediate)));
+
+        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_constant(I.C.index)));
+
+        x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x64_context_release_gpr(context, gpr, block_index);
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        x64_context_allocate_to_gpr(context, local, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(X64GPR_RDX), x64_operand_immediate(0)));
+
+        x64_context_aquire_gpr(context, X64GPR_RAX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_constant(I.B.index)));
+
+        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_gpr(gpr), x64_operand_constant(I.C.index)));
+
+        x64_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x64_context_release_gpr(context, gpr, block_index);
+        break;
+    }
+
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
+}
+
+void x64_codegen_modulus(Instruction I,
+                         u64 block_index,
+                         x64_Context *restrict context) {
     assert(I.A.kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
     switch (I.B.kind) {
@@ -157,8 +263,12 @@ void x64_codegen_mod(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_codegen_modulus_constant(I, block_index, local, context);
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }

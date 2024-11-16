@@ -91,7 +91,7 @@ void x64_codegen_call(Instruction I,
 
         if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
             x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-            x64_codegen_load_gpr_from_operand(gpr, &arg, block_index, context);
+            x64_codegen_load_gpr_from_operand(gpr, arg, block_index, context);
         } else {
             operand_array_append(&stack_args, arg);
         }
@@ -117,7 +117,7 @@ void x64_codegen_call(Instruction I,
         actual_arguments_stack_size += offset;
 
         x64_codegen_load_address_from_operand(
-            &arg_address, &arg, arg_type, block_index, context);
+            &arg_address, arg, arg_type, block_index, context);
 
         x64_address_increment_offset(&arg_address, offset);
     }

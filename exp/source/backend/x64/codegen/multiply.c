@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "backend/x64/codegen/mul.h"
+#include "backend/x64/codegen/multiply.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_multiply_ssa(Instruction I,
@@ -85,9 +85,28 @@ static void x64_codegen_multiply_ssa(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        if (x64_allocation_location_eq(B, x64_location_gpr(X64GPR_RAX))) {
+            x64_context_allocate_from_active(context, local, B, block_index);
+
+            x64_context_release_gpr(context, X64GPR_RDX, block_index);
+            x64_context_append(context,
+                               x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                       x64_operand_constant(I.C.index)));
+            x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+            break;
+        }
+
+        x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_constant(I.C.index)));
+        x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
@@ -132,15 +151,88 @@ static void x64_codegen_multiply_immediate(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate_to_gpr(
+            context, local, X64GPR_RAX, block_index);
+        x64_context_release_gpr(context, X64GPR_RDX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(A),
+                                   x64_operand_immediate(I.B.immediate)));
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                   x64_operand_constant(I.C.index)));
+        x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }
 
-void x64_codegen_mul(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_multiply_constant(Instruction I,
+                                   u64 block_index,
+                                   LocalVariable *local,
+                                   x64_Context *context) {
+    switch (I.C.kind) {
+    case OPERAND_KIND_SSA: {
+        x64_Allocation *C = x64_context_allocation_of(context, I.C.ssa);
+        if ((C->location.kind == LOCATION_GPR) &&
+            (C->location.gpr == X64GPR_RAX)) {
+            x64_context_allocate_from_active(context, local, C, block_index);
+
+            x64_context_release_gpr(context, X64GPR_RDX, block_index);
+            x64_context_append(context,
+                               x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                       x64_operand_constant(I.B.index)));
+            x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+            break;
+        }
+
+        x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RAX),
+                                   x64_operand_constant(I.B.index)));
+        x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE: {
+        x64_Allocation *A = x64_context_allocate_to_gpr(
+            context, local, X64GPR_RAX, block_index);
+        x64_context_release_gpr(context, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                   x64_operand_immediate(I.C.immediate)));
+        x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        x64_Allocation *A = x64_context_allocate_to_gpr(
+            context, local, X64GPR_RAX, block_index);
+        x64_context_release_gpr(context, X64GPR_RDX, block_index);
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(X64GPR_RDX),
+                                   x64_operand_constant(I.C.index)));
+        x64_context_append(context, x64_imul(x64_operand_gpr(X64GPR_RDX)));
+        break;
+    }
+
+    case OPERAND_KIND_LABEL:
+    default:                 EXP_UNREACHABLE();
+    }
+}
+
+void x64_codegen_multiply(Instruction I,
+                          u64 block_index,
+                          x64_Context *restrict context) {
     /*
     #NOTE:
       imul takes a single reg/mem argument,
@@ -160,8 +252,12 @@ void x64_codegen_mul(Instruction I,
         break;
     }
 
+    case OPERAND_KIND_CONSTANT: {
+        x64_codegen_multiply_constant(I, block_index, local, context);
+        break;
+    }
+
     case OPERAND_KIND_LABEL:
-    case OPERAND_KIND_CONSTANT:
-    default:                    EXP_UNREACHABLE();
+    default:                 EXP_UNREACHABLE();
     }
 }

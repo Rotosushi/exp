@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "backend/x64/codegen/add.h"
+#include "backend/x64/codegen/addition.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_addition_ssa(Instruction I,
@@ -184,9 +184,9 @@ static void x64_codegen_addition_constant(Instruction I,
     }
 }
 
-void x64_codegen_add(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_addition(Instruction I,
+                          u64 block_index,
+                          x64_Context *restrict context) {
     assert(I.A.kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
     switch (I.B.kind) {

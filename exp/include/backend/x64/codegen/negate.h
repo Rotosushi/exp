@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_BACKEND_X64_CODEGEN_SUB_H
-#define EXP_BACKEND_X64_CODEGEN_SUB_H
+#ifndef EXP_BACKEND_X64_CODEGEN_NEG_H
+#define EXP_BACKEND_X64_CODEGEN_NEG_H
 
 #include "backend/x64/context.h"
 
-void x64_codegen_sub(Instruction I, u64 Idx, x64_Context *restrict context);
+void x64_codegen_negate(Instruction I, u64 Idx, x64_Context *restrict context);
 
-#endif // !EXP_BACKEND_X64_CODEGEN_SUB_H
+#endif // !EXP_BACKEND_X64_CODEGEN_NEG_H

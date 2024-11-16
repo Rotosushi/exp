@@ -18,15 +18,15 @@
  */
 #include <assert.h>
 
-#include "backend/x64/codegen/ret.h"
+#include "backend/x64/codegen/return.h"
 #include "backend/x64/intrinsics/copy.h"
 #include "backend/x64/intrinsics/load.h"
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_ret(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_return(Instruction I,
+                        u64 block_index,
+                        x64_Context *restrict context) {
     x64_FunctionBody *body = current_x64_body(context);
     switch (I.B.kind) {
     case OPERAND_KIND_SSA: {

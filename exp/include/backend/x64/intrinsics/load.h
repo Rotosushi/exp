@@ -23,24 +23,24 @@
 #include "backend/x64/context.h"
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
-                                           Operand *restrict src,
+                                           Operand src,
                                            Type *restrict type,
                                            u64 Idx,
                                            x64_Context *restrict context);
 
 void x64_codegen_load_gpr_from_operand(x64_GPR dst,
-                                       Operand *src,
+                                       Operand src,
                                        u64 Idx,
                                        x64_Context *restrict context);
 
 void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
-                                            Operand *restrict src,
+                                            Operand src,
                                             Type *restrict type,
                                             u64 Idx,
                                             x64_Context *restrict context);
 
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
-                                              Operand *restrict src,
+                                              Operand src,
                                               u64 Idx,
                                               x64_Context *restrict context);
 
