@@ -65,7 +65,7 @@ Type *type_of_operand(Operand operand, Context *restrict context) {
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_values_at(context, operand.data.constant);
+        Value *constant = context_constants_at(context, operand.data.constant);
         return type_of_value(constant, context);
         break;
     }

@@ -62,7 +62,7 @@ static void print_operand_ssa(u16 ssa, FILE *restrict file) {
 
 static void
 print_operand_value(u16 index, FILE *restrict file, Context *restrict context) {
-    Value *value = context_values_at(context, index);
+    Value *value = context_constants_at(context, index);
     print_value(value, file, context);
 }
 

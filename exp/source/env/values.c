@@ -24,71 +24,71 @@
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 
-Values values_create() {
-  Values values;
-  values.count    = 0;
-  values.capacity = 0;
-  values.buffer   = NULL;
-  return values;
+Constants constants_create() {
+    Constants constants;
+    constants.count    = 0;
+    constants.capacity = 0;
+    constants.buffer   = NULL;
+    return constants;
 }
 
-void values_destroy(Values *restrict values) {
-  assert(values != NULL);
-  for (u64 i = 0; i < values->count; ++i) {
-    Value *constant = values->buffer + i;
-    value_destroy(constant);
-  }
-
-  values->count    = 0;
-  values->capacity = 0;
-  deallocate(values->buffer);
-  values->buffer = NULL;
-}
-
-static bool values_full(Values *restrict values) {
-  return (values->count + 1) >= values->capacity;
-}
-
-static void values_grow(Values *restrict values) {
-  Growth g         = array_growth_u16(values->capacity, sizeof(Value));
-  values->buffer   = reallocate(values->buffer, g.alloc_size);
-  values->capacity = (u16)g.new_capacity;
-}
-
-Operand values_add(Values *restrict values, Value value) {
-  assert(values != NULL);
-
-  for (u16 i = 0; i < values->count; ++i) {
-    Value *v = values->buffer + i;
-    if (value_equality(v, &value)) {
-      value_destroy(&value);
-      return operand_constant(i);
+void constants_destroy(Constants *restrict constants) {
+    assert(constants != NULL);
+    for (u64 i = 0; i < constants->count; ++i) {
+        Value *constant = constants->buffer + i;
+        value_destroy(constant);
     }
-  }
 
-  if (values_full(values)) { values_grow(values); }
-
-  u16 index                     = values->count;
-  values->buffer[values->count] = value;
-  values->count += 1;
-
-  return operand_constant(index);
+    constants->count    = 0;
+    constants->capacity = 0;
+    deallocate(constants->buffer);
+    constants->buffer = NULL;
 }
 
-Value *values_at(Values *restrict values, u16 index) {
-  assert(values != NULL);
-  assert(index < values->count);
-  return values->buffer + index;
+static bool constants_full(Constants *restrict constants) {
+    return (constants->count + 1) >= constants->capacity;
 }
 
-void print_values(Values const *restrict values,
-                  FILE *restrict file,
-                  Context *restrict context) {
-  for (u16 i = 0; i < values->count; ++i) {
-    file_write_u64(i, file);
-    file_write(": ", file);
-    file_write("[", file);
-    print_value(values->buffer + i, file, context);
-    file_write("]\n", file);
-  }
+static void constants_grow(Constants *restrict constants) {
+    Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
+    constants->buffer   = reallocate(constants->buffer, g.alloc_size);
+    constants->capacity = (u16)g.new_capacity;
+}
+
+Operand constants_append(Constants *restrict constants, Value value) {
+    assert(values != NULL);
+
+    for (u16 i = 0; i < constants->count; ++i) {
+        Value *v = constants->buffer + i;
+        if (value_equality(v, &value)) {
+            value_destroy(&value);
+            return operand_constant(i);
+        }
+    }
+
+    if (constants_full(constants)) { constants_grow(constants); }
+
+    u16 index                           = constants->count;
+    constants->buffer[constants->count] = value;
+    constants->count += 1;
+
+    return operand_constant(index);
+}
+
+Value *constants_at(Constants *restrict constants, u16 index) {
+    assert(values != NULL);
+    assert(index < values->count);
+    return constants->buffer + index;
+}
+
+void print_constants(Constants const *restrict constants,
+                     FILE *restrict file,
+                     Context *restrict context) {
+    for (u16 i = 0; i < constants->count; ++i) {
+        file_write_u64(i, file);
+        file_write(": ", file);
+        file_write("[", file);
+        print_value(constants->buffer + i, file, context);
+        file_write("]\n", file);
+    }
 }

@@ -35,7 +35,7 @@ typedef struct Context {
     TypeInterner type_interner;
     SymbolTable global_symbol_table;
     Labels global_labels;
-    Values values;
+    Constants constants;
     FunctionBody *current_function;
 } Context;
 
@@ -104,8 +104,8 @@ FormalArgument *context_argument_at(Context *restrict c, u8 index);
 void context_leave_function(Context *restrict c);
 
 // Values functions
-Operand context_values_append(Context *restrict context, Value value);
-Value *context_values_at(Context *restrict context, u16 index);
+Operand context_constants_append(Context *restrict context, Value value);
+Value *context_constants_at(Context *restrict context, u16 index);
 
 // Bytecode functions
 void context_emit_return(Context *restrict c, Operand B);

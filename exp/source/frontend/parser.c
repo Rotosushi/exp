@@ -474,13 +474,13 @@ static ParserResult parens(Parser *restrict p, Context *restrict c) {
     Operand result;
 
     if (tuple.size == 0) {
-        result = context_values_append(c, value_create_nil());
+        result = context_constants_append(c, value_create_nil());
         tuple_destroy(&tuple);
     } else if (tuple.size == 1) {
         result = tuple.elements[0];
         tuple_destroy(&tuple);
     } else {
-        result = context_values_append(c, value_create_tuple(tuple));
+        result = context_constants_append(c, value_create_tuple(tuple));
     }
 
     return success(result);
@@ -558,25 +558,25 @@ call(Parser *restrict p, Context *restrict c, Operand left) {
     TRY(maybe, parse_actual_argument_list(p, c, &argument_list));
 
     Operand actual_arguments =
-        context_values_append(c, value_create_tuple(argument_list));
+        context_constants_append(c, value_create_tuple(argument_list));
     return success(context_emit_call(c, left, actual_arguments));
 }
 
 static ParserResult nil(Parser *restrict p, Context *restrict c) {
     NEXTTOK(p);
-    Operand idx = context_values_append(c, value_create_nil());
+    Operand idx = context_constants_append(c, value_create_nil());
     return success(idx);
 }
 
 static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
     NEXTTOK(p);
-    Operand idx = context_values_append(c, value_create_boolean(1));
+    Operand idx = context_constants_append(c, value_create_boolean(1));
     return success(idx);
 }
 
 static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
     NEXTTOK(p);
-    Operand idx = context_values_append(c, value_create_boolean(0));
+    Operand idx = context_constants_append(c, value_create_boolean(0));
     return success(idx);
 }
 
@@ -590,7 +590,7 @@ static ParserResult integer(Parser *restrict p,
     if ((integer >= i16_MIN) && (integer <= i16_MAX)) {
         B = operand_immediate((i16)integer);
     } else {
-        B = context_values_append(c, value_create_i64(integer));
+        B = context_constants_append(c, value_create_i64(integer));
     }
 
     return success(B);
