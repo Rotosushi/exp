@@ -23,27 +23,27 @@
 #include "utility/unreachable.h"
 
 x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
-  x64_Address result = *src;
+    x64_Address result = *src;
 
-  switch (type->kind) {
-  case TYPEKIND_TUPLE: {
-    TupleType *tuple = &type->tuple_type;
-    assert(index < tuple->size);
+    switch (type->kind) {
+    case TYPE_KIND_TUPLE: {
+        TupleType *tuple = &type->tuple_type;
+        assert(index < tuple->size);
 
-    for (u64 i = 0; i < index; ++i) {
-      Type *element_type = tuple->types[i];
-      u64 element_size   = size_of(element_type);
-      assert(element_size <= i64_MAX);
-      i64 offset = (i64)element_size;
+        for (u64 i = 0; i < index; ++i) {
+            Type *element_type = tuple->types[i];
+            u64 element_size   = size_of(element_type);
+            assert(element_size <= i64_MAX);
+            i64 offset = (i64)element_size;
 
-      x64_address_increment_offset(&result, offset);
+            x64_address_increment_offset(&result, offset);
+        }
+
+        break;
     }
 
-    break;
-  }
+    default: EXP_UNREACHABLE();
+    }
 
-  default: EXP_UNREACHABLE();
-  }
-
-  return result;
+    return result;
 }

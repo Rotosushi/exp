@@ -21,31 +21,31 @@
 #include "adt/string.h"
 
 typedef enum TypeKind {
-  TYPEKIND_NIL,
-  TYPEKIND_BOOLEAN,
-  TYPEKIND_I64,
-  TYPEKIND_TUPLE,
-  TYPEKIND_FUNCTION,
+    TYPE_KIND_NIL,
+    TYPE_KIND_BOOLEAN,
+    TYPE_KIND_I64,
+    TYPE_KIND_TUPLE,
+    TYPE_KIND_FUNCTION,
 } TypeKind;
 
 typedef struct NilType {
-  char empty; // zero length structs are not valid C
+    char empty; // zero length structs are not valid C
 } NilType;
 
 typedef struct BooleanType {
-  char empty;
+    char empty;
 } BooleanType;
 
 typedef struct IntegerType {
-  char empty;
+    char empty;
 } IntegerType;
 
 struct Type;
 
 typedef struct TupleType {
-  u64 size;
-  u64 capacity;
-  struct Type **types;
+    u64 size;
+    u64 capacity;
+    struct Type **types;
 } TupleType;
 
 TupleType tuple_type_create();
@@ -54,8 +54,8 @@ bool tuple_type_equality(TupleType const *A, TupleType const *B);
 void tuple_type_append(TupleType *restrict tuple_type, struct Type *type);
 
 typedef struct FunctionType {
-  struct Type *return_type;
-  TupleType argument_types;
+    struct Type *return_type;
+    TupleType argument_types;
 } FunctionType;
 
 bool function_type_equality(FunctionType const *A, FunctionType const *B);
@@ -71,14 +71,14 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B);
  * create the type.
  */
 typedef struct Type {
-  TypeKind kind;
-  union {
-    NilType nil_type;
-    BooleanType boolean_type;
-    IntegerType integer_type;
-    TupleType tuple_type;
-    FunctionType function_type;
-  };
+    TypeKind kind;
+    union {
+        NilType nil_type;
+        BooleanType boolean_type;
+        IntegerType integer_type;
+        TupleType tuple_type;
+        FunctionType function_type;
+    };
 } Type;
 
 Type type_create_nil();

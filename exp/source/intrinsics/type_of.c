@@ -24,11 +24,11 @@
 
 Type *type_of_value(Value *restrict value, Context *restrict context) {
     switch (value->kind) {
-    case VALUEKIND_UNINITIALIZED: PANIC("uninitialized Value");
-    case VALUEKIND_NIL:           return context_nil_type(context);
-    case VALUEKIND_BOOLEAN:       return context_boolean_type(context);
-    case VALUEKIND_I64:           return context_i64_type(context);
-    case VALUEKIND_TUPLE:         {
+    case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
+    case VALUE_KIND_NIL:           return context_nil_type(context);
+    case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
+    case VALUE_KIND_I64:           return context_i64_type(context);
+    case VALUE_KIND_TUPLE:         {
         Tuple *tuple         = &value->tuple;
         TupleType tuple_type = tuple_type_create();
         for (u64 i = 0; i < tuple->size; ++i) {
