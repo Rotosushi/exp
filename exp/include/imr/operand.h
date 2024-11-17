@@ -42,6 +42,7 @@ typedef struct Operand {
 
 struct Context;
 
+Operand operand(OperandKind kind, OperandData data);
 Operand operand_ssa(u16 ssa);
 Operand operand_constant(u16 index);
 Operand operand_immediate(i16 immediate);

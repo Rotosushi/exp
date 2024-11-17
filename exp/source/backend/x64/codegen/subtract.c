@@ -25,10 +25,10 @@ static void x64_codegen_subtract_ssa(Instruction I,
                                      u64 block_index,
                                      LocalVariable *local,
                                      x64_Context *context) {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B.data.ssa);
-    switch (I.C.kind) {
+    x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
+    switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *C = x64_context_allocation_of(context, I.C.data.ssa);
+        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
         // #NOTE since subtraction is not commutative we have to allocate A from
         // B regardless of which of B or C is in a register.
         if ((B->location.kind == LOCATION_GPR) ||
@@ -59,7 +59,7 @@ static void x64_codegen_subtract_ssa(Instruction I,
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C.data.immediate)));
+                                   x64_operand_immediate(I.C_data.immediate)));
         break;
     }
 
@@ -69,7 +69,7 @@ static void x64_codegen_subtract_ssa(Instruction I,
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C.data.constant)));
+                                   x64_operand_constant(I.C_data.constant)));
         break;
     }
 
@@ -82,7 +82,7 @@ static void x64_codegen_subtract_immediate(Instruction I,
                                            u64 block_index,
                                            LocalVariable *local,
                                            x64_Context *context) {
-    switch (I.C.kind) {
+    switch (I.C_kind) {
         /*
          * #NOTE: there is no x64 sub instruction which takes an
          * immediate value on the lhs. so we have to move the
@@ -90,12 +90,12 @@ static void x64_codegen_subtract_immediate(Instruction I,
          * Then we can emit the sub instruction.
          */
     case OPERAND_KIND_SSA: {
-        x64_Allocation *C = x64_context_allocation_of(context, I.C.data.ssa);
+        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
         x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(I.B.data.immediate)));
+                                   x64_operand_immediate(I.B_data.immediate)));
         x64_Allocation *A =
             x64_context_allocate_to_gpr(context, local, gpr, block_index);
 
@@ -108,10 +108,10 @@ static void x64_codegen_subtract_immediate(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B.data.immediate)));
+                                   x64_operand_immediate(I.B_data.immediate)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C.data.immediate)));
+                                   x64_operand_immediate(I.C_data.immediate)));
         break;
     }
 
@@ -119,10 +119,10 @@ static void x64_codegen_subtract_immediate(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B.data.immediate)));
+                                   x64_operand_immediate(I.B_data.immediate)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C.data.constant)));
+                                   x64_operand_constant(I.C_data.constant)));
         break;
     }
 
@@ -135,7 +135,7 @@ void x64_codegen_subtract_constant(Instruction I,
                                    u64 block_index,
                                    LocalVariable *local,
                                    x64_Context *context) {
-    switch (I.C.kind) {
+    switch (I.C_kind) {
         /*
          * #NOTE: there is no x64 sub instruction which takes an
          *  constant value on the lhs. so we have to move the
@@ -143,12 +143,12 @@ void x64_codegen_subtract_constant(Instruction I,
          *  Then we can emit the sub instruction.
          */
     case OPERAND_KIND_SSA: {
-        x64_Allocation *C = x64_context_allocation_of(context, I.C.data.ssa);
+        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
         x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.B.data.constant)));
+                                   x64_operand_constant(I.B_data.constant)));
         x64_Allocation *A =
             x64_context_allocate_to_gpr(context, local, gpr, block_index);
 
@@ -161,10 +161,10 @@ void x64_codegen_subtract_constant(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B.data.constant)));
+                                   x64_operand_constant(I.B_data.constant)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C.data.immediate)));
+                                   x64_operand_immediate(I.C_data.immediate)));
         break;
     }
 
@@ -172,10 +172,10 @@ void x64_codegen_subtract_constant(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B.data.constant)));
+                                   x64_operand_constant(I.B_data.constant)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C.data.constant)));
+                                   x64_operand_constant(I.C_data.constant)));
         break;
     }
 
@@ -187,9 +187,9 @@ void x64_codegen_subtract_constant(Instruction I,
 void x64_codegen_subtract(Instruction I,
                           u64 block_index,
                           x64_Context *restrict context) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x64_context_lookup_ssa(context, I.A.data.ssa);
-    switch (I.B.kind) {
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
+    switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x64_codegen_subtract_ssa(I, block_index, local, context);
         break;

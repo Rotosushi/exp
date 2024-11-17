@@ -58,10 +58,11 @@ static TResult success(Type *type) {
 static TResult typecheck_global(Context *restrict c,
                                 SymbolTableElement *restrict element);
 
-static TResult typecheck_operand(Context *restrict c, Operand operand) {
-    switch (operand.kind) {
+static TResult
+typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
+    switch (kind) {
     case OPERAND_KIND_SSA: {
-        LocalVariable *local = context_lookup_ssa(c, operand.data.ssa);
+        LocalVariable *local = context_lookup_ssa(c, data.ssa);
         Type *type           = local->type;
         if (type == NULL) {
             return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL,
@@ -72,7 +73,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = context_constants_at(c, operand.data.constant);
+        Value *value = context_constants_at(c, data.constant);
         return success(type_of_value(value, c));
     }
 
@@ -81,7 +82,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name            = context_labels_at(c, operand.data.label);
+        StringView name            = context_labels_at(c, data.label);
         SymbolTableElement *global = context_global_symbol_table_at(c, name);
         Type *type                 = global->type;
         if (type == NULL) {
@@ -97,21 +98,21 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
 }
 
 static TResult typecheck_load(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
     local->type = Bty;
     return success(Bty);
 }
 
 static TResult typecheck_ret(Context *restrict c, Instruction I) {
-    return typecheck_operand(c, I.B);
+    return typecheck_operand(c, I.B_kind, I.B_data);
 }
 
 static TResult typecheck_call(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
     if (Bty->kind != TYPE_KIND_FUNCTION) {
         String buf = string_create();
@@ -123,7 +124,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
 
     FunctionType *function_type = &Bty->function_type;
     TupleType *formal_types     = &function_type->argument_types;
-    Value *value                = context_constants_at(c, I.C.data.constant);
+    Value *value                = context_constants_at(c, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_args = &value->tuple;
 
@@ -139,7 +140,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     for (u8 i = 0; i < actual_args->size; ++i) {
         Type *formal_type = formal_types->types[i];
         Operand operand   = actual_args->elements[i];
-        try(actual_type, typecheck_operand(c, operand));
+        try(actual_type, typecheck_operand(c, operand.kind, operand.data));
 
         if (!type_equality(actual_type, formal_type)) {
             String buf = string_create();
@@ -161,9 +162,9 @@ static bool tuple_index_out_of_bounds(i64 index, TupleType *tuple) {
 }
 
 static TResult typecheck_dot(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
     if (Bty->kind != TYPE_KIND_TUPLE) {
         String buf = string_create();
@@ -175,13 +176,13 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
 
     TupleType *tuple = &Bty->tuple_type;
 
-    if (I.C.kind != OPERAND_KIND_IMMEDIATE) {
+    if (I.C_kind != OPERAND_KIND_IMMEDIATE) {
         return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
                      string_from_view(SV("")));
     }
 
-    assert(I.C.kind == OPERAND_KIND_IMMEDIATE);
-    i16 index = I.C.data.immediate;
+    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
+    i16 index = I.C_data.immediate;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
         String buf = string_create();
@@ -197,9 +198,9 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_neg(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -215,11 +216,11 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_add(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
-    try(Cty, typecheck_operand(c, I.C));
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -243,11 +244,11 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_sub(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
-    try(Cty, typecheck_operand(c, I.C));
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -271,11 +272,11 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_mul(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
-    try(Cty, typecheck_operand(c, I.C));
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -299,11 +300,11 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_div(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
-    try(Cty, typecheck_operand(c, I.C));
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -327,11 +328,11 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_mod(Context *restrict c, Instruction I) {
-    assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
-    try(Bty, typecheck_operand(c, I.B));
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
-    try(Cty, typecheck_operand(c, I.C));
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
 
     Type *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
@@ -404,7 +405,7 @@ static TResult typecheck_function(Context *restrict c) {
             break;
         }
 
-        case OPCODE_ADDITION: {
+        case OPCODE_ADD: {
             try(Aty, typecheck_add(c, I));
             (void)Aty;
             break;
