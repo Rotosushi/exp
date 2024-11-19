@@ -49,6 +49,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/codegen/subtract.c
 
   ${EXP_SOURCE_DIR}/backend/x64/address.c
+  ${EXP_SOURCE_DIR}/backend/x64/addresses.c
   ${EXP_SOURCE_DIR}/backend/x64/allocation.c
   ${EXP_SOURCE_DIR}/backend/x64/allocator.c
   ${EXP_SOURCE_DIR}/backend/x64/bytecode.c

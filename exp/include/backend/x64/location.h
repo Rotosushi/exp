@@ -17,63 +17,25 @@
 #ifndef EXP_BACKEND_X64_LOCATION_H
 #define EXP_BACKEND_X64_LOCATION_H
 
+#include "backend/x64/address.h"
 #include "backend/x64/registers.h"
 
 typedef enum x64_LocationKind : u8 {
-  LOCATION_GPR,
-  LOCATION_ADDRESS,
+    LOCATION_GPR,
+    LOCATION_ADDRESS,
 } x64_LocationKind;
 
-typedef struct x64_OptionalGPR {
-  bool present;
-  x64_GPR gpr;
-} x64_OptionalGPR;
-
-x64_OptionalGPR x64_optional_gpr_empty();
-x64_OptionalGPR x64_optional_gpr(x64_GPR gpr);
-
-typedef struct x64_OptionalU8 {
-  bool present;
-  u8 value;
-} x64_OptionalU8;
-
-x64_OptionalU8 x64_optional_u8_empty();
-x64_OptionalU8 x64_optional_u8(u8 value);
-
-typedef struct x64_OptionalI64 {
-  bool present;
-  i64 value;
-} x64_OptionalI64;
-
-x64_OptionalI64 x64_optional_i64_empty();
-x64_OptionalI64 x64_optional_i64(i64 value);
-
-typedef struct x64_Address {
-  x64_GPR base;
-  x64_OptionalGPR index;
-  x64_OptionalU8 scale;
-  x64_OptionalI64 offset;
-} x64_Address;
-
-x64_Address x64_address_construct(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
-                                  x64_OptionalU8 optional_scale,
-                                  x64_OptionalI64 optional_offset);
-void x64_address_increment_offset(x64_Address *restrict address, i64 offset);
-
 typedef struct x64_Location {
-  x64_LocationKind kind;
-  union {
-    x64_GPR gpr;
-    x64_Address address;
-  };
+    x64_LocationKind kind;
+    union {
+        x64_GPR gpr;
+        x64_Address address;
+    };
 } x64_Location;
 
 x64_Location x64_location_gpr(x64_GPR gpr);
-x64_Location x64_location_address(x64_GPR base,
-                                  x64_OptionalGPR optional_index,
-                                  x64_OptionalU8 optional_scale,
-                                  x64_OptionalI64 optional_offset);
+x64_Location
+x64_location_address(x64_GPR base, x64_GPR index, u8 scale, i64 offset);
 bool x64_location_eq(x64_Location A, x64_Location B);
 
 #endif // !EXP_BACKEND_X64_LOCATION_H

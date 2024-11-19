@@ -36,7 +36,7 @@ x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
 
-            x64_address_increment_offset(&result, offset);
+            result.offset += offset;
         }
 
         break;
