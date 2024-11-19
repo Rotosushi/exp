@@ -4,6 +4,7 @@ set(EXP_UTILITY_SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/alloc.c
   ${EXP_SOURCE_DIR}/utility/array_growth.c
   ${EXP_SOURCE_DIR}/utility/hash.c
+  ${EXP_SOURCE_DIR}/utility/int_types.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
   ${EXP_SOURCE_DIR}/utility/minmax.c
@@ -47,6 +48,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/codegen/return.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/subtract.c
 
+  ${EXP_SOURCE_DIR}/backend/x64/address.c
   ${EXP_SOURCE_DIR}/backend/x64/allocation.c
   ${EXP_SOURCE_DIR}/backend/x64/allocator.c
   ${EXP_SOURCE_DIR}/backend/x64/bytecode.c

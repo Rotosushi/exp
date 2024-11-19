@@ -19,6 +19,6 @@
 
 #include "env/context.h"
 
-void x64_codegen(Context *restrict context);
+void x64_codegen(Context *context);
 
 #endif // !EXP_BACKEND_X64_CODEGEN_H

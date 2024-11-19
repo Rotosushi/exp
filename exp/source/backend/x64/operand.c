@@ -22,44 +22,45 @@
 #include "utility/unreachable.h"
 
 x64_Operand x64_operand_gpr(x64_GPR gpr) {
-  x64_Operand opr = {.format = X64_OPERAND_KIND_GPR, .gpr = gpr};
-  return opr;
+    x64_Operand opr = {.format = X64_OPERAND_KIND_GPR, .gpr = gpr};
+    return opr;
 }
 
 x64_Operand x64_operand_address(x64_Address address) {
-  x64_Operand opr = {.format = X64_OPERAND_KIND_ADDRESS, .address = address};
-  return opr;
+    x64_Operand opr = {.format = X64_OPERAND_KIND_ADDRESS, .address = address};
+    return opr;
 }
 
 x64_Operand x64_operand_location(x64_Location location) {
-  switch (location.kind) {
-  case LOCATION_GPR: {
-    return x64_operand_gpr(location.gpr);
-  }
+    switch (location.kind) {
+    case LOCATION_GPR: {
+        return x64_operand_gpr(location.gpr);
+    }
 
-  case LOCATION_ADDRESS: {
-    return x64_operand_address(location.address);
-  }
+    case LOCATION_ADDRESS: {
+        return x64_operand_address(location.address);
+    }
 
-  default: EXP_UNREACHABLE();
-  }
+    default: EXP_UNREACHABLE();
+    }
 }
 
 x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
-  return x64_operand_location(alloc->location);
+    return x64_operand_location(alloc->location);
 }
 
 x64_Operand x64_operand_constant(u16 index) {
-  x64_Operand opr = {.format = X64_OPERAND_KIND_CONSTANT, .index = index};
-  return opr;
+    x64_Operand opr = {.format = X64_OPERAND_KIND_CONSTANT, .constant = index};
+    return opr;
 }
 
-x64_Operand x64_operand_immediate(i64 value) {
-  x64_Operand opr = {.format = X64_OPERAND_KIND_IMMEDIATE, .immediate = value};
-  return opr;
+x64_Operand x64_operand_immediate(i16 value) {
+    x64_Operand opr = {.format    = X64_OPERAND_KIND_IMMEDIATE,
+                       .immediate = value};
+    return opr;
 }
 
-x64_Operand x64_operand_label(u64 index) {
-  x64_Operand opr = {.format = X64_OPERAND_KIND_LABEL, .index = index};
-  return opr;
+x64_Operand x64_operand_label(u16 index) {
+    x64_Operand opr = {.format = X64_OPERAND_KIND_LABEL, .label = index};
+    return opr;
 }

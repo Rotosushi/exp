@@ -23,8 +23,8 @@ endif()
 
 set(C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 23)
-message(STATUS "C standard ${CMAKE_C_STANDARD}")
 message(STATUS "C compiler ${CMAKE_C_COMPILER}")
+message(STATUS "C standard ${CMAKE_C_STANDARD}")
 
 project(EXP LANGUAGES C ASM VERSION 0.2.0 DESCRIPTION "A hobby programming language.")
 
@@ -37,10 +37,14 @@ set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
+set(EXP_PROFILE -pg)
 
 if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_SANITIZERS})
   set(EXP_LINK_OPTIONS ${EXP_SANITIZERS})
+elseif ($<CONFIG:RelWithDebInfo> OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_PROFILE})
+  set(EXP_LINK_OPTIONS ${EXP_PROFILE})
 else()
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})
   set(EXP_LINK_OPTIONS)
