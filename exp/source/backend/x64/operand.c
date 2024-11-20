@@ -22,12 +22,12 @@
 #include "utility/unreachable.h"
 
 x64_Operand x64_operand_gpr(x64_GPR gpr) {
-    x64_Operand opr = {.format = X64_OPERAND_KIND_GPR, .gpr = gpr};
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_GPR, .gpr = gpr};
     return opr;
 }
 
 x64_Operand x64_operand_address(x64_Address address) {
-    x64_Operand opr = {.format = X64_OPERAND_KIND_ADDRESS, .address = address};
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_ADDRESS, .address = address};
     return opr;
 }
 
@@ -50,17 +50,16 @@ x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
 }
 
 x64_Operand x64_operand_constant(u16 index) {
-    x64_Operand opr = {.format = X64_OPERAND_KIND_CONSTANT, .constant = index};
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_CONSTANT, .constant = index};
     return opr;
 }
 
 x64_Operand x64_operand_immediate(i16 value) {
-    x64_Operand opr = {.format    = X64_OPERAND_KIND_IMMEDIATE,
-                       .immediate = value};
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_IMMEDIATE, .immediate = value};
     return opr;
 }
 
 x64_Operand x64_operand_label(u16 index) {
-    x64_Operand opr = {.format = X64_OPERAND_KIND_LABEL, .label = index};
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_LABEL, .label = index};
     return opr;
 }

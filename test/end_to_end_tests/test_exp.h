@@ -22,5 +22,6 @@
 
 i32 test_exp(StringView source_path, char const *contents, i32 expected_code);
 
-#endif // !EXP_TEST_E2E_TEST_EXP_H
+i32 test_source(StringView path);
 
+#endif // !EXP_TEST_E2E_TEST_EXP_H

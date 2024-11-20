@@ -22,12 +22,15 @@
 #include "utility/config.h"
 
 int return_([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-  int result = EXIT_SUCCESS;
+    int result = EXIT_SUCCESS;
 
-  StringView source_path = SV(EXP_TEST_DIR "/return.exp");
+    // StringView source_path = SV(EXP_TEST_DIR "/return.exp");
 
-  result |= test_exp(source_path, "fn main() { return 0; }", 0);
-  result |= test_exp(source_path, "fn main() { return 255; }", 255);
+    // result |= test_exp(source_path, "fn main() { return 0; }", 0);
+    // result |= test_exp(source_path, "fn main() { return 255; }", 255);
 
-  return result;
+    result |= test_source(SV(EXP_TEST_RESOURCES_DIR "/return/return.0.exp"));
+    result |= test_source(SV(EXP_TEST_RESOURCES_DIR "/return/return.255.exp"));
+
+    return result;
 }
