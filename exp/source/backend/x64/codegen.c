@@ -136,8 +136,7 @@ static void x64_codegen_function(x64_Context *x64_context) {
     x64_codegen_prepend_function_header(x64_context);
 }
 
-static void x64_codegen_symbol(SymbolTableElement *symbol,
-                               x64_Context *x64_context) {
+static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     StringView name = symbol->name;
 
     switch (symbol->kind) {
@@ -162,7 +161,7 @@ void x64_codegen(Context *context) {
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
     while (!symbol_table_iterator_done(&iter)) {
-        x64_codegen_symbol(iter.element, &x64context);
+        x64_codegen_symbol((*iter.element), &x64context);
 
         symbol_table_iterator_next(&iter);
     }

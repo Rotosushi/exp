@@ -1,0 +1,5 @@
+
+fn main () {
+	const x = ((5, 7), (9, 6));
+	return x.0.1;
+}

@@ -1,0 +1,9 @@
+
+
+fn sum (a: i64, b: i64) {
+	return a + b;
+}
+
+fn main() {
+	return sum(sum(1, 2), sum(3, 4));
+}

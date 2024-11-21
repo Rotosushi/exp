@@ -93,6 +93,10 @@ String string_from_view(StringView sv) {
     return string;
 }
 
+String string_from_cstring(char const *cstring) {
+    return string_from_view(string_view_from_cstring(cstring));
+}
+
 String string_from_file(FILE *restrict file) {
     String s = string_create();
     u64 flen = file_length(file);
