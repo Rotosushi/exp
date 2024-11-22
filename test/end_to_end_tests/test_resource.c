@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "adt/string.h"
-#include "test_exp.h"
+#include "test_resource.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
@@ -90,7 +90,7 @@ u8 parse_exit_code(StringView path) {
     return (u8)exit_code;
 }
 
-i32 test_source(StringView path) {
+i32 test_resource(StringView path) {
     String exe_string = string_create();
     string_assign(&exe_string, path);
     string_replace_extension(&exe_string, SV(""));

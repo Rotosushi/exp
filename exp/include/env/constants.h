@@ -27,36 +27,9 @@ typedef struct Constants {
     Value *buffer;
 } Constants;
 
-/**
- * @brief create a Values buffer
- *
- * @return Values
- */
 Constants constants_create();
-
-/**
- * @brief destroy a Values buffer
- *
- * @param values
- */
 void constants_destroy(Constants *restrict values);
-
-/**
- * @brief add a new Value to the Values buffer
- *
- * @param values
- * @param value
- * @return Value*
- */
 Operand constants_append(Constants *restrict values, Value value);
-
-/**
- * @brief return the constant at the given index in the buffer
- *
- * @param constants
- * @param index
- * @return Value*
- */
 Value *constants_at(Constants *restrict values, u16 index);
 
 struct Context;

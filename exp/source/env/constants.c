@@ -34,7 +34,7 @@ Constants constants_create() {
 
 void constants_destroy(Constants *restrict constants) {
     assert(constants != NULL);
-    for (u64 i = 0; i < constants->count; ++i) {
+    for (u16 i = 0; i < constants->count; ++i) {
         Value *constant = constants->buffer + i;
         value_destroy(constant);
     }
@@ -52,9 +52,9 @@ static bool constants_full(Constants *restrict constants) {
 
 static void constants_grow(Constants *restrict constants) {
     assert(constants != NULL);
-    Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
+    Growth16 g          = array_growth_u16(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-    constants->capacity = (u16)g.new_capacity;
+    constants->capacity = g.new_capacity;
 }
 
 Operand constants_append(Constants *restrict constants, Value value) {

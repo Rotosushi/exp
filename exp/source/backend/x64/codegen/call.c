@@ -38,6 +38,7 @@ static OperandArray operand_array_create() {
 }
 
 static void operand_array_destroy(OperandArray *restrict array) {
+    assert(array != nullptr);
     deallocate(array->buffer);
     array->size     = 0;
     array->capacity = 0;
@@ -45,17 +46,20 @@ static void operand_array_destroy(OperandArray *restrict array) {
 }
 
 static bool operand_array_full(OperandArray *restrict array) {
+    assert(array != nullptr);
     return (array->size + 1) >= array->capacity;
 }
 
 static void operand_array_grow(OperandArray *restrict array) {
-    Growth g        = array_growth_u8(array->capacity, sizeof(Operand));
+    assert(array != nullptr);
+    Growth8 g       = array_growth_u8(array->capacity, sizeof(Operand));
     array->buffer   = reallocate(array->buffer, g.alloc_size);
-    array->capacity = (u8)g.new_capacity;
+    array->capacity = g.new_capacity;
 }
 
 static void operand_array_append(OperandArray *restrict array,
                                  Operand operand) {
+    assert(array != nullptr);
     if (operand_array_full(array)) { operand_array_grow(array); }
     array->buffer[array->size++] = operand;
 }
@@ -63,6 +67,7 @@ static void operand_array_append(OperandArray *restrict array,
 static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
                                                            i64 stack_space,
                                                            u64 block_index) {
+    assert(context != nullptr);
     if (i64_in_range_i16(stack_space)) {
         x64_context_insert(context,
                            x64_sub(x64_operand_gpr(X64_GPR_RSP),
@@ -82,6 +87,7 @@ static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
 static void
 x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
                                                  i64 stack_space) {
+    assert(x64_context != nullptr);
     if (i64_in_range_i16(stack_space)) {
         x64_context_append(x64_context,
                            x64_add(x64_operand_gpr(X64_GPR_RSP),
@@ -100,6 +106,7 @@ x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
 void x64_codegen_call(Instruction I,
                       u64 block_index,
                       x64_Context *restrict context) {
+    assert(context != nullptr);
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local     = x64_context_lookup_ssa(context, I.A_data.ssa);
     u8 scalar_argument_count = 0;

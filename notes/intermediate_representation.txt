@@ -175,17 +175,59 @@
       virtual registers. 
 
       a few things come to mind:
-      A - we have to decide on a static length for our encoding. 64 is natural, 32 could 
-      be slightly more efficient from a data perspective (64 bit word size means more instructions 
-      will be loaded into cache when reading BC, allowing faster processing of BC),
-      and portable to 32 bit machines. 64 bit encoding seems very difficult to encode into a 32 
-      bit architecture. whereas the other way around "just works."
+      A - we have to decide on a static length for our encoding. 64 bits is natural, 32 bits could 
+      be slightly more efficient from a data perspective.
+
+        if the size of a cache line is 64 bytes
+        and we have 3 operand instructions, then 
+        if each operand takes up 3 bit kind + 2 byte data
+        then we can have a seven bit opcode and fit an 
+        Instruction into 8 bytes, just one machine word.
+        and if sizeof(Instruction) == 8 
+        then 8 instructions can fit into a cache line. 
+        if a function is small, ~8 lines of bytecode,
+        then the whole body of the function could 
+        fit into a single cache line.
+        This also allows for an entire instruction to 
+        be held inside a single register in the CPU.
+        
+        The downside 
+        is that we only have 16 bits of payload for each 
+        operand. This limits the size of a program that 
+        can be compiled, given that we use that payload 
+        as a handle to an array of unique labels. an 
+        array of unique constants, and the array of local 
+        %ssa variables.
+        this only allows for 2^16 unique names visible in a translation 
+        unit of a given program, 2^16 unique constants per translation 
+        unit. and 2^16 unique locals for a single function.
+        this might be able to be reached given a large enough 
+        program. This is at the scale where I wonder if a large 
+        program such as LLVM or the UnrealEngine has translation 
+        units where there are so many unique labels. or constants.
+        But any small to medium scale program is unlikely to have 
+        that many unique labels visible within a single translation 
+        unit.
+
+        if we double the payload of each operand, then 
+        we have 12 bytes of payload, with 4 bytes leftover 
+        for kinds. we can rearrange and get 16 byte instructions
+        which allows for 4 instructions per cache line.
+        this also allows for programs with up to 2^32 
+        unique labels to be compiled. which seems to be 
+        well out of the range of all but the most massive 
+        projects. thats 4 GiB to store just the indexes of the 
+        names of the program. the scale of this program boggles 
+        the mind.
+
+        if each operands payload was doubled to be 64 bits 
+        we can get the size of an instruction to 32 bytes,
+        which allows for two instructions per cache line.
+
 
       B - we have to separate functions and values.
       this is going to simplify the treatment of values considerably, though we now have 
       to build up some extra data-structures to manage functions. 
-      (they can't be stored in the constants array, in fact I think this means we switch 
-      to a register based VM instead of a stack based VM.)
       and on this point, more fundamentally, we need to separate defintion of symbols from 
       the instructions entirely. That is the parser needs to build symbols, and insert them
       into the global symbol table. AND there is no more global bytecode, there is only 
@@ -222,18 +264,22 @@
       returned from the parser of affix expressions to the parser of constant definitions
       such that a global symbol can be generated. 
 
+        * currently using an out parameter for that.
+
       given that it is an affix expression we are talking about, the same thing that a 
       functions body is composed of, it makes sense to use a basic block here. It can 
       represent something which can be used to synthesize the value of the symbol.
 
       an additional question is "How can we represent the phi function?"
-      which is used to coalese values after branches. The difficuly is 
-      that the phi function can have arbitrary fanin, that is any number 
-      of incoming values which -could- have initialized the result of 
-      the phi function, depending on the runtime control flow. 
-      my idea is simple, we can use the three 
-      operand instruction and use the two source operands to specify the 
-      range of incoming locals which are the incoming values. 
-      Though, this does require that incoming 
-      values be contiguous within the locals array, which may not be 
-      possible or convienient. so we'll see.
+      which is used to coalese values after branches. The difficuly is
+      that the phi function can have arbitrary fanin, that is any number
+      of incoming values which -could- have initialized the result of
+      the phi function, depending on the runtime control flow.
+        
+      we are using tuples to pass arguments into functions using a single
+      instruction Operand we might as well use them to pass a tuple of
+      incoming %ssa locals into the phi instruction.
+
+
+
+

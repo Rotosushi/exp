@@ -25,148 +25,148 @@
 #include "utility/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {
-  Edge *edge   = allocate(sizeof(Edge));
-  edge->target = target;
-  edge->next   = next;
-  return edge;
+    Edge *edge   = allocate(sizeof(Edge));
+    edge->target = target;
+    edge->next   = next;
+    return edge;
 }
 
 static void edge_destroy(Edge *restrict edge) {
-  assert(edge != NULL);
-  Edge *tmp = NULL;
-  while (edge->next != NULL) {
-    tmp        = edge->next;
-    edge->next = tmp->next;
-    deallocate(tmp);
-  }
-  deallocate(edge);
+    assert(edge != NULL);
+    Edge *tmp = NULL;
+    while (edge->next != NULL) {
+        tmp        = edge->next;
+        edge->next = tmp->next;
+        deallocate(tmp);
+    }
+    deallocate(edge);
 }
 
 static void edge_prepend(Edge *restrict edge, u64 target) {
-  Edge *new  = edge_create(target, edge->next);
-  edge->next = new;
+    Edge *new  = edge_create(target, edge->next);
+    edge->next = new;
 }
 
 Graph graph_create() {
-  Graph g;
-  g.length   = 0;
-  g.capacity = 0;
-  g.list     = NULL;
-  return g;
+    Graph g;
+    g.length   = 0;
+    g.capacity = 0;
+    g.list     = NULL;
+    return g;
 }
 
 void graph_destroy(Graph *restrict g) {
-  assert(g != NULL);
+    assert(g != NULL);
 
-  for (u64 i = 0; i < g->length; ++i) {
-    Edge *edge = g->list[i];
-    if (edge != NULL) { edge_destroy(edge); }
-  }
+    for (u64 i = 0; i < g->length; ++i) {
+        Edge *edge = g->list[i];
+        if (edge != NULL) { edge_destroy(edge); }
+    }
 
-  g->length   = 0;
-  g->capacity = 0;
-  deallocate(g->list);
-  g->list = NULL;
+    g->length   = 0;
+    g->capacity = 0;
+    deallocate(g->list);
+    g->list = NULL;
 }
 
 static bool graph_full(Graph *restrict graph) {
-  return graph->capacity <= (graph->length + 1);
+    return graph->capacity <= (graph->length + 1);
 }
 
 static void graph_grow(Graph *restrict graph) {
-  Growth g        = array_growth_u64(graph->capacity, sizeof(Edge *));
-  graph->list     = reallocate(graph->list, g.alloc_size);
-  graph->capacity = g.new_capacity;
+    Growth64 g      = array_growth_u64(graph->capacity, sizeof(Edge *));
+    graph->list     = reallocate(graph->list, g.alloc_size);
+    graph->capacity = g.new_capacity;
 }
 
 u64 graph_add_vertex(Graph *restrict graph) {
-  assert(graph != NULL);
+    assert(graph != NULL);
 
-  if (graph_full(graph)) { graph_grow(graph); }
+    if (graph_full(graph)) { graph_grow(graph); }
 
-  u64 vertex          = graph->length;
-  graph->list[vertex] = NULL;
-  graph->length += 1;
-  return vertex;
+    u64 vertex          = graph->length;
+    graph->list[vertex] = NULL;
+    graph->length += 1;
+    return vertex;
 }
 
 void graph_add_edge(Graph *restrict graph, u64 source, u64 target) {
-  assert(graph != NULL);
-  assert((source < graph->length) && "source vertex does not exist.");
-  assert((target < graph->length) && "target vertex does not exist.");
+    assert(graph != NULL);
+    assert((source < graph->length) && "source vertex does not exist.");
+    assert((target < graph->length) && "target vertex does not exist.");
 
-  Edge **edge = graph->list + source;
-  if (*edge == NULL) {
-    *edge = edge_create(target, NULL);
-  } else {
-    edge_prepend(*edge, target);
-  }
+    Edge **edge = graph->list + source;
+    if (*edge == NULL) {
+        *edge = edge_create(target, NULL);
+    } else {
+        edge_prepend(*edge, target);
+    }
 }
 
 void vertex_list_destroy(VertexList *restrict vl) {
-  vl->capacity = 0;
-  vl->count    = 0;
-  deallocate(vl->list);
-  vl->list = NULL;
+    vl->capacity = 0;
+    vl->count    = 0;
+    deallocate(vl->list);
+    vl->list = NULL;
 }
 
 static VertexList vertex_list_create() {
-  VertexList vl;
-  vl.capacity = 0;
-  vl.count    = 0;
-  vl.list     = NULL;
-  return vl;
+    VertexList vl;
+    vl.capacity = 0;
+    vl.count    = 0;
+    vl.list     = NULL;
+    return vl;
 }
 
 static bool vertex_list_full(VertexList *restrict vl) {
-  return vl->capacity <= (vl->count + 1);
+    return vl->capacity <= (vl->count + 1);
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
-  Growth g     = array_growth_u64(vl->capacity, sizeof(u64));
-  vl->list     = reallocate(vl->list, g.alloc_size);
-  vl->capacity = g.new_capacity;
+    Growth64 g   = array_growth_u64(vl->capacity, sizeof(u64));
+    vl->list     = reallocate(vl->list, g.alloc_size);
+    vl->capacity = g.new_capacity;
 }
 
 static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
-  if (vertex_list_full(vl)) { vertex_list_grow(vl); }
+    if (vertex_list_full(vl)) { vertex_list_grow(vl); }
 
-  vl->list[vl->count] = vertex;
-  vl->count += 1;
+    vl->list[vl->count] = vertex;
+    vl->count += 1;
 }
 
 VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex) {
-  assert(graph != NULL);
-  assert((vertex < graph->length) && "vertex does not exist.");
+    assert(graph != NULL);
+    assert((vertex < graph->length) && "vertex does not exist.");
 
-  VertexList vl = vertex_list_create();
-  Edge *edge    = graph->list[vertex];
-  while (edge != NULL) {
-    vertext_list_append(&vl, edge->target);
-    edge = edge->next;
-  }
-  return vl;
+    VertexList vl = vertex_list_create();
+    Edge *edge    = graph->list[vertex];
+    while (edge != NULL) {
+        vertext_list_append(&vl, edge->target);
+        edge = edge->next;
+    }
+    return vl;
 }
 
 static bool list_contains_vertex(Edge *edge, u64 vertex) {
-  while (edge != NULL) {
-    if (edge->target == vertex) { return 1; }
-    edge = edge->next;
-  }
-  return 0;
+    while (edge != NULL) {
+        if (edge->target == vertex) { return 1; }
+        edge = edge->next;
+    }
+    return 0;
 }
 
 VertexList graph_vertex_fanin(Graph *restrict graph, u64 vertex) {
-  assert(graph != NULL);
+    assert(graph != NULL);
 
-  VertexList vl = vertex_list_create();
-  for (u64 i = 0; i < graph->length; ++i) {
-    Edge *edge = graph->list[i];
-    if ((i != vertex) && (edge != NULL) && list_contains_vertex(edge, vertex)) {
-      vertext_list_append(&vl, i);
+    VertexList vl = vertex_list_create();
+    for (u64 i = 0; i < graph->length; ++i) {
+        Edge *edge = graph->list[i];
+        if ((i != vertex) && (edge != NULL) &&
+            list_contains_vertex(edge, vertex)) {
+            vertext_list_append(&vl, i);
+        }
     }
-  }
 
-  return vl;
+    return vl;
 }
-
