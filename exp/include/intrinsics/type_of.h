@@ -21,17 +21,8 @@
 #include "imr/type.h"
 #include "imr/value.h"
 
-/**
- * @brief return the type of the given value
- *
- * @param value
- * @param context
- * @return Type*
- */
-Type *type_of_value(Value *restrict value, Context *restrict context);
-
-Type *type_of_function(FunctionBody *restrict body, Context *restrict context);
-
-Type *type_of_operand(Operand operand, Context *restrict context);
+Type const *type_of_value(Value *value, Context *context);
+Type const *type_of_function(FunctionBody *body, Context *context);
+Type const *type_of_operand(Operand operand, Context *context);
 
 #endif // !EXP_INTRINSICS_TYPE_OF_H

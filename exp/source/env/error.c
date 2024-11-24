@@ -20,80 +20,81 @@
 #include "utility/unreachable.h"
 
 StringView error_code_sv(ErrorCode code) {
-  switch (code) {
-  case ERROR_NONE: return SV("none");
+    switch (code) {
+    case ERROR_NONE: return SV("none");
 
-  case ERROR_LEXER_ERROR_UNEXPECTED_CHAR:
-    return SV("Unexcepted char in stream: ");
-  case ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE:
-    return SV("missing '\"' to end string literal.");
+    case ERROR_LEXER_ERROR_UNEXPECTED_CHAR:
+        return SV("Unexcepted char in stream: ");
+    case ERROR_LEXER_ERROR_UNMATCHED_DOUBLE_QUOTE:
+        return SV("missing '\"' to end string literal.");
 
-  case ERROR_INTEGER_TO_LARGE: return SV("Integer literal too large.");
+    case ERROR_INTEGER_TO_LARGE: return SV("Integer literal too large.");
 
-  case ERROR_PARSER_EXPECTED_END_COMMENT: return SV("Expected: [*/]. Found: ");
-  case ERROR_PARSER_EXPECTED_BEGIN_BRACE: return SV("Expected: [{]. Found: ");
-  case ERROR_PARSER_EXPECTED_END_BRACE:   return SV("Expected: [}]. Found: ");
-  case ERROR_PARSER_EXPECTED_BEGIN_PAREN: return SV("Expected: [(]. Found: ");
-  case ERROR_PARSER_EXPECTED_END_PAREN:   return SV("Expected: [)]. Found: ");
-  case ERROR_PARSER_EXPECTED_RIGHT_ARROW: return SV("Expected: [->]. Found: ");
-  case ERROR_PARSER_EXPECTED_SEMICOLON:   return SV("Expected: [;]. Found: ");
-  case ERROR_PARSER_EXPECTED_COLON:       return SV("Expected: [:]. Found: ");
-  case ERROR_PARSER_EXPECTED_EQUAL:       return SV("Expected: [=]. Found: ");
-  case ERROR_PARSER_EXPECTED_KEYWORD_CONST:
-    return SV("Expected: [const]. Found: ");
-  case ERROR_PARSER_EXPECTED_KEYWORD_FN: return SV("Expected: [Fn]. Found: ");
-  case ERROR_PARSER_EXPECTED_EXPRESSION:
-    return SV("Expected an Expression. Found: ");
-  case ERROR_PARSER_EXPECTED_STATEMENT:
-    return SV("Expected a Statement. Found: ");
-  case ERROR_PARSER_EXPECTED_IDENTIFIER:
-    return SV("Expected an Identifier. Found: ");
-  case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
+    case ERROR_PARSER_EXPECTED_END_COMMENT:
+        return SV("Expected: [*/]. Found: ");
+    case ERROR_PARSER_EXPECTED_BEGIN_BRACE: return SV("Expected: [{]. Found: ");
+    case ERROR_PARSER_EXPECTED_END_BRACE:   return SV("Expected: [}]. Found: ");
+    case ERROR_PARSER_EXPECTED_BEGIN_PAREN: return SV("Expected: [(]. Found: ");
+    case ERROR_PARSER_EXPECTED_END_PAREN:   return SV("Expected: [)]. Found: ");
+    case ERROR_PARSER_EXPECTED_RIGHT_ARROW:
+        return SV("Expected: [->]. Found: ");
+    case ERROR_PARSER_EXPECTED_SEMICOLON: return SV("Expected: [;]. Found: ");
+    case ERROR_PARSER_EXPECTED_COLON:     return SV("Expected: [:]. Found: ");
+    case ERROR_PARSER_EXPECTED_EQUAL:     return SV("Expected: [=]. Found: ");
+    case ERROR_PARSER_EXPECTED_KEYWORD_CONST:
+        return SV("Expected: [const]. Found: ");
+    case ERROR_PARSER_EXPECTED_KEYWORD_FN: return SV("Expected: [Fn]. Found: ");
+    case ERROR_PARSER_EXPECTED_EXPRESSION:
+        return SV("Expected an Expression. Found: ");
+    case ERROR_PARSER_EXPECTED_STATEMENT:
+        return SV("Expected a Statement. Found: ");
+    case ERROR_PARSER_EXPECTED_IDENTIFIER:
+        return SV("Expected an Identifier. Found: ");
+    case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
 
-  case ERROR_TYPECHECK_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
-  case ERROR_TYPECHECK_TYPE_MISMATCH:
-    return SV("Expected Type does not match Actual Type: ");
+    case ERROR_TYPECHECK_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
+    case ERROR_TYPECHECK_TYPE_MISMATCH:
+        return SV("Expected Type does not match Actual Type: ");
 
-  default: EXP_UNREACHABLE();
-  }
+    default: EXP_UNREACHABLE();
+    }
 }
 
 Error error_create() {
-  Error error;
-  error.code    = ERROR_NONE;
-  error.message = string_create();
-  return error;
+    Error error;
+    error.code    = ERROR_NONE;
+    error.message = string_create();
+    return error;
 }
 
 Error error_construct(ErrorCode code, StringView sv) {
-  Error error = error_create();
-  error.code  = code;
-  string_assign(&error.message, sv);
-  return error;
+    Error error = error_create();
+    error.code  = code;
+    string_assign(&error.message, sv);
+    return error;
 }
 
 Error error_from_string(ErrorCode code, String str) {
-  Error error = {.code = code, .message = str};
-  return error;
+    Error error = {.code = code, .message = str};
+    return error;
 }
 
 void error_destroy(Error *restrict error) {
-  error->code = ERROR_NONE;
-  string_destroy(&error->message);
+    error->code = ERROR_NONE;
+    string_destroy(&error->message);
 }
 
 void error_assign(Error *restrict error, ErrorCode code, StringView sv) {
-  error->code = code;
-  string_assign(&error->message, sv);
+    error->code = code;
+    string_assign(&error->message, sv);
 }
 
 void error_print(Error *restrict error, StringView file, u64 line) {
-  String msg = string_create();
-  string_append(&msg, SV("\nError: "));
-  string_append(&msg, error_code_sv(error->code));
-  string_append(&msg, SV("["));
-  string_append_string(&msg, &error->message);
-  string_append(&msg, SV("]"));
-  log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
-  string_destroy(&msg);
+    String msg = string_create();
+    string_append(&msg, error_code_sv(error->code));
+    string_append(&msg, SV("["));
+    string_append_string(&msg, &error->message);
+    string_append(&msg, SV("]"));
+    log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
+    string_destroy(&msg);
 }

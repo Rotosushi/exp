@@ -22,31 +22,31 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_address_from_operand(x64_Address *dst,
                                            Operand src,
-                                           Type *restrict type,
+                                           Type const *type,
                                            u64 Idx,
-                                           x64_Context *restrict context);
+                                           x64_Context *context);
 
 void x64_codegen_load_gpr_from_operand(x64_GPR dst,
                                        Operand src,
                                        u64 Idx,
-                                       x64_Context *restrict context);
+                                       x64_Context *context);
 
-void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_argument_from_operand(x64_Address *dst,
                                             Operand src,
-                                            Type *restrict type,
+                                            Type const *type,
                                             u64 Idx,
-                                            x64_Context *restrict context);
+                                            x64_Context *context);
 
-void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_operand(x64_Allocation *dst,
                                               Operand src,
                                               u64 Idx,
-                                              x64_Context *restrict context);
+                                              x64_Context *context);
 
-void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_value(x64_Allocation *dst,
                                             Value *value,
                                             u64 Idx,
-                                            x64_Context *restrict context);
+                                            x64_Context *context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_LOAD_H

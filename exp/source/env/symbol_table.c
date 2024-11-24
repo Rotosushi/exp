@@ -107,29 +107,43 @@ Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
     return *element;
 }
 
-SymbolTableIterator
-symbol_table_iterator_create(SymbolTable *restrict symbol_table) {
-    assert(symbol_table != NULL);
-
-    SymbolTableIterator iter = {symbol_table->elements,
-                                symbol_table->elements +
-                                    symbol_table->capacity};
-    if ((*iter.element) == NULL) { symbol_table_iterator_next(&iter); }
-    return iter;
+static bool symbol_list_full(SymbolList *symbol_list) {
+    assert(symbol_list != nullptr);
+    return (symbol_list->count + 1) >= symbol_list->capacity;
 }
 
-void symbol_table_iterator_next(SymbolTableIterator *restrict iter) {
-    assert(iter != NULL);
+static void symbol_list_grow(SymbolList *symbol_list) {
+    assert(symbol_list != nullptr);
+    Growth64 g = array_growth_u64(symbol_list->capacity, sizeof(Symbol *));
+    symbol_list->buffer   = reallocate(symbol_list->buffer, g.alloc_size);
+    symbol_list->capacity = g.new_capacity;
+}
 
-    if (iter->element != iter->end) {
-        do {
-            iter->element += 1;
-        } while ((iter->element != iter->end) && ((*iter->element) == NULL));
+static void symbol_list_append(SymbolList *symbol_list, Symbol *symbol) {
+    assert(symbol_list != nullptr);
+    if (symbol_list_full(symbol_list)) { symbol_list_grow(symbol_list); }
+    symbol_list->buffer[symbol_list->count++] = symbol;
+}
+
+void symbol_list_initialize(SymbolList *symbol_list,
+                            SymbolTable *symbol_table) {
+    assert(symbol_list != nullptr);
+    assert(symbol_table != nullptr);
+    symbol_list->count    = 0;
+    symbol_list->capacity = 0;
+    symbol_list->buffer   = nullptr;
+
+    for (u64 i = 0; i < symbol_table->capacity; ++i) {
+        Symbol *symbol = symbol_table->elements[i];
+        if (symbol == nullptr) { continue; }
+        symbol_list_append(symbol_list, symbol);
     }
 }
 
-bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
-    assert(iter != NULL);
-
-    return iter->element == iter->end;
+void symbol_list_terminate(SymbolList *symbol_list) {
+    assert(symbol_list != nullptr);
+    symbol_list->count    = 0;
+    symbol_list->capacity = 0;
+    deallocate(symbol_list->buffer);
+    symbol_list->buffer = nullptr;
 }

@@ -26,6 +26,6 @@
  * @param type
  * @return u64
  */
-u64 size_of(Type *restrict type);
+u64 size_of(Type const *type);
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

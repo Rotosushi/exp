@@ -1,0 +1,15 @@
+
+a test resource is a file containing valid exp code and has it's exit 
+code added to it as if it were a file extension:
+
+	test_resource.0.exp
+
+
+files that start with '.' will not be gathered as an active test.
+
+all files in all directories at or below test/resources/ will be checked 
+for files, and all of them will be considered test resource files.
+
+
+
+

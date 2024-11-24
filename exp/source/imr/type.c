@@ -24,18 +24,17 @@
 #include "utility/array_growth.h"
 #include "utility/unreachable.h"
 
-TupleType tuple_type_create() {
-    TupleType tuple_type;
-    tuple_type.capacity = 0;
-    tuple_type.size     = 0;
-    tuple_type.types    = NULL;
-    return tuple_type;
+void tuple_type_initialize(TupleType *tuple_type) {
+    assert(tuple_type != nullptr);
+    tuple_type->capacity = 0;
+    tuple_type->count    = 0;
+    tuple_type->types    = NULL;
 }
 
-void tuple_type_destroy(TupleType *restrict tuple_type) {
+void tuple_type_terminate(TupleType *tuple_type) {
     assert(tuple_type != NULL);
     tuple_type->capacity = 0;
-    tuple_type->size     = 0;
+    tuple_type->count    = 0;
     deallocate(tuple_type->types);
     tuple_type->types = NULL;
 }
@@ -43,96 +42,104 @@ void tuple_type_destroy(TupleType *restrict tuple_type) {
 bool tuple_type_equality(TupleType const *A, TupleType const *B) {
     assert(A != NULL);
     assert(B != NULL);
-    if (A == B) { return 1; }
+    if (A == B) { return true; }
 
-    if (A->size != B->size) { return 0; }
+    if (A->count != B->count) { return false; }
 
-    for (u64 i = 0; i < A->size; ++i) {
-        Type *t = A->types[i];
-        Type *u = B->types[i];
+    for (u64 i = 0; i < A->count; ++i) {
+        Type const *t = A->types[i];
+        Type const *u = B->types[i];
 
-        if (!type_equality(t, u)) { return 0; }
+        if (!type_equality(t, u)) { return false; }
     }
 
-    return 1;
+    return true;
 }
 
-static bool tuple_type_full(TupleType *restrict tuple_type) {
-    return (tuple_type->size + 1) >= tuple_type->capacity;
+static bool tuple_type_full(TupleType *tuple_type) {
+    assert(tuple_type != nullptr);
+    return (tuple_type->count + 1) >= tuple_type->capacity;
 }
 
-static void tuple_type_grow(TupleType *restrict tuple_type) {
+static void tuple_type_grow(TupleType *tuple_type) {
+    assert(tuple_type != nullptr);
     Growth64 g        = array_growth_u64(tuple_type->capacity, sizeof(Type *));
     tuple_type->types = reallocate(tuple_type->types, g.alloc_size);
     tuple_type->capacity = g.new_capacity;
 }
 
-void tuple_type_append(TupleType *restrict tuple_type, Type *type) {
+void tuple_type_append(TupleType *tuple_type, Type const *type) {
     assert(tuple_type != NULL);
-
+    assert(type != nullptr);
     if (tuple_type_full(tuple_type)) { tuple_type_grow(tuple_type); }
-
-    tuple_type->types[tuple_type->size] = type;
-    tuple_type->size += 1;
+    tuple_type->types[tuple_type->count] = type;
+    tuple_type->count += 1;
 }
 
 bool function_type_equality(FunctionType const *A, FunctionType const *B) {
     assert(A != NULL);
     assert(B != NULL);
-    if (A == B) { return 1; }
-
-    if (!type_equality(A->return_type, B->return_type)) { return 0; }
-
+    if (A == B) { return true; }
+    if (!type_equality(A->return_type, B->return_type)) { return false; }
     return tuple_type_equality(&A->argument_types, &B->argument_types);
 }
 
-Type type_create_nil() {
-    Type type = {.kind = TYPE_KIND_NIL, .nil_type.empty = 0};
+Type *type_nil() {
+    Type *type        = allocate(sizeof(Type));
+    type->kind        = TYPE_KIND_NIL;
+    type->scalar_type = 0;
     return type;
 }
 
-Type type_create_boolean() {
-    Type type = {.kind = TYPE_KIND_BOOLEAN, .boolean_type.empty = 0};
+Type *type_boolean() {
+    Type *type        = allocate(sizeof(Type));
+    type->kind        = TYPE_KIND_BOOLEAN;
+    type->scalar_type = 0;
     return type;
 }
 
-Type type_create_integer() {
-    Type type = {.kind = TYPE_KIND_I64, .integer_type.empty = 0};
+Type *type_i64() {
+    Type *type        = allocate(sizeof(Type));
+    type->kind        = TYPE_KIND_I64;
+    type->scalar_type = 0;
     return type;
 }
 
-Type type_create_tuple(TupleType tuple_type) {
-    Type type = {.kind = TYPE_KIND_TUPLE, .tuple_type = tuple_type};
+Type *type_tuple(TupleType tuple_type) {
+    Type *type       = allocate(sizeof(Type));
+    type->kind       = TYPE_KIND_TUPLE;
+    type->tuple_type = tuple_type;
     return type;
 }
 
-Type type_create_function(Type *result, TupleType args) {
-    Type type = {
-        .kind          = TYPE_KIND_FUNCTION,
-        .function_type = (FunctionType){result, args}
-    };
+Type *type_function(Type const *result, TupleType args) {
+    Type *type          = allocate(sizeof(Type));
+    type->kind          = TYPE_KIND_FUNCTION;
+    type->function_type = (FunctionType){result, args};
     return type;
 }
 
-void type_destroy(Type *type) {
+void type_terminate(Type *type) {
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
-        tuple_type_destroy(&type->tuple_type);
+        tuple_type_terminate(&type->tuple_type);
         break;
     }
 
     case TYPE_KIND_FUNCTION: {
-        tuple_type_destroy(&type->function_type.argument_types);
+        tuple_type_terminate(&type->function_type.argument_types);
         break;
     }
 
     // #NOTE: no other types dynamically allocate
     default: break;
     }
+
+    deallocate(type);
 }
 
 bool type_equality(Type const *A, Type const *B) {
-    if (A->kind != B->kind) { return 0; }
+    if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
     case TYPE_KIND_TUPLE:
@@ -159,19 +166,17 @@ bool type_is_scalar(Type const *T) {
     }
 }
 
-static void emit_tuple_type(TupleType const *restrict tuple_type,
-                            String *restrict buf) {
+static void emit_tuple_type(TupleType const *tuple_type, String *buf) {
     string_append(buf, SV("("));
-    for (u64 i = 0; i < tuple_type->size; ++i) {
+    for (u64 i = 0; i < tuple_type->count; ++i) {
         emit_type(tuple_type->types[i], buf);
 
-        if (i < (tuple_type->size - 1)) { string_append(buf, SV(", ")); }
+        if (i < (tuple_type->count - 1)) { string_append(buf, SV(", ")); }
     }
     string_append(buf, SV(")"));
 }
 
-static void emit_function_type(FunctionType const *restrict function_type,
-                               String *restrict buf) {
+static void emit_function_type(FunctionType const *function_type, String *buf) {
     string_append(buf, SV("fn "));
     TupleType const *tuple_type = &function_type->argument_types;
     emit_tuple_type(tuple_type, buf);
@@ -179,7 +184,7 @@ static void emit_function_type(FunctionType const *restrict function_type,
     emit_type(function_type->return_type, buf);
 }
 
-void emit_type(Type const *restrict T, String *restrict buf) {
+void emit_type(Type const *T, String *buf) {
     switch (T->kind) {
     case TYPE_KIND_NIL:      string_append(buf, SV("nil")); break;
     case TYPE_KIND_BOOLEAN:  string_append(buf, SV("bool")); break;
@@ -191,7 +196,7 @@ void emit_type(Type const *restrict T, String *restrict buf) {
     }
 }
 
-void print_type(Type const *restrict T, FILE *restrict file) {
+void print_type(Type const *T, FILE *file) {
     String buf = string_create();
     emit_type(T, &buf);
     print_string_view(string_to_view(&buf), file);

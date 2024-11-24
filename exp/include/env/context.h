@@ -34,8 +34,8 @@ typedef struct Context {
     ContextOptions options;
     StringInterner string_interner;
     TypeInterner type_interner;
-    SymbolTable global_symbol_table;
-    Labels global_labels;
+    SymbolTable symbol_table;
+    Labels labels;
     Constants constants;
     Error current_error;
     FunctionBody *current_function;
@@ -49,8 +49,8 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-Context context_create(CLIOptions *options);
-void context_destroy(Context *context);
+void context_initialize(Context *context, CLIOptions *options);
+void context_terminate(Context *context);
 
 // context options functions
 bool context_do_assemble(Context *context);
@@ -70,22 +70,21 @@ bool context_has_error(Context *context);
 StringView context_intern(Context *context, StringView sv);
 
 // type interner functions
-Type *context_nil_type(Context *context);
-Type *context_boolean_type(Context *context);
-Type *context_i64_type(Context *context);
-Type *context_tuple_type(Context *context, TupleType tuple);
-Type *context_function_type(Context *context,
-                            Type *return_type,
-                            TupleType argument_types);
+Type const *context_nil_type(Context *context);
+Type const *context_boolean_type(Context *context);
+Type const *context_i64_type(Context *context);
+Type const *context_tuple_type(Context *context, TupleType tuple);
+Type const *context_function_type(Context *context,
+                                  Type const *return_type,
+                                  TupleType argument_types);
 
 // labels functions
 u16 context_labels_insert(Context *context, StringView symbol);
 StringView context_labels_at(Context *context, u16 index);
 
 // symbol table functions
-Symbol *context_global_symbol_table_at(Context *context, StringView name);
-
-SymbolTableIterator context_global_symbol_table_iterator(Context *context);
+Symbol *context_symbol_table_at(Context *context, StringView name);
+void context_gather_symbols(Context *context, SymbolList *symbol_list);
 
 // function functions
 FunctionBody *context_enter_function(Context *c, StringView name);

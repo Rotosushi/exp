@@ -185,9 +185,10 @@ static bool parse_precedence(Operand *result,
                              Parser *parser,
                              Context *context);
 
-static bool parse_type(Type **result, Parser *parser, Context *context);
+static bool parse_type(Type const **result, Parser *parser, Context *context);
 
-static bool parse_tuple_type(Type **result, Parser *parser, Context *context) {
+static bool
+parse_tuple_type(Type const **result, Parser *parser, Context *context) {
 
     // an empty tuple type is equivalent to a nil type.
     switch (expect(parser, context, TOK_NIL)) {
@@ -204,11 +205,12 @@ static bool parse_tuple_type(Type **result, Parser *parser, Context *context) {
     assert(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser, context)) { return false; } // eat '('
 
-    TupleType tuple_type = tuple_type_create();
+    TupleType tuple_type;
+    tuple_type_initialize(&tuple_type);
 
     bool found_comma = false;
     do {
-        Type *element = NULL;
+        Type const *element = NULL;
         if (!parse_type(&element, parser, context)) { return false; }
         assert(element != NULL);
 
@@ -231,9 +233,9 @@ static bool parse_tuple_type(Type **result, Parser *parser, Context *context) {
     }
 
     // a tuple type of length 1 is equivalent to that type.
-    if (tuple_type.size == 1) {
+    if (tuple_type.count == 1) {
         *result = tuple_type.types[0];
-        tuple_type_destroy(&tuple_type);
+        tuple_type_terminate(&tuple_type);
     } else {
         *result = context_tuple_type(context, tuple_type);
     }
@@ -241,7 +243,7 @@ static bool parse_tuple_type(Type **result, Parser *parser, Context *context) {
     return true;
 }
 
-static bool parse_type(Type **result, Parser *parser, Context *context) {
+static bool parse_type(Type const **result, Parser *parser, Context *context) {
     switch (parser->curtok) {
     // composite types
     case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser, context);
@@ -277,7 +279,7 @@ parse_formal_argument(FormalArgument *arg, Parser *parser, Context *context) {
     default:                    EXP_UNREACHABLE();
     }
 
-    Type *type = NULL;
+    Type const *type = NULL;
     if (!parse_type(&type, parser, context)) { return false; }
     assert(type != NULL);
 
@@ -653,7 +655,7 @@ static bool identifier(Operand *result, Parser *parser, Context *context) {
         return true;
     }
 
-    Symbol *global = context_global_symbol_table_at(context, name);
+    Symbol *global = context_symbol_table_at(context, name);
     if (string_view_empty(global->name)) {
         return error(parser, context, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
     }

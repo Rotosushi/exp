@@ -20,17 +20,11 @@
 
 #include "imr/type.h"
 
-typedef struct FunctionTypes {
-  u64 size;
-  u64 capacity;
-  Type *types;
-} FunctionTypes;
-
-typedef struct TupleTypes {
-  u64 size;
-  u64 capacity;
-  Type *types;
-} TupleTypes;
+typedef struct TypeList {
+    u64 count;
+    u64 capacity;
+    Type **buffer;
+} TypeList;
 
 /**
  * @brief The TypeInterner holds unique instances of
@@ -41,66 +35,23 @@ typedef struct TupleTypes {
  *
  */
 typedef struct TypeInterner {
-  Type nil_type;
-  Type boolean_type;
-  Type i64_type;
-  TupleTypes tuple_types;
-  FunctionTypes function_types;
+    Type *nil_type;
+    Type *boolean_type;
+    Type *i64_type;
+    TypeList tuple_types;
+    TypeList function_types;
 } TypeInterner;
 
-/**
- * @brief create a TypeInterner
- *
- * @return TypeInterner
- */
-TypeInterner type_interner_create();
+void type_interner_initialize(TypeInterner *type_interner);
 
-/**
- * @brief destroy a TypeInterner
- *
- * @param type_interner
- */
-void type_interner_destroy(TypeInterner *restrict type_interner);
-
-/**
- * @brief get the nil Type
- *
- * @param type_interner
- * @return Type*
- */
-Type *type_interner_nil_type(TypeInterner *restrict type_interner);
-
-/**
- * @brief get the bool Type
- *
- * @param type_interner
- * @return Type*
- */
-Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
-
-/**
- * @brief get the i64 Type
- *
- * @param type_interner
- * @return Type*
- */
-Type *type_interner_i64_type(TypeInterner *restrict type_interner);
-
-Type *type_interner_tuple_type(TypeInterner *restrict type_interer,
-                               TupleType tuple);
-
-/**
- * @brief get the FunctionType
- *
- * @note takes ownership of the passed in argument_types
- *
- * @param type_interner
- * @param return_type
- * @param argument_types
- * @return Type*
- */
-Type *type_interner_function_type(TypeInterner *restrict type_interner,
-                                  Type *return_type,
-                                  TupleType argument_types);
+void type_interner_destroy(TypeInterner *type_interner);
+Type const *type_interner_nil_type(TypeInterner *type_interner);
+Type const *type_interner_boolean_type(TypeInterner *type_interner);
+Type const *type_interner_i64_type(TypeInterner *type_interner);
+Type const *type_interner_tuple_type(TypeInterner *type_interer,
+                                     TupleType tuple);
+Type const *type_interner_function_type(TypeInterner *type_interner,
+                                        Type const *return_type,
+                                        TupleType argument_types);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

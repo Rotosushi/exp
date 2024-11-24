@@ -24,9 +24,7 @@
 #include "backend/x64/intrinsics/load.h"
 #include "utility/unreachable.h"
 
-void x64_codegen_dot(Instruction I,
-                     u64 block_index,
-                     x64_Context *restrict context) {
+void x64_codegen_dot(Instruction I, u64 block_index, x64_Context *context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
 
@@ -43,8 +41,8 @@ void x64_codegen_dot(Instruction I,
         x64_Address *tuple_address = &B->location.address;
         x64_Address element_address =
             x64_get_element_address(tuple_address, B->type, index);
-        TupleType *tuple_type = &B->type->tuple_type;
-        Type *element_type    = tuple_type->types[index];
+        TupleType const *tuple_type = &B->type->tuple_type;
+        Type const *element_type    = tuple_type->types[index];
 
         x64_codegen_copy_allocation_from_memory(
             A, &element_address, element_type, block_index, context);
@@ -55,7 +53,13 @@ void x64_codegen_dot(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         Value *value =
             context_constants_at(context->context, I.B_data.constant);
-        x64_codegen_load_allocation_from_value(A, value, block_index, context);
+        assert(value->kind == VALUE_KIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+        assert(index < tuple->size);
+        Operand element = tuple->elements[index];
+
+        x64_codegen_load_allocation_from_operand(
+            A, element, block_index, context);
         break;
     }
 

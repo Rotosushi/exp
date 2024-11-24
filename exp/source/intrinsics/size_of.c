@@ -21,7 +21,7 @@
 #include "intrinsics/size_of.h"
 #include "utility/unreachable.h"
 
-u64 size_of(Type *restrict type) {
+u64 size_of(Type const *type) {
     assert(type != NULL);
 
     switch (type->kind) {
@@ -30,9 +30,9 @@ u64 size_of(Type *restrict type) {
     case TYPE_KIND_I64:     return 8;
 
     case TYPE_KIND_TUPLE: {
-        TupleType *tuple = &type->tuple_type;
-        u64 acc          = 0;
-        for (u64 i = 0; i < tuple->size; ++i) {
+        TupleType const *tuple = &type->tuple_type;
+        u64 acc                = 0;
+        for (u64 i = 0; i < tuple->count; ++i) {
             acc += size_of(tuple->types[i]);
         }
         return acc;

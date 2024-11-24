@@ -21,32 +21,32 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
-                                    x64_Address *restrict src,
+void x64_codegen_copy_scalar_memory(x64_Address *dst,
+                                    x64_Address *src,
                                     u64 Idx,
-                                    x64_Context *restrict context);
+                                    x64_Context *context);
 
-void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
-                                       x64_Address *restrict src,
-                                       Type *type,
+void x64_codegen_copy_composite_memory(x64_Address *dst,
+                                       x64_Address *src,
+                                       Type const *type,
                                        u64 Idx,
-                                       x64_Context *restrict context);
+                                       x64_Context *context);
 
-void x64_codegen_copy_memory(x64_Address *restrict dst,
-                             x64_Address *restrict src,
-                             Type *type,
+void x64_codegen_copy_memory(x64_Address *dst,
+                             x64_Address *src,
+                             Type const *type,
                              u64 Idx,
-                             x64_Context *restrict context);
+                             x64_Context *context);
 
-void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
-                                             x64_Address *restrict src,
-                                             Type *restrict type,
+void x64_codegen_copy_allocation_from_memory(x64_Allocation *dst,
+                                             x64_Address *src,
+                                             Type const *type,
                                              u64 Idx,
-                                             x64_Context *restrict context);
+                                             x64_Context *context);
 
-void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
-                                 x64_Allocation *restrict src,
+void x64_codegen_copy_allocation(x64_Allocation *dst,
+                                 x64_Allocation *src,
                                  u64 Idx,
-                                 x64_Context *restrict context);
+                                 x64_Context *context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_H

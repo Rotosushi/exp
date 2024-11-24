@@ -23,10 +23,10 @@
 #include "imr/type.h"
 #include "intrinsics/size_of.h"
 
-void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
-                                    x64_Address *restrict src,
+void x64_codegen_copy_scalar_memory(x64_Address *dst,
+                                    x64_Address *src,
                                     u64 Idx,
-                                    x64_Context *restrict context) {
+                                    x64_Context *context) {
     x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
 
     x64_context_append(
@@ -37,19 +37,19 @@ void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
     x64_context_release_gpr(context, gpr, Idx);
 }
 
-void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
-                                       x64_Address *restrict src,
-                                       Type *type,
+void x64_codegen_copy_composite_memory(x64_Address *dst,
+                                       x64_Address *src,
+                                       Type const *type,
                                        u64 Idx,
-                                       x64_Context *restrict context) {
+                                       x64_Context *context) {
     assert(type->kind == TYPE_KIND_TUPLE);
-    TupleType *tuple_type = &type->tuple_type;
+    TupleType const *tuple_type = &type->tuple_type;
 
     x64_Address dst_element_address = *dst;
     x64_Address src_element_address = *src;
-    for (u64 i = 0; i < tuple_type->size; ++i) {
-        Type *element_type = tuple_type->types[i];
-        u64 element_size   = size_of(element_type);
+    for (u64 i = 0; i < tuple_type->count; ++i) {
+        Type const *element_type = tuple_type->types[i];
+        u64 element_size         = size_of(element_type);
 
         if (type_is_scalar(element_type)) {
             x64_codegen_copy_scalar_memory(
@@ -69,11 +69,11 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_copy_memory(x64_Address *restrict dst,
-                             x64_Address *restrict src,
-                             Type *type,
+void x64_codegen_copy_memory(x64_Address *dst,
+                             x64_Address *src,
+                             Type const *type,
                              u64 Idx,
-                             x64_Context *restrict context) {
+                             x64_Context *context) {
     if (type_is_scalar(type)) {
         x64_codegen_copy_scalar_memory(dst, src, Idx, context);
     } else {
@@ -81,11 +81,11 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
-                                             x64_Address *restrict src,
-                                             Type *restrict type,
+void x64_codegen_copy_allocation_from_memory(x64_Allocation *dst,
+                                             x64_Address *src,
+                                             Type const *type,
                                              u64 Idx,
-                                             x64_Context *restrict context) {
+                                             x64_Context *context) {
     if (dst->location.kind == LOCATION_ADDRESS) {
         x64_codegen_copy_memory(
             &dst->location.address, src, type, Idx, context);
@@ -96,10 +96,10 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
     }
 }
 
-static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
-                                               x64_Allocation *restrict src,
+static void x64_codegen_copy_scalar_allocation(x64_Allocation *dst,
+                                               x64_Allocation *src,
                                                u64 Idx,
-                                               x64_Context *restrict context) {
+                                               x64_Context *context) {
     if ((dst->location.kind == LOCATION_GPR) ||
         (src->location.kind == LOCATION_GPR)) {
         x64_context_append(
@@ -110,10 +110,10 @@ static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
     }
 }
 
-void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
-                                 x64_Allocation *restrict src,
+void x64_codegen_copy_allocation(x64_Allocation *dst,
+                                 x64_Allocation *src,
                                  u64 Idx,
-                                 x64_Context *restrict context) {
+                                 x64_Context *context) {
     assert(type_equality(dst->type, src->type));
 
     if (x64_location_eq(dst->location, src->location)) { return; }
