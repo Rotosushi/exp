@@ -32,12 +32,13 @@ typedef struct TResult {
     };
 } TResult;
 
-static void tresult_destroy(TResult *restrict tr) {
-    if (tr->has_error) { error_destroy(&tr->error); }
+static void tresult_destroy(TResult *tr) {
+    if (tr->has_error) { error_terminate(&tr->error); }
 }
 
 static TResult error(ErrorCode code, String msg) {
-    TResult result = {.has_error = 1, .error = error_from_string(code, msg)};
+    TResult result = {.has_error = 1};
+    error_from_string(&result.error, code, msg);
     return result;
 }
 
@@ -55,10 +56,10 @@ static TResult success(Type const *type) {
     }                                                                          \
     assert(decl != NULL)
 
-static TResult typecheck_global(Context *restrict c, Symbol *restrict element);
+static TResult typecheck_symbol(Context *c, Symbol *element);
 
 static TResult
-typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
+typecheck_operand(Context *c, OperandKind kind, OperandData data) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(c, data.ssa);
@@ -87,7 +88,7 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
         Symbol *global   = context_symbol_table_at(c, name);
         Type const *type = global->type;
         if (type == NULL) {
-            try(Gty, typecheck_global(c, global));
+            try(Gty, typecheck_symbol(c, global));
             type = Gty;
         }
 
@@ -98,7 +99,7 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
     }
 }
 
-static TResult typecheck_load(Context *restrict c, Instruction I) {
+static TResult typecheck_load(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -106,11 +107,11 @@ static TResult typecheck_load(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_ret(Context *restrict c, Instruction I) {
+static TResult typecheck_ret(Context *c, Instruction I) {
     return typecheck_operand(c, I.B_kind, I.B_data);
 }
 
-static TResult typecheck_call(Context *restrict c, Instruction I) {
+static TResult typecheck_call(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -165,7 +166,7 @@ static bool tuple_index_out_of_bounds(i64 index, TupleType const *tuple) {
     return ((index < 0) || ((u64)index >= tuple->count));
 }
 
-static TResult typecheck_dot(Context *restrict c, Instruction I) {
+static TResult typecheck_dot(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -205,7 +206,7 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     return success(tuple->types[index]);
 }
 
-static TResult typecheck_neg(Context *restrict c, Instruction I) {
+static TResult typecheck_neg(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -224,37 +225,7 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_add(Context *restrict c, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type const *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf;
-        string_initialize(&buf);
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf;
-        string_initialize(&buf);
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    local->type = Bty;
-    return success(Bty);
-}
-
-static TResult typecheck_sub(Context *restrict c, Instruction I) {
+static TResult typecheck_add(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -284,7 +255,7 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_mul(Context *restrict c, Instruction I) {
+static TResult typecheck_sub(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -314,7 +285,7 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_div(Context *restrict c, Instruction I) {
+static TResult typecheck_mul(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -344,7 +315,7 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_mod(Context *restrict c, Instruction I) {
+static TResult typecheck_div(Context *c, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
@@ -374,7 +345,37 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
     return success(Bty);
 }
 
-static TResult typecheck_function(Context *restrict c) {
+static TResult typecheck_mod(Context *c, Instruction I) {
+    assert(I.A_kind == OPERAND_KIND_SSA);
+    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
+    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
+
+    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
+
+    Type const *i64ty = context_i64_type(c);
+    if (!type_equality(i64ty, Bty)) {
+        String buf;
+        string_initialize(&buf);
+        string_append(&buf, SV("Expected [i64] Actual ["));
+        emit_type(Bty, &buf);
+        string_append(&buf, SV("]"));
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    }
+
+    if (!type_equality(Bty, Cty)) {
+        String buf;
+        string_initialize(&buf);
+        string_append(&buf, SV("Expected [i64] Actual ["));
+        emit_type(Cty, &buf);
+        string_append(&buf, SV("]"));
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    }
+
+    local->type = Bty;
+    return success(Bty);
+}
+
+static TResult typecheck_function(Context *c) {
     Type const *return_type = NULL;
     FunctionBody *body      = context_current_function(c);
     Bytecode *bc            = &body->bc;
@@ -462,71 +463,57 @@ static TResult typecheck_function(Context *restrict c) {
     return success(return_type);
 }
 
-static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
+static TResult typecheck_symbol(Context *c, Symbol *element) {
     assert(c != nullptr);
     assert(element != nullptr);
     if (element->type != NULL) { return success(element->type); }
 
-    switch (element->kind) {
-    case STE_UNDEFINED: {
-        // #TODO: this should be handled as a forward declaration
-        // but only if the type exists.
-        return success(context_nil_type(c));
+    // we want to avoid infinite recursion. but we also need to
+    // handle the fact that functions are going to be typechecked
+    // in an indeterminite order. the natural solution is to type
+    // the dependencies of a function body as those are used within
+    // the function body. This only breaks when we have mutual recursion,
+    // otherwise, when the global is successfully typed.
+    // the question is, how do we accomplish this?
+    FunctionBody *body = context_enter_function(c, element->name);
+
+    try(Rty, typecheck_function(c));
+    context_leave_function(c);
+
+    if ((body->return_type != NULL) &&
+        (!type_equality(Rty, body->return_type))) {
+        String buf;
+        string_initialize(&buf);
+        string_append(&buf, SV("Function was annotated with type ["));
+        emit_type(body->return_type, &buf);
+        string_append(&buf, SV("] actual returned type ["));
+        emit_type(Rty, &buf);
+        string_append(&buf, SV("]"));
+        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
 
-    case STE_FUNCTION: {
-        // we want to avoid infinite recursion. but we also need to
-        // handle the fact that functions are going to be typechecked
-        // in an indeterminite order. the natural solution is to type
-        // the dependencies of a function body as those are used within
-        // the function body. This only breaks when we have mutual recursion,
-        // otherwise, when the global is successfully typed.
-        // the question is, how do we accomplish this?
-        FunctionBody *body = context_enter_function(c, element->name);
-
-        try(Rty, typecheck_function(c));
-        context_leave_function(c);
-
-        if ((body->return_type != NULL) &&
-            (!type_equality(Rty, body->return_type))) {
-            String buf;
-            string_initialize(&buf);
-            string_append(&buf, SV("Function was annotated with type ["));
-            emit_type(body->return_type, &buf);
-            string_append(&buf, SV("] actual returned type ["));
-            emit_type(Rty, &buf);
-            string_append(&buf, SV("]"));
-            return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-        }
-
-        body->return_type         = Rty;
-        Type const *function_type = type_of_function(body, c);
-        element->type             = function_type;
-        return success(function_type);
-    }
-
-    default: unreachable();
-    }
+    body->return_type         = Rty;
+    Type const *function_type = type_of_function(body, c);
+    element->type             = function_type;
+    return success(function_type);
 }
 
 #undef try
 
-i32 typecheck(Context *restrict context) {
+i32 typecheck(Context *context) {
     i32 result = EXIT_SUCCESS;
 
-    SymbolList symbol_list;
-    context_gather_symbols(context, &symbol_list);
-
-    for (u64 i = 0; i < symbol_list.count; ++i) {
-        TResult tr = typecheck_global(context, symbol_list.buffer[i]);
+    SymbolTable *symbol_table = &context->symbol_table;
+    for (u64 i = 0; i < symbol_table->capacity; ++i) {
+        Symbol *symbol = symbol_table->elements[i];
+        if (symbol == nullptr) { continue; }
+        TResult tr = typecheck_symbol(context, symbol);
         if (tr.has_error) {
             error_print(&tr.error, context_source_path(context), 0);
             tresult_destroy(&tr);
             result |= EXIT_FAILURE;
         }
     }
-
-    symbol_list_terminate(&symbol_list);
 
     return result;
 }

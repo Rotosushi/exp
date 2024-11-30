@@ -16,18 +16,20 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_GLOBAL_SYMBOLS_H
 #define EXP_ENV_GLOBAL_SYMBOLS_H
+
+#include "imr/operand.h"
 #include "utility/string_view.h"
 
 typedef struct GlobalLabels {
-    u16 count;
-    u16 capacity;
+    u64 count;
+    u64 capacity;
     StringView *buffer;
 } Labels;
 
-Labels labels_create();
-void labels_destroy(Labels *restrict symbols);
+void labels_initialize(Labels *labels);
+void labels_terminate(Labels *labels);
 
-u16 labels_insert(Labels *restrict symbols, StringView symbol);
-StringView labels_at(Labels *restrict symbols, u16 index);
+Operand labels_insert(Labels *labels, StringView label);
+StringView labels_at(Labels *labels, u16 index);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

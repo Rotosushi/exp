@@ -660,8 +660,7 @@ static bool identifier(Operand *result, Parser *parser, Context *context) {
         return error(parser, context, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
     }
 
-    u16 index = context_labels_insert(context, name);
-    *result   = operand_label(index);
+    *result = context_labels_insert(context, name);
     return true;
 }
 

@@ -19,49 +19,58 @@
 #include "env/labels.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/panic.h"
 
-Labels labels_create() {
-    Labels symbols = {.count = 0, .capacity = 0, .buffer = NULL};
-    return symbols;
+void labels_initialize(Labels *labels) {
+    assert(labels != nullptr);
+    labels->count    = 0;
+    labels->capacity = 0;
+    labels->buffer   = nullptr;
 }
 
-void labels_destroy(Labels *restrict symbols) {
-    assert(symbols != NULL);
-    deallocate(symbols->buffer);
-    symbols->buffer   = NULL;
-    symbols->count    = 0;
-    symbols->capacity = 0;
+void labels_terminate(Labels *labels) {
+    assert(labels != NULL);
+    deallocate(labels->buffer);
+    labels->buffer   = NULL;
+    labels->count    = 0;
+    labels->capacity = 0;
 }
 
-static bool global_labels_full(Labels *restrict symbols) {
-    return (symbols->count + 1) >= symbols->capacity;
+static bool global_labels_full(Labels *labels) {
+    assert(labels != nullptr);
+    return (labels->count + 1) >= labels->capacity;
 }
 
-static void global_labels_grow(Labels *restrict symbols) {
-    Growth16 g        = array_growth_u16(symbols->capacity, sizeof(StringView));
-    symbols->buffer   = reallocate(symbols->buffer, g.alloc_size);
-    symbols->capacity = g.new_capacity;
+static void global_labels_grow(Labels *labels) {
+    assert(labels != nullptr);
+    Growth64 g       = array_growth_u64(labels->capacity, sizeof(StringView));
+    labels->buffer   = reallocate(labels->buffer, g.alloc_size);
+    labels->capacity = g.new_capacity;
 }
 
-u16 labels_insert(Labels *restrict symbols, StringView symbol) {
-    assert(symbols != NULL);
+Operand labels_insert(Labels *labels, StringView label) {
+    assert(labels != nullptr);
 
-    if (global_labels_full(symbols)) { global_labels_grow(symbols); }
+    if (global_labels_full(labels)) { global_labels_grow(labels); }
 
-    for (u64 i = 0; i < symbols->count; ++i) {
-        assert(i < u16_MAX);
-        StringView s = symbols->buffer[i];
-        if (string_view_equality(s, symbol)) { return (u16)i; }
+    for (u64 index = 0; index < labels->count; ++index) {
+        if (index > u16_MAX) { PANIC("label index out of bounds"); }
+        StringView view = labels->buffer[index];
+        if (string_view_equality(view, label)) {
+            return operand_label((u16)index);
+        }
     }
 
-    u16 index              = symbols->count;
-    symbols->buffer[index] = symbol;
-    symbols->count += 1;
-    return index;
+    u64 index             = labels->count;
+    labels->buffer[index] = label;
+    labels->count += 1;
+
+    if (index > u16_MAX) { PANIC("label index out of bounds"); }
+    return operand_label((u16)index);
 }
 
-StringView labels_at(Labels *restrict symbols, u16 index) {
-    assert(symbols != NULL);
+StringView labels_at(Labels *symbols, u16 index) {
+    assert(symbols != nullptr);
     assert(index < symbols->count);
     return symbols->buffer[index];
 }

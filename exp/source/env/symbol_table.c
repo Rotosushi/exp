@@ -25,15 +25,15 @@
 
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
-SymbolTable symbol_table_create() {
-    SymbolTable symbol_table;
-    symbol_table.capacity = symbol_table.count = 0;
-    symbol_table.elements                      = NULL;
-    return symbol_table;
+void symbol_table_create(SymbolTable *symbol_table) {
+    assert(symbol_table != nullptr);
+    symbol_table->capacity = 0;
+    symbol_table->count    = 0;
+    symbol_table->elements = nullptr;
 }
 
-void symbol_table_destroy(SymbolTable *restrict symbol_table) {
-    assert(symbol_table != NULL);
+void symbol_table_destroy(SymbolTable *symbol_table) {
+    assert(symbol_table != nullptr);
 
     for (u64 i = 0; i < symbol_table->capacity; ++i) {
         Symbol *element = symbol_table->elements[i];
@@ -45,11 +45,11 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table) {
     symbol_table->count    = 0;
     symbol_table->capacity = 0;
     deallocate(symbol_table->elements);
-    symbol_table->elements = NULL;
+    symbol_table->elements = nullptr;
 }
 
 static Symbol **
-symbol_table_find(Symbol **restrict elements, u64 capacity, StringView name) {
+symbol_table_find(Symbol **elements, u64 capacity, StringView name) {
     u64 index = hash_cstring(name.ptr, name.length) % capacity;
     while (1) {
         Symbol **element = elements + index;
@@ -62,11 +62,11 @@ symbol_table_find(Symbol **restrict elements, u64 capacity, StringView name) {
     }
 }
 
-static void symbol_table_grow(SymbolTable *restrict symbol_table) {
+static void symbol_table_grow(SymbolTable *symbol_table) {
     Growth64 g = array_growth_u64(symbol_table->capacity, sizeof(Symbol *));
     Symbol **elements = callocate(g.new_capacity, sizeof(Symbol *));
 
-    if (symbol_table->elements != NULL) {
+    if (symbol_table->elements != nullptr) {
         for (u64 i = 0; i < symbol_table->capacity; ++i) {
             Symbol *element = symbol_table->elements[i];
             if (element == nullptr) { continue; }
@@ -85,14 +85,14 @@ static void symbol_table_grow(SymbolTable *restrict symbol_table) {
     symbol_table->elements = elements;
 }
 
-static bool symbol_table_full(SymbolTable *restrict symbol_table) {
+static bool symbol_table_full(SymbolTable *symbol_table) {
     u64 load_limit =
         (u64)floor((double)symbol_table->capacity * SYMBOL_TABLE_MAX_LOAD);
     return (symbol_table->count + 1) >= load_limit;
 }
 
-Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
-    assert(symbol_table != NULL);
+Symbol *symbol_table_at(SymbolTable *symbol_table, StringView name) {
+    assert(symbol_table != nullptr);
 
     if (symbol_table_full(symbol_table)) { symbol_table_grow(symbol_table); }
 
@@ -112,45 +112,4 @@ Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
     }
 
     return *element;
-}
-
-static bool symbol_list_full(SymbolList *symbol_list) {
-    assert(symbol_list != nullptr);
-    return (symbol_list->count + 1) >= symbol_list->capacity;
-}
-
-static void symbol_list_grow(SymbolList *symbol_list) {
-    assert(symbol_list != nullptr);
-    Growth64 g = array_growth_u64(symbol_list->capacity, sizeof(Symbol *));
-    symbol_list->buffer   = reallocate(symbol_list->buffer, g.alloc_size);
-    symbol_list->capacity = g.new_capacity;
-}
-
-static void symbol_list_append(SymbolList *symbol_list, Symbol *symbol) {
-    assert(symbol_list != nullptr);
-    if (symbol_list_full(symbol_list)) { symbol_list_grow(symbol_list); }
-    symbol_list->buffer[symbol_list->count++] = symbol;
-}
-
-void symbol_list_initialize(SymbolList *symbol_list,
-                            SymbolTable *symbol_table) {
-    assert(symbol_list != nullptr);
-    assert(symbol_table != nullptr);
-    symbol_list->count    = 0;
-    symbol_list->capacity = 0;
-    symbol_list->buffer   = nullptr;
-
-    for (u64 i = 0; i < symbol_table->capacity; ++i) {
-        Symbol *symbol = symbol_table->elements[i];
-        if (symbol == nullptr) { continue; }
-        symbol_list_append(symbol_list, symbol);
-    }
-}
-
-void symbol_list_terminate(SymbolList *symbol_list) {
-    assert(symbol_list != nullptr);
-    symbol_list->count    = 0;
-    symbol_list->capacity = 0;
-    deallocate(symbol_list->buffer);
-    symbol_list->buffer = nullptr;
 }

@@ -18,22 +18,11 @@
 #define EXP_ENV_SYMBOL_TABLE_H
 
 #include "imr/function_body.h"
-#include "imr/type.h"
-#include "utility/string_view.h"
-
-typedef enum SymbolKind {
-    STE_UNDEFINED,
-    STE_FUNCTION,
-} SymbolKind;
 
 typedef struct Symbol {
     StringView name;
     Type const *type;
-    SymbolKind kind;
-    union {
-        u8 empty;
-        FunctionBody function_body;
-    };
+    FunctionBody function_body;
 } Symbol;
 
 typedef struct SymbolTable {
@@ -42,8 +31,8 @@ typedef struct SymbolTable {
     Symbol **elements;
 } SymbolTable;
 
-SymbolTable symbol_table_create();
-void symbol_table_destroy(SymbolTable *restrict symbol_table);
+void symbol_table_create(SymbolTable *symbol_table);
+void symbol_table_destroy(SymbolTable *symbol_table);
 
 /**
  * @brief Return the entry associated with the given key in the
@@ -55,15 +44,6 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  * @param value
  * @return SymbolTableElement *
  */
-Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
-
-typedef struct SymbolList {
-    u64 count;
-    u64 capacity;
-    Symbol **buffer;
-} SymbolList;
-
-void symbol_list_initialize(SymbolList *symbol_list, SymbolTable *symbol_table);
-void symbol_list_terminate(SymbolList *symbol_list);
+Symbol *symbol_table_at(SymbolTable *symbol_table, StringView name);
 
 #endif // !EXP_ENV_SYMBOL_TABLE_H

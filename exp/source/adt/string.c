@@ -45,6 +45,8 @@ void string_destroy(String *string) {
     if (!string_is_small(string)) {
         deallocate(string->ptr);
         string->ptr = NULL;
+    } else {
+        string->buffer[0] = '\0';
     }
     string->length   = 0;
     string->capacity = sizeof(char *);
@@ -93,21 +95,21 @@ void string_assign_string(String *target, String const *source) {
 
 void string_from_view(String *string, StringView view) {
     assert(string != nullptr);
-    string_destroy(string);
+    string_initialize(string);
     string_assign(string, view);
 }
 
 void string_from_cstring(String *string, char const *cstring) {
     assert(string != nullptr);
     assert(cstring != nullptr);
-    string_destroy(string);
+    string_initialize(string);
     string_from_view(string, string_view_from_cstring(cstring));
 }
 
 void string_from_file(String *string, FILE *file) {
     assert(string != nullptr);
     assert(file != nullptr);
-    string_destroy(string);
+    string_initialize(string);
     u64 flen = file_length(file);
     string_resize(string, flen);
     if (flen < sizeof(char *)) {

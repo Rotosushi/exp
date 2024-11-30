@@ -21,7 +21,7 @@
 
 #include "env/constants.h"
 
-bool test_constant(Constants *restrict values, Value value) {
+bool test_constant(Constants *values, Value value) {
     Operand index   = constants_append(values, value);
     Value *constant = constants_at(values, index.data.constant);
 

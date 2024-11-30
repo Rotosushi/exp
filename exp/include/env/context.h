@@ -79,12 +79,11 @@ Type const *context_function_type(Context *context,
                                   TupleType argument_types);
 
 // labels functions
-u16 context_labels_insert(Context *context, StringView symbol);
+Operand context_labels_insert(Context *context, StringView symbol);
 StringView context_labels_at(Context *context, u16 index);
 
 // symbol table functions
 Symbol *context_symbol_table_at(Context *context, StringView name);
-void context_gather_symbols(Context *context, SymbolList *symbol_list);
 
 // function functions
 FunctionBody *context_enter_function(Context *c, StringView name);
