@@ -64,8 +64,10 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
         LocalVariable *local = context_lookup_ssa(c, data.ssa);
         Type const *type     = local->type;
         if (type == NULL) {
-            return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL,
-                         string_from_view(SV("")));
+            String buffer;
+            string_initialize(&buffer);
+            string_from_view(&buffer, SV(""));
+            return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL, buffer);
         }
 
         return success(type);
@@ -114,7 +116,8 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
     if (Bty->kind != TYPE_KIND_FUNCTION) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Type is not callable ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -128,7 +131,8 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     Tuple *actual_args = &value->tuple;
 
     if (formal_types->count != actual_args->size) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected "));
         string_append_u64(&buf, formal_types->count);
         string_append(&buf, SV(" arguments, have "));
@@ -142,7 +146,8 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
         try(actual_type, typecheck_operand(c, operand.kind, operand.data));
 
         if (!type_equality(actual_type, formal_type)) {
-            String buf = string_create();
+            String buf;
+            string_initialize(&buf);
             string_append(&buf, SV("Expected ["));
             emit_type(formal_type, &buf);
             string_append(&buf, SV("] Actual ["));
@@ -166,7 +171,8 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
 
     if (Bty->kind != TYPE_KIND_TUPLE) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Type is not a tuple ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -176,15 +182,18 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     TupleType const *tuple = &Bty->tuple_type;
 
     if (I.C_kind != OPERAND_KIND_IMMEDIATE) {
-        return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
-                     string_from_view(SV("")));
+        String buffer;
+        string_initialize(&buffer);
+        string_from_view(&buffer, SV(""));
+        return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, buffer);
     }
 
     assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
     i16 index = I.C_data.immediate;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("The given index "));
         string_append_i64(&buf, index);
         string_append(&buf, SV(" is not in the valid range of 0.."));
@@ -203,7 +212,8 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -223,7 +233,8 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -231,7 +242,8 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
     }
 
     if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Cty, &buf);
         string_append(&buf, SV("]"));
@@ -251,7 +263,8 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -259,7 +272,8 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
     }
 
     if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Cty, &buf);
         string_append(&buf, SV("]"));
@@ -279,7 +293,8 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -287,7 +302,8 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
     }
 
     if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Cty, &buf);
         string_append(&buf, SV("]"));
@@ -307,7 +323,8 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -315,7 +332,8 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
     }
 
     if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Cty, &buf);
         string_append(&buf, SV("]"));
@@ -335,7 +353,8 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 
     Type const *i64ty = context_i64_type(c);
     if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Bty, &buf);
         string_append(&buf, SV("]"));
@@ -343,7 +362,8 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
     }
 
     if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
+        String buf;
+        string_initialize(&buf);
         string_append(&buf, SV("Expected [i64] Actual ["));
         emit_type(Cty, &buf);
         string_append(&buf, SV("]"));
@@ -367,7 +387,8 @@ static TResult typecheck_function(Context *restrict c) {
             try(Bty, typecheck_ret(c, I));
 
             if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-                String buf = string_create();
+                String buf;
+                string_initialize(&buf);
                 string_append(&buf, SV("Previous return statement had type ["));
                 emit_type(return_type, &buf);
                 string_append(&buf, SV("] this return statement has type ["));
@@ -468,7 +489,8 @@ static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
 
         if ((body->return_type != NULL) &&
             (!type_equality(Rty, body->return_type))) {
-            String buf = string_create();
+            String buf;
+            string_initialize(&buf);
             string_append(&buf, SV("Function was annotated with type ["));
             emit_type(body->return_type, &buf);
             string_append(&buf, SV("] actual returned type ["));

@@ -28,164 +28,172 @@
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
-String string_create() {
-    String str;
-    str.length    = 0;
-    str.capacity  = sizeof(char *);
-    str.buffer[0] = '\0';
-    return str;
+void string_initialize(String *string) {
+    assert(string != nullptr);
+    string->length    = 0;
+    string->capacity  = sizeof(char *);
+    string->buffer[0] = '\0';
 }
 
-static bool string_is_small(String const *restrict str) {
-    return str->capacity <= sizeof(char *);
+static bool string_is_small(String const *string) {
+    assert(string != nullptr);
+    return string->capacity <= sizeof(char *);
 }
 
-void string_destroy(String *restrict str) {
-    assert(str != NULL);
-    if (!string_is_small(str)) {
-        deallocate(str->ptr);
-        str->ptr = NULL;
+void string_destroy(String *string) {
+    assert(string != NULL);
+    if (!string_is_small(string)) {
+        deallocate(string->ptr);
+        string->ptr = NULL;
     }
-    str->length   = 0;
-    str->capacity = sizeof(char *);
+    string->length   = 0;
+    string->capacity = sizeof(char *);
 }
 
-StringView string_to_view(String const *restrict str) {
-    assert(str != NULL);
-    StringView sv = string_view_create();
-    sv            = string_view_from_str(string_to_cstring(str), str->length);
-    return sv;
+StringView string_to_view(String const *string) {
+    assert(string != NULL);
+    StringView view = string_view_create();
+    view = string_view_from_str(string_to_cstring(string), string->length);
+    return view;
 }
 
-char const *string_to_cstring(String const *restrict str) {
-    if (string_is_small(str)) {
-        return str->buffer;
+char const *string_to_cstring(String const *string) {
+    assert(string != nullptr);
+    if (string_is_small(string)) {
+        return string->buffer;
     } else {
-        return str->ptr;
+        return string->ptr;
     }
 }
 
-void string_assign(String *restrict str, StringView sv) {
-    string_destroy(str);
-    if ((sv.length == u64_MAX) || (sv.length + 1 == u64_MAX)) {
+void string_assign(String *string, StringView view) {
+    assert(string != nullptr);
+    string_destroy(string);
+    if ((view.length == u64_MAX) || (view.length + 1 == u64_MAX)) {
         PANIC("cannot allocate more than u64_MAX.");
     }
-    str->length   = sv.length;
-    str->capacity = max_u64(sv.length + 1, str->capacity);
+    string->length   = view.length;
+    string->capacity = max_u64(view.length + 1, string->capacity);
 
-    if (str->length < sizeof(char *)) {
-        memcpy(str->buffer, sv.ptr, str->length);
-        str->buffer[str->length] = '\0';
+    if (string->length < sizeof(char *)) {
+        memcpy(string->buffer, view.ptr, string->length);
+        string->buffer[string->length] = '\0';
     } else {
-        str->ptr = callocate(str->capacity, sizeof(char));
-        memcpy(str->ptr, sv.ptr, str->length);
+        string->ptr = callocate(string->capacity, sizeof(char));
+        memcpy(string->ptr, view.ptr, string->length);
     }
 }
 
-void string_assign_string(String *restrict dst, String const *restrict src) {
-    string_destroy(dst);
-    string_assign(dst, string_to_view(src));
+void string_assign_string(String *target, String const *source) {
+    assert(target != nullptr);
+    assert(source != nullptr);
+    string_destroy(target);
+    string_assign(target, string_to_view(source));
 }
 
-String string_from_view(StringView sv) {
-    String string = string_create();
-    string_assign(&string, sv);
-    return string;
+void string_from_view(String *string, StringView view) {
+    assert(string != nullptr);
+    string_destroy(string);
+    string_assign(string, view);
 }
 
-String string_from_cstring(char const *cstring) {
-    return string_from_view(string_view_from_cstring(cstring));
+void string_from_cstring(String *string, char const *cstring) {
+    assert(string != nullptr);
+    assert(cstring != nullptr);
+    string_destroy(string);
+    string_from_view(string, string_view_from_cstring(cstring));
 }
 
-String string_from_file(FILE *restrict file) {
-    String s = string_create();
+void string_from_file(String *string, FILE *file) {
+    assert(string != nullptr);
+    assert(file != nullptr);
+    string_destroy(string);
     u64 flen = file_length(file);
-    string_resize(&s, flen);
+    string_resize(string, flen);
     if (flen < sizeof(char *)) {
-        file_read(s.buffer, flen, file);
+        file_read(string->buffer, flen, file);
     } else {
-        file_read(s.ptr, flen, file);
+        file_read(string->ptr, flen, file);
     }
 
-    s.length = flen;
-    return s;
+    string->length = flen;
 }
 
-bool string_empty(String const *restrict string) {
+bool string_empty(String const *string) {
     assert(string != NULL);
     return string->length == 0;
 }
 
-bool string_eq(String const *restrict str, StringView sv) {
-    assert(str != NULL);
-    if (str->length != sv.length) { return 0; }
+bool string_equality(String const *string, StringView view) {
+    assert(string != NULL);
+    if (string->length != view.length) { return 0; }
 
-    if (string_is_small(str)) {
-        return strncmp(str->buffer, sv.ptr, sv.length) == 0;
+    if (string_is_small(string)) {
+        return strncmp(string->buffer, view.ptr, view.length) == 0;
     }
 
-    return strncmp(str->ptr, sv.ptr, sv.length) == 0;
+    return strncmp(string->ptr, view.ptr, view.length) == 0;
 }
 
-void string_resize(String *restrict str, u64 capacity) {
-    assert(str != NULL);
-    if (string_is_small(str)) {
+void string_resize(String *string, u64 capacity) {
+    assert(string != NULL);
+    if (string_is_small(string)) {
         if (capacity >= sizeof(char *)) {
-            char *buf     = callocate(capacity, sizeof(char));
-            str->capacity = capacity;
-            memcpy(buf, str->buffer, str->length);
-            str->ptr = buf;
+            char *buf        = callocate(capacity, sizeof(char));
+            string->capacity = capacity;
+            memcpy(buf, string->buffer, string->length);
+            string->ptr = buf;
         } // else the small capacity can hold the given capacity
         return;
     }
 
-    str->ptr              = reallocate(str->ptr, capacity);
-    str->capacity         = capacity;
-    str->ptr[str->length] = '\0';
+    string->ptr                 = reallocate(string->ptr, capacity);
+    string->capacity            = capacity;
+    string->ptr[string->length] = '\0';
 }
 
-void string_append(String *restrict str, StringView sv) {
-    if (sv.length == 0) { return; }
+void string_append(String *string, StringView view) {
+    if (view.length == 0) { return; }
 
-    if ((str->length + sv.length) >= str->capacity) {
-        Growth64 g =
-            array_growth_u64(str->capacity + sv.length, sizeof(*str->ptr));
-        string_resize(str, g.new_capacity);
+    if ((string->length + view.length) >= string->capacity) {
+        Growth64 g = array_growth_u64(string->capacity + view.length,
+                                      sizeof(*string->ptr));
+        string_resize(string, g.new_capacity);
     }
 
-    if (string_is_small(str)) {
-        memcpy(str->buffer + str->length, sv.ptr, sv.length);
-        str->length += sv.length;
-        str->buffer[str->length] = '\0';
+    if (string_is_small(string)) {
+        memcpy(string->buffer + string->length, view.ptr, view.length);
+        string->length += view.length;
+        string->buffer[string->length] = '\0';
     } else {
-        memcpy(str->ptr + str->length, sv.ptr, sv.length);
-        str->length += sv.length;
-        str->ptr[str->length] = '\0';
+        memcpy(string->ptr + string->length, view.ptr, view.length);
+        string->length += view.length;
+        string->ptr[string->length] = '\0';
     }
 }
 
-void string_append_string(String *restrict dst, String const *restrict src) {
-    assert(dst != NULL);
-    assert(src != NULL);
-    string_append(dst, string_to_view(src));
+void string_append_string(String *target, String const *source) {
+    assert(target != NULL);
+    assert(source != NULL);
+    string_append(target, string_to_view(source));
 }
 
-void string_append_i64(String *restrict str, i64 i) {
-    u64 len = i64_safe_strlen(i);
+void string_append_i64(String *string, i64 value) {
+    u64 len = i64_safe_strlen(value);
     char buf[len + 1];
-    char *r = i64_to_str(i, buf);
+    char *r = i64_to_str(value, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
-    string_append(str, string_view_from_str(buf, len));
+    string_append(string, string_view_from_str(buf, len));
 }
 
-void string_append_u64(String *restrict str, u64 u) {
-    u64 len = u64_safe_strlen(u);
+void string_append_u64(String *string, u64 value) {
+    u64 len = u64_safe_strlen(value);
     char buf[len + 1];
-    char *r = u64_to_str(u, buf);
+    char *r = u64_to_str(value, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
-    string_append(str, string_view_from_str(buf, len));
+    string_append(string, string_view_from_str(buf, len));
 }
 
 /*
@@ -199,39 +207,39 @@ void string_append_u64(String *restrict str, u64 u) {
 
   4 offset > 0, (offset + length) < str->length
 */
-void string_erase(String *restrict str, u64 offset, u64 length) {
-    assert(str != NULL);
-    assert(offset <= str->length);
-    assert((offset + length) <= str->length);
+void string_erase(String *string, u64 offset, u64 length) {
+    assert(string != NULL);
+    assert(offset <= string->length);
+    assert((offset + length) <= string->length);
 
-    if ((offset == 0) && (length == str->length)) {
+    if ((offset == 0) && (length == string->length)) {
         // erase the entire buffer
-        if (string_is_small(str)) {
-            str->buffer[0] = '\0';
+        if (string_is_small(string)) {
+            string->buffer[0] = '\0';
         } else {
-            str->ptr[0] = '\0';
+            string->ptr[0] = '\0';
         }
-        str->length = 0;
+        string->length = 0;
         return;
     }
 
     // erase <length> characters starting from <str->buffer + offset>
-    if (string_is_small(str)) {
-        char *pos       = str->buffer + offset;
+    if (string_is_small(string)) {
+        char *pos       = string->buffer + offset;
         char *rest      = pos + length;
-        u64 rest_length = (u64)((str->buffer + str->length) - rest);
+        u64 rest_length = (u64)((string->buffer + string->length) - rest);
+        memmove(pos, rest, rest_length);
+        u64 new_length             = offset + rest_length;
+        string->buffer[new_length] = '\0';
+        string->length             = new_length;
+    } else {
+        char *pos       = string->ptr + offset;
+        char *rest      = pos + length;
+        u64 rest_length = (u64)((string->ptr + string->length) - rest);
         memmove(pos, rest, rest_length);
         u64 new_length          = offset + rest_length;
-        str->buffer[new_length] = '\0';
-        str->length             = new_length;
-    } else {
-        char *pos       = str->ptr + offset;
-        char *rest      = pos + length;
-        u64 rest_length = (u64)((str->ptr + str->length) - rest);
-        memmove(pos, rest, rest_length);
-        u64 new_length       = offset + rest_length;
-        str->ptr[new_length] = '\0';
-        str->length          = new_length;
+        string->ptr[new_length] = '\0';
+        string->length          = new_length;
     }
 }
 
@@ -255,27 +263,27 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
 
   case 4, we have to resize the existing buffer, then we can write
 */
-void string_insert(String *restrict str, u64 offset, StringView sv) {
-    assert(str != NULL);
-    assert(offset <= str->length);
+void string_insert(String *string, u64 offset, StringView view) {
+    assert(string != NULL);
+    assert(offset <= string->length);
 
-    if ((offset + sv.length) >= str->capacity) {
-        string_resize(str, (offset + sv.length) + str->length);
-        u64 added_length = (offset + sv.length) - str->length;
-        str->length += added_length;
+    if ((offset + view.length) >= string->capacity) {
+        string_resize(string, (offset + view.length) + string->length);
+        u64 added_length = (offset + view.length) - string->length;
+        string->length += added_length;
     }
 
-    if (string_is_small(str)) {
-        memcpy(str->buffer + offset, sv.ptr, sv.length);
-        str->buffer[offset + sv.length] = '\0';
+    if (string_is_small(string)) {
+        memcpy(string->buffer + offset, view.ptr, view.length);
+        string->buffer[offset + view.length] = '\0';
     } else {
-        memcpy(str->ptr + offset, sv.ptr, sv.length);
-        str->ptr[offset + sv.length] = '\0';
+        memcpy(string->ptr + offset, view.ptr, view.length);
+        string->ptr[offset + view.length] = '\0';
     }
 }
 
-void string_replace_extension(String *restrict str, StringView ext) {
-    assert(str != NULL);
+void string_replace_extension(String *string, StringView extension) {
+    assert(string != NULL);
     // the string is something like
     // /some/kind/of/file.txt
     // or
@@ -286,9 +294,9 @@ void string_replace_extension(String *restrict str, StringView ext) {
     // /some/kind/of/file.with.multiple.extensions
 
     // search for the last '/' in the string
-    u64 length   = str->length;
+    u64 length   = string->length;
     u64 cursor   = length;
-    char *buffer = string_is_small(str) ? str->buffer : str->ptr;
+    char *buffer = string_is_small(string) ? string->buffer : string->ptr;
     while ((cursor != 0) && (buffer[cursor] != '/')) {
         --cursor;
     }
@@ -301,29 +309,29 @@ void string_replace_extension(String *restrict str, StringView ext) {
 
     // find the beginning of the final extension
     // or the end of the filename
-    u64 extension = cursor;
+    u64 target = cursor;
     while ((cursor < length)) {
-        if (buffer[cursor] == '.') { extension = cursor; }
+        if (buffer[cursor] == '.') { target = cursor; }
         ++cursor;
     }
 
-    if (ext.length == 0) {
+    if (extension.length == 0) {
         // remove the extension
-        buffer[extension] = '\0';
-        str->length       = extension;
+        buffer[target] = '\0';
+        string->length = target;
     } else {
-        if (ext.ptr[0] != '.') {
-            if (buffer[extension] != '.') {
-                string_append(str, SV("."));
+        if (extension.ptr[0] != '.') {
+            if (buffer[target] != '.') {
+                string_append(string, SV("."));
             } else {
-                ++extension;
+                ++target;
             }
         }
         // insert the given extension.
-        string_insert(str, extension, ext);
+        string_insert(string, target, extension);
     }
 }
 
-// void print_string(String *restrict s, FILE *restrict file) {
+// void print_string(String * s, FILE * file) {
 //   file_write(s->buffer, file);
 // }

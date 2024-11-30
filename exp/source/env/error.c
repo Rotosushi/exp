@@ -62,8 +62,8 @@ StringView error_code_sv(ErrorCode code) {
 
 Error error_create() {
     Error error;
-    error.code    = ERROR_NONE;
-    error.message = string_create();
+    error.code = ERROR_NONE;
+    string_initialize(&error.message);
     return error;
 }
 
@@ -90,7 +90,8 @@ void error_assign(Error *restrict error, ErrorCode code, StringView sv) {
 }
 
 void error_print(Error *restrict error, StringView file, u64 line) {
-    String msg = string_create();
+    String msg;
+    string_initialize(&msg);
     string_append(&msg, error_code_sv(error->code));
     string_append(&msg, SV("["));
     string_append_string(&msg, &error->message);

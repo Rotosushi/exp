@@ -24,7 +24,7 @@
 void context_initialize(Context *context, CLIOptions *options) {
     assert(options != nullptr);
     assert(context != nullptr);
-    context->options         = context_options_create(options);
+    context_options_initialize(&context->options, options);
     context->string_interner = string_interner_create();
     type_interner_initialize(&context->type_interner);
     context->symbol_table     = symbol_table_create();

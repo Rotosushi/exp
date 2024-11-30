@@ -25,18 +25,19 @@
  *
  */
 typedef struct ContextOptions {
-  u64 flags;
-  String source;
-  String assembly;
-  String object;
-  String output;
+    Bitset flags;
+    String source;
+    String assembly;
+    String object;
+    String output;
 } ContextOptions;
 
-ContextOptions context_options_create(CLIOptions *restrict cli_options);
-void context_options_destroy(ContextOptions *restrict options);
+void context_options_initialize(ContextOptions *context_options,
+                                CLIOptions *cli_options);
+void context_options_destroy(ContextOptions *options);
 
-bool context_options_do_assemble(ContextOptions *restrict options);
-bool context_options_do_link(ContextOptions *restrict options);
-bool context_options_do_cleanup(ContextOptions *restrict options);
+bool context_options_do_assemble(ContextOptions *options);
+bool context_options_do_link(ContextOptions *options);
+bool context_options_do_cleanup(ContextOptions *options);
 
 #endif // !EXP_ENV_OPTIONS_H
