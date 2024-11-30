@@ -36,7 +36,7 @@ void context_initialize(Context *context, CLIOptions *options) {
 
 void context_terminate(Context *context) {
     assert(context != nullptr);
-    context_options_destroy(&(context->options));
+    context_options_terminate(&(context->options));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));

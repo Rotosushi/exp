@@ -22,7 +22,8 @@
 #include "frontend/parser.h"
 
 bool test_parse(char const *body) {
-    CLIOptions options = cli_options_create();
+    CLIOptions options;
+    cli_options_initialize(&options);
     Context context;
     context_initialize(&context, &options);
 

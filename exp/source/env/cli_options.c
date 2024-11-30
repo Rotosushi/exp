@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,15 +41,18 @@ static void print_help(FILE *file) {
     file_write("\n", file);
 }
 
-CLIOptions cli_options_create() {
-    CLIOptions cli_options = {.flags = bitset_create()};
-    bitset_set_bit(&cli_options.flags, CLI_DO_ASSEMBLE);
-    bitset_set_bit(&cli_options.flags, CLI_DO_LINK);
-    bitset_set_bit(&cli_options.flags, CLI_DO_CLEANUP);
-    return cli_options;
+void cli_options_initialize(CLIOptions *cli_options) {
+    assert(cli_options != nullptr);
+    cli_options->flags = bitset_create();
+    bitset_set_bit(&cli_options->flags, CLI_DO_ASSEMBLE);
+    bitset_set_bit(&cli_options->flags, CLI_DO_LINK);
+    bitset_set_bit(&cli_options->flags, CLI_DO_CLEANUP);
+    string_initialize(&cli_options->source);
+    string_initialize(&cli_options->output);
 }
 
-void cli_options_destroy(CLIOptions *restrict cli_options) {
+void cli_options_terminate(CLIOptions *cli_options) {
+    assert(cli_options != nullptr);
     cli_options->flags = bitset_create();
     string_destroy(&cli_options->output);
     string_destroy(&cli_options->source);
@@ -57,8 +61,9 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <getopt.h>
 
-CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
-    CLIOptions options               = cli_options_create();
+void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
+    assert(options != nullptr);
+    cli_options_initialize(options);
     static char const *short_options = "hvo:cs";
 
     i32 option = 0;
@@ -77,20 +82,20 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         }
 
         case 'o': {
-            string_assign(&(options.output), string_view_from_cstring(optarg));
+            string_assign(&(options->output), string_view_from_cstring(optarg));
             break;
         }
 
         case 'c': {
-            bitset_clear_bit(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear_bit(&options.flags, CLI_DO_LINK);
+            bitset_clear_bit(&options->flags, CLI_DO_CLEANUP);
+            bitset_clear_bit(&options->flags, CLI_DO_LINK);
             break;
         }
 
         case 's': {
-            bitset_clear_bit(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear_bit(&options.flags, CLI_DO_ASSEMBLE);
-            bitset_clear_bit(&options.flags, CLI_DO_LINK);
+            bitset_clear_bit(&options->flags, CLI_DO_CLEANUP);
+            bitset_clear_bit(&options->flags, CLI_DO_ASSEMBLE);
+            bitset_clear_bit(&options->flags, CLI_DO_LINK);
             break;
         }
 
@@ -105,7 +110,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     }
 
     if (optind < argc) {
-        string_assign(&(options.source),
+        string_assign(&(options->source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
         log_message(
@@ -115,12 +120,10 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
     // use the input filename as the default
     // base of the output filename
-    if (string_empty(&(options.output))) {
-        string_assign_string(&options.output, &options.source);
-        string_replace_extension(&options.output, SV(""));
+    if (string_empty(&(options->output))) {
+        string_assign_string(&options->output, &options->source);
+        string_replace_extension(&options->output, SV(""));
     }
-
-    return options;
 }
 
 #else

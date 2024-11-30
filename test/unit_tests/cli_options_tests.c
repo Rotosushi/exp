@@ -22,7 +22,8 @@
 #include "env/cli_options.h"
 
 bool test_options(i32 argc, char const *argv[], StringView sv) {
-    CLIOptions cli_options = parse_cli_options(argc, argv);
+    CLIOptions cli_options;
+    parse_cli_options(&cli_options, argc, argv);
 
     bool failure = 0;
     if (!string_equality(&cli_options.source, sv)) {
@@ -31,7 +32,7 @@ bool test_options(i32 argc, char const *argv[], StringView sv) {
         failure |= 0;
     }
 
-    cli_options_destroy(&cli_options);
+    cli_options_terminate(&cli_options);
     return failure;
 }
 

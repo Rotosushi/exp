@@ -38,7 +38,8 @@ static i32 compile_context(Context *restrict c) {
 }
 
 i32 compile(i32 argc, char const *argv[]) {
-    CLIOptions cli_options = parse_cli_options(argc, argv);
+    CLIOptions cli_options;
+    parse_cli_options(&cli_options, argc, argv);
     Context context;
     context_initialize(&context, &cli_options);
 
@@ -61,6 +62,6 @@ i32 compile(i32 argc, char const *argv[]) {
     }
 
     context_terminate(&context);
-    cli_options_destroy(&cli_options);
+    cli_options_terminate(&cli_options);
     return result;
 }
