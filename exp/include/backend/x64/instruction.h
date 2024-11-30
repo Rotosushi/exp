@@ -19,7 +19,6 @@
 
 #include "adt/string.h"
 #include "backend/x64/operand.h"
-#include "env/context.h"
 
 /*
   We want to model the x64 instructions we generate
@@ -65,8 +64,10 @@ typedef enum x64_Opcode : u8 {
 
 typedef struct x64_Instruction {
     x64_Opcode opcode;
-    x64_Operand A;
-    x64_Operand B;
+    x64_OperandKind A_kind;
+    x64_OperandKind B_kind;
+    x64_OperandData A_data;
+    x64_OperandData B_data;
 } x64_Instruction;
 
 x64_Instruction x64_ret();
@@ -82,8 +83,9 @@ x64_Instruction x64_sub(x64_Operand dst, x64_Operand src);
 x64_Instruction x64_imul(x64_Operand src);
 x64_Instruction x64_idiv(x64_Operand src);
 
+struct x64_Context;
 void x64_instruction_emit(x64_Instruction I,
                           String *restrict buffer,
-                          Context *restrict context);
+                          struct x64_Context *restrict x64_context);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

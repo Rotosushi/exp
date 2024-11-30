@@ -43,7 +43,7 @@
  */
 
 static void x64_codegen_bytecode(x64_Context *x64_context) {
-    Bytecode *bc = current_bc(x64_context);
+    Bytecode *bc = x64_context_current_bytecode(x64_context);
     for (u64 idx = 0; idx < bc->length; ++idx) {
         Instruction I = bc->buffer[idx];
 

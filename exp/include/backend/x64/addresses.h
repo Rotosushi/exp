@@ -14,7 +14,7 @@ typedef struct x64_Addresses {
 void x64_addresses_initialize(x64_Addresses *addresses);
 void x64_addresses_terminate(x64_Addresses *addresses);
 
-u64 x64_addresses_append(x64_Addresses *addresses, x64_Address address);
+u64 x64_addresses_insert(x64_Addresses *addresses, x64_Address address);
 x64_Address *x64_addresses_at(x64_Addresses *addresses, u64 index);
 
 #endif // EXP_BACKEND_X64_ADDRESSES_H

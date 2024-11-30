@@ -35,16 +35,18 @@ static void x64_codegen_add_ssa(Instruction I,
         if (B->location.kind == LOCATION_GPR) {
             x64_Allocation *A = x64_context_allocate_from_active(
                 context, local, B, block_index);
-            x64_context_append(
-                context, x64_add(x64_operand_alloc(A), x64_operand_alloc(C)));
+            x64_context_append(context,
+                               x64_add(x64_operand_location(A->location),
+                                       x64_operand_location(C->location)));
             return;
         }
 
         if (C->location.kind == LOCATION_GPR) {
             x64_Allocation *A = x64_context_allocate_from_active(
                 context, local, C, block_index);
-            x64_context_append(
-                context, x64_add(x64_operand_alloc(A), x64_operand_alloc(B)));
+            x64_context_append(context,
+                               x64_add(x64_operand_location(A->location),
+                                       x64_operand_location(B->location)));
             return;
         }
 
@@ -57,15 +59,19 @@ static void x64_codegen_add_ssa(Instruction I,
         // we use the huristic of longest lifetime to choose
         // which of B and C to move into A's gpr.
         if (B->lifetime.last_use <= C->lifetime.last_use) {
-            x64_context_append(
-                context, x64_mov(x64_operand_alloc(A), x64_operand_alloc(C)));
-            x64_context_append(
-                context, x64_add(x64_operand_alloc(A), x64_operand_alloc(B)));
+            x64_context_append(context,
+                               x64_mov(x64_operand_location(A->location),
+                                       x64_operand_location(C->location)));
+            x64_context_append(context,
+                               x64_add(x64_operand_location(A->location),
+                                       x64_operand_location(B->location)));
         } else {
-            x64_context_append(
-                context, x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
-            x64_context_append(
-                context, x64_add(x64_operand_alloc(A), x64_operand_alloc(C)));
+            x64_context_append(context,
+                               x64_mov(x64_operand_location(A->location),
+                                       x64_operand_location(B->location)));
+            x64_context_append(context,
+                               x64_add(x64_operand_location(A->location),
+                                       x64_operand_location(C->location)));
         }
         break;
     }
@@ -75,7 +81,7 @@ static void x64_codegen_add_ssa(Instruction I,
             x64_context_allocate_from_active(context, local, B, block_index);
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_immediate(I.C_data.immediate)));
         break;
     }
@@ -85,7 +91,7 @@ static void x64_codegen_add_ssa(Instruction I,
             x64_context_allocate_from_active(context, local, B, block_index);
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_constant(I.C_data.constant)));
         break;
     }
@@ -106,7 +112,7 @@ static void x64_codegen_add_immediate(Instruction I,
             x64_context_allocate_from_active(context, local, C, block_index);
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_immediate(I.B_data.immediate)));
         break;
     }
@@ -114,10 +120,10 @@ static void x64_codegen_add_immediate(Instruction I,
     case OPERAND_KIND_IMMEDIATE: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
+                           x64_mov(x64_operand_location(A->location),
                                    x64_operand_immediate(I.B_data.immediate)));
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_immediate(I.C_data.immediate)));
         break;
     }
@@ -125,11 +131,11 @@ static void x64_codegen_add_immediate(Instruction I,
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
+                           x64_mov(x64_operand_location(A->location),
                                    x64_operand_constant(I.B_data.constant)));
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_immediate(I.C_data.immediate)));
         break;
     }
@@ -150,7 +156,7 @@ static void x64_codegen_add_constant(Instruction I,
             x64_context_allocate_from_active(context, local, C, block_index);
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_constant(I.B_data.constant)));
         break;
     }
@@ -158,11 +164,11 @@ static void x64_codegen_add_constant(Instruction I,
     case OPERAND_KIND_IMMEDIATE: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
+                           x64_mov(x64_operand_location(A->location),
                                    x64_operand_constant(I.B_data.constant)));
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_immediate(I.C_data.immediate)));
         break;
     }
@@ -170,11 +176,11 @@ static void x64_codegen_add_constant(Instruction I,
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
+                           x64_mov(x64_operand_location(A->location),
                                    x64_operand_constant(I.B_data.constant)));
 
         x64_context_append(context,
-                           x64_add(x64_operand_alloc(A),
+                           x64_add(x64_operand_location(A->location),
                                    x64_operand_constant(I.C_data.constant)));
         break;
     }

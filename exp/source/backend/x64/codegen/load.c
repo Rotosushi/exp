@@ -45,7 +45,7 @@ void x64_codegen_load(Instruction I,
     case OPERAND_KIND_IMMEDIATE: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
+                           x64_mov(x64_operand_location(A->location),
                                    x64_operand_immediate(I.B_data.immediate)));
         break;
     }

@@ -1,4 +1,14 @@
+/-----------------------------------------------------------------------------
 
+when we have control flow constructs, the classic implementation is to have a 
+DAG represent how the control flows through a function body. Thus the body of 
+a function has to be represented as a series of basic blocks, if we follow LLVM
+here, we can make the series a "vector" and have a "terminator" instruction point 
+to the next basic block in the "vector". the alternative would be to have an 
+actual tree like structure, where the jump instructions point to the block they 
+jump to. The thing is, with how we encode instructions, it is very natural to just 
+place an index into the "vector" indicating the target block. it's just another 
+kind of operand.
 
 /-----------------------------------------------------------------------------
 

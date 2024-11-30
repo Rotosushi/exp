@@ -23,48 +23,47 @@
 
 static void x64_emit_symbol(x64_Symbol *restrict sym,
                             String *restrict buffer,
-                            Context *restrict context) {
-  directive_text(buffer);
-  directive_globl(sym->name, buffer);
-  directive_type(sym->name, STT_FUNC, buffer);
-  directive_label(sym->name, buffer);
+                            x64_Context *restrict x64_context) {
+    directive_text(buffer);
+    directive_globl(sym->name, buffer);
+    directive_type(sym->name, STT_FUNC, buffer);
+    directive_label(sym->name, buffer);
 
-  x64_bytecode_emit(&sym->body.bc, buffer, context);
+    x64_bytecode_emit(&sym->body.bc, buffer, x64_context);
 
-  directive_size_label_relative(sym->name, buffer);
-  string_append(buffer, SV("\n"));
+    directive_size_label_relative(sym->name, buffer);
+    string_append(buffer, SV("\n"));
 }
 
-static void x64_emit_file_prolouge(Context *restrict context,
+static void x64_emit_file_prolouge(x64_Context *restrict x64_context,
                                    String *restrict buffer) {
-  directive_file(context_source_path(context), buffer);
-  string_append(buffer, SV("\n"));
+    directive_file(context_source_path(x64_context->context), buffer);
+    string_append(buffer, SV("\n"));
 }
 
 static void x64_emit_file_epilouge(String *restrict buffer) {
-  StringView version = SV(EXP_VERSION_STRING);
-  directive_ident(version, buffer);
-  directive_noexecstack(buffer);
+    StringView version = SV(EXP_VERSION_STRING);
+    directive_ident(version, buffer);
+    directive_noexecstack(buffer);
 }
 
-void x64_emit(x64_Context *restrict x64context) {
-  String buffer = string_create();
+void x64_emit(x64_Context *restrict x64_context) {
+    String buffer = string_create();
 
-  x64_emit_file_prolouge(x64context->context, &buffer);
+    x64_emit_file_prolouge(x64_context, &buffer);
 
-  x64_SymbolTable *symbols = &x64context->symbols;
-  for (u64 i = 0; i < symbols->count; ++i) {
-    x64_Symbol *sym = symbols->buffer + i;
-    x64_emit_symbol(sym, &buffer, x64context->context);
-  }
+    x64_SymbolTable *symbols = &x64_context->symbols;
+    for (u64 i = 0; i < symbols->count; ++i) {
+        x64_Symbol *sym = symbols->buffer + i;
+        x64_emit_symbol(sym, &buffer, x64_context);
+    }
 
-  x64_emit_file_epilouge(&buffer);
+    x64_emit_file_epilouge(&buffer);
 
-  StringView path = context_assembly_path(x64context->context);
-  FILE *file      = file_open(path.ptr, "w");
-  file_write(string_to_cstring(&buffer), file);
-  file_close(file);
+    StringView path = context_assembly_path(x64_context->context);
+    FILE *file      = file_open(path.ptr, "w");
+    file_write(string_to_cstring(&buffer), file);
+    file_close(file);
 
-  string_destroy(&buffer);
+    string_destroy(&buffer);
 }
-

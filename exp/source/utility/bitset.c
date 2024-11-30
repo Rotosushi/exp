@@ -16,28 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stddef.h>
 
-#include "backend/x64/location.h"
-#include "utility/unreachable.h"
+#include "utility/bitset.h"
 
-x64_Location x64_location_gpr(x64_GPR gpr) {
-    x64_Location location = {.kind = LOCATION_GPR, .gpr = gpr};
-    return location;
+Bitset bitset_create() {
+    Bitset B = {.bits = 0};
+    return B;
 }
 
-x64_Location x64_location_address(u16 address) {
-    x64_Location location = {.kind = LOCATION_ADDRESS, .address = address};
-    return location;
+void bitset_set_bit(Bitset *bitset, u8 bit_position) {
+    bitset->bits |= (1ul << (u64)(bit_position));
 }
 
-bool x64_location_eq(x64_Location A, x64_Location B) {
-    if (A.kind != B.kind) { return false; }
+void bitset_clear_bit(Bitset *bitset, u8 bit_position) {
+    bitset->bits &= ~(1ul << (u64)bit_position);
+}
 
-    switch (A.kind) {
-    case LOCATION_GPR:     return A.gpr == B.gpr;
-    case LOCATION_ADDRESS: return A.address == B.address;
-    default:               EXP_UNREACHABLE();
-    }
+bool bitset_check_bit(Bitset *bitset, u8 bit_position) {
+    return (bitset->bits >> (u64)bit_position) & 1;
 }
