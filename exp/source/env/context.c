@@ -27,9 +27,9 @@ void context_initialize(Context *context, CLIOptions *options) {
     context_options_initialize(&context->options, options);
     context->string_interner = string_interner_create();
     type_interner_initialize(&context->type_interner);
-    context->symbol_table     = symbol_table_create();
-    context->labels           = labels_create();
-    context->constants        = constants_create();
+    context->symbol_table = symbol_table_create();
+    context->labels       = labels_create();
+    constants_initialize(&context->constants);
     context->current_error    = error_create();
     context->current_function = nullptr;
 }
@@ -41,7 +41,7 @@ void context_terminate(Context *context) {
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));
     labels_destroy(&(context->labels));
-    constants_destroy(&(context->constants));
+    constants_terminate(&(context->constants));
     error_destroy(&context->current_error);
     context->current_function = nullptr;
 }
