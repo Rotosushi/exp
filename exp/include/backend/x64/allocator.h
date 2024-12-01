@@ -18,7 +18,6 @@
 #define EXP_BACKEND_X64_ALLOCATOR_H
 
 #include "backend/x64/allocation.h"
-#include "backend/x64/bytecode.h"
 #include "backend/x64/registers.h"
 #include "utility/bitset.h"
 

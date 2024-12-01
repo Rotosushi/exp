@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_BYTECODE_H
-#define EXP_IMR_BYTECODE_H
+#ifndef EXP_IMR_BLOCK_H
+#define EXP_IMR_BLOCK_H
 
 #include "imr/instruction.h"
 
@@ -26,20 +26,18 @@
  * the structure. What is a name which is independant of the
  * underlying implementation? Chunk? Instructions? Block?
  */
-typedef struct Bytecode {
-  u64 length;
-  u64 capacity;
-  Instruction *buffer;
-} Bytecode;
+typedef struct Block {
+    u64 length;
+    u64 capacity;
+    Instruction *buffer;
+} Block;
 
-Bytecode bytecode_create();
-void bytecode_destroy(Bytecode *restrict bytecode);
+void block_initialize(Block *block);
+void block_terminate(Block *block);
 
-void bytecode_append(Bytecode *restrict bytecode, Instruction I);
+void block_append(Block *block, Instruction instruction);
 
 struct Context;
 
-void print_bytecode(Bytecode const *restrict bc,
-                    FILE *restrict file,
-                    struct Context *restrict context);
-#endif // !EXP_IMR_BYTECODE_H
+void print_block(Block const *block, FILE *file, struct Context *context);
+#endif // !EXP_IMR_BLOCK_H

@@ -25,8 +25,8 @@ typedef struct x64_Context {
     x64_SymbolTable symbols;
     x64_Addresses addresses;
     Context *context;
-    FunctionBody *body;
-    x64_FunctionBody *x64_body;
+    FunctionBody *current_function_body;
+    x64_FunctionBody *current_x64_function_body;
 } x64_Context;
 
 // x64 context functions
@@ -47,7 +47,9 @@ Value *x64_context_constants_at(x64_Context *context, u16 index);
 StringView x64_context_labels_at(x64_Context *x64_context, u16 index);
 
 // context x64 function functions
-void x64_context_enter_function(x64_Context *x64_context, StringView name);
+void x64_context_enter_function(x64_Context *x64_context,
+                                FunctionBody *body,
+                                x64_FunctionBody *x64_body);
 void x64_context_leave_function(x64_Context *context);
 
 /*
@@ -57,10 +59,10 @@ ActualArgumentList *x64_context_call_at(x64_Context * x64_context,
 FormalArgument *x64_context_argument_at(x64_Context *x64_context, u8 index);
 
 FunctionBody *x64_context_current_body(x64_Context *x64_context);
-Bytecode *x64_context_current_bytecode(x64_Context *x64_context);
+Block *x64_context_current_block(x64_Context *x64_context);
 LocalVariables *x64_context_current_locals(x64_Context *x64_context);
 x64_FunctionBody *x64_context_current_x64_body(x64_Context *x64_context);
-x64_Bytecode *x64_context_current_x64_bc(x64_Context *x64_context);
+x64_Block *x64_context_current_x64_block(x64_Context *x64_context);
 x64_Allocator *x64_context_current_x64_allocator(x64_Context *x64_context);
 
 u64 x64_context_current_offset(x64_Context *x64_context);

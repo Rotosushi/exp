@@ -17,104 +17,113 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+// #include <stdlib.h>
+// #include <string.h>
 
 #include "env/context.h"
 #include "imr/function_body.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 
-FormalArgumentList formal_argument_list_create() {
-    FormalArgumentList fal;
-    fal.capacity = 0;
-    fal.size     = 0;
-    fal.list     = NULL;
-    return fal;
+void formal_argument_list_create(FormalArgumentList *arguments) {
+    assert(arguments != nullptr);
+    arguments->capacity = 0;
+    arguments->size     = 0;
+    arguments->list     = nullptr;
 }
 
-void formal_argument_list_destroy(FormalArgumentList *restrict fal) {
-    assert(fal != NULL);
-    fal->capacity = 0;
-    fal->size     = 0;
-    deallocate(fal->list);
-    fal->list = NULL;
+void formal_argument_list_destroy(FormalArgumentList *arguments) {
+    assert(arguments != nullptr);
+    arguments->capacity = 0;
+    arguments->size     = 0;
+    deallocate(arguments->list);
+    arguments->list = nullptr;
 }
 
-static bool formal_argument_list_full(FormalArgumentList *restrict fal) {
-    return (fal->size + 1) >= fal->capacity;
+static bool formal_argument_list_full(FormalArgumentList *arguments) {
+    assert(arguments != nullptr);
+    return (arguments->size + 1) >= arguments->capacity;
 }
 
-static void formal_argument_list_grow(FormalArgumentList *restrict fal) {
-    Growth8 g     = array_growth_u8(fal->capacity, sizeof(FormalArgument));
-    fal->list     = reallocate(fal->list, g.alloc_size);
-    fal->capacity = g.new_capacity;
+static void formal_argument_list_grow(FormalArgumentList *arguments) {
+    assert(arguments != nullptr);
+    Growth8 g = array_growth_u8(arguments->capacity, sizeof(FormalArgument));
+    arguments->list     = reallocate(arguments->list, g.alloc_size);
+    arguments->capacity = g.new_capacity;
 }
 
-void formal_argument_list_append(FormalArgumentList *restrict fal,
+void formal_argument_list_append(FormalArgumentList *arguments,
                                  FormalArgument arg) {
-    assert(fal != NULL);
+    assert(arguments != nullptr);
 
-    if (formal_argument_list_full(fal)) { formal_argument_list_grow(fal); }
+    if (formal_argument_list_full(arguments)) {
+        formal_argument_list_grow(arguments);
+    }
 
-    arg.index            = fal->size;
-    fal->list[fal->size] = arg;
-    fal->size += 1;
+    arg.index                        = arguments->size;
+    arguments->list[arguments->size] = arg;
+    arguments->size += 1;
 }
 
-FormalArgument *formal_argument_list_at(FormalArgumentList *restrict fal,
+FormalArgument *formal_argument_list_at(FormalArgumentList *arguments,
                                         u8 index) {
-    assert(fal != NULL);
-    assert(index < fal->size);
-    return fal->list + index;
+    assert(arguments != nullptr);
+    assert(index < arguments->size);
+    return arguments->list + index;
 }
 
-FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
+FormalArgument *formal_argument_list_lookup(FormalArgumentList *arguments,
                                             StringView name) {
-    assert(fal != NULL);
+    assert(arguments != nullptr);
 
-    for (u8 i = 0; i < fal->size; ++i) {
-        FormalArgument *arg = fal->list + i;
+    for (u8 i = 0; i < arguments->size; ++i) {
+        FormalArgument *arg = arguments->list + i;
         if (string_view_equality(arg->name, name)) { return arg; }
     }
 
-    return NULL;
+    return nullptr;
 }
 
-LocalVariables local_variables_create() {
-    LocalVariables lv = {.size = 0, .capacity = 0, .buffer = NULL};
-    return lv;
+void local_variables_initialize(LocalVariables *locals) {
+    assert(locals != nullptr);
+    locals->size     = 0;
+    locals->capacity = 0;
+    locals->buffer   = nullptr;
 }
 
-static void local_variables_destroy(LocalVariables *restrict lv) {
-    lv->size     = 0;
-    lv->capacity = 0;
-    deallocate(lv->buffer);
-    lv->buffer = NULL;
+static void local_variables_destroy(LocalVariables *locals) {
+    assert(locals != nullptr);
+    locals->size     = 0;
+    locals->capacity = 0;
+    deallocate(locals->buffer);
+    locals->buffer = nullptr;
 }
 
-static bool local_variables_full(LocalVariables *restrict lv) {
-    return (lv->size + 1) >= lv->capacity;
+static bool local_variables_full(LocalVariables *locals) {
+    assert(locals != nullptr);
+    return (locals->size + 1) >= locals->capacity;
 }
 
-static void local_variables_grow(LocalVariables *restrict lv) {
-    Growth64 g   = array_growth_u64(lv->capacity, sizeof(LocalVariable));
-    lv->buffer   = reallocate(lv->buffer, g.alloc_size);
-    lv->capacity = g.new_capacity;
+static void local_variables_grow(LocalVariables *locals) {
+    assert(locals != nullptr);
+    Growth64 g     = array_growth_u64(locals->capacity, sizeof(LocalVariable));
+    locals->buffer = reallocate(locals->buffer, g.alloc_size);
+    locals->capacity = g.new_capacity;
 }
 
-void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
-    if (local_variables_full(lv)) { local_variables_grow(lv); }
+void local_variables_append(LocalVariables *locals, LocalVariable var) {
+    assert(locals != nullptr);
+    if (local_variables_full(locals)) { local_variables_grow(locals); }
 
-    lv->buffer[lv->size] = var;
-    lv->size += 1;
+    locals->buffer[locals->size] = var;
+    locals->size += 1;
 }
 
-static void local_variables_name_ssa(LocalVariables *restrict lv,
-                                     u16 ssa,
-                                     StringView name) {
-    for (u64 i = 0; i < lv->size; ++i) {
-        LocalVariable *var = lv->buffer + i;
+static void
+local_variables_name_ssa(LocalVariables *locals, u16 ssa, StringView name) {
+    assert(locals != nullptr);
+    for (u64 i = 0; i < locals->size; ++i) {
+        LocalVariable *var = locals->buffer + i;
         if (var->ssa == ssa) {
             var->name = name;
             return;
@@ -122,44 +131,45 @@ static void local_variables_name_ssa(LocalVariables *restrict lv,
     }
 }
 
-LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
-                                      StringView name) {
-    for (u64 i = 0; i < lv->size; ++i) {
-        LocalVariable *var = lv->buffer + i;
+LocalVariable *local_variables_lookup(LocalVariables *locals, StringView name) {
+    assert(locals != nullptr);
+    for (u64 i = 0; i < locals->size; ++i) {
+        LocalVariable *var = locals->buffer + i;
         if (string_view_equality(var->name, name)) { return var; }
     }
-    return NULL;
+    return nullptr;
 }
 
-LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
-                                          u16 ssa) {
-    for (u64 i = 0; i < lv->size; ++i) {
-        LocalVariable *var = lv->buffer + i;
+LocalVariable *local_variables_lookup_ssa(LocalVariables *locals, u16 ssa) {
+    assert(locals != nullptr);
+    for (u64 i = 0; i < locals->size; ++i) {
+        LocalVariable *var = locals->buffer + i;
         if (var->ssa == ssa) { return var; }
     }
-    return NULL;
-}
-FunctionBody function_body_create() {
-    FunctionBody function = {.arguments   = formal_argument_list_create(),
-                             .locals      = local_variables_create(),
-                             .return_type = NULL,
-                             .bc          = bytecode_create(),
-                             .ssa_count   = 0};
-    return function;
+    return nullptr;
 }
 
-void function_body_destroy(FunctionBody *restrict function) {
-    assert(function != NULL);
+void function_body_initialize(FunctionBody *function_body) {
+    assert(function_body != nullptr);
+    formal_argument_list_create(&function_body->arguments);
+    local_variables_initialize(&function_body->locals);
+    block_initialize(&function_body->block);
+    function_body->return_type = nullptr;
+    function_body->ssa_count   = 0;
+}
+
+void function_body_terminate(FunctionBody *function) {
+    assert(function != nullptr);
     formal_argument_list_destroy(&function->arguments);
     local_variables_destroy(&function->locals);
-    bytecode_destroy(&function->bc);
-    function->return_type = NULL;
+    block_terminate(&function->block);
+    function->return_type = nullptr;
     function->ssa_count   = 0;
 }
 
-void function_body_new_argument(FunctionBody *restrict function,
+void function_body_new_argument(FunctionBody *function,
                                 FormalArgument argument) {
-    assert(function != NULL);
+    assert(function != nullptr);
 
     u16 ssa = (u16)(function->ssa_count++);
     assert(function->ssa_count <= u16_MAX);
@@ -171,31 +181,49 @@ void function_body_new_argument(FunctionBody *restrict function,
     formal_argument_list_append(&function->arguments, argument);
 }
 
-void function_body_new_local(FunctionBody *restrict function,
-                             StringView name,
-                             u16 ssa) {
-    assert(function != NULL);
+FormalArgument *function_body_arguments_lookup(FunctionBody *function,
+                                               StringView name) {
+    assert(function != nullptr);
+    return formal_argument_list_lookup(&function->arguments, name);
+}
+
+FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index) {
+    assert(function != nullptr);
+    return formal_argument_list_at(&function->arguments, index);
+}
+
+void function_body_new_local(FunctionBody *function, StringView name, u16 ssa) {
+    assert(function != nullptr);
     local_variables_name_ssa(&function->locals, ssa, name);
 }
 
-Operand function_body_new_ssa(FunctionBody *restrict function) {
-    assert(function != NULL);
+Operand function_body_new_ssa(FunctionBody *function) {
+    assert(function != nullptr);
     u16 ssa = (u16)(function->ssa_count++);
     assert(function->ssa_count <= u16_MAX);
-    LocalVariable local = {.name = SV(""), .type = NULL, .ssa = ssa};
+    LocalVariable local = {.name = SV(""), .type = nullptr, .ssa = ssa};
     local_variables_append(&function->locals, local);
     return operand_ssa(local.ssa);
 }
 
-static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
+LocalVariable *function_body_locals_lookup(FunctionBody *function,
+                                           StringView name) {
+    assert(function != nullptr);
+    return local_variables_lookup(&function->locals, name);
+}
+
+LocalVariable *function_body_locals_ssa(FunctionBody *function, u16 ssa) {
+    assert(function != nullptr);
+    return local_variables_lookup_ssa(&function->locals, ssa);
+}
+
+static void print_formal_argument(FormalArgument *arg, FILE *file) {
     file_write(arg->name.ptr, file);
     file_write(": ", file);
     print_type(arg->type, file);
 }
 
-void print_function_body(FunctionBody const *restrict f,
-                         FILE *restrict file,
-                         Context *restrict context) {
+void print_function_body(FunctionBody const *f, FILE *file, Context *context) {
     file_write("(", file);
     FormalArgumentList const *args = &f->arguments;
     for (u8 i = 0; i < args->size; ++i) {
@@ -204,5 +232,5 @@ void print_function_body(FunctionBody const *restrict f,
         if (i < (u8)(args->size - 1)) { file_write(", ", file); }
     }
     file_write(")\n", file);
-    print_bytecode(&f->bc, file, context);
+    print_block(&f->block, file, context);
 }

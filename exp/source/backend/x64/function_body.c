@@ -24,44 +24,46 @@
 #include "utility/alloc.h"
 #include "utility/panic.h"
 
-x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
-    x64_FormalArgumentList args = {
-        .size = size, .buffer = allocate(size * sizeof(x64_FormalArgument))};
-    return args;
+void x64_formal_argument_list_create(x64_FormalArgumentList *args, u8 size) {
+    assert(args != nullptr);
+    args->size   = size;
+    args->buffer = callocate(size, sizeof(x64_FormalArgument));
 }
 
 static void x64_formal_arguments_destroy(x64_FormalArgumentList *args) {
     args->size = 0;
     deallocate(args->buffer);
-    args->buffer = NULL;
+    args->buffer = nullptr;
 }
 
 x64_FormalArgument *x64_formal_argument_list_at(x64_FormalArgumentList *args,
                                                 u8 idx) {
-    assert(args != NULL);
+    assert(args != nullptr);
     assert(idx < args->size);
     return args->buffer + idx;
 }
 
-x64_FunctionBody x64_function_body_create(FunctionBody *body,
-                                          x64_Context *context) {
-    x64_FunctionBody x64_body = {
-        .arguments = x64_formal_argument_list_create(body->arguments.size),
-        .result    = NULL,
-        .bc        = x64_bytecode_create()};
-    x64_allocator_initialize(&x64_body.allocator, body, context);
-    x64_Allocator *allocator = &x64_body.allocator;
-    LocalVariables *locals   = &body->locals;
+void x64_function_body_create(x64_FunctionBody *x64_body,
+                              FunctionBody *body,
+                              x64_Context *context) {
+    assert(x64_body != nullptr);
+    assert(body != nullptr);
+    assert(context != nullptr);
+    x64_formal_argument_list_create(&x64_body->arguments, body->arguments.size);
+    x64_block_initialize(&x64_body->block);
+    x64_allocator_initialize(&x64_body->allocator, body, context);
+    x64_body->result         = nullptr;
+    x64_Allocator *allocator = &x64_body->allocator;
 
     u8 scalar_argument_count = 0;
 
     if (type_is_scalar(body->return_type)) {
-        x64_body.result = x64_allocator_allocate_result(
+        x64_body->result = x64_allocator_allocate_result(
             allocator, x64_location_gpr(X64_GPR_RAX), body->return_type);
     } else {
         x64_Address result_address =
             x64_address_create(X64_GPR_RDI, X64_GPR_NONE, 1, 0);
-        x64_body.result = x64_allocator_allocate_result(
+        x64_body->result = x64_allocator_allocate_result(
             allocator,
             x64_location_address(
                 x64_context_addresses_insert(context, result_address)),
@@ -72,7 +74,7 @@ x64_FunctionBody x64_function_body_create(FunctionBody *body,
     i64 offset = 16;
     for (u8 i = 0; i < body->arguments.size; ++i) {
         FormalArgument *arg  = body->arguments.list + i;
-        LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
+        LocalVariable *local = function_body_locals_ssa(body, arg->ssa);
 
         if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
             x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
@@ -88,13 +90,11 @@ x64_FunctionBody x64_function_body_create(FunctionBody *body,
             }
         }
     }
-
-    return x64_body;
 }
 
 void x64_function_body_destroy(x64_FunctionBody *body) {
     assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
-    x64_bytecode_destroy(&body->bc);
+    x64_block_terminate(&body->block);
     x64_allocator_terminate(&body->allocator);
 }

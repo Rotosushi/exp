@@ -458,7 +458,9 @@ static bool function(Operand *result, Parser *parser, Context *context) {
     StringView name = context_intern(context, curtxt(parser));
     if (!nexttok(parser, context)) { return false; }
 
-    FunctionBody *body = context_enter_function(context, name);
+    Symbol *symbol     = context_symbol_table_at(context, name);
+    FunctionBody *body = &symbol->function_body;
+    context_enter_function(context, body);
 
     if (!parse_formal_argument_list(body, parser, context)) { return false; }
 

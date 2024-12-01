@@ -43,58 +43,58 @@
  */
 
 static void x64_codegen_bytecode(x64_Context *x64_context) {
-    Bytecode *bc = x64_context_current_bytecode(x64_context);
-    for (u64 idx = 0; idx < bc->length; ++idx) {
-        Instruction I = bc->buffer[idx];
+    Block *block = x64_context_current_block(x64_context);
+    for (u64 idx = 0; idx < block->length; ++idx) {
+        Instruction instruction = block->buffer[idx];
 
-        switch (I.opcode) {
+        switch (instruction.opcode) {
         case OPCODE_RETURN: {
-            x64_codegen_return(I, idx, x64_context);
+            x64_codegen_return(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_CALL: {
-            x64_codegen_call(I, idx, x64_context);
+            x64_codegen_call(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_DOT: {
-            x64_codegen_dot(I, idx, x64_context);
+            x64_codegen_dot(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_LOAD: {
-            x64_codegen_load(I, idx, x64_context);
+            x64_codegen_load(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_NEGATE: {
-            x64_codegen_negate(I, idx, x64_context);
+            x64_codegen_negate(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_ADD: {
-            x64_codegen_add(I, idx, x64_context);
+            x64_codegen_add(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_SUBTRACT: {
-            x64_codegen_subtract(I, idx, x64_context);
+            x64_codegen_subtract(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_MULTIPLY: {
-            x64_codegen_multiply(I, idx, x64_context);
+            x64_codegen_multiply(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_DIVIDE: {
-            x64_codegen_divide(I, idx, x64_context);
+            x64_codegen_divide(instruction, idx, x64_context);
             break;
         }
 
         case OPCODE_MODULUS: {
-            x64_codegen_modulus(I, idx, x64_context);
+            x64_codegen_modulus(instruction, idx, x64_context);
             break;
         }
 
@@ -137,8 +137,11 @@ static void x64_codegen_function(x64_Context *x64_context) {
 }
 
 static void x64_codegen_symbol(x64_Context *x64_context, Symbol *symbol) {
-    StringView name = symbol->name;
-    x64_context_enter_function(x64_context, name);
+    FunctionBody *body         = &symbol->function_body;
+    x64_Symbol *x64_symbol     = x64_context_symbol(x64_context, symbol->name);
+    x64_FunctionBody *x64_body = &x64_symbol->body;
+    x64_function_body_create(x64_body, body, x64_context);
+    x64_context_enter_function(x64_context, body, x64_body);
     x64_codegen_function(x64_context);
     x64_context_leave_function(x64_context);
 }

@@ -48,13 +48,13 @@ static TResult success(Type const *type) {
 }
 
 #define try(decl, call)                                                        \
-    Type const *decl = NULL;                                                   \
+    Type const *decl = nullptr;                                                \
     {                                                                          \
         TResult result = call;                                                 \
         if (result.has_error) { return result; }                               \
         decl = result.type;                                                    \
     }                                                                          \
-    assert(decl != NULL)
+    assert(decl != nullptr)
 
 static TResult typecheck_symbol(Context *c, Symbol *element);
 
@@ -64,7 +64,7 @@ typecheck_operand(Context *c, OperandKind kind, OperandData data) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(c, data.ssa);
         Type const *type     = local->type;
-        if (type == NULL) {
+        if (type == nullptr) {
             String buffer;
             string_initialize(&buffer);
             string_from_view(&buffer, SV(""));
@@ -87,7 +87,7 @@ typecheck_operand(Context *c, OperandKind kind, OperandData data) {
         StringView name  = context_labels_at(c, data.label);
         Symbol *global   = context_symbol_table_at(c, name);
         Type const *type = global->type;
-        if (type == NULL) {
+        if (type == nullptr) {
             try(Gty, typecheck_symbol(c, global));
             type = Gty;
         }
@@ -376,9 +376,9 @@ static TResult typecheck_mod(Context *c, Instruction I) {
 }
 
 static TResult typecheck_function(Context *c) {
-    Type const *return_type = NULL;
+    Type const *return_type = nullptr;
     FunctionBody *body      = context_current_function(c);
-    Bytecode *bc            = &body->bc;
+    Block *bc               = &body->block;
 
     Instruction *ip = bc->buffer;
     for (u16 idx = 0; idx < bc->length; ++idx) {
@@ -387,7 +387,8 @@ static TResult typecheck_function(Context *c) {
         case OPCODE_RETURN: {
             try(Bty, typecheck_ret(c, I));
 
-            if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
+            if ((return_type != nullptr) &&
+                (!type_equality(return_type, Bty))) {
                 String buf;
                 string_initialize(&buf);
                 string_append(&buf, SV("Previous return statement had type ["));
@@ -466,7 +467,7 @@ static TResult typecheck_function(Context *c) {
 static TResult typecheck_symbol(Context *c, Symbol *element) {
     assert(c != nullptr);
     assert(element != nullptr);
-    if (element->type != NULL) { return success(element->type); }
+    if (element->type != nullptr) { return success(element->type); }
 
     // we want to avoid infinite recursion. but we also need to
     // handle the fact that functions are going to be typechecked
@@ -475,12 +476,13 @@ static TResult typecheck_symbol(Context *c, Symbol *element) {
     // the function body. This only breaks when we have mutual recursion,
     // otherwise, when the global is successfully typed.
     // the question is, how do we accomplish this?
-    FunctionBody *body = context_enter_function(c, element->name);
+    FunctionBody *body = &element->function_body;
+    context_enter_function(c, body);
 
     try(Rty, typecheck_function(c));
     context_leave_function(c);
 
-    if ((body->return_type != NULL) &&
+    if ((body->return_type != nullptr) &&
         (!type_equality(Rty, body->return_type))) {
         String buf;
         string_initialize(&buf);

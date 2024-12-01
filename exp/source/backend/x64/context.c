@@ -24,10 +24,10 @@
 x64_Context x64_context_create(Context *context) {
     assert(context != nullptr);
     x64_Context x64_context = {
-        .symbols  = x64_symbol_table_create(context->symbol_table.count),
-        .context  = context,
-        .body     = nullptr,
-        .x64_body = nullptr};
+        .symbols = x64_symbol_table_create(context->symbol_table.count),
+        .context = context,
+        .current_function_body     = nullptr,
+        .current_x64_function_body = nullptr};
     x64_addresses_initialize(&x64_context.addresses);
     return x64_context;
 }
@@ -66,20 +66,22 @@ StringView x64_context_labels_at(x64_Context *x64_context, u16 idx) {
     return context_labels_at(x64_context->context, idx);
 }
 
-void x64_context_enter_function(x64_Context *x64_context, StringView name) {
+void x64_context_enter_function(x64_Context *x64_context,
+                                FunctionBody *body,
+                                x64_FunctionBody *x64_body) {
     assert(x64_context != nullptr);
-    x64_context->body     = context_enter_function(x64_context->context, name);
-    x64_Symbol *symbol    = x64_symbol_table_at(&x64_context->symbols, name);
-    x64_context->x64_body = &symbol->body;
-    *x64_context->x64_body =
-        x64_function_body_create(x64_context->body, x64_context);
+    assert(body != nullptr);
+    assert(x64_body != nullptr);
+    context_enter_function(x64_context->context, body);
+    x64_context->current_function_body     = body;
+    x64_context->current_x64_function_body = x64_body;
 }
 
 void x64_context_leave_function(x64_Context *x64_context) {
     assert(x64_context != nullptr);
     context_leave_function(x64_context->context);
-    x64_context->body     = nullptr;
-    x64_context->x64_body = nullptr;
+    x64_context->current_function_body     = nullptr;
+    x64_context->current_x64_function_body = nullptr;
 }
 
 /*
@@ -96,53 +98,62 @@ FormalArgument *x64_context_argument_at(x64_Context *x64_context, u8 index) {
 }
 
 FunctionBody *x64_context_current_body(x64_Context *x64_context) {
-    assert(x64_context->body != nullptr);
-    return x64_context->body;
+    assert(x64_context != nullptr);
+    assert(x64_context->current_function_body != nullptr);
+    return x64_context->current_function_body;
 }
 
-Bytecode *x64_context_current_bytecode(x64_Context *x64_context) {
-    return &x64_context_current_body(x64_context)->bc;
+Block *x64_context_current_block(x64_Context *x64_context) {
+    assert(x64_context != nullptr);
+    return &x64_context_current_body(x64_context)->block;
 }
 
 LocalVariables *x64_context_current_locals(x64_Context *x64_context) {
+    assert(x64_context != nullptr);
     return &x64_context_current_body(x64_context)->locals;
 }
 
 x64_FunctionBody *x64_context_current_x64_body(x64_Context *x64_context) {
-    assert(x64_context->x64_body != nullptr);
-    return x64_context->x64_body;
+    assert(x64_context != nullptr);
+    assert(x64_context->current_x64_function_body != nullptr);
+    return x64_context->current_x64_function_body;
 }
 
-x64_Bytecode *x64_context_current_x64_bc(x64_Context *x64_context) {
-    assert(x64_context->x64_body != nullptr);
-    return &x64_context->x64_body->bc;
+x64_Block *x64_context_current_x64_block(x64_Context *x64_context) {
+    assert(x64_context != nullptr);
+    assert(x64_context->current_x64_function_body != nullptr);
+    return &x64_context->current_x64_function_body->block;
 }
 
 x64_Allocator *current_allocator(x64_Context *x64_context) {
+    assert(x64_context != nullptr);
     return &x64_context_current_x64_body(x64_context)->allocator;
 }
 
 u64 x64_context_current_offset(x64_Context *x64_context) {
-    return x64_bytecode_current_offset(x64_context_current_x64_bc(x64_context));
+    assert(x64_context != nullptr);
+    return x64_block_current_offset(x64_context_current_x64_block(x64_context));
 }
 
 void x64_context_insert(x64_Context *x64_context,
                         x64_Instruction I,
                         u64 offset) {
-    x64_bytecode_insert(x64_context_current_x64_bc(x64_context), I, offset);
+    assert(x64_context != nullptr);
+    x64_block_insert(x64_context_current_x64_block(x64_context), I, offset);
 }
 
 void x64_context_prepend(x64_Context *x64_context, x64_Instruction I) {
-    x64_bytecode_prepend(x64_context_current_x64_bc(x64_context), I);
+    assert(x64_context != nullptr);
+    x64_block_prepend(x64_context_current_x64_block(x64_context), I);
 }
 void x64_context_append(x64_Context *x64_context, x64_Instruction I) {
-    x64_bytecode_append(x64_context_current_x64_bc(x64_context), I);
+    assert(x64_context != nullptr);
+    x64_block_append(x64_context_current_x64_block(x64_context), I);
 }
 
 LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u16 ssa) {
     assert(x64_context != nullptr);
-    return local_variables_lookup_ssa(x64_context_current_locals(x64_context),
-                                      ssa);
+    return function_body_locals_ssa(x64_context_current_body(x64_context), ssa);
 }
 
 bool x64_context_uses_stack(x64_Context *x64_context) {
@@ -177,6 +188,8 @@ void x64_context_aquire_gpr(x64_Context *x64_context,
 x64_Allocation *x64_context_allocate(x64_Context *x64_context,
                                      LocalVariable *local,
                                      u64 block_index) {
+    assert(x64_context != nullptr);
+    assert(local != nullptr);
     return x64_allocator_allocate(
         current_allocator(x64_context), block_index, local);
 }
@@ -185,6 +198,9 @@ x64_Allocation *x64_context_allocate_from_active(x64_Context *x64_context,
                                                  LocalVariable *local,
                                                  x64_Allocation *active,
                                                  u64 block_index) {
+    assert(x64_context != nullptr);
+    assert(local != nullptr);
+    assert(active != nullptr);
     return x64_allocator_allocate_from_active(
         current_allocator(x64_context), block_index, local, active);
 }
@@ -194,6 +210,7 @@ x64_Allocation *x64_context_allocate_to_gpr(x64_Context *x64_context,
                                             x64_GPR gpr,
                                             u64 block_index) {
     assert(x64_context != nullptr);
+    assert(local != nullptr);
     return x64_allocator_allocate_to_gpr(
         current_allocator(x64_context), gpr, block_index, local);
 }
@@ -202,6 +219,7 @@ x64_Allocation *x64_context_allocate_to_stack(x64_Context *x64_context,
                                               LocalVariable *local,
                                               i64 offset) {
     assert(x64_context != nullptr);
+    assert(local != nullptr);
     return x64_allocator_allocate_to_stack(
         current_allocator(x64_context), offset, local);
 }
@@ -216,10 +234,13 @@ x64_Allocation *x64_context_allocate_result(x64_Context *x64_context,
 
 void x64_context_reallocate_active(x64_Context *x64_context,
                                    x64_Allocation *active) {
+    assert(x64_context != nullptr);
+    assert(active != nullptr);
     x64_allocator_reallocate_active(current_allocator(x64_context), active);
 }
 
 x64_GPR x64_context_aquire_any_gpr(x64_Context *x64_context, u64 block_index) {
+    assert(x64_context != nullptr);
     return x64_allocator_aquire_any_gpr(current_allocator(x64_context),
                                         block_index);
 }
