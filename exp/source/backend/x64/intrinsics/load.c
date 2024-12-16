@@ -26,15 +26,16 @@
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
-static void
-x64_codegen_load_i64(u16 target_address, i64 value, x64_Context *x64_context) {
-    if (i64_in_range_i16(value)) {
+static void x64_codegen_load_i32(x64_Address target_address,
+                                 i32 value,
+                                 x64_Context *x64_context) {
+    if (i64_in_range_i32(value)) {
         x64_context_append(x64_context,
                            x64_mov(x64_operand_address(target_address),
-                                   x64_operand_immediate((i16)value)));
+                                   x64_operand_immediate((i32)value)));
     } else {
         Operand operand = context_constants_append(x64_context->context,
-                                                   value_create_i64(value));
+                                                   value_create_i32(value));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x64_context_append(
             x64_context,
@@ -43,9 +44,8 @@ x64_codegen_load_i64(u16 target_address, i64 value, x64_Context *x64_context) {
     }
 }
 
-static void x64_codegen_load_address_from_scalar_value(u16 target_address,
-                                                       Value *value,
-                                                       x64_Context *context) {
+static void x64_codegen_load_address_from_scalar_value(
+    x64_Address target_address, Value *value, x64_Context *context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
@@ -59,12 +59,12 @@ static void x64_codegen_load_address_from_scalar_value(u16 target_address,
     case VALUE_KIND_BOOLEAN: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(target_address),
-                                   x64_operand_immediate((i16)value->boolean)));
+                                   x64_operand_immediate((i32)value->boolean)));
         break;
     }
 
-    case VALUE_KIND_I64: {
-        x64_codegen_load_i64(target_address, value->i64_, context);
+    case VALUE_KIND_I32: {
+        x64_codegen_load_i32(target_address, value->i32_, context);
         break;
     }
 
@@ -73,12 +73,11 @@ static void x64_codegen_load_address_from_scalar_value(u16 target_address,
     }
 }
 
-static void
-x64_codegen_load_address_from_scalar_operand(u16 target,
-                                             Operand source,
-                                             [[maybe_unused]] Type const *type,
-                                             u64 block_index,
-                                             x64_Context *context) {
+static void x64_codegen_load_address_from_scalar_operand(x64_Address target,
+                                                         Operand source,
+                                                         Type const *type,
+                                                         u64 block_index,
+                                                         x64_Context *context) {
     assert(type_is_scalar(type));
 
     switch (source.kind) {
@@ -91,17 +90,19 @@ x64_codegen_load_address_from_scalar_operand(u16 target,
                 x64_mov(x64_operand_address(target),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
-            x64_codegen_copy_scalar_memory(
-                target, allocation->location.address, block_index, context);
+            x64_codegen_copy_scalar_memory(target,
+                                           allocation->location.address,
+                                           size_of(type),
+                                           block_index,
+                                           context);
         }
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_address(target),
-                    x64_operand_immediate(source.data.immediate)));
+    case OPERAND_KIND_I32: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(target),
+                                   x64_operand_immediate(source.data.i32_)));
         break;
     }
 
@@ -122,7 +123,7 @@ x64_codegen_load_address_from_scalar_operand(u16 target,
 }
 
 static void
-x64_codegen_load_address_from_composite_operand(u16 target,
+x64_codegen_load_address_from_composite_operand(x64_Address target,
                                                 Operand source,
                                                 Type const *type,
                                                 u64 block_index,
@@ -155,15 +156,10 @@ x64_codegen_load_address_from_composite_operand(u16 target,
 
             x64_codegen_load_address_from_operand(
                 target, element, element_type, block_index, context);
-            x64_Address target_element_address =
-                *x64_context_addresses_at(context, target);
 
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
-            target_element_address.offset += offset;
-
-            target =
-                x64_context_addresses_insert(context, target_element_address);
+            target.offset += offset;
         }
 
         break;
@@ -175,12 +171,12 @@ x64_codegen_load_address_from_composite_operand(u16 target,
     }
 
     // #NOTE: an immediate value is never composite
-    case OPERAND_KIND_IMMEDIATE:
-    default:                     EXP_UNREACHABLE();
+    case OPERAND_KIND_I32:
+    default:               EXP_UNREACHABLE();
     }
 }
 
-void x64_codegen_load_address_from_operand(u16 target,
+void x64_codegen_load_address_from_operand(x64_Address target,
                                            Operand source,
                                            Type const *type,
                                            u64 block_index,
@@ -195,9 +191,9 @@ void x64_codegen_load_address_from_operand(u16 target,
 }
 
 static void
-x64_codegen_load_argument_from_scalar_operand(u16 target,
+x64_codegen_load_argument_from_scalar_operand(x64_Address target,
                                               Operand source,
-                                              [[maybe_unused]] Type const *type,
+                                              Type const *type,
                                               u64 block_index,
                                               x64_Context *context) {
     switch (source.kind) {
@@ -210,17 +206,19 @@ x64_codegen_load_argument_from_scalar_operand(u16 target,
                 x64_mov(x64_operand_address(target),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
-            x64_codegen_copy_scalar_memory(
-                target, allocation->location.address, block_index, context);
+            x64_codegen_copy_scalar_memory(target,
+                                           allocation->location.address,
+                                           size_of(type),
+                                           block_index,
+                                           context);
         }
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_address(target),
-                    x64_operand_immediate(source.data.immediate)));
+    case OPERAND_KIND_I32: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(target),
+                                   x64_operand_immediate(source.data.i32_)));
         break;
     }
 
@@ -240,7 +238,7 @@ x64_codegen_load_argument_from_scalar_operand(u16 target,
 }
 
 static void
-x64_codegen_load_argument_from_composite_operand(u16 target,
+x64_codegen_load_argument_from_composite_operand(x64_Address target,
                                                  Operand source,
                                                  Type const *type,
                                                  u64 block_index,
@@ -274,15 +272,9 @@ x64_codegen_load_argument_from_composite_operand(u16 target,
             x64_codegen_load_argument_from_operand(
                 target, element, element_type, block_index, context);
 
-            x64_Address target_element_address =
-                *x64_context_addresses_at(context, target);
-
             assert(element_size <= i64_MAX);
             i64 offset = -(i64)element_size;
-            target_element_address.offset += offset;
-
-            target =
-                x64_context_addresses_insert(context, target_element_address);
+            target.offset += offset;
         }
 
         break;
@@ -294,12 +286,12 @@ x64_codegen_load_argument_from_composite_operand(u16 target,
     }
 
     // #NOTE: immediate operands are never composite
-    case OPERAND_KIND_IMMEDIATE:
-    default:                     EXP_UNREACHABLE();
+    case OPERAND_KIND_I32:
+    default:               EXP_UNREACHABLE();
     }
 }
 
-void x64_codegen_load_argument_from_operand(u16 target,
+void x64_codegen_load_argument_from_operand(x64_Address target,
                                             Operand source,
                                             Type const *type,
                                             u64 block_index,
@@ -327,11 +319,10 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_gpr(gpr),
-                    x64_operand_immediate(source.data.immediate)));
+    case OPERAND_KIND_I32: {
+        x64_context_append(context,
+                           x64_mov(x64_operand_gpr(gpr),
+                                   x64_operand_immediate(source.data.i32_)));
         break;
     }
 
@@ -362,22 +353,12 @@ void x64_codegen_load_allocation_from_operand(x64_Allocation *target,
     }
 }
 
-static void x64_codegen_load_allocation_from_i64(x64_Allocation *target,
-                                                 i64 value,
+static void x64_codegen_load_allocation_from_i32(x64_Allocation *target,
+                                                 i32 value,
                                                  x64_Context *context) {
-    if (i64_in_range_i16(value)) {
-        x64_context_append(context,
-                           x64_mov(x64_operand_location(target->location),
-                                   x64_operand_immediate((i16)value)));
-    } else {
-        Operand operand =
-            context_constants_append(context->context, value_create_i64(value));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_location(target->location),
-                    x64_operand_constant(operand.data.constant)));
-    }
+    x64_context_append(context,
+                       x64_mov(x64_operand_location(target->location),
+                               x64_operand_immediate(value)));
 }
 
 static void x64_codegen_load_allocation_from_tuple(x64_Allocation *target,
@@ -385,22 +366,18 @@ static void x64_codegen_load_allocation_from_tuple(x64_Allocation *target,
                                                    u64 block_index,
                                                    x64_Context *context) {
     assert(target->location.kind == LOCATION_ADDRESS);
-    u16 target_address = target->location.address;
+    x64_Address address = target->location.address;
     for (u64 i = 0; i < tuple->size; ++i) {
         Operand element          = tuple->elements[i];
         Type const *element_type = type_of_operand(element, context->context);
         u64 element_size         = size_of(element_type);
 
         x64_codegen_load_address_from_operand(
-            target_address, element, element_type, block_index, context);
+            address, element, element_type, block_index, context);
 
-        x64_Address address =
-            *x64_context_addresses_at(context, target_address);
         assert(element_size <= i64_MAX);
         i64 offset = (i64)element_size;
         address.offset += offset;
-
-        target_address = x64_context_addresses_insert(context, address);
     }
 }
 
@@ -429,8 +406,8 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *target,
         break;
     }
 
-    case VALUE_KIND_I64: {
-        x64_codegen_load_allocation_from_i64(target, value->i64_, x64_context);
+    case VALUE_KIND_I32: {
+        x64_codegen_load_allocation_from_i32(target, value->i32_, x64_context);
         break;
     }
 

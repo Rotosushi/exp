@@ -46,7 +46,7 @@ static bool bytecode_full(Block *bytecode) {
 }
 
 static void bytecode_grow(Block *bytecode) {
-    Growth64 g = array_growth_u64(bytecode->capacity, sizeof(Instruction));
+    Growth32 g = array_growth_u32(bytecode->capacity, sizeof(Instruction));
     bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
     bytecode->capacity = g.new_capacity;
 }
@@ -62,27 +62,27 @@ static void
 print_B(char const *inst, Instruction I, FILE *file, Context *context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
 }
 
 static void
 print_AB(char const *inst, Instruction I, FILE *file, Context *context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.A_kind, I.A_data), file, context);
+    print_operand(operand_construct(I.A_kind, I.A_data), file, context);
     file_write(", ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
 }
 
 static void
 print_ABC(char const *inst, Instruction I, FILE *file, Context *context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.A_kind, I.A_data), file, context);
+    print_operand(operand_construct(I.A_kind, I.A_data), file, context);
     file_write(", ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
     file_write(", ", file);
-    print_operand(operand(I.C_kind, I.C_data), file, context);
+    print_operand(operand_construct(I.C_kind, I.C_data), file, context);
 }
 
 // "ret <B>"
@@ -154,7 +154,7 @@ static void print_instruction(Instruction I, FILE *file, Context *context) {
 
 void print_block(Block const *bc, FILE *file, Context *context) {
     // walk the entire buffer and print each instruction
-    for (u64 i = 0; i < bc->length; ++i) {
+    for (u32 i = 0; i < bc->length; ++i) {
         file_write("  ", file);
         file_write_u64(i, file);
         file_write(": ", file);

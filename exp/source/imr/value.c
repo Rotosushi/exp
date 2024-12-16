@@ -60,7 +60,7 @@ static bool tuple_full(Tuple *restrict tuple) {
 }
 
 static void tuple_grow(Tuple *restrict tuple) {
-    Growth64 g = array_growth_u64(tuple->capacity, sizeof(*tuple->elements));
+    Growth32 g = array_growth_u32(tuple->capacity, sizeof(*tuple->elements));
     tuple->elements = reallocate(tuple->elements, g.alloc_size);
     tuple->capacity = g.new_capacity;
 }
@@ -99,8 +99,8 @@ Value value_create_boolean(bool b) {
     return value;
 }
 
-Value value_create_i64(i64 i) {
-    Value value = {.kind = VALUE_KIND_I64, .i64_ = i};
+Value value_create_i32(i32 i) {
+    Value value = {.kind = VALUE_KIND_I32, .i32_ = i};
     return value;
 }
 
@@ -129,22 +129,19 @@ void value_assign(Value *dest, Value *source) {
 }
 
 bool value_equality(Value *A, Value *B) {
-    if (A == B) { return 1; }
+    if (A == B) { return true; }
+    if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
-    case VALUE_KIND_UNINITIALIZED: return B->kind == VALUE_KIND_UNINITIALIZED;
-    case VALUE_KIND_NIL:           return B->kind == VALUE_KIND_NIL;
+    case VALUE_KIND_UNINITIALIZED:
+    case VALUE_KIND_NIL:           return true;
 
     case VALUE_KIND_BOOLEAN: {
-        if (B->kind != VALUE_KIND_BOOLEAN) { return 0; }
-
         return A->boolean == B->boolean;
     }
 
-    case VALUE_KIND_I64: {
-        if (B->kind != VALUE_KIND_I64) { return 0; }
-
-        return A->i64_ == B->i64_;
+    case VALUE_KIND_I32: {
+        return A->i32_ == B->i32_;
     }
 
     case VALUE_KIND_TUPLE: {
@@ -179,7 +176,7 @@ void print_value(Value const *restrict v,
         break;
     }
 
-    case VALUE_KIND_I64:   file_write_i64(v->i64_, file); break;
+    case VALUE_KIND_I32:   file_write_i64(v->i32_, file); break;
     case VALUE_KIND_TUPLE: print_tuple(&v->tuple, file, context); break;
 
     default: EXP_UNREACHABLE();

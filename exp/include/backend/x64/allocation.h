@@ -29,9 +29,9 @@ typedef struct x64_Allocation {
 } x64_Allocation;
 
 x64_Allocation *x64_allocation_allocate();
-void x64_allocation_deallocate(x64_Allocation *restrict allocation);
-
-bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
-                                x64_Location location);
+void x64_allocation_deallocate(x64_Allocation *allocation);
+bool x64_allocation_alive(x64_Allocation *allocation, u64 block_index);
+bool x64_allocation_location_equality(x64_Allocation *allocation,
+                                      x64_Location location);
 
 #endif // !EXP_BACKEND_X64_ALLOCATION_H

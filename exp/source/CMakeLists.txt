@@ -31,38 +31,38 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/analysis/typecheck.c
   
-  ${EXP_SOURCE_DIR}/backend/directives.c
-  ${EXP_SOURCE_DIR}/backend/lifetimes.c
+#  ${EXP_SOURCE_DIR}/backend/directives.c
+#  ${EXP_SOURCE_DIR}/backend/lifetimes.c
 
-  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/copy.c
-  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
-  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
+#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/copy.c
+#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
+#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
 
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/divide.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/load.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/modulus.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/multiply.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/negate.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/return.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/subtract.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/divide.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/load.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/modulus.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/multiply.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/negate.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/return.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen/subtract.c
 
-  ${EXP_SOURCE_DIR}/backend/x64/address.c
-  ${EXP_SOURCE_DIR}/backend/x64/addresses.c
-  ${EXP_SOURCE_DIR}/backend/x64/allocation.c
-  ${EXP_SOURCE_DIR}/backend/x64/allocator.c
-  ${EXP_SOURCE_DIR}/backend/x64/block.c
-  ${EXP_SOURCE_DIR}/backend/x64/codegen.c
-  ${EXP_SOURCE_DIR}/backend/x64/context.c
-  ${EXP_SOURCE_DIR}/backend/x64/emit.c
-  ${EXP_SOURCE_DIR}/backend/x64/function_body.c
-  ${EXP_SOURCE_DIR}/backend/x64/instruction.c
-  ${EXP_SOURCE_DIR}/backend/x64/location.c
-  ${EXP_SOURCE_DIR}/backend/x64/operand.c
-  ${EXP_SOURCE_DIR}/backend/x64/registers.c
-  ${EXP_SOURCE_DIR}/backend/x64/symbols.c
+#  ${EXP_SOURCE_DIR}/backend/x64/address.c
+#  ${EXP_SOURCE_DIR}/backend/x64/addresses.c
+#  ${EXP_SOURCE_DIR}/backend/x64/allocation.c
+#  ${EXP_SOURCE_DIR}/backend/x64/allocator.c
+#  ${EXP_SOURCE_DIR}/backend/x64/block.c
+#  ${EXP_SOURCE_DIR}/backend/x64/codegen.c
+#  ${EXP_SOURCE_DIR}/backend/x64/context.c
+#  ${EXP_SOURCE_DIR}/backend/x64/emit.c
+#  ${EXP_SOURCE_DIR}/backend/x64/function_body.c
+#  ${EXP_SOURCE_DIR}/backend/x64/instruction.c
+#  ${EXP_SOURCE_DIR}/backend/x64/location.c
+#  ${EXP_SOURCE_DIR}/backend/x64/operand.c
+#  ${EXP_SOURCE_DIR}/backend/x64/registers.c
+#  ${EXP_SOURCE_DIR}/backend/x64/symbols.c
 
   ${EXP_SOURCE_DIR}/core/analyze.c
   ${EXP_SOURCE_DIR}/core/assemble.c

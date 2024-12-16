@@ -60,7 +60,6 @@ void formal_argument_list_append(FormalArgumentList *arguments,
         formal_argument_list_grow(arguments);
     }
 
-    arg.index                        = arguments->size;
     arguments->list[arguments->size] = arg;
     arguments->size += 1;
 }
@@ -84,106 +83,37 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *arguments,
     return nullptr;
 }
 
-void local_variables_initialize(LocalVariables *locals) {
-    assert(locals != nullptr);
-    locals->size     = 0;
-    locals->capacity = 0;
-    locals->buffer   = nullptr;
-}
-
-static void local_variables_destroy(LocalVariables *locals) {
-    assert(locals != nullptr);
-    locals->size     = 0;
-    locals->capacity = 0;
-    deallocate(locals->buffer);
-    locals->buffer = nullptr;
-}
-
-static bool local_variables_full(LocalVariables *locals) {
-    assert(locals != nullptr);
-    return (locals->size + 1) >= locals->capacity;
-}
-
-static void local_variables_grow(LocalVariables *locals) {
-    assert(locals != nullptr);
-    Growth64 g     = array_growth_u64(locals->capacity, sizeof(LocalVariable));
-    locals->buffer = reallocate(locals->buffer, g.alloc_size);
-    locals->capacity = g.new_capacity;
-}
-
-void local_variables_append(LocalVariables *locals, LocalVariable var) {
-    assert(locals != nullptr);
-    if (local_variables_full(locals)) { local_variables_grow(locals); }
-
-    locals->buffer[locals->size] = var;
-    locals->size += 1;
-}
-
-static void
-local_variables_name_ssa(LocalVariables *locals, u16 ssa, StringView name) {
-    assert(locals != nullptr);
-    for (u64 i = 0; i < locals->size; ++i) {
-        LocalVariable *var = locals->buffer + i;
-        if (var->ssa == ssa) {
-            var->name = name;
-            return;
-        }
-    }
-}
-
-LocalVariable *local_variables_lookup(LocalVariables *locals, StringView name) {
-    assert(locals != nullptr);
-    for (u64 i = 0; i < locals->size; ++i) {
-        LocalVariable *var = locals->buffer + i;
-        if (string_view_equality(var->name, name)) { return var; }
-    }
-    return nullptr;
-}
-
-LocalVariable *local_variables_lookup_ssa(LocalVariables *locals, u16 ssa) {
-    assert(locals != nullptr);
-    for (u64 i = 0; i < locals->size; ++i) {
-        LocalVariable *var = locals->buffer + i;
-        if (var->ssa == ssa) { return var; }
-    }
-    return nullptr;
-}
-
 void function_body_initialize(FunctionBody *function_body) {
     assert(function_body != nullptr);
     formal_argument_list_create(&function_body->arguments);
-    local_variables_initialize(&function_body->locals);
+    local_allocator_initialize(&function_body->allocator);
     block_initialize(&function_body->block);
     function_body->return_type = nullptr;
-    function_body->ssa_count   = 0;
 }
 
 void function_body_terminate(FunctionBody *function) {
     assert(function != nullptr);
     formal_argument_list_destroy(&function->arguments);
-    local_variables_destroy(&function->locals);
+    local_allocator_terminate(&function->allocator);
     block_terminate(&function->block);
     function->return_type = nullptr;
-    function->ssa_count   = 0;
 }
 
-void function_body_new_argument(FunctionBody *function,
-                                FormalArgument argument) {
+void function_body_allocate_argument(FunctionBody *function,
+                                     FormalArgument argument) {
     assert(function != nullptr);
-
-    u16 ssa = (u16)(function->ssa_count++);
-    assert(function->ssa_count <= u16_MAX);
-    LocalVariable local_arg = {
-        .name = argument.name, .type = argument.type, .ssa = ssa};
-    argument.ssa = local_arg.ssa;
-
-    local_variables_append(&function->locals, local_arg);
+    argument.ssa = local_allocator_allocate(&function->allocator);
     formal_argument_list_append(&function->arguments, argument);
+    Local *local = local_allocator_at(&function->allocator, argument.ssa);
+    assert(local != nullptr);
+    local_update_type(local, argument.type);
+    local_update_label(local, argument.name);
 }
 
 FormalArgument *function_body_arguments_lookup(FunctionBody *function,
                                                StringView name) {
     assert(function != nullptr);
+    assert(!string_view_empty(name));
     return formal_argument_list_lookup(&function->arguments, name);
 }
 
@@ -192,29 +122,25 @@ FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index) {
     return formal_argument_list_at(&function->arguments, index);
 }
 
-void function_body_new_local(FunctionBody *function, StringView name, u16 ssa) {
+u32 function_body_allocate_local(FunctionBody *function) {
     assert(function != nullptr);
-    local_variables_name_ssa(&function->locals, ssa, name);
+    return local_allocator_allocate(&function->allocator);
 }
 
-Operand function_body_new_ssa(FunctionBody *function) {
+Local *function_body_local_at(FunctionBody *function, u32 ssa) {
     assert(function != nullptr);
-    u16 ssa = (u16)(function->ssa_count++);
-    assert(function->ssa_count <= u16_MAX);
-    LocalVariable local = {.name = SV(""), .type = nullptr, .ssa = ssa};
-    local_variables_append(&function->locals, local);
-    return operand_ssa(local.ssa);
+    return local_allocator_at(&function->allocator, ssa);
 }
 
-LocalVariable *function_body_locals_lookup(FunctionBody *function,
-                                           StringView name) {
+Local *function_body_local_named(FunctionBody *function, StringView name) {
     assert(function != nullptr);
-    return local_variables_lookup(&function->locals, name);
+    return local_allocator_at_name(&function->allocator, name);
 }
 
-LocalVariable *function_body_locals_ssa(FunctionBody *function, u16 ssa) {
+void function_body_append_instruction(FunctionBody *function,
+                                      Instruction instruction) {
     assert(function != nullptr);
-    return local_variables_lookup_ssa(&function->locals, ssa);
+    block_append(&function->block, instruction);
 }
 
 static void print_formal_argument(FormalArgument *arg, FILE *file) {

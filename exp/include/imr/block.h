@@ -22,13 +22,10 @@
 /**
  * @brief represents a section of instructions.
  *
- * @todo bytecode is a holdover name, and no longer reflects
- * the structure. What is a name which is independant of the
- * underlying implementation? Chunk? Instructions? Block?
  */
 typedef struct Block {
-    u64 length;
-    u64 capacity;
+    u32 length;
+    u32 capacity;
     Instruction *buffer;
 } Block;
 
@@ -38,6 +35,5 @@ void block_terminate(Block *block);
 void block_append(Block *block, Instruction instruction);
 
 struct Context;
-
 void print_block(Block const *block, FILE *file, struct Context *context);
 #endif // !EXP_IMR_BLOCK_H

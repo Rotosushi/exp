@@ -43,8 +43,8 @@ Lifetime lifetime_immortal();
  * function.
  */
 typedef struct Lifetimes {
-    u64 count;
-    u64 capacity;
+    u32 count;
+    u32 capacity;
     Lifetime *buffer;
 } Lifetimes;
 
@@ -52,8 +52,8 @@ void lifetimes_destroy(Lifetimes *restrict li);
 /**
  * @brief update the lifetime information of the given ssa
  */
-void lifetimes_update(Lifetimes *lifetimes, u64 ssa, Lifetime lifetime);
-Lifetime *lifetimes_at(Lifetimes *restrict li, u64 ssa);
+void lifetimes_update(Lifetimes *lifetimes, u32 ssa, Lifetime lifetime);
+Lifetime *lifetimes_at(Lifetimes *restrict li, u32 ssa);
 
 struct x64_Context;
 void lifetimes_initialize(Lifetimes *lifetimes,

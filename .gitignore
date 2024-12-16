@@ -4,5 +4,8 @@
 [Ss]cratch/
 [Tt]esting/
 
+test/**/*.s
+test/**/*.o
+
 *.swp
 *.idx

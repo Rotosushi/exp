@@ -97,10 +97,10 @@ typedef struct InstructionFormat {
  *  sizeof(Instruction) == sizeof(u64) == 8
  */
 typedef struct Instruction {
-    unsigned opcode : 7;
-    unsigned A_kind : 3;
-    unsigned B_kind : 3;
-    unsigned C_kind : 3;
+    Opcode opcode;
+    OperandKind A_kind;
+    OperandKind B_kind;
+    OperandKind C_kind;
     OperandData A_data;
     OperandData B_data;
     OperandData C_data;

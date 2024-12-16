@@ -43,7 +43,7 @@ static bool global_labels_full(Labels *labels) {
 
 static void global_labels_grow(Labels *labels) {
     assert(labels != nullptr);
-    Growth64 g       = array_growth_u64(labels->capacity, sizeof(StringView));
+    Growth32 g       = array_growth_u32(labels->capacity, sizeof(StringView));
     labels->buffer   = reallocate(labels->buffer, g.alloc_size);
     labels->capacity = g.new_capacity;
 }
@@ -53,23 +53,21 @@ Operand labels_insert(Labels *labels, StringView label) {
 
     if (global_labels_full(labels)) { global_labels_grow(labels); }
 
-    for (u64 index = 0; index < labels->count; ++index) {
-        if (index > u16_MAX) { PANIC("label index out of bounds"); }
+    for (u32 index = 0; index < labels->count; ++index) {
         StringView view = labels->buffer[index];
         if (string_view_equality(view, label)) {
             return operand_label((u16)index);
         }
     }
 
-    u64 index             = labels->count;
+    u32 index             = labels->count;
     labels->buffer[index] = label;
     labels->count += 1;
 
-    if (index > u16_MAX) { PANIC("label index out of bounds"); }
-    return operand_label((u16)index);
+    return operand_label(index);
 }
 
-StringView labels_at(Labels *symbols, u16 index) {
+StringView labels_at(Labels *symbols, u32 index) {
     assert(symbols != nullptr);
     assert(index < symbols->count);
     return symbols->buffer[index];

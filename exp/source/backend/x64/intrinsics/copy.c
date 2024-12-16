@@ -23,8 +23,9 @@
 #include "imr/type.h"
 #include "intrinsics/size_of.h"
 
-void x64_codegen_copy_scalar_memory(u16 target,
-                                    u16 source,
+void x64_codegen_copy_scalar_memory(x64_Address target,
+                                    x64_Address source,
+                                    u64 size,
                                     u64 block_index,
                                     x64_Context *context) {
     /*
@@ -34,7 +35,7 @@ void x64_codegen_copy_scalar_memory(u16 target,
      *  held within the GPR. Thus it is possible for codegen to overwrite
      *  the GPR when it's value is still needed at a later point in the block.
      */
-    x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+    x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index, size);
 
     x64_context_append(
         context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(source)));
@@ -44,8 +45,8 @@ void x64_codegen_copy_scalar_memory(u16 target,
     x64_context_release_gpr(context, gpr, block_index);
 }
 
-void x64_codegen_copy_composite_memory(u16 target,
-                                       u16 source,
+void x64_codegen_copy_composite_memory(x64_Address target,
+                                       x64_Address source,
                                        Type const *type,
                                        u64 block_index,
                                        x64_Context *context) {
@@ -58,34 +59,27 @@ void x64_codegen_copy_composite_memory(u16 target,
 
         if (type_is_scalar(element_type)) {
             x64_codegen_copy_scalar_memory(
-                target, source, block_index, context);
+                target, source, element_size, block_index, context);
         } else {
             x64_codegen_copy_composite_memory(
                 target, source, element_type, block_index, context);
         }
 
-        x64_Address target_element_address =
-            *x64_context_addresses_at(context, target);
-        x64_Address source_element_address =
-            *x64_context_addresses_at(context, source);
-
         assert(element_size <= i64_MAX);
         i64 offset = (i64)element_size;
-        target_element_address.offset += offset;
-        source_element_address.offset += offset;
-
-        target = x64_context_addresses_insert(context, target_element_address);
-        source = x64_context_addresses_insert(context, source_element_address);
+        target.offset += offset;
+        source.offset += offset;
     }
 }
 
-void x64_codegen_copy_memory(u16 target,
-                             u16 source,
+void x64_codegen_copy_memory(x64_Address target,
+                             x64_Address source,
                              Type const *type,
                              u64 block_index,
                              x64_Context *context) {
     if (type_is_scalar(type)) {
-        x64_codegen_copy_scalar_memory(target, source, block_index, context);
+        x64_codegen_copy_scalar_memory(
+            target, source, size_of(type), block_index, context);
     } else {
         x64_codegen_copy_composite_memory(
             target, source, type, block_index, context);
@@ -93,7 +87,7 @@ void x64_codegen_copy_memory(u16 target,
 }
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *target,
-                                             u16 source,
+                                             x64_Address source,
                                              Type const *type,
                                              u64 block_index,
                                              x64_Context *context) {
@@ -119,6 +113,7 @@ static void x64_codegen_copy_scalar_allocation(x64_Allocation *target,
     } else {
         x64_codegen_copy_scalar_memory(target->location.address,
                                        source->location.address,
+                                       size_of(target->type),
                                        block_index,
                                        context);
     }
@@ -130,7 +125,7 @@ void x64_codegen_copy_allocation(x64_Allocation *target,
                                  x64_Context *context) {
     assert(type_equality(target->type, source->type));
 
-    if (x64_location_eq(target->location, source->location)) { return; }
+    if (x64_location_equality(target->location, source->location)) { return; }
 
     if (type_is_scalar(target->type)) {
         x64_codegen_copy_scalar_allocation(

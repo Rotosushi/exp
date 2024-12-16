@@ -42,11 +42,11 @@ void x64_codegen_load(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I32: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_location(A->location),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i32_)));
         break;
     }
 

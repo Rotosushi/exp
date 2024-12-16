@@ -22,17 +22,17 @@
 #include "utility/int_types.h"
 
 typedef enum OperandKind : u8 {
-    OPERAND_KIND_SSA       = 0x0,
-    OPERAND_KIND_CONSTANT  = 0x1,
-    OPERAND_KIND_LABEL     = 0x2,
-    OPERAND_KIND_IMMEDIATE = 0x3,
+    OPERAND_KIND_SSA,
+    OPERAND_KIND_CONSTANT,
+    OPERAND_KIND_LABEL,
+    OPERAND_KIND_I32,
 } OperandKind;
 
 typedef union OperandPayload {
-    u16 ssa;
-    u16 constant;
-    u16 label;
-    i16 immediate;
+    u32 ssa;
+    u32 constant;
+    u32 label;
+    i32 i32_;
 } OperandData;
 
 typedef struct Operand {
@@ -42,11 +42,11 @@ typedef struct Operand {
 
 struct Context;
 
-Operand operand(OperandKind kind, OperandData data);
-Operand operand_ssa(u16 ssa);
-Operand operand_constant(u16 index);
-Operand operand_immediate(i16 immediate);
-Operand operand_label(u16 index);
+Operand operand_construct(OperandKind kind, OperandData data);
+Operand operand_ssa(u32 ssa);
+Operand operand_constant(u32 index);
+Operand operand_i32(i32 immediate);
+Operand operand_label(u32 index);
 bool operand_equality(Operand A, Operand B);
 void print_operand(Operand operand,
                    FILE *restrict file,

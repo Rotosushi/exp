@@ -20,7 +20,7 @@ set(EXP_LIBSTART_SOURCES
   ${EXP_LIBEXP_RUNTIME_SOURCE_DIR}/exp_start.s
 )
 
-add_library(exp_runtime_start
+add_library(exps
   ${EXP_LIBSTART_SOURCES}
 )
 
@@ -29,7 +29,7 @@ set(EXP_LIBEXP_RUNTIME_SOURCES
   ${EXP_LIBEXP_RUNTIME_SOURCE_DIR}/exp_copy.s
 )
 
-add_library(exp_runtime
+add_library(exprt
   ${EXP_LIBEXP_RUNTIME_SOURCES}
 )
 

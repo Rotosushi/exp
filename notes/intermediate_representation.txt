@@ -17,8 +17,8 @@
 
  1 - "What is the in-memory-representation of the intermediate representation?"
       There are two representations of IR that I know of. 
-      one is the Abstract Syntax Tree (AST)
-      and the other is Bytecode (BC)
+      one is the Abstract Syntax Tree (AST) 
+      and the other is Bytecode (BC) which can further be divided into fixed and variable length bytecode
       
       we can use a Tree based approach. 
       that would be fairly standard as far as I can tell.

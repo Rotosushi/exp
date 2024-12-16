@@ -21,25 +21,26 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_copy_scalar_memory(u16 target,
-                                    u16 source,
+void x64_codegen_copy_scalar_memory(x64_Address target,
+                                    x64_Address source,
+                                    u64 size,
                                     u64 block_index,
                                     x64_Context *context);
 
-void x64_codegen_copy_composite_memory(u16 target,
-                                       u16 source,
+void x64_codegen_copy_composite_memory(x64_Address target,
+                                       x64_Address source,
                                        Type const *type,
                                        u64 block_index,
                                        x64_Context *context);
 
-void x64_codegen_copy_memory(u16 target,
-                             u16 source,
+void x64_codegen_copy_memory(x64_Address target,
+                             x64_Address source,
                              Type const *type,
                              u64 block_index,
                              x64_Context *context);
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *target,
-                                             u16 source,
+                                             x64_Address source,
                                              Type const *type,
                                              u64 block_index,
                                              x64_Context *context);

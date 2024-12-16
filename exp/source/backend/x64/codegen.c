@@ -39,7 +39,11 @@
  *  a popular replacement for this handrolled backend is to generate
  *  assembly based on some form of x86-64 specification language.
  *  which if done well, can allow other backends to be written only
- *  by adding a specification of them.
+ *  by adding a specification of them. I am putting together that if
+ *  the backend is based on a constraint solver. The specification
+ *  language of the target assembly is a set of constraints that
+ *  states the semantics of the target assembly. Thus the same
+ *  constraint solving code, works accross multiple target assemblies.
  */
 
 static void x64_codegen_bytecode(x64_Context *x64_context) {
@@ -104,20 +108,10 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
 }
 
 static void x64_codegen_allocate_stack_space(x64_Context *x64_context) {
-    i64 stack_size = x64_context_stack_size(x64_context);
-    if (i64_in_range_i16(stack_size)) {
-        x64_context_prepend(x64_context,
-                            x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                                    x64_operand_immediate((i16)stack_size)));
-    } else {
-        Operand operand = context_constants_append(
-            x64_context->context, value_create_i64(stack_size));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_prepend(
-            x64_context,
-            x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                    x64_operand_constant(operand.data.constant)));
-    }
+    i32 stack_size = x64_context_stack_size(x64_context);
+    x64_context_prepend(x64_context,
+                        x64_sub(x64_operand_gpr(X64_GPR_rSP),
+                                x64_operand_immediate(stack_size)));
 }
 
 static void x64_codegen_prepend_function_header(x64_Context *x64_context) {
@@ -127,8 +121,8 @@ static void x64_codegen_prepend_function_header(x64_Context *x64_context) {
 
     x64_context_prepend(
         x64_context,
-        x64_mov(x64_operand_gpr(X64_GPR_RBP), x64_operand_gpr(X64_GPR_RSP)));
-    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X64_GPR_RBP)));
+        x64_mov(x64_operand_gpr(X64_GPR_rBP), x64_operand_gpr(X64_GPR_rSP)));
+    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X64_GPR_rBP)));
 }
 
 static void x64_codegen_function(x64_Context *x64_context) {
@@ -140,7 +134,7 @@ static void x64_codegen_symbol(x64_Context *x64_context, Symbol *symbol) {
     FunctionBody *body         = &symbol->function_body;
     x64_Symbol *x64_symbol     = x64_context_symbol(x64_context, symbol->name);
     x64_FunctionBody *x64_body = &x64_symbol->body;
-    x64_function_body_create(x64_body, body, x64_context);
+    x64_function_body_initialize(x64_body, body, x64_context);
     x64_context_enter_function(x64_context, body, x64_body);
     x64_codegen_function(x64_context);
     x64_context_leave_function(x64_context);

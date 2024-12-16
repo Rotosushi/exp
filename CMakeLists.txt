@@ -31,19 +31,24 @@ set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(EXP_TEST_RESOURCES_DIR "${EXP_TEST_DIR}/resources")
 set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
-set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
-set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
+set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexprt")
+set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexprt")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion)
 set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
 set(EXP_PROFILE -pg)
+set(EXP_FUZZ -fsanitize-coverage=trace-pc)
 
-if ($<CONFIG:Debug> OR CMAKE_BUILD_TYPE STREQUAL "Debug")
+# TODO: add a Sanitize, Fuzzing, Profiling build types
+if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_SANITIZERS})
   set(EXP_LINK_OPTIONS ${EXP_SANITIZERS})
-elseif ($<CONFIG:RelWithDebInfo> OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+elseif (CMAKE_BUILD_TYPE STREQUAL "Profile")
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_PROFILE})
-  set(EXP_LINK_OPTIONS ${EXP_PROFILE})
+  set(EXP_LINK_OPTIONS ${EXP_WARNINGS} ${EXP_PROFILE})
+elseif (CMAKE_BUILD_TYPE STREQUAL "Fuzzing")
+  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_FUZZ})
+  set(EXP_LINK_OPTIONS)
 else()
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})
   set(EXP_LINK_OPTIONS)
@@ -85,5 +90,6 @@ add_subdirectory(${EXP_LIBEXP_RUNTIME_SOURCE_DIR})
 
 include(CTest)
 add_subdirectory(${EXP_TEST_DIR})
+
 
 

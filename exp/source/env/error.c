@@ -57,6 +57,13 @@ StringView error_code_sv(ErrorCode code) {
     case ERROR_TYPECHECK_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
     case ERROR_TYPECHECK_TYPE_MISMATCH:
         return SV("Expected Type does not match Actual Type: ");
+    case ERROR_TYPECHECK_TYPE_NOT_CALLABLE: return SV("Type is not Callable ");
+    case ERROR_TYPECHECK_TYPE_NOT_INDEXABLE:
+        return SV("Type is not Indexable ");
+    case ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE:
+        return SV("Tuple index is not known at compile time ");
+    case ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS:
+        return SV("Tuple index out of bounds ");
 
     default: EXP_UNREACHABLE();
     }

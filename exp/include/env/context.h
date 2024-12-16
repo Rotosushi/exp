@@ -38,7 +38,7 @@ typedef struct Context {
     Labels labels;
     Constants constants;
     Error current_error;
-    FunctionBody *current_function;
+    // FunctionBody *current_function;
 } Context;
 
 /**
@@ -72,7 +72,7 @@ StringView context_intern(Context *context, StringView sv);
 // type interner functions
 Type const *context_nil_type(Context *context);
 Type const *context_boolean_type(Context *context);
-Type const *context_i64_type(Context *context);
+Type const *context_i32_type(Context *context);
 Type const *context_tuple_type(Context *context, TupleType tuple);
 Type const *context_function_type(Context *context,
                                   Type const *return_type,
@@ -80,11 +80,16 @@ Type const *context_function_type(Context *context,
 
 // labels functions
 Operand context_labels_insert(Context *context, StringView symbol);
-StringView context_labels_at(Context *context, u16 index);
+StringView context_labels_at(Context *context, u32 index);
 
 // symbol table functions
 Symbol *context_symbol_table_at(Context *context, StringView name);
 
+// Values functions
+Operand context_constants_append(Context *context, Value value);
+Value *context_constants_at(Context *context, u32 index);
+
+/*
 // function functions
 void context_enter_function(Context *c, FunctionBody *body);
 void context_leave_function(Context *c);
@@ -94,17 +99,13 @@ Block *context_current_block(Context *c);
 // CallPair context_new_call(Context * c);
 // ActualArgumentList *context_call_at(Context * c, u64 idx);
 
-void context_def_local_const(Context *c, StringView name, Operand value);
+// void context_def_local_const(Context *c, StringView name, Operand value);
 
-LocalVariable *context_lookup_local(Context *c, StringView name);
-LocalVariable *context_lookup_ssa(Context *c, u16 ssa);
+// LocalVariable *context_lookup_local(Context *c, StringView name);
+// LocalVariable *context_lookup_ssa(Context *c, u32 ssa);
 
 FormalArgument *context_lookup_argument(Context *c, StringView name);
 FormalArgument *context_argument_at(Context *c, u8 index);
-
-// Values functions
-Operand context_constants_append(Context *context, Value value);
-Value *context_constants_at(Context *context, u16 index);
 
 // Bytecode functions
 void context_emit_return(Context *c, Operand B);
@@ -117,5 +118,5 @@ Operand context_emit_subtract(Context *c, Operand B, Operand C);
 Operand context_emit_multiply(Context *c, Operand B, Operand C);
 Operand context_emit_divide(Context *c, Operand B, Operand C);
 Operand context_emit_modulus(Context *c, Operand B, Operand C);
-
+*/
 #endif // !EXP_ENV_CONTEXT_H

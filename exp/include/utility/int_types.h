@@ -45,6 +45,7 @@ typedef uint64_t u64;
 #define u32_MAX UINT32_MAX
 #define u64_MAX UINT64_MAX
 
+bool i64_in_range_i32(i64 value);
 bool i64_in_range_i16(i64 value);
 bool i64_in_range_i8(i64 value);
 

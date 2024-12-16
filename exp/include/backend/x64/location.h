@@ -17,6 +17,7 @@
 #ifndef EXP_BACKEND_X64_LOCATION_H
 #define EXP_BACKEND_X64_LOCATION_H
 
+#include "backend/x64/address.h"
 #include "backend/x64/registers.h"
 
 typedef enum x64_LocationKind : u8 {
@@ -28,12 +29,12 @@ typedef struct x64_Location {
     x64_LocationKind kind;
     union {
         x64_GPR gpr;
-        u16 address;
+        x64_Address address;
     };
 } x64_Location;
 
 x64_Location x64_location_gpr(x64_GPR gpr);
-x64_Location x64_location_address(u16 address);
-bool x64_location_eq(x64_Location A, x64_Location B);
+x64_Location x64_location_address(x64_Address address);
+bool x64_location_equality(x64_Location A, x64_Location B);
 
 #endif // !EXP_BACKEND_X64_LOCATION_H

@@ -27,7 +27,7 @@ Type const *type_of_value(Value *value, Context *context) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
     case VALUE_KIND_NIL:           return context_nil_type(context);
     case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
-    case VALUE_KIND_I64:           return context_i64_type(context);
+    case VALUE_KIND_I32:           return context_i32_type(context);
     case VALUE_KIND_TUPLE:         {
         Tuple *tuple = &value->tuple;
         TupleType tuple_type;
@@ -72,10 +72,10 @@ Type const *type_of_operand(Operand operand, Context *context) {
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I32: {
         // #TODO: we can theoretically fit a u8 and a i8 in an
         //  immediate as well. so maybe let's do that?
-        return context_i64_type(context);
+        return context_i32_type(context);
         break;
     }
 

@@ -106,9 +106,9 @@ Type const *context_boolean_type(Context *context) {
     return type_interner_boolean_type(&(context->type_interner));
 }
 
-Type const *context_i64_type(Context *context) {
+Type const *context_i32_type(Context *context) {
     assert(context != nullptr);
-    return type_interner_i64_type(&(context->type_interner));
+    return type_interner_i32_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TupleType tuple) {
@@ -129,7 +129,7 @@ Operand context_labels_insert(Context *context, StringView symbol) {
     return labels_insert(&context->labels, symbol);
 }
 
-StringView context_labels_at(Context *context, u16 index) {
+StringView context_labels_at(Context *context, u32 index) {
     assert(context != nullptr);
     return labels_at(&context->labels, index);
 }
@@ -161,6 +161,7 @@ Block *context_current_block(Context *c) {
     return &(context_current_function(c)->block);
 }
 
+/*
 static Operand context_new_ssa(Context *c) {
     assert(c != nullptr);
     return function_body_new_ssa(context_current_function(c));
@@ -178,7 +179,7 @@ LocalVariable *context_lookup_local(Context *c, StringView name) {
     return function_body_locals_lookup(context_current_function(c), name);
 }
 
-LocalVariable *context_lookup_ssa(Context *c, u16 ssa) {
+LocalVariable *context_lookup_ssa(Context *c, u32 ssa) {
     assert(c != nullptr);
     return function_body_locals_ssa(context_current_function(c), ssa);
 }
@@ -192,13 +193,14 @@ FormalArgument *context_argument_at(Context *c, u8 index) {
     assert(c != nullptr);
     return function_body_arguments_at(context_current_function(c), index);
 }
+*/
 
 Operand context_constants_append(Context *context, Value value) {
     assert(context != nullptr);
     return constants_append(&(context->constants), value);
 }
 
-Value *context_constants_at(Context *context, u16 index) {
+Value *context_constants_at(Context *context, u32 index) {
     assert(context != nullptr);
     return constants_at(&(context->constants), index);
 }

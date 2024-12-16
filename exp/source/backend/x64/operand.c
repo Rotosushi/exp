@@ -26,7 +26,7 @@ x64_Operand x64_operand_gpr(x64_GPR gpr) {
     return opr;
 }
 
-x64_Operand x64_operand_address(u16 address) {
+x64_Operand x64_operand_address(x64_Address address) {
     x64_Operand opr = {.kind         = X64_OPERAND_KIND_ADDRESS,
                        .data.address = address};
     return opr;
@@ -46,19 +46,19 @@ x64_Operand x64_operand_location(x64_Location location) {
     }
 }
 
-x64_Operand x64_operand_constant(u16 index) {
+x64_Operand x64_operand_constant(u32 index) {
     x64_Operand opr = {.kind          = X64_OPERAND_KIND_CONSTANT,
                        .data.constant = index};
     return opr;
 }
 
-x64_Operand x64_operand_immediate(i16 value) {
+x64_Operand x64_operand_immediate(i32 value) {
     x64_Operand opr = {.kind           = X64_OPERAND_KIND_IMMEDIATE,
                        .data.immediate = value};
     return opr;
 }
 
-x64_Operand x64_operand_label(u16 index) {
+x64_Operand x64_operand_label(u32 index) {
     x64_Operand opr = {.kind = X64_OPERAND_KIND_LABEL, .data.label = index};
     return opr;
 }

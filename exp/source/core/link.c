@@ -26,7 +26,7 @@ i32 link(Context *restrict context) {
     StringView obj_path = context_object_path(context);
     StringView out_path = context_output_path(context);
 
-    // #TODO: place our target libraries into one of ld's standard search
+    // #TODO: place our runtime libraries into one of ld's standard search
     //  locations on install.
     // #TODO: figure out CPACK to create .deb files for installing/uninstalling
     //  exp from a host system. or creating SNAPs to do the same.
@@ -35,8 +35,8 @@ i32 link(Context *restrict context) {
         "-o",
         out_path.ptr,
         ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
-        "-lexp_runtime_start",
-        "-lexp_runtime",
+        "-lexps",
+        "-lexprt",
         obj_path.ptr,
         NULL,
     };
