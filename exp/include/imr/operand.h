@@ -16,10 +16,14 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
-#include <stdbool.h>
-#include <stdio.h>
 
-#include "utility/int_types.h"
+#include "adt/string.h"
+
+// #TODO: Operands are 32 bits, so we should allow any scalar type <= 32 bits in
+//  size to be immediately available within an operand. This should speed up
+//  working with values of any of these types within the compiler, or any
+//  interpretation we do with the bytecode. And since we expanded OperandKind
+//  to 8 bits, we have 256 possible kinds of operand available.
 
 typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA,
@@ -40,16 +44,17 @@ typedef struct Operand {
     OperandData data;
 } Operand;
 
-struct Context;
-
 Operand operand_construct(OperandKind kind, OperandData data);
 Operand operand_ssa(u32 ssa);
 Operand operand_constant(u32 index);
 Operand operand_i32(i32 immediate);
 Operand operand_label(u32 index);
 bool operand_equality(Operand A, Operand B);
-void print_operand(Operand operand,
-                   FILE *restrict file,
-                   struct Context *restrict context);
+
+struct Context;
+void print_operand(String *buffer,
+                   OperandKind kind,
+                   OperandData data,
+                   struct Context *context);
 
 #endif // EXP_IMR_OPERAND_H

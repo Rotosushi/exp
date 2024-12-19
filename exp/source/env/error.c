@@ -64,6 +64,8 @@ StringView error_code_sv(ErrorCode code) {
         return SV("Tuple index is not known at compile time ");
     case ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS:
         return SV("Tuple index out of bounds ");
+    case ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN:
+        return SV("functions return type could not be inferred");
 
     default: EXP_UNREACHABLE();
     }

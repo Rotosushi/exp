@@ -19,7 +19,6 @@
 #include <stddef.h>
 
 #include "imr/value.h"
-#include "utility/io.h"
 
 typedef struct Constants {
     u32 count;
@@ -32,9 +31,10 @@ void constants_terminate(Constants *constants);
 Operand constants_append(Constants *constants, Value value);
 Value *constants_at(Constants *constants, u32 index);
 
+/*
 struct Context;
 void print_constants(Constants const *constants,
                      FILE *file,
                      struct Context *context);
-
+*/
 #endif // !EXP_IMR_CONSTANTS_H

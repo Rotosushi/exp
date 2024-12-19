@@ -20,7 +20,6 @@
 #include "imr/block.h"
 #include "imr/local_allocator.h"
 #include "imr/type.h"
-#include "utility/io.h"
 
 typedef struct FormalArgument {
     StringView name;
@@ -50,16 +49,16 @@ FormalArgument *function_body_arguments_lookup(FunctionBody *function,
                                                StringView name);
 FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index);
 
-u32 function_body_allocate_local(FunctionBody *function);
+u32 function_body_declare_local(FunctionBody *function);
 Local *function_body_local_at(FunctionBody *function, u32 ssa);
-Local *function_body_local_named(FunctionBody *function, StringView name);
+Local *function_body_local_at_name(FunctionBody *function, StringView name);
 
 void function_body_append_instruction(FunctionBody *function,
                                       Instruction instruction);
 
 struct Context;
-void print_function_body(FunctionBody const *f,
-                         FILE *file,
+void print_function_body(String *buffer,
+                         FunctionBody const *f,
                          struct Context *context);
 
 #endif // !EXP_IMR_FUNCTION_H

@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "dbc2961"
+#define EXP_GIT_REVISION "bcaa58c"
 #define EXP_TEST_DIR "/home/elise/Projects/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/elise/Projects/exp/test/resources"
 #define EXP_BINARY_DIR "/home/elise/Projects/exp/build"
@@ -32,7 +32,7 @@
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2024-12-07 14:59:36) git revision (dbc2961)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2024-12-17 12:08:56) git revision (bcaa58c)"
 // NOLINTEND
 // clang-format on
 

@@ -77,7 +77,7 @@ void local_allocator_terminate(LocalAllocator *allocator) {
     locals_terminate(&allocator->locals);
 }
 
-u32 local_allocator_allocate(LocalAllocator *allocator) {
+u32 local_allocator_declare_ssa(LocalAllocator *allocator) {
     assert(allocator != nullptr);
     return locals_allocate(&allocator->locals);
 }

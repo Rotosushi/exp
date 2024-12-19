@@ -367,7 +367,7 @@ static bool constant(Operand *result, Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
-    u32 ssa      = function_body_allocate_local(parser->function);
+    u32 ssa      = function_body_declare_local(parser->function);
     Local *local = function_body_local_at(parser->function, ssa);
     local_update_label(local, name);
 
@@ -467,7 +467,11 @@ static bool function(Operand *result, Parser *parser) {
 #ifndef NDEBUG
     file_write("parsed a function: \nfn ", stdout);
     print_string_view(name, stdout);
-    print_function_body(parser->function, stdout, parser->context);
+    String buffer;
+    string_initialize(&buffer);
+    print_function_body(&buffer, parser->function, parser->context);
+    file_write(string_to_cstring(&buffer), stdout);
+    string_destroy(&buffer);
     file_write("\n", stdout);
 #endif
 
@@ -567,7 +571,7 @@ static bool unop(Operand *result, Parser *parser) {
 
     switch (op) {
     case TOK_MINUS: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(parser->function,
                                          instruction_negate(*result, right));
         break;
@@ -593,42 +597,42 @@ static bool binop(Operand *result, Operand left, Parser *parser) {
 
     switch (op) {
     case TOK_DOT: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(parser->function,
                                          instruction_dot(*result, left, right));
         break;
     }
 
     case TOK_PLUS: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(parser->function,
                                          instruction_add(*result, left, right));
         break;
     }
 
     case TOK_MINUS: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(
             parser->function, instruction_subtract(*result, left, right));
         break;
     }
 
     case TOK_STAR: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(
             parser->function, instruction_multiply(*result, left, right));
         break;
     }
 
     case TOK_SLASH: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(
             parser->function, instruction_divide(*result, left, right));
         break;
     }
 
     case TOK_PERCENT: {
-        *result = operand_ssa(function_body_allocate_local(parser->function));
+        *result = operand_ssa(function_body_declare_local(parser->function));
         function_body_append_instruction(
             parser->function, instruction_modulus(*result, left, right));
         break;
@@ -651,7 +655,7 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     Operand right = context_constants_append(parser->context,
                                              value_create_tuple(argument_list));
 
-    *result = operand_ssa(function_body_allocate_local(parser->function));
+    *result = operand_ssa(function_body_declare_local(parser->function));
     function_body_append_instruction(parser->function,
                                      instruction_call(*result, left, right));
     return true;

@@ -59,42 +59,34 @@ bool operand_equality(Operand A, Operand B) {
     }
 }
 
-static void print_operand_ssa(u32 ssa, FILE *restrict file) {
-    file_write("%", file);
-    file_write_u64(ssa, file);
+static void print_operand_ssa(String *buffer, u32 ssa) {
+    string_append(buffer, SV("%"));
+    string_append_u64(buffer, ssa);
 }
 
-static void
-print_operand_value(u32 index, FILE *restrict file, Context *restrict context) {
+static void print_operand_value(String *buffer, u32 index, Context *context) {
     Value *value = context_constants_at(context, index);
-    print_value(value, file, context);
+    print_value(buffer, value, context);
 }
 
-static void print_operand_i32(i32 i32_, FILE *restrict file) {
-    file_write_i64(i32_, file);
-}
-
-static void
-print_operand_label(u32 index, FILE *restrict file, Context *restrict context) {
-    file_write("%", file);
+static void print_operand_label(String *buffer, u32 index, Context *context) {
     StringView name = context_labels_at(context, index);
-    file_write(name.ptr, file);
+    string_append(buffer, name);
 }
 
-void print_operand(Operand operand,
-                   FILE *restrict file,
-                   Context *restrict context) {
-    switch (operand.kind) {
-    case OPERAND_KIND_SSA: print_operand_ssa(operand.data.ssa, file); break;
+void print_operand(String *buffer,
+                   OperandKind kind,
+                   OperandData data,
+                   Context *context) {
+    switch (kind) {
+    case OPERAND_KIND_SSA: print_operand_ssa(buffer, data.ssa); break;
     case OPERAND_KIND_CONSTANT:
-        print_operand_value(operand.data.constant, file, context);
+        print_operand_value(buffer, data.constant, context);
         break;
-    case OPERAND_KIND_I32: print_operand_i32(operand.data.i32_, file); break;
+    case OPERAND_KIND_I32: string_append_i64(buffer, data.i32_); break;
     case OPERAND_KIND_LABEL:
-        print_operand_label(operand.data.label, file, context);
+        print_operand_label(buffer, data.label, context);
         break;
-        // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);
-        // break;
 
     default: EXP_UNREACHABLE();
     }

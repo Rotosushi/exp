@@ -31,8 +31,8 @@ typedef enum TypeKind {
 struct Type;
 
 typedef struct TupleType {
-    u64 count;
-    u64 capacity;
+    u32 count;
+    u32 capacity;
     struct Type const **types;
 } TupleType;
 
@@ -77,7 +77,6 @@ void type_terminate(Type *type);
 bool type_equality(Type const *T, Type const *U);
 bool type_is_scalar(Type const *T);
 
-void emit_type(Type const *t, String *buf);
-void print_type(Type const *t, FILE *file);
+void print_type(String *buffer, Type const *t);
 
 #endif // !EXP_IMR_TYPE_H

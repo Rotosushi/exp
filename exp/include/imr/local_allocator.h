@@ -34,7 +34,7 @@ typedef struct LocalAllocator {
 void local_allocator_initialize(LocalAllocator *allocator);
 void local_allocator_terminate(LocalAllocator *allocator);
 
-u32 local_allocator_allocate(LocalAllocator *allocator);
+u32 local_allocator_declare_ssa(LocalAllocator *allocator);
 Local *local_allocator_at(LocalAllocator *allocator, u32 ssa);
 Local *local_allocator_at_name(LocalAllocator *allocator, StringView name);
 

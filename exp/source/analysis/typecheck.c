@@ -44,6 +44,16 @@ static bool error(Typechecker *typechecker, ErrorCode code, String message) {
     return false;
 }
 
+static bool error_name_undefined(Typechecker *typechecker, StringView name) {
+    assert(typechecker != nullptr);
+    String message;
+    string_initialize(&message);
+    string_append(&message, SV("Name: ["));
+    string_append(&message, name);
+    string_append(&message, SV("]"));
+    return error(typechecker, ERROR_TYPECHECK_UNDEFINED_SYMBOL, message);
+}
+
 static bool error_type_mismatch(Typechecker *typechecker,
                                 Type const *expected,
                                 Type const *actual) {
@@ -51,9 +61,9 @@ static bool error_type_mismatch(Typechecker *typechecker,
     String message;
     string_initialize(&message);
     string_append(&message, SV("Expected type: ["));
-    emit_type(expected, &message);
+    print_type(&message, expected);
     string_append(&message, SV("] Actual type: ["));
-    emit_type(actual, &message);
+    print_type(&message, actual);
     string_append(&message, SV("]"));
     return error(typechecker, ERROR_TYPECHECK_TYPE_MISMATCH, message);
 }
@@ -65,7 +75,7 @@ static bool error_type_not_callable(Typechecker *typechecker,
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
-    emit_type(type, &message);
+    print_type(&message, type);
     string_append(&message, SV("]"));
     return error(typechecker, ERROR_TYPECHECK_TYPE_NOT_CALLABLE, message);
 }
@@ -86,6 +96,13 @@ static bool error_argument_count_mismatch(Typechecker *typechecker,
     return error(typechecker, ERROR_TYPECHECK_TYPE_MISMATCH, message);
 }
 
+static bool error_return_type_unknown(Typechecker *typechecker) {
+    assert(typechecker != nullptr);
+    String message;
+    string_initialize(&message);
+    return error(typechecker, ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN, message);
+}
+
 static bool error_type_not_indexable(Typechecker *typechecker,
                                      Type const *type) {
     assert(typechecker != nullptr);
@@ -93,35 +110,28 @@ static bool error_type_not_indexable(Typechecker *typechecker,
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
-    emit_type(type, &message);
+    print_type(&message, type);
     string_append(&message, SV("]"));
     return error(typechecker, ERROR_TYPECHECK_TYPE_NOT_INDEXABLE, message);
 }
 
-static bool error_tuple_index_not_immediate(Typechecker *typechecker,
-                                            OperandKind kind,
-                                            OperandData data) {
+static bool error_tuple_index_not_immediate(Typechecker *typechecker) {
     assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
-    Type const *type =
-        type_of_operand(operand_construct(kind, data), typechecker->context);
-    string_append(&message, SV("Index type: ["));
-    emit_type(type, &message);
-    string_append(&message, SV("]"));
     return error(
         typechecker, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, message);
 }
 
 static bool error_tuple_index_out_of_bounds(Typechecker *typechecker,
-                                            u32 index,
+                                            i32 index,
                                             u32 bounds) {
     assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Index: ["));
-    string_append_u64(&message, index);
-    string_append(&message, SV("] Bounds: [0-"));
+    string_append_i64(&message, index);
+    string_append(&message, SV("] Bounds: [0.."));
     string_append_u64(&message, bounds);
     string_append(&message, SV("]"));
     return error(
@@ -155,7 +165,8 @@ static bool typecheck_operand(Type const **result,
     case OPERAND_KIND_CONSTANT: {
         Value *value =
             context_constants_at(typechecker->context, data.constant);
-        *result = type_of_value(value, typechecker->context);
+        *result =
+            type_of_value(value, typechecker->function, typechecker->context);
         return true;
     }
 
@@ -165,11 +176,21 @@ static bool typecheck_operand(Type const **result,
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name  = context_labels_at(typechecker->context, data.label);
+        StringView name = context_labels_at(typechecker->context, data.label);
+
+        Local *local = function_body_local_at_name(typechecker->function, name);
+        if (local != nullptr) {
+            if (local->type == nullptr) {
+                return error_name_undefined(typechecker, name);
+            }
+            *result = local->type;
+            return true;
+        }
+
         Symbol *global   = context_symbol_table_at(typechecker->context, name);
         Type const *type = global->type;
         // #TODO: this will loop infinitely iff we encounter mutually recursive
-        //  function calls!
+        //  function calls, whose types are not annotated.
         if (type == nullptr) {
             if (!typecheck_symbol(&type, global, typechecker)) { return false; }
         }
@@ -191,7 +212,7 @@ static Local *local_from_operand_A(Instruction I, Typechecker *typechecker) {
     case OPERAND_KIND_LABEL: {
         StringView name =
             context_labels_at(typechecker->context, I.A_data.label);
-        return function_body_local_named(typechecker->function, name);
+        return function_body_local_at_name(typechecker->function, name);
     }
 
     default: EXP_UNREACHABLE();
@@ -203,20 +224,21 @@ typecheck_load(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
     assert(typechecker != nullptr);
 
-    Local *local       = local_from_operand_A(I, typechecker);
+    Local *local = local_from_operand_A(I, typechecker);
+
     Type const *B_type = nullptr;
     if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
 
-    local->type = B_type;
-    *result     = B_type;
+    local_update_type(local, B_type);
+    *result = B_type;
     return true;
 }
 
 static bool
-typecheck_ret(Type const **result, Instruction I, Typechecker *typechecker) {
+typecheck_return(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
     assert(typechecker != nullptr);
     assert(typechecker->function != nullptr);
@@ -251,7 +273,6 @@ typecheck_call(Type const **result, Instruction I, Typechecker *typechecker) {
         return false;
     }
     assert(B_type != nullptr);
-
     if (B_type->kind != TYPE_KIND_FUNCTION) {
         return error_type_not_callable(typechecker, B_type);
     }
@@ -286,8 +307,8 @@ typecheck_call(Type const **result, Instruction I, Typechecker *typechecker) {
         }
     }
 
-    local->type = function_type->return_type;
-    *result     = function_type->return_type;
+    local_update_type(local, function_type->return_type);
+    *result = function_type->return_type;
     return true;
 }
 
@@ -299,6 +320,7 @@ static bool
 typecheck_dot(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
     assert(typechecker != nullptr);
+
     Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
@@ -306,27 +328,24 @@ typecheck_dot(Type const **result, Instruction I, Typechecker *typechecker) {
         return false;
     }
     assert(B_type != nullptr);
-
     if (B_type->kind != TYPE_KIND_TUPLE) {
         return error_type_not_indexable(typechecker, B_type);
     }
-
     TupleType const *tuple = &B_type->tuple_type;
 
     if (I.C_kind != OPERAND_KIND_I32) {
-        return error_tuple_index_not_immediate(typechecker, I.C_kind, I.C_data);
+        return error_tuple_index_not_immediate(typechecker);
     }
-
     assert(I.C_kind == OPERAND_KIND_I32);
     i32 index = I.C_data.i32_;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
         return error_tuple_index_out_of_bounds(
-            typechecker, (u32)index, (u32)tuple->count);
+            typechecker, index, tuple->count);
     }
 
-    local->type = tuple->types[index];
-    *result     = tuple->types[index];
+    local_update_type(local, tuple->types[index]);
+    *result = tuple->types[index];
     return true;
 }
 
@@ -352,8 +371,8 @@ static bool typecheck_unop(Type const **result,
         return error_type_mismatch(typechecker, argument_type, B_type);
     }
 
-    local->type = result_type;
-    *result     = result_type;
+    local_update_type(local, result_type);
+    *result = result_type;
     return true;
 }
 
@@ -400,8 +419,8 @@ static bool typecheck_binop(Type const **result,
         return error_type_mismatch(typechecker, right_type, C_type);
     }
 
-    local->type = result_type;
-    *result     = result_type;
+    local_update_type(local, result_type);
+    *result = result_type;
     return true;
 }
 
@@ -468,7 +487,7 @@ static bool typecheck_function(Type const **result,
         Type const *result = nullptr;
         switch (I.opcode) {
         case OPCODE_RETURN: {
-            if (!typecheck_ret(&result, I, typechecker)) { return false; }
+            if (!typecheck_return(&result, I, typechecker)) { return false; }
             break;
         }
 
@@ -522,6 +541,10 @@ static bool typecheck_function(Type const **result,
         assert(result != nullptr);
     }
 
+    if (function->return_type == nullptr) {
+        return error_return_type_unknown(typechecker);
+    }
+
     *result = type_of_function(function, typechecker->context);
     return true;
 }
@@ -546,8 +569,6 @@ static bool typecheck_symbol(Type const **result,
     *result      = function_type;
     return true;
 }
-
-#undef try
 
 i32 typecheck(Context *context) {
     assert(context != nullptr);

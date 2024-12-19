@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 
 #include "utility/bitset.h"
 
@@ -24,12 +25,27 @@ Bitset bitset_create() {
     return B;
 }
 
-void bitset_set_bit(Bitset *bitset, u8 bit_position) {
-    bitset->bits |= (1ul << (u64)(bit_position));
+static u64 bit_at(u8 position) {
+    assert(position <= 63);
+    return 1ul << (u64)position;
 }
 
-void bitset_clear_bit(Bitset *bitset, u8 bit_position) {
-    bitset->bits &= ~(1ul << (u64)bit_position);
+static u64 state_at(u8 position, bool state) {
+    assert(position <= 63);
+    return (u64)state << (u64)position;
+}
+
+void bitset_set_bit(Bitset *bitset, u8 position) {
+    bitset->bits |= bit_at(position);
+}
+
+void bitset_clear_bit(Bitset *bitset, u8 position) {
+    bitset->bits &= ~bit_at(position);
+}
+
+void bitset_assign_bit(Bitset *bitset, u8 position, bool state) {
+    bitset->bits = (bitset->bits & ~bit_at(position)) |
+                   (state_at(position, state) & bit_at(position));
 }
 
 bool bitset_check_bit(Bitset *bitset, u8 bit_position) {

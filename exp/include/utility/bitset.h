@@ -33,6 +33,7 @@ Bitset bitset_create();
 
 void bitset_set_bit(Bitset *bitset, u8 bit_position);
 void bitset_clear_bit(Bitset *bitset, u8 bit_position);
+void bitset_assign_bit(Bitset *bitset, u8 bit_position, bool state);
 bool bitset_check_bit(Bitset *bitset, u8 bit_position);
 
 // #TODO:
