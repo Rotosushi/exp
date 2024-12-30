@@ -24,7 +24,7 @@
 typedef struct FormalArgument {
     StringView name;
     Type const *type;
-    u32 ssa;
+    u64 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -49,9 +49,12 @@ FormalArgument *function_body_arguments_lookup(FunctionBody *function,
                                                StringView name);
 FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index);
 
-u32 function_body_declare_local(FunctionBody *function);
-Local *function_body_local_at(FunctionBody *function, u32 ssa);
+u64 function_body_declare_local(FunctionBody *function);
+Local *function_body_local_at(FunctionBody *function, u64 ssa);
 Local *function_body_local_at_name(FunctionBody *function, StringView name);
+void function_body_allocate_local(FunctionBody *function,
+                                  Local *local,
+                                  u64 block_index);
 
 void function_body_append_instruction(FunctionBody *function,
                                       Instruction instruction);

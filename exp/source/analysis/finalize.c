@@ -16,23 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <stdlib.h>
 
-#include "core/assemble.h"
-#include "utility/process.h"
+#include "analysis/allocation.h"
+#include "analysis/finalize.h"
+#include "analysis/lifetimes.h"
+#include "analysis/typecheck.h"
 
-ExpResult assemble(Context *context) {
-    StringView asm_path = context_assembly_path(context);
-    StringView obj_path = context_object_path(context);
-
-    char const *args[] = {
-        "as",
-        asm_path.ptr,
-        "-o",
-        obj_path.ptr,
-        NULL,
-    };
-
-    if (process("as", args) != EXIT_SUCCESS) return EXP_FAILURE;
-    return EXP_SUCCESS;
+i32 finalize_function(FunctionBody *function, struct Context *context) {
+    assert(function != nullptr);
+    assert(context != nullptr);
+    if (typecheck_function(function, context) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    analyze_lifetimes_of_locals(function, context);
+    allocate_locals(function, context);
+    return EXIT_SUCCESS;
 }

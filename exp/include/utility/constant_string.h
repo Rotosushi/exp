@@ -13,19 +13,21 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_DEBUG_H
-#define EXP_UTILITY_DEBUG_H
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef EXP_UTILITY_CONSTANT_STRING_H
+#define EXP_UTILITY_CONSTANT_STRING_H
 
-#ifndef NDEBUG
-#if defined(__GNUC__) || defined(__clang__)
-#define EXP_BREAK() __builtin_trap()
-#else
-#include <stdlib.h>
-#define EXP_BREAK() abort()
-#endif // if defined(__GNUC__) || defined(__clang__)
-#else
-#define EXP_BREAK()
-#endif // if EXP_DEBUG
+#include "utility/string_view.h"
 
-#endif // !EXP_UTILITY_DEBUG_H
+typedef struct ConstantString {
+    u64 length;
+    char buffer[];
+} ConstantString;
+
+ConstantString *constant_string_allocate(StringView contents);
+void constant_string_deallocate(ConstantString *string);
+
+StringView constant_string_to_view(ConstantString *string);
+bool constant_string_equality(ConstantString *string, StringView view);
+
+#endif // EXP_UTILITY_CONSTANT_STRING_H

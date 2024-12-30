@@ -75,22 +75,23 @@ static Type *type_list_append(TypeList *type_list, Type *T) {
 
 void type_interner_initialize(TypeInterner *type_interner) {
     assert(type_interner != nullptr);
-    type_interner->nil_type     = type_nil();
-    type_interner->boolean_type = type_boolean();
-    type_interner->i32_type     = type_i32();
+    // type_interner->nil_type     = type_nil();
+    // type_interner->boolean_type = type_boolean();
+    type_interner->i64_type = type_i64();
     type_list_initialize(&type_interner->tuple_types);
     type_list_initialize(&type_interner->function_types);
 }
 
 void type_interner_destroy(TypeInterner *type_interner) {
     assert(type_interner != NULL);
-    type_terminate(type_interner->nil_type);
-    type_terminate(type_interner->boolean_type);
-    type_terminate(type_interner->i32_type);
+    // type_terminate(type_interner->nil_type);
+    // type_terminate(type_interner->boolean_type);
+    type_terminate(type_interner->i64_type);
     type_list_termiante(&type_interner->tuple_types);
     type_list_termiante(&type_interner->function_types);
 }
 
+/*
 Type const *type_interner_nil_type(TypeInterner *type_interner) {
     assert(type_interner != NULL);
     return type_interner->nil_type;
@@ -100,10 +101,11 @@ Type const *type_interner_boolean_type(TypeInterner *type_interner) {
     assert(type_interner != NULL);
     return type_interner->boolean_type;
 }
+*/
 
-Type const *type_interner_i32_type(TypeInterner *type_interner) {
+Type const *type_interner_i64_type(TypeInterner *type_interner) {
     assert(type_interner != NULL);
-    return type_interner->i32_type;
+    return type_interner->i64_type;
 }
 
 Type const *type_interner_tuple_type(TypeInterner *type_interner,

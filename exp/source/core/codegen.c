@@ -20,6 +20,7 @@
 
 #include "core/codegen.h"
 #include "imr/type.h"
+#include "utility/io.h"
 
 static void emit_ir_assembly(Context *context) {
     assert(context != nullptr);

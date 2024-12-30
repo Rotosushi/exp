@@ -26,12 +26,14 @@ i32 type_interner_tests([[maybe_unused]] i32 argc,
     type_interner_initialize(&ti);
     bool failure = 0;
 
-    Type const *t0 = type_interner_i32_type(&ti);
-    Type const *t1 = type_interner_i32_type(&ti);
+    Type const *t0 = type_interner_i64_type(&ti);
+    Type const *t1 = type_interner_i64_type(&ti);
     failure |= !type_equality(t0, t1);
     failure |= t0 != t1;
 
-    Type const *t2 = type_interner_nil_type(&ti);
+    TupleType tuple;
+    tuple_type_initialize(&tuple);
+    Type const *t2 = type_interner_tuple_type(&ti, tuple);
     failure |= type_equality(t2, t0);
     failure |= t0 == t2;
 

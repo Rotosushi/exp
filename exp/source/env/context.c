@@ -29,7 +29,7 @@ void context_initialize(Context *context,
     string_interner_initialize(&context->string_interner);
     type_interner_initialize(&context->type_interner);
     symbol_table_create(&context->symbol_table);
-    labels_initialize(&context->labels);
+    // labels_initialize(&context->labels);
     constants_initialize(&context->constants);
     error_initialize(&context->current_error);
 }
@@ -40,7 +40,7 @@ void context_terminate(Context *context) {
     string_interner_terminate(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));
-    labels_terminate(&(context->labels));
+    // labels_terminate(&(context->labels));
     constants_terminate(&(context->constants));
     error_terminate(&context->current_error);
 }
@@ -53,6 +53,11 @@ bool context_emit_ir_assembly(Context *context) {
 bool context_emit_x86_64_assembly(Context *context) {
     assert(context != nullptr);
     return context_options_emit_x86_64_assembly(&context->options);
+}
+
+bool context_create_elf_object(Context *context) {
+    assert(context != nullptr);
+    return context_options_create_elf_object(&context->options);
 }
 
 bool context_create_elf_executable(Context *context) {
@@ -105,11 +110,12 @@ bool context_has_error(Context *context) {
     return context->current_error.code != ERROR_NONE;
 }
 
-StringView context_intern(Context *context, StringView sv) {
+ConstantString *context_intern(Context *context, StringView sv) {
     assert(context != nullptr);
     return string_interner_insert(&(context->string_interner), sv);
 }
 
+/*
 Type const *context_nil_type(Context *context) {
     assert(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
@@ -119,10 +125,11 @@ Type const *context_boolean_type(Context *context) {
     assert(context != nullptr);
     return type_interner_boolean_type(&(context->type_interner));
 }
+*/
 
-Type const *context_i32_type(Context *context) {
+Type const *context_i64_type(Context *context) {
     assert(context != nullptr);
-    return type_interner_i32_type(&(context->type_interner));
+    return type_interner_i64_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TupleType tuple) {
@@ -134,18 +141,9 @@ Type const *context_function_type(Context *context,
                                   Type const *return_type,
                                   TupleType argument_types) {
     assert(context != nullptr);
+    assert(return_type != nullptr);
     return type_interner_function_type(
         &context->type_interner, return_type, argument_types);
-}
-
-Operand context_labels_insert(Context *context, StringView symbol) {
-    assert(context != nullptr);
-    return labels_insert(&context->labels, symbol);
-}
-
-StringView context_labels_at(Context *context, u32 index) {
-    assert(context != nullptr);
-    return labels_at(&context->labels, index);
 }
 
 Symbol *context_symbol_table_at(Context *context, StringView name) {
@@ -153,12 +151,7 @@ Symbol *context_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->symbol_table, name);
 }
 
-Operand context_constants_append(Context *context, Value value) {
+Value *context_constants_append_tuple(Context *context, Tuple tuple) {
     assert(context != nullptr);
-    return constants_append(&(context->constants), value);
-}
-
-Value *context_constants_at(Context *context, u32 index) {
-    assert(context != nullptr);
-    return constants_at(&(context->constants), index);
+    return constants_append_tuple(&(context->constants), tuple);
 }

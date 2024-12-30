@@ -17,7 +17,8 @@
 #ifndef EXP_CORE_ASSEMBLE_H
 #define EXP_CORE_ASSEMBLE_H
 #include "env/context.h"
+#include "utility/result.h"
 
-i32 assemble(Context *restrict context);
+ExpResult assemble(Context *context);
 
 #endif // !EXP_CORE_ASSEMBLE_H

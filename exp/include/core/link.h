@@ -16,8 +16,10 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_CORE_LINK_H
 #define EXP_CORE_LINK_H
-#include "env/context.h"
 
-i32 link(Context *restrict context);
+#include "env/context.h"
+#include "utility/result.h"
+
+ExpResult link(Context *context);
 
 #endif // !EXP_CORE_LINK_H

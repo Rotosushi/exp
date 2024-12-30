@@ -18,19 +18,19 @@
  */
 #include <stdlib.h>
 
-#include "core/analyze.h"
 #include "core/assemble.h"
 #include "core/codegen.h"
 #include "core/compile.h"
+#include "core/finalize.h"
 #include "core/link.h"
 #include "env/cli_options.h"
 #include "env/context.h"
 #include "frontend/parser.h"
+#include "utility/io.h"
 
-static i32 compile_context(Context *context) {
+static ExpResult compile_context(Context *context) {
     if (parse_source(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
-
-    if (analyze(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
+    if (finalize_context(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
     codegen(context);
 
@@ -73,7 +73,7 @@ i32 compile(i32 argc, char const *argv[]) {
                        string_to_view(&cli_options.source),
                        string_to_view(&cli_options.output));
 
-    i32 result = compile_context(&context);
+    ExpResult result = compile_context(&context);
 
     if ((result != EXIT_FAILURE) && context_create_elf_executable(&context)) {
         result |= link(&context);
@@ -91,5 +91,7 @@ i32 compile(i32 argc, char const *argv[]) {
 
     context_terminate(&context);
     cli_options_terminate(&cli_options);
-    return result;
+
+    if (result == EXIT_SUCCESS) return EXIT_SUCCESS;
+    else return EXIT_FAILURE;
 }

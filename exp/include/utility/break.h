@@ -14,27 +14,18 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_LOCAL_H
-#define EXP_IMR_LOCAL_H
+#ifndef EXP_UTILITY_BREAK_H
+#define EXP_UTILITY_BREAK_H
 
-#include "imr/lifetime.h"
-#include "imr/location.h"
-#include "imr/type.h"
-#include "utility/string_view.h"
+#ifndef NDEBUG
+#if defined(__GNUC__) || defined(__clang__)
+#define EXP_BREAK() __builtin_trap()
+#else
+#include <stdlib.h>
+#define EXP_BREAK() abort()
+#endif // if defined(__GNUC__) || defined(__clang__)
+#else
+#define EXP_BREAK()
+#endif // if EXP_DEBUG
 
-typedef struct Local {
-    Type const *type;
-    StringView label;
-    Location location;
-    Lifetime lifetime;
-} Local;
-
-void local_initialize(Local *local);
-
-void local_update_type(Local *local, Type const *type);
-void local_update_label(Local *local, StringView label);
-void local_update_location(Local *local, Location location);
-void local_update_first_use(Local *local, u64 first_use);
-void local_update_last_use(Local *local, u64 last_use);
-
-#endif // EXP_IMR_LOCAL_H
+#endif // !EXP_UTILITY_BREAK_H

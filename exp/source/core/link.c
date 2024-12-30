@@ -22,7 +22,7 @@
 #include "utility/config.h"
 #include "utility/process.h"
 
-i32 link(Context *restrict context) {
+ExpResult link(Context *context) {
     StringView obj_path = context_object_path(context);
     StringView out_path = context_output_path(context);
 
@@ -41,5 +41,6 @@ i32 link(Context *restrict context) {
         NULL,
     };
 
-    return process("ld", args);
+    if (process("ld", args) != EXIT_SUCCESS) return EXP_FAILURE;
+    else return EXP_SUCCESS;
 }

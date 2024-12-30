@@ -67,7 +67,7 @@ bool context_options_emit_ir_assembly(ContextOptions *options) {
     return bitset_check_bit(&options->flags, CONTEXT_OPTION_EMIT_IR_ASSEMBLY);
 }
 
-bool context_options_emit_x64_64_assembly(ContextOptions *options) {
+bool context_options_emit_x86_64_assembly(ContextOptions *options) {
     assert(options != nullptr);
     return bitset_check_bit(&options->flags,
                             CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY);

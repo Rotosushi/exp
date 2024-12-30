@@ -21,4 +21,3 @@
 i32 compile(i32 argc, char const *argv[]);
 
 #endif // !EXP_CORE_COMPILE_H
-

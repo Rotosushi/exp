@@ -46,7 +46,7 @@ static bool bytecode_full(Block *bytecode) {
 }
 
 static void bytecode_grow(Block *bytecode) {
-    Growth32 g = array_growth_u32(bytecode->capacity, sizeof(Instruction));
+    Growth64 g = array_growth_u64(bytecode->capacity, sizeof(Instruction));
     bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
     bytecode->capacity = g.new_capacity;
 }

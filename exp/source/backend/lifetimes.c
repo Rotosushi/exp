@@ -88,10 +88,6 @@ static void lifetimes_compute_operand(OperandKind kind,
         break;
     }
 
-    // #NOTE: a lifetime only makes sense w.r.t. local variables.
-    //  %ssa can only be present within Operands directly, or
-    //  within a Tuple. becuase Tuples are composed of Operands.
-    //  thus nothing needs to be done for any other kind of Operand.
     // #TODO: if we allow labels to be how we address local declarations.
     //  then we will need to handle that here. Because lifetimes will need
     //  to be associated with labels just as they are with %ssa; as of now

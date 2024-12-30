@@ -19,7 +19,7 @@
 #ifndef EXP_UTILITY_STRING_H
 #define EXP_UTILITY_STRING_H
 #include <stdbool.h>
-#include <stdio.h>
+// #include <stdio.h>
 
 #include "utility/string_view.h"
 
@@ -44,11 +44,13 @@ StringView string_to_view(String const *str);
 
 char const *string_to_cstring(String const *str);
 
+char *string_data(String *str);
+
 void string_from_view(String *string, StringView view);
 
 void string_from_cstring(String *string, char const *cstring);
 
-void string_from_file(String *string, FILE *file);
+// void string_from_file(String *string, FILE *file);
 
 bool string_empty(String const *string);
 

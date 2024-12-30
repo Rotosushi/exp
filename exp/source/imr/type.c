@@ -63,7 +63,7 @@ static bool tuple_type_full(TupleType *tuple_type) {
 
 static void tuple_type_grow(TupleType *tuple_type) {
     assert(tuple_type != nullptr);
-    Growth32 g        = array_growth_u32(tuple_type->capacity, sizeof(Type *));
+    Growth64 g        = array_growth_u64(tuple_type->capacity, sizeof(Type *));
     tuple_type->types = reallocate(tuple_type->types, g.alloc_size);
     tuple_type->capacity = g.new_capacity;
 }
@@ -83,37 +83,34 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B) {
     if (!type_equality(A->return_type, B->return_type)) { return false; }
     return tuple_type_equality(&A->argument_types, &B->argument_types);
 }
-
+/*
 Type *type_nil() {
-    Type *type        = allocate(sizeof(Type));
-    type->kind        = TYPE_KIND_NIL;
-    type->scalar_type = 0;
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_NIL;
     return type;
 }
 
 Type *type_boolean() {
-    Type *type        = allocate(sizeof(Type));
-    type->kind        = TYPE_KIND_BOOLEAN;
-    type->scalar_type = 0;
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_BOOLEAN;
     return type;
 }
-
-Type *type_i32() {
-    Type *type        = allocate(sizeof(Type));
-    type->kind        = TYPE_KIND_I32;
-    type->scalar_type = 0;
+*/
+Type *type_i64() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_I64;
     return type;
 }
 
 Type *type_tuple(TupleType tuple_type) {
-    Type *type       = allocate(sizeof(Type));
+    Type *type       = callocate(1, sizeof(Type));
     type->kind       = TYPE_KIND_TUPLE;
     type->tuple_type = tuple_type;
     return type;
 }
 
 Type *type_function(Type const *result, TupleType args) {
-    Type *type          = allocate(sizeof(Type));
+    Type *type          = callocate(1, sizeof(Type));
     type->kind          = TYPE_KIND_FUNCTION;
     type->function_type = (FunctionType){result, args};
     return type;
@@ -154,9 +151,9 @@ bool type_equality(Type const *A, Type const *B) {
 
 bool type_is_scalar(Type const *T) {
     switch (T->kind) {
-    case TYPE_KIND_NIL:
-    case TYPE_KIND_BOOLEAN:
-    case TYPE_KIND_I32:     return true;
+        //   case TYPE_KIND_NIL:
+        //   case TYPE_KIND_BOOLEAN:
+    case TYPE_KIND_I64: return true;
 
     // a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
@@ -187,10 +184,10 @@ static void print_function_type(FunctionType const *function_type,
 
 void print_type(String *buffer, Type const *T) {
     switch (T->kind) {
-    case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
-    case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
-    case TYPE_KIND_I32:     string_append(buffer, SV("i64")); break;
-    case TYPE_KIND_TUPLE:   print_tuple_type(buffer, &T->tuple_type); break;
+        // case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
+        // case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
+    case TYPE_KIND_I64:   string_append(buffer, SV("i64")); break;
+    case TYPE_KIND_TUPLE: print_tuple_type(buffer, &T->tuple_type); break;
     case TYPE_KIND_FUNCTION:
         print_function_type(&T->function_type, buffer);
         break;

@@ -12,13 +12,13 @@ Location location_create() {
     return location;
 }
 
-Location location_general_purpose_register(u32 general_purpose_register) {
+Location location_register(u64 general_purpose_register) {
     return location_construct(
         LOCATION_GENERAL_PURPOSE_REGISTER,
         (LocationData){.general_purpose_register = general_purpose_register});
 }
 
-Location location_stack_slot(u32 stack_slot) {
+Location location_stack_slot(u64 stack_slot) {
     return location_construct(LOCATION_STACK_SLOT,
                               (LocationData){.stack_slot = stack_slot});
 }

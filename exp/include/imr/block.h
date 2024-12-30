@@ -24,8 +24,8 @@
  *
  */
 typedef struct Block {
-    u32 length;
-    u32 capacity;
+    u64 length;
+    u64 capacity;
     Instruction *buffer;
 } Block;
 

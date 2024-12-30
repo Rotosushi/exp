@@ -4,6 +4,7 @@ set(EXP_UTILITY_SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/alloc.c
   ${EXP_SOURCE_DIR}/utility/array_growth.c
   ${EXP_SOURCE_DIR}/utility/bitset.c
+  ${EXP_SOURCE_DIR}/utility/constant_string.c
   ${EXP_SOURCE_DIR}/utility/hash.c
   ${EXP_SOURCE_DIR}/utility/int_types.c
   ${EXP_SOURCE_DIR}/utility/io.c
@@ -29,42 +30,12 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/graph.c
   ${EXP_SOURCE_DIR}/adt/string.c
 
+  ${EXP_SOURCE_DIR}/analysis/allocation.c
+  ${EXP_SOURCE_DIR}/analysis/finalize.c
+  ${EXP_SOURCE_DIR}/analysis/lifetimes.c
   ${EXP_SOURCE_DIR}/analysis/typecheck.c
-  
-#  ${EXP_SOURCE_DIR}/backend/directives.c
-#  ${EXP_SOURCE_DIR}/backend/lifetimes.c
 
-#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/copy.c
-#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
-#  ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
-
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/divide.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/load.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/modulus.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/multiply.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/negate.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/return.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen/subtract.c
-
-#  ${EXP_SOURCE_DIR}/backend/x64/address.c
-#  ${EXP_SOURCE_DIR}/backend/x64/addresses.c
-#  ${EXP_SOURCE_DIR}/backend/x64/allocation.c
-#  ${EXP_SOURCE_DIR}/backend/x64/allocator.c
-#  ${EXP_SOURCE_DIR}/backend/x64/block.c
-#  ${EXP_SOURCE_DIR}/backend/x64/codegen.c
-#  ${EXP_SOURCE_DIR}/backend/x64/context.c
-#  ${EXP_SOURCE_DIR}/backend/x64/emit.c
-#  ${EXP_SOURCE_DIR}/backend/x64/function_body.c
-#  ${EXP_SOURCE_DIR}/backend/x64/instruction.c
-#  ${EXP_SOURCE_DIR}/backend/x64/location.c
-#  ${EXP_SOURCE_DIR}/backend/x64/operand.c
-#  ${EXP_SOURCE_DIR}/backend/x64/registers.c
-#  ${EXP_SOURCE_DIR}/backend/x64/symbols.c
-
-  ${EXP_SOURCE_DIR}/core/analyze.c
+  ${EXP_SOURCE_DIR}/core/finalize.c
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c
   ${EXP_SOURCE_DIR}/core/compile.c
@@ -74,7 +45,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
-  ${EXP_SOURCE_DIR}/env/labels.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
