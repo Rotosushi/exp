@@ -20,11 +20,10 @@
 #include "env/constants.h"
 #include "env/context_options.h"
 #include "env/error.h"
-// #include "env/labels.h"
+#include "env/labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "imr/function_body.h"
 
 /**
  * @brief A context models a Translation Unit.
@@ -35,7 +34,7 @@ typedef struct Context {
     StringInterner string_interner;
     TypeInterner type_interner;
     SymbolTable symbol_table;
-    //    Labels labels;
+    Labels labels;
     Constants constants;
     Error current_error;
 } Context;
@@ -80,7 +79,7 @@ ConstantString *context_intern(Context *context, StringView sv);
 // type interner functions
 // Type const *context_nil_type(Context *context);
 // Type const *context_boolean_type(Context *context);
-Type const *context_i64_type(Context *context);
+Type const *context_i32_type(Context *context);
 Type const *context_tuple_type(Context *context, TupleType tuple);
 Type const *context_function_type(Context *context,
                                   Type const *return_type,
@@ -89,7 +88,11 @@ Type const *context_function_type(Context *context,
 // symbol table functions
 Symbol *context_symbol_table_at(Context *context, StringView name);
 
+u32 context_labels_append(Context *context, StringView label);
+StringView context_labels_at(Context *context, u32 label);
+
 // Values functions
-Value *context_constants_append_tuple(Context *context, Tuple tuple);
+Value *context_constants_at(Context *context, u32 constant);
+u32 context_constants_append_tuple(Context *context, Tuple tuple);
 
 #endif // !EXP_ENV_CONTEXT_H

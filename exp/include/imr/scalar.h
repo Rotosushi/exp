@@ -17,19 +17,18 @@
 #ifndef EXP_IMR_SCALAR_H
 #define EXP_IMR_SCALAR_H
 
+#include "adt/string.h"
 #include "utility/int_types.h"
-#include "utility/io.h"
 
 // #NOTE: the idea behind the Scalar type is that it represents a value that can
-// fit
-//  in the abstract register of the abstract machine, wheras a full value can be
-//  a scalar or it can be a larger structure. I don't know if this will actually
-//  be usefull yet. it's just one thing I have been thinking about
+//  fit in an abstract register of the abstract machine, where as a Value can be
+//  a scalar or it can be a larger layout type. (and it just so happens that we
+//  use a size which fits in an actual register on an actual 64 bit machine)
 
 typedef enum ScalarKind : u8 {
     SCALAR_UNINITIALIZED,
-    SCALAR_NIL,
-    SCALAR_BOOL,
+    // SCALAR_NIL,
+    // SCALAR_BOOL,
     // SCALAR_U8,
     // SCALAR_U16,
     // SCALAR_U32,
@@ -41,16 +40,15 @@ typedef enum ScalarKind : u8 {
 } ScalarKind;
 
 typedef union ScalarData {
-    bool nil;
-    bool bool_;
-    // u8 u8_;
-    // u16 u16_;
-    // u32 u32_;
-    // u64 u64_;
-    // i8 i8_;
-    // i16 i16_;
+    // bool nil;
+    // bool bool_;
+    //  u8 u8_;
+    //  u16 u16_;
+    //  u32 u32_;
+    //  u64 u64_;
+    //  i8 i8_;
+    //  i16 i16_;
     i32 i32_;
-    // i64 i64_;
 } ScalarData;
 
 typedef struct Scalar {
@@ -59,12 +57,12 @@ typedef struct Scalar {
 } Scalar;
 
 Scalar scalar_create();
-Scalar scalar_nil();
-Scalar scalar_bool(bool bool_);
+// Scalar scalar_nil();
+// Scalar scalar_bool(bool bool_);
 Scalar scalar_i32(i32 i32_);
 
 bool scalar_equality(Scalar A, Scalar B);
 
-void print_scalar(FILE *out, Scalar A);
+void print_scalar(String *buffer, Scalar A);
 
 #endif // EXP_IMR_SCALAR_H

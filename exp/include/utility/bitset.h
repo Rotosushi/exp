@@ -26,10 +26,10 @@
  * @brief a fixed size bitset with capacity of 64 set members.
  */
 typedef struct Bitset {
-    u64 bits;
+    u32 bits;
 } Bitset;
 
-#define bitset_length() 64
+#define bitset_length() 32
 
 Bitset bitset_create();
 

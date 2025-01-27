@@ -21,13 +21,15 @@
 #include "imr/value.h"
 
 typedef struct Constants {
-    u64 count;
-    u64 capacity;
-    Value **buffer;
+    u32 count;
+    u32 capacity;
+    Value *buffer;
 } Constants;
 
 void constants_initialize(Constants *constants);
 void constants_terminate(Constants *constants);
-Value *constants_append_tuple(Constants *constants, Tuple tuple);
+
+Value *constants_at(Constants *constants, u32 constant);
+u32 constants_append_tuple(Constants *constants, Tuple tuple);
 
 #endif // !EXP_IMR_CONSTANTS_H

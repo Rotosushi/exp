@@ -63,7 +63,7 @@ static bool tuple_type_full(TupleType *tuple_type) {
 
 static void tuple_type_grow(TupleType *tuple_type) {
     assert(tuple_type != nullptr);
-    Growth64 g        = array_growth_u64(tuple_type->capacity, sizeof(Type *));
+    Growth32 g        = array_growth_u32(tuple_type->capacity, sizeof(Type *));
     tuple_type->types = reallocate(tuple_type->types, g.alloc_size);
     tuple_type->capacity = g.new_capacity;
 }
@@ -96,9 +96,9 @@ Type *type_boolean() {
     return type;
 }
 */
-Type *type_i64() {
+Type *type_i32() {
     Type *type = callocate(1, sizeof(Type));
-    type->kind = TYPE_KIND_I64;
+    type->kind = TYPE_KIND_I32;
     return type;
 }
 
@@ -153,7 +153,7 @@ bool type_is_scalar(Type const *T) {
     switch (T->kind) {
         //   case TYPE_KIND_NIL:
         //   case TYPE_KIND_BOOLEAN:
-    case TYPE_KIND_I64: return true;
+    case TYPE_KIND_I32: return true;
 
     // a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
@@ -165,7 +165,7 @@ bool type_is_scalar(Type const *T) {
 
 static void print_tuple_type(String *buffer, TupleType const *tuple_type) {
     string_append(buffer, SV("("));
-    for (u64 i = 0; i < tuple_type->count; ++i) {
+    for (u32 i = 0; i < tuple_type->count; ++i) {
         print_type(buffer, tuple_type->types[i]);
 
         if (i < (tuple_type->count - 1)) { string_append(buffer, SV(", ")); }
@@ -186,7 +186,7 @@ void print_type(String *buffer, Type const *T) {
     switch (T->kind) {
         // case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
         // case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
-    case TYPE_KIND_I64:   string_append(buffer, SV("i64")); break;
+    case TYPE_KIND_I32:   string_append(buffer, SV("i32")); break;
     case TYPE_KIND_TUPLE: print_tuple_type(buffer, &T->tuple_type); break;
     case TYPE_KIND_FUNCTION:
         print_function_type(&T->function_type, buffer);

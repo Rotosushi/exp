@@ -32,7 +32,7 @@ typedef struct Parser {
     Lexer lexer;
     Token curtok;
     Context *context;
-    FunctionBody *function;
+    Function *function;
 } Parser;
 
 typedef enum Precedence {
@@ -215,7 +215,7 @@ static bool parse_type(Type const **result, Parser *parser) {
         break;
     }
 
-    case TOK_TYPE_I64: *result = context_i64_type(parser->context); break;
+    case TOK_TYPE_I32: *result = context_i32_type(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);
     }
@@ -225,7 +225,7 @@ static bool parse_type(Type const **result, Parser *parser) {
 }
 
 // formal-argument = identifier ":" type
-static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
+static bool parse_formal_argument(Local *arg, Parser *parser) {
     assert(arg != nullptr);
     assert(parser != nullptr);
     if (!peek(parser, TOK_IDENTIFIER)) {
@@ -247,8 +247,8 @@ static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
     if (!parse_type(&type, parser)) { return false; }
     assert(type != NULL);
 
-    arg->name = constant_string_to_view(name);
-    arg->type = type;
+    local_update_label(arg, constant_string_to_view(name));
+    local_update_type(arg, type);
     return true;
 }
 
@@ -276,12 +276,14 @@ static bool parse_formal_argument_list(Parser *parser) {
     switch (expect(parser, TOK_END_PAREN)) {
     case EXPECT_RESULT_SUCCESS:         return true;
     case EXPECT_RESULT_TOKEN_NOT_FOUND: {
+        // u8 index         = 0;
         bool comma_found = false;
         do {
-            FormalArgument arg = {};
-            if (!parse_formal_argument(&arg, parser)) { return false; }
-            function_body_allocate_argument(parser->function, arg);
-
+            u32 ssa    = function_declare_local(parser->function);
+            Local *arg = function_local_at(parser->function, ssa);
+            if (!parse_formal_argument(arg, parser)) { return false; }
+            // function_allocate_formal_argument(parser->function, arg, index);
+            // index += 1;
             switch (expect(parser, TOK_COMMA)) {
             case EXPECT_RESULT_SUCCESS:         comma_found = true; break;
             case EXPECT_RESULT_TOKEN_NOT_FOUND: comma_found = false; break;
@@ -322,8 +324,9 @@ static bool return_(Operand *result, Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
-    function_body_append_instruction(parser->function,
-                                     instruction_return(*result));
+    u32 ssa = function_declare_local(parser->function);
+    function_append_instruction(parser->function,
+                                instruction_return(operand_ssa(ssa), *result));
     return true;
 }
 
@@ -358,11 +361,11 @@ static bool constant(Operand *result, Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
-    u64 ssa      = function_body_declare_local(parser->function);
-    Local *local = function_body_local_at(parser->function, ssa);
+    u32 ssa      = function_declare_local(parser->function);
+    Local *local = function_local_at(parser->function, ssa);
     local_update_label(local, constant_string_to_view(name));
-    function_body_append_instruction(
-        parser->function, instruction_load(operand_label(name), *result));
+    function_append_instruction(parser->function,
+                                instruction_load(operand_ssa(ssa), *result));
     return true;
 }
 
@@ -460,7 +463,7 @@ static bool function(Operand *result, Parser *parser) {
     file_write(name->buffer, stdout);
     String buffer;
     string_initialize(&buffer);
-    print_function_body(&buffer, parser->function, parser->context);
+    print_function(&buffer, parser->function, parser->context);
     file_write(string_to_cstring(&buffer), stdout);
     string_destroy(&buffer);
     file_write("\n", stdout);
@@ -563,9 +566,9 @@ static bool unop(Operand *result, Parser *parser) {
 
     switch (op) {
     case TOK_MINUS: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(parser->function,
-                                         instruction_negate(*result, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_negate(*result, right));
         break;
     }
     default: EXP_UNREACHABLE();
@@ -589,44 +592,44 @@ static bool binop(Operand *result, Operand left, Parser *parser) {
 
     switch (op) {
     case TOK_DOT: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(parser->function,
-                                         instruction_dot(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_dot(*result, left, right));
         break;
     }
 
     case TOK_PLUS: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(parser->function,
-                                         instruction_add(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_add(*result, left, right));
         break;
     }
 
     case TOK_MINUS: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(
-            parser->function, instruction_subtract(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_subtract(*result, left, right));
         break;
     }
 
     case TOK_STAR: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(
-            parser->function, instruction_multiply(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_multiply(*result, left, right));
         break;
     }
 
     case TOK_SLASH: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(
-            parser->function, instruction_divide(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_divide(*result, left, right));
         break;
     }
 
     case TOK_PERCENT: {
-        *result = operand_ssa(function_body_declare_local(parser->function));
-        function_body_append_instruction(
-            parser->function, instruction_modulus(*result, left, right));
+        *result = operand_ssa(function_declare_local(parser->function));
+        function_append_instruction(parser->function,
+                                    instruction_modulus(*result, left, right));
         break;
     }
 
@@ -648,9 +651,9 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     Operand right = operand_constant(
         context_constants_append_tuple(parser->context, argument_list));
 
-    *result = operand_ssa(function_body_declare_local(parser->function));
-    function_body_append_instruction(parser->function,
-                                     instruction_call(*result, left, right));
+    *result = operand_ssa(function_declare_local(parser->function));
+    function_append_instruction(parser->function,
+                                instruction_call(*result, left, right));
     return true;
 }
 
@@ -695,9 +698,13 @@ static bool integer(Operand *result, Parser *parser) {
     assert(peek(parser, TOK_INTEGER));
     StringView sv = curtxt(parser);
     i64 value     = str_to_i64(sv.ptr, sv.length);
+    if (!i64_in_range_i32(value)) {
+        return error(parser, ERROR_INTEGER_TO_LARGE);
+    }
 
     if (!nexttok(parser)) { return false; }
-    *result = operand_i64((i32)value);
+
+    *result = operand_i32((i32)value);
 
     return true;
 }
@@ -709,7 +716,9 @@ static bool identifier(Operand *result, Parser *parser) {
     assert(parser->function != nullptr);
     assert(peek(parser, TOK_IDENTIFIER));
     ConstantString *name = context_intern(parser->context, curtxt(parser));
-    *result              = operand_label(name);
+    u32 label =
+        context_labels_append(parser->context, constant_string_to_view(name));
+    *result = operand_label(label);
     if (!nexttok(parser)) { return false; }
     return true;
 }
@@ -795,7 +804,7 @@ static ParseRule *get_rule(Token token) {
 
         [TOK_TYPE_NIL]  = {      NULL,  NULL,   PREC_NONE},
         [TOK_TYPE_BOOL] = {      NULL,  NULL,   PREC_NONE},
-        [TOK_TYPE_I64]  = {      NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_I32]  = {      NULL,  NULL,   PREC_NONE},
     };
 
     return &rules[token];

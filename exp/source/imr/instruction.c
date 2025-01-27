@@ -20,8 +20,10 @@
 
 #include "imr/instruction.h"
 
-static Instruction instruction_B(Opcode opcode, Operand B) {
-    Instruction I = {.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
+// #NOTE: unconditional jump will use this form, so we aren't removing it,
+//  even though return is no longer using this form, thus it is unused
+[[maybe_unused]] static Instruction instruction_A(Opcode opcode, Operand A) {
+    Instruction I = {.opcode = opcode, .A_kind = A.kind, .A_data = A.data};
     return I;
 }
 
@@ -46,8 +48,8 @@ instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
     return I;
 }
 
-Instruction instruction_return(Operand result) {
-    return instruction_B(OPCODE_RETURN, result);
+Instruction instruction_return(Operand dst, Operand result) {
+    return instruction_AB(OPCODE_RETURN, dst, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {

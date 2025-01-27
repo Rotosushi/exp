@@ -7,7 +7,7 @@ void local_initialize(Local *local) {
     assert(local != nullptr);
     local->type     = nullptr;
     local->label    = string_view_create();
-    local->location = location_register(0);
+    local->location = location_create();
     local->lifetime = lifetime_create();
 }
 
@@ -26,12 +26,12 @@ void local_update_location(Local *local, Location location) {
     local->location = location;
 }
 
-void local_update_first_use(Local *local, u64 first_use) {
+void local_update_first_use(Local *local, u32 first_use) {
     assert(local != nullptr);
     local->lifetime.first_use = first_use;
 }
 
-void local_update_last_use(Local *local, u64 last_use) {
+void local_update_last_use(Local *local, u32 last_use) {
     assert(local != nullptr);
     local->lifetime.last_use = last_use;
 }

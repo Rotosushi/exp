@@ -17,7 +17,6 @@
 #ifndef EXP_ENV_GLOBAL_SYMBOLS_H
 #define EXP_ENV_GLOBAL_SYMBOLS_H
 
-#include "imr/operand.h"
 #include "utility/string_view.h"
 
 typedef struct GlobalLabels {
@@ -29,7 +28,7 @@ typedef struct GlobalLabels {
 void labels_initialize(Labels *labels);
 void labels_terminate(Labels *labels);
 
-Operand labels_insert(Labels *labels, StringView label);
+u32 labels_insert(Labels *labels, StringView label);
 StringView labels_at(Labels *labels, u32 index);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

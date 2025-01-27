@@ -22,10 +22,10 @@
  * @brief the valid opcodes for instructions
  *
  */
-typedef enum Opcode : u16 {
+typedef enum Opcode : u8 {
     /*
      * <...> -> side effect
-     * ip    -> the instruction pointer
+     * ip    -> the instruction index
      * R     -> the return value location
      * A|B|C -> an operand
      * SSA[*]           -> indexing the locals array.
@@ -40,14 +40,14 @@ typedef enum Opcode : u16 {
                  // AB  -- SSA[A] = SSA[B]
 
     // control flow
-    OPCODE_RETURN, // B -- R = B,    <return>
-                   // B -- R = Values[B], <return>
-                   // B -- R = SSA[B], <return>
+    OPCODE_RETURN, // AB -- A = B,    <return>
+                   // AB -- A = Values[B], <return>
+                   // AB -- A = SSA[B], <return>
 
     OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
     // #TODO:
-    OPCODE_JUMP, // B -- <ip = B>
+    OPCODE_JUMP, // A -- <ip = A>
 
     // #TODO:
     OPCODE_JUMP_IF_EQUAL, // ABC -- <ip = A> if SSA[B] == C
@@ -94,11 +94,11 @@ typedef enum Opcode : u16 {
 /**
  * @brief represents a single instruction
  *
- * sizeof(Opcode) == 2
- * sizeof(OperandKind) == 2
- * sizeof(OperandData) == 8
- * 2 + 2*3  + 8*3 ->
- * sizeof(Instruction) == 32
+ * sizeof(Opcode) == 1
+ * sizeof(OperandKind) == 1
+ * sizeof(OperandData) == 4
+ * 1 + 1*3 + 4*3 ->
+ * sizeof(Instruction) == 16
  */
 typedef struct Instruction {
     Opcode opcode;
@@ -110,7 +110,7 @@ typedef struct Instruction {
     OperandData C_data;
 } Instruction;
 
-Instruction instruction_return(Operand result);
+Instruction instruction_return(Operand dst, Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
 Instruction instruction_load(Operand dst, Operand src);

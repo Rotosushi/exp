@@ -28,7 +28,6 @@
  * @param type
  * @return u64
  */
-u64 align_of(Type *restrict type);
+u64 align_of(Type const *type);
 
 #endif // !EXP_INTRINSICS_ALIGNOF_H
-

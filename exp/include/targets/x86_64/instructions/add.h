@@ -14,12 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_ANALYSIS_VALIDATE_H
-#define EXP_ANALYSIS_VALIDATE_H
+#ifndef EXP_TARGETS_X86_64_INSTRUCTIONS_ADD_H
+#define EXP_TARGETS_X86_64_INSTRUCTIONS_ADD_H
 
-#include "imr/function_body.h"
-#include "utility/result.h"
+#include "targets/x86_64/operand.h"
 
-ExpResult typecheck_function(FunctionBody *function, struct Context *context);
+void x86_64_add(String *buffer, x86_64_Operand target, x86_64_Operand source);
 
-#endif // !EXP_ANALYSIS_VALIDATE_H
+#endif // EXP_TARGETS_X86_64_INSTRUCTIONS_ADD_H

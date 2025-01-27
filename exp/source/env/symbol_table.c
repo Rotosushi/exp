@@ -38,7 +38,7 @@ void symbol_table_destroy(SymbolTable *symbol_table) {
     for (u64 i = 0; i < symbol_table->capacity; ++i) {
         Symbol *element = symbol_table->elements[i];
         if (element == nullptr) { continue; }
-        function_body_terminate(&element->function_body);
+        function_terminate(&element->function_body);
         deallocate(element);
     }
 

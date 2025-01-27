@@ -27,8 +27,8 @@
  * ptr comparison
  */
 typedef struct StringInterner {
-    u64 capacity;
-    u64 count;
+    u32 capacity;
+    u32 count;
     ConstantString **buffer;
 } StringInterner;
 
