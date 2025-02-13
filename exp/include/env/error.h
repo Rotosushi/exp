@@ -17,8 +17,7 @@
 #ifndef EXP_ENV_ERROR_H
 #define EXP_ENV_ERROR_H
 
-#include "adt/string.h"
-#include "utility/log.h"
+#include "utility/string.h"
 
 typedef enum ErrorCode : u8 {
     ERROR_NONE,
@@ -81,6 +80,6 @@ void error_terminate(Error *error);
 
 void error_assign(Error *error, ErrorCode code, StringView sv);
 
-void error_print(Error *error, StringView file, u64 line);
+void print_error(String *buffer, Error *error, StringView file, u64 line);
 
 #endif // !EXP_ENV_ERROR_H

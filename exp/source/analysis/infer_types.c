@@ -16,11 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "analysis/infer_types.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
+#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 typedef struct subject {
@@ -30,9 +31,9 @@ typedef struct subject {
 
 static void
 subject_initialize(Subject *subject, Function *function, Context *context) {
-    assert(subject != nullptr);
-    assert(function != nullptr);
-    assert(context != nullptr);
+    EXP_ASSERT(subject != nullptr);
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
     subject->context  = context;
     subject->function = function;
 }
@@ -45,16 +46,16 @@ subject_initialize(Subject *subject, Function *function, Context *context) {
 }
 
 static ExpResult error(Subject *subject, ErrorCode code, String message) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     Error *current_error = context_current_error(subject->context);
-    assert(current_error != nullptr);
+    EXP_ASSERT(current_error != nullptr);
     error_from_string(current_error, code, message);
     return EXP_FAILURE;
 }
 
 /*
 static ExpResult error_name_undefined(Subject *subject, StringView name) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
     string_append(&message, SV("Name: ["));
@@ -67,7 +68,7 @@ static ExpResult error_name_undefined(Subject *subject, StringView name) {
 static ExpResult error_type_mismatch(Subject *subject,
                                      Type const *expected,
                                      Type const *actual) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
     string_append(&message, SV("Expected type: ["));
@@ -79,8 +80,8 @@ static ExpResult error_type_mismatch(Subject *subject,
 }
 
 static ExpResult error_type_not_callable(Subject *subject, Type const *type) {
-    assert(validate_subject(subject));
-    assert(type != nullptr);
+    EXP_ASSERT(validate_subject(subject));
+    EXP_ASSERT(type != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
@@ -92,9 +93,9 @@ static ExpResult error_type_not_callable(Subject *subject, Type const *type) {
 static ExpResult error_argument_count_mismatch(Subject *subject,
                                                TupleType const *formal,
                                                Tuple const *actual) {
-    assert(validate_subject(subject));
-    assert(formal != nullptr);
-    assert(actual != nullptr);
+    EXP_ASSERT(validate_subject(subject));
+    EXP_ASSERT(formal != nullptr);
+    EXP_ASSERT(actual != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Expected ["));
@@ -106,15 +107,15 @@ static ExpResult error_argument_count_mismatch(Subject *subject,
 }
 
 static ExpResult error_return_type_unknown(Subject *subject) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
     return error(subject, ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN, message);
 }
 
 static ExpResult error_type_not_indexable(Subject *subject, Type const *type) {
-    assert(validate_subject(subject));
-    assert(type != nullptr);
+    EXP_ASSERT(validate_subject(subject));
+    EXP_ASSERT(type != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
@@ -124,7 +125,7 @@ static ExpResult error_type_not_indexable(Subject *subject, Type const *type) {
 }
 
 static ExpResult error_tuple_index_not_immediate(Subject *subject) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
     return error(subject, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, message);
@@ -132,7 +133,7 @@ static ExpResult error_tuple_index_not_immediate(Subject *subject) {
 
 static ExpResult
 error_tuple_index_out_of_bounds(Subject *subject, i32 index, u32 bounds) {
-    assert(validate_subject(subject));
+    EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
     string_append(&message, SV("Index: ["));
@@ -150,25 +151,25 @@ static ExpResult infer_types_operand(Type const **result,
                                      OperandKind kind,
                                      OperandData data,
                                      Subject *subject) {
-    assert(result != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     switch (kind) {
     case OPERAND_KIND_SSA: {
         Local *local = function_local_at(subject->function, data.ssa);
-        assert(local != nullptr);
+        EXP_ASSERT(local != nullptr);
         // #NOTE: if we try and type a usage of an ssa local, and there is
         //  no annotated type present yet, that means we forgot to set the
         //  type annotation when we typed the declaration of the ssa local.
         //  (the ssa local in position A within any instruction) Hence the
-        //  assert.
-        assert(local->type != nullptr);
+        //  EXP_ASSERT.
+        EXP_ASSERT(local->type != nullptr);
         *result = local->type;
         return EXP_SUCCESS;
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value *constant = context_constants_at(subject->context, data.constant);
-        assert(constant != nullptr);
+        EXP_ASSERT(constant != nullptr);
         *result = type_of_value(constant, subject->function, subject->context);
         return EXP_SUCCESS;
     }
@@ -189,7 +190,7 @@ static ExpResult infer_types_operand(Type const **result,
         //        return false;
         //    }
         //}
-        assert(type != nullptr);
+        EXP_ASSERT(type != nullptr);
 
         *result = type;
         return EXP_SUCCESS;
@@ -200,8 +201,8 @@ static ExpResult infer_types_operand(Type const **result,
 }
 
 static Local *local_from_operand_A(Instruction *instruction, Subject *subject) {
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     switch (instruction->A_kind) {
     case OPERAND_KIND_SSA: {
         return function_local_at(subject->function, instruction->A_data.ssa);
@@ -214,12 +215,12 @@ static Local *local_from_operand_A(Instruction *instruction, Subject *subject) {
 static ExpResult infer_types_load(Type const **result,
                                   Instruction *instruction,
                                   Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
 
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -227,7 +228,7 @@ static ExpResult infer_types_load(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
 
     local_update_type(local, B_type);
     *result = B_type;
@@ -237,12 +238,12 @@ static ExpResult infer_types_load(Type const **result,
 static ExpResult infer_types_return(Type const **result,
                                     Instruction *instruction,
                                     Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
 
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -250,7 +251,7 @@ static ExpResult infer_types_return(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
 
     Type const *result_type = subject->function->return_type;
     if (result_type == nullptr) {
@@ -258,7 +259,7 @@ static ExpResult infer_types_return(Type const **result,
     } else if (!type_equality(B_type, result_type)) {
         return error_type_mismatch(subject, result_type, B_type);
     }
-    assert(subject->function->return_type != nullptr);
+    EXP_ASSERT(subject->function->return_type != nullptr);
 
     local_update_type(local, result_type);
     *result = B_type;
@@ -268,11 +269,11 @@ static ExpResult infer_types_return(Type const **result,
 static ExpResult infer_types_call(Type const **result,
                                   Instruction *instruction,
                                   Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -280,7 +281,7 @@ static ExpResult infer_types_call(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
     if (B_type->kind != TYPE_KIND_FUNCTION) {
         return error_type_not_callable(subject, B_type);
     }
@@ -288,10 +289,10 @@ static ExpResult infer_types_call(Type const **result,
     FunctionType const *function_type = &B_type->function_type;
     TupleType const *formal_arguments = &function_type->argument_types;
 
-    assert(instruction->C_kind == OPERAND_KIND_CONSTANT);
+    EXP_ASSERT(instruction->C_kind == OPERAND_KIND_CONSTANT);
     Value *value =
         context_constants_at(subject->context, instruction->C_data.constant);
-    assert(value->kind == VALUE_KIND_TUPLE);
+    EXP_ASSERT(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_arguments = &value->tuple;
 
     if (formal_arguments->count != actual_arguments->size) {
@@ -309,7 +310,7 @@ static ExpResult infer_types_call(Type const **result,
             EXP_SUCCESS) {
             return EXP_FAILURE;
         }
-        assert(actual_type != nullptr);
+        EXP_ASSERT(actual_type != nullptr);
 
         if (!type_equality(actual_type, formal_type)) {
             return error_type_mismatch(subject, formal_type, actual_type);
@@ -322,19 +323,19 @@ static ExpResult infer_types_call(Type const **result,
 }
 
 static bool tuple_index_out_of_bounds(i64 index, TupleType const *tuple) {
-    assert(tuple != nullptr);
+    EXP_ASSERT(tuple != nullptr);
     return ((index < 0) || ((u64)index >= tuple->count));
 }
 
 static ExpResult infer_types_dot(Type const **result,
                                  Instruction *instruction,
                                  Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
 
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -342,7 +343,7 @@ static ExpResult infer_types_dot(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
     if (B_type->kind != TYPE_KIND_TUPLE) {
         return error_type_not_indexable(subject, B_type);
     }
@@ -367,14 +368,14 @@ static ExpResult infer_types_unop(Type const **result,
                                   Type const *argument_type,
                                   Type const *result_type,
                                   Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(argument_type != nullptr);
-    assert(result_type != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(argument_type != nullptr);
+    EXP_ASSERT(result_type != nullptr);
+    EXP_ASSERT(validate_subject(subject));
 
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -382,7 +383,7 @@ static ExpResult infer_types_unop(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
 
     if (!type_equality(argument_type, B_type)) {
         return error_type_mismatch(subject, argument_type, B_type);
@@ -396,9 +397,9 @@ static ExpResult infer_types_unop(Type const **result,
 static ExpResult infer_types_negate(Type const **result,
                                     Instruction *instruction,
                                     Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_unop(result, instruction, i32_type, i32_type, subject);
 }
@@ -409,15 +410,15 @@ static ExpResult infer_types_binop(Type const **result,
                                    Type const *right_type,
                                    Type const *result_type,
                                    Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(left_type != nullptr);
-    assert(right_type != nullptr);
-    assert(result_type != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(left_type != nullptr);
+    EXP_ASSERT(right_type != nullptr);
+    EXP_ASSERT(result_type != nullptr);
+    EXP_ASSERT(validate_subject(subject));
 
     Local *local = local_from_operand_A(instruction, subject);
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
     if (infer_types_operand(
@@ -425,7 +426,7 @@ static ExpResult infer_types_binop(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(B_type != nullptr);
+    EXP_ASSERT(B_type != nullptr);
 
     if (!type_equality(left_type, B_type)) {
         return error_type_mismatch(subject, left_type, B_type);
@@ -437,7 +438,7 @@ static ExpResult infer_types_binop(Type const **result,
         EXP_SUCCESS) {
         return EXP_FAILURE;
     }
-    assert(C_type != nullptr);
+    EXP_ASSERT(C_type != nullptr);
 
     if (!type_equality(right_type, C_type)) {
         return error_type_mismatch(subject, right_type, C_type);
@@ -451,9 +452,9 @@ static ExpResult infer_types_binop(Type const **result,
 static ExpResult infer_types_add(Type const **result,
                                  Instruction *instruction,
                                  Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_binop(
         result, instruction, i32_type, i32_type, i32_type, subject);
@@ -462,9 +463,9 @@ static ExpResult infer_types_add(Type const **result,
 static ExpResult infer_types_subtract(Type const **result,
                                       Instruction *instruction,
                                       Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_binop(
         result, instruction, i32_type, i32_type, i32_type, subject);
@@ -473,9 +474,9 @@ static ExpResult infer_types_subtract(Type const **result,
 static ExpResult infer_types_multiply(Type const **result,
                                       Instruction *instruction,
                                       Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_binop(
         result, instruction, i32_type, i32_type, i32_type, subject);
@@ -484,9 +485,9 @@ static ExpResult infer_types_multiply(Type const **result,
 static ExpResult infer_types_divide(Type const **result,
                                     Instruction *instruction,
                                     Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_binop(
         result, instruction, i32_type, i32_type, i32_type, subject);
@@ -495,9 +496,9 @@ static ExpResult infer_types_divide(Type const **result,
 static ExpResult infer_types_modulus(Type const **result,
                                      Instruction *instruction,
                                      Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
     return infer_types_binop(
         result, instruction, i32_type, i32_type, i32_type, subject);
@@ -506,9 +507,9 @@ static ExpResult infer_types_modulus(Type const **result,
 static ExpResult infer_types_instruction(Type const **result,
                                          Instruction *instruction,
                                          Subject *subject) {
-    assert(result != nullptr);
-    assert(instruction != nullptr);
-    assert(validate_subject(subject));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(validate_subject(subject));
     switch (instruction->opcode) {
     case OPCODE_RETURN: return infer_types_return(result, instruction, subject);
 
@@ -538,8 +539,8 @@ static ExpResult infer_types_instruction(Type const **result,
 }
 
 ExpResult infer_types_of_locals(Function *function, Context *context) {
-    assert(function != nullptr);
-    assert(context != nullptr);
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
     Subject subject;
     subject_initialize(&subject, function, context);
     Block *block = &function->block;
@@ -549,7 +550,7 @@ ExpResult infer_types_of_locals(Function *function, Context *context) {
             EXP_SUCCESS) {
             return EXP_FAILURE;
         }
-        assert(result != nullptr);
+        EXP_ASSERT(result != nullptr);
     }
 
     if (function->return_type == nullptr) {

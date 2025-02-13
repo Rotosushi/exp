@@ -38,7 +38,7 @@ ExpResult link(Context *context) {
         "-lexps",
         "-lexprt",
         obj_path.ptr,
-        NULL,
+        nullptr,
     };
 
     if (process("ld", args) != EXIT_SUCCESS) return EXP_FAILURE;

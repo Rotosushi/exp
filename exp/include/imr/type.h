@@ -16,9 +16,8 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_TYPE_H
 #define EXP_IMR_TYPE_H
-#include <stdbool.h>
 
-#include "adt/string.h"
+#include "utility/string.h"
 
 typedef enum TypeKind {
     //    TYPE_KIND_NIL,

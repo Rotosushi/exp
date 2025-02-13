@@ -17,7 +17,7 @@
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
 
-#include "adt/string.h"
+#include "utility/string.h"
 
 typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA,
@@ -29,6 +29,7 @@ typedef enum OperandKind : u8 {
 
 typedef union OperandPayload {
     u32 ssa;
+    // #TODO: replace this with Scalar
     i32 i32_;
     u32 constant;
     u32 label;

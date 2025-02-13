@@ -16,14 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+// #include <EXP_ASSERT.h>
+// #include <stdio.h>
+// #include <stdlib.h>
 
+#include "frontend/parser.h"
 #include "env/error.h"
 #include "frontend/lexer.h"
-#include "frontend/parser.h"
 #include "imr/operand.h"
+#include "utility/assert.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"
@@ -59,8 +60,8 @@ typedef struct ParseRule {
 } ParseRule;
 
 static void parser_initialize(Parser *parser, Context *context) {
-    assert(parser != nullptr);
-    assert(context != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(context != nullptr);
     parser->lexer    = lexer_create();
     parser->curtok   = TOK_END;
     parser->context  = context;
@@ -68,22 +69,28 @@ static void parser_initialize(Parser *parser, Context *context) {
 }
 
 static void parser_set_view(Parser *parser, char const *buffer, u64 length) {
-    assert(parser != NULL);
-    assert(buffer != NULL);
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(buffer != NULL);
     lexer_set_view(&(parser->lexer), buffer, length);
 }
 
-static bool finished(Parser *parser) { return parser->curtok == TOK_END; }
+static bool finished(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
+    return parser->curtok == TOK_END;
+}
 
 static StringView curtxt(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
     return lexer_current_text(&parser->lexer);
 }
 
 static u64 curline(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
     return lexer_current_line(&parser->lexer);
 }
 
 static bool error(Parser *parser, ErrorCode code) {
+    EXP_ASSERT(parser != nullptr);
     Error *current_error = context_current_error(parser->context);
     error_assign(current_error, code, lexer_current_text(&parser->lexer));
     return false;
@@ -94,10 +101,12 @@ static bool error(Parser *parser, ErrorCode code) {
 // }
 
 static bool peek(Parser *parser, Token token) {
+    EXP_ASSERT(parser != nullptr);
     return parser->curtok == token;
 }
 
 static bool comment(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
     // a comment starts with '/*' and lasts until
     // it's matching '*/'.
     // we handle any number of comment blocks to
@@ -124,6 +133,7 @@ static bool comment(Parser *parser) {
 }
 
 static bool nexttok(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
     if (lexer_at_end(&parser->lexer)) {
         parser->curtok = TOK_END;
         return true;
@@ -145,6 +155,7 @@ typedef enum ExpectResult {
 } ExpectResult;
 
 static ExpectResult expect(Parser *parser, Token token) {
+    EXP_ASSERT(parser != nullptr);
     if (!peek(parser, token)) { return EXPECT_RESULT_TOKEN_NOT_FOUND; }
     if (!nexttok(parser)) { return EXPECT_RESULT_FAILURE; }
     return EXPECT_RESULT_SUCCESS;
@@ -158,9 +169,9 @@ parse_precedence(Operand *result, Precedence precedence, Parser *parser);
 static bool parse_type(Type const **result, Parser *parser);
 
 static bool parse_tuple_type(Type const **result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(peek(parser, TOK_BEGIN_PAREN));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; } // eat '('
 
     TupleType tuple_type;
@@ -169,7 +180,7 @@ static bool parse_tuple_type(Type const **result, Parser *parser) {
     do {
         Type const *element = NULL;
         if (!parse_type(&element, parser)) { return false; }
-        assert(element != NULL);
+        EXP_ASSERT(element != NULL);
 
         tuple_type_append(&tuple_type, element);
 
@@ -201,8 +212,8 @@ static bool parse_tuple_type(Type const **result, Parser *parser) {
 }
 
 static bool parse_type(Type const **result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     switch (parser->curtok) {
     // composite types
     case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser);
@@ -226,13 +237,13 @@ static bool parse_type(Type const **result, Parser *parser) {
 
 // formal-argument = identifier ":" type
 static bool parse_formal_argument(Local *arg, Parser *parser) {
-    assert(arg != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(arg != nullptr);
+    EXP_ASSERT(parser != nullptr);
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_COLON)) {
@@ -245,17 +256,17 @@ static bool parse_formal_argument(Local *arg, Parser *parser) {
 
     Type const *type = NULL;
     if (!parse_type(&type, parser)) { return false; }
-    assert(type != NULL);
+    EXP_ASSERT(type != NULL);
 
-    local_update_label(arg, constant_string_to_view(name));
+    local_update_label(arg, name);
     local_update_type(arg, type);
     return true;
 }
 
 // formal-argument-list = "(" (formal-argument ("," formal-argument)*)? ")"
 static bool parse_formal_argument_list(Parser *parser) {
-    assert(parser != nullptr);
-    assert(parser->function != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
     // #note: the nil literal is spelled "()", which is
     // lexically identical to an empty argument list. so we parse it as such
     switch (expect(parser, TOK_NIL)) {
@@ -309,9 +320,9 @@ static bool parse_formal_argument_list(Parser *parser) {
 
 // return = "return" expression ";"
 static bool return_(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->function != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
     if (!nexttok(parser)) { return false; } // eat "return"
 
     if (!expression(result, parser)) { return false; }
@@ -332,15 +343,15 @@ static bool return_(Operand *result, Parser *parser) {
 
 // constant = "const" identifier "=" expression ";"
 static bool constant(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
     if (!nexttok(parser)) { return false; } // eat 'const'
 
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_EQUAL)) {
@@ -363,7 +374,7 @@ static bool constant(Operand *result, Parser *parser) {
 
     u32 ssa      = function_declare_local(parser->function);
     Local *local = function_local_at(parser->function, ssa);
-    local_update_label(local, constant_string_to_view(name));
+    local_update_label(local, name);
     function_append_instruction(parser->function,
                                 instruction_load(operand_ssa(ssa), *result));
     return true;
@@ -373,8 +384,8 @@ static bool constant(Operand *result, Parser *parser) {
 //           | constant
 //           | expression
 static bool statement(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     switch (parser->curtok) {
     case TOK_RETURN: return return_(result, parser);
     case TOK_CONST:  return constant(result, parser);
@@ -396,8 +407,8 @@ static bool statement(Operand *result, Parser *parser) {
 }
 
 static bool parse_block(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     switch (expect(parser, TOK_BEGIN_BRACE)) {
     case EXPECT_RESULT_SUCCESS: break;
     case EXPECT_RESULT_TOKEN_NOT_FOUND:
@@ -428,20 +439,19 @@ static bool parse_block(Operand *result, Parser *parser) {
 }
 
 static bool function(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(peek(parser, TOK_FN));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(peek(parser, TOK_FN));
     if (!nexttok(parser)) { return false; } // eat "fn"
 
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
-    Symbol *symbol =
-        context_symbol_table_at(parser->context, constant_string_to_view(name));
+    Symbol *symbol   = context_symbol_table_at(parser->context, name);
     parser->function = &symbol->function_body;
 
     if (!parse_formal_argument_list(parser)) { return false; }
@@ -458,6 +468,7 @@ static bool function(Operand *result, Parser *parser) {
 
     if (!parse_block(result, parser)) { return false; }
 
+    /*
 #ifndef NDEBUG
     file_write("parsed a function: \nfn ", stdout);
     file_write(name->buffer, stdout);
@@ -465,17 +476,18 @@ static bool function(Operand *result, Parser *parser) {
     string_initialize(&buffer);
     print_function(&buffer, parser->function, parser->context);
     file_write(string_to_cstring(&buffer), stdout);
-    string_destroy(&buffer);
+    string_terminate(&buffer);
     file_write("\n", stdout);
 #endif
+*/
 
     parser->function = nullptr;
     return true;
 }
 
 static bool definition(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     switch (parser->curtok) {
     case TOK_FN: return function(result, parser);
 
@@ -484,8 +496,8 @@ static bool definition(Operand *result, Parser *parser) {
 }
 
 static bool parse_tuple(Tuple *tuple, Parser *parser) {
-    assert(tuple != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(tuple != nullptr);
+    EXP_ASSERT(parser != nullptr);
     switch (expect(parser, TOK_NIL)) {
     case EXPECT_RESULT_SUCCESS:         return true;
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
@@ -493,7 +505,7 @@ static bool parse_tuple(Tuple *tuple, Parser *parser) {
     default:                            EXP_UNREACHABLE();
     }
 
-    assert(peek(parser, TOK_BEGIN_PAREN));
+    EXP_ASSERT(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_END_PAREN)) {
@@ -533,8 +545,8 @@ static bool parse_tuple(Tuple *tuple, Parser *parser) {
 }
 
 static bool parens(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     Tuple tuple;
     tuple_initialize(&tuple);
 
@@ -555,9 +567,9 @@ static bool parens(Operand *result, Parser *parser) {
 }
 
 static bool unop(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->function != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
     Token op = parser->curtok;
     if (!nexttok(parser)) { return false; }
 
@@ -577,9 +589,9 @@ static bool unop(Operand *result, Parser *parser) {
 }
 
 static bool binop(Operand *result, Operand left, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->function != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
 
     Token op        = parser->curtok;
     ParseRule *rule = get_rule(op);
@@ -639,10 +651,10 @@ static bool binop(Operand *result, Operand left, Parser *parser) {
 }
 
 static bool call(Operand *result, Operand left, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(parser->function != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
     Tuple argument_list;
     tuple_initialize(&argument_list);
 
@@ -659,20 +671,20 @@ static bool call(Operand *result, Operand left, Parser *parser) {
 
 /*
 static bool nil(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(peek(parser, TOK_NIL));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(peek(parser, TOK_NIL));
     if (!nexttok(parser)) { return false; }
     *result = context_constants_append(parser->context, value_create_nil());
     return true;
 }
 
 static bool boolean_true(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(peek(parser, TOK_TRUE));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(peek(parser, TOK_TRUE));
     if (!nexttok(parser)) { return false; }
     *result = context_constants_append(parser->context,
                                        value_initialize_boolean(true));
@@ -680,10 +692,10 @@ static bool boolean_true(Operand *result, Parser *parser) {
 }
 
 static bool boolean_false(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(peek(parser, TOK_FALSE));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
     *result =
         context_constants_append(parser->context, value_initialize_boolean(0));
@@ -692,10 +704,10 @@ static bool boolean_false(Operand *result, Parser *parser) {
 */
 
 static bool integer(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(peek(parser, TOK_INTEGER));
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(peek(parser, TOK_INTEGER));
     StringView sv = curtxt(parser);
     i64 value     = str_to_i64(sv.ptr, sv.length);
     if (!i64_in_range_i32(value)) {
@@ -710,29 +722,28 @@ static bool integer(Operand *result, Parser *parser) {
 }
 
 static bool identifier(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
-    assert(parser->context != nullptr);
-    assert(parser->function != nullptr);
-    assert(peek(parser, TOK_IDENTIFIER));
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
-    u32 label =
-        context_labels_append(parser->context, constant_string_to_view(name));
-    *result = operand_label(label);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(parser->function != nullptr);
+    EXP_ASSERT(peek(parser, TOK_IDENTIFIER));
+    StringView name = context_intern(parser->context, curtxt(parser));
+    u32 label       = context_labels_append(parser->context, name);
+    *result         = operand_label(label);
     if (!nexttok(parser)) { return false; }
     return true;
 }
 
 static bool expression(Operand *result, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     return parse_precedence(result, PREC_ASSIGNMENT, parser);
 }
 
 static bool
 parse_precedence(Operand *result, Precedence precedence, Parser *parser) {
-    assert(result != nullptr);
-    assert(parser != nullptr);
+    EXP_ASSERT(result != nullptr);
+    EXP_ASSERT(parser != nullptr);
     ParseRule *rule = get_rule(parser->curtok);
     if (rule->prefix == NULL) {
         return error(parser, ERROR_PARSER_EXPECTED_EXPRESSION);
@@ -810,45 +821,55 @@ static ParseRule *get_rule(Token token) {
     return &rules[token];
 }
 
-i32 parse_buffer(char const *buffer, u64 length, Context *context) {
-    assert(buffer != NULL);
-    assert(context != NULL);
+ExpResult parse_buffer(char const *buffer, u64 length, Context *context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
 
     Parser parser;
     parser_initialize(&parser, context);
     parser_set_view(&parser, buffer, length);
 
     if (!nexttok(&parser)) {
-        error_print(context_current_error(context),
+        String buffer;
+        string_initialize(&buffer);
+        print_error(&buffer,
+                    context_current_error(context),
                     context_source_path(context),
                     curline(&parser));
-        return EXIT_FAILURE;
+        file_write(string_to_view(&buffer), program_error);
+        string_terminate(&buffer);
+        return EXP_FAILURE;
     }
 
     while (!finished(&parser)) {
         Operand result;
         if (!definition(&result, &parser)) {
-            error_print(context_current_error(context),
+            String buffer;
+            string_initialize(&buffer);
+            print_error(&buffer,
+                        context_current_error(context),
                         context_source_path(context),
                         curline(&parser));
-            return EXIT_FAILURE;
+            file_write(string_to_view(&buffer), program_error);
+            string_terminate(&buffer);
+            return EXP_FAILURE;
         }
     }
 
-    return EXIT_SUCCESS;
+    return EXP_SUCCESS;
 }
 
-i32 parse_source(Context *context) {
-    assert(context != NULL);
+ExpResult parse_source(Context *context) {
+    EXP_ASSERT(context != NULL);
     StringView path = context_source_path(context);
-    FILE *file      = file_open(path.ptr, "r");
-    u64 length      = file_length(file);
+    File file       = file_open(path, FILEMODE_READ);
+    u64 length      = file_length(&file);
     String buffer;
     string_resize(&buffer, length);
-    file_read(string_data(&buffer), length, file);
-    file_close(file);
-    i32 result =
+    file_read(string_data(&buffer), length, &file);
+    file_close(&file);
+    ExpResult result =
         parse_buffer(string_to_cstring(&buffer), buffer.length, context);
-    string_destroy(&buffer);
+    string_terminate(&buffer);
     return result;
 }

@@ -30,7 +30,7 @@ ExpResult assemble(Context *context) {
         asm_path.ptr,
         "-o",
         obj_path.ptr,
-        NULL,
+        nullptr,
     };
 
     if (process("as", args) != EXIT_SUCCESS) return EXP_FAILURE;

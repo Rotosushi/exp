@@ -16,22 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stdlib.h>
+// #include <EXP_ASSERT.h>
+// #include <stdlib.h>
 
 #include "env/constants.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/assert.h"
 
 void constants_initialize(Constants *constants) {
-    assert(constants != nullptr);
+    EXP_ASSERT(constants != nullptr);
     constants->count    = 0;
     constants->capacity = 0;
     constants->buffer   = NULL;
 }
 
 void constants_terminate(Constants *constants) {
-    assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     for (u32 i = 0; i < constants->count; ++i) {
         Value *constant = constants->buffer + i;
         value_terminate(constant);
@@ -44,32 +45,32 @@ void constants_terminate(Constants *constants) {
 }
 
 Value *constants_at(Constants *constants, u32 constant) {
-    assert(constants != nullptr);
-    assert(constant < constants->count);
+    EXP_ASSERT(constants != nullptr);
+    EXP_ASSERT(constant < constants->count);
     return constants->buffer + constant;
 }
 
 static bool constants_full(Constants *constants) {
-    assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     return (constants->count + 1) >= constants->capacity;
 }
 
 static void constants_grow(Constants *constants) {
-    assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     Growth32 g          = array_growth_u32(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
     constants->capacity = g.new_capacity;
 }
 
 u32 constants_append_tuple(Constants *constants, Tuple tuple) {
-    assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
 
     Value value;
     value_initialize_tuple(&value, tuple);
 
     for (u32 index = 0; index < constants->count; ++index) {
         Value *cursor = constants->buffer + index;
-        assert(cursor != nullptr);
+        EXP_ASSERT(cursor != nullptr);
 
         if (value_equality(cursor, &value)) {
             value_terminate(&value);

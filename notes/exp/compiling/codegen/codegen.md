@@ -57,5 +57,15 @@ the phases of a typical SSA-based register allocator
 -----
 
 
+The design we had initially is one where we take the Abstract IR and lower that into a target specific IR. then we lower that into the target assembly. This works, really well in fact.
+The only issue I have with it is that we have to repeat all of the high level structures of the 
+abstract IR, such as functions, in this target specific IR (thus duplicating all of the allocations, and memory overhead, when we already have to allocate the full string of input source text and output assembly). We did remove some high level structure, such as removing any arguments or results from the call instruction, and being explicit about stack usage. But I have this feeling like we aren't getting all that much value from this 
+repetition, and there must be some way of lowering from the abstract IR directly. 
+For instance, is every target architecture supposed to repeat the IR pattern? 
+That seems like way too much work, why can't we just associate an abstract IR instruction 
+with a pattern of machine instructions? then we can just describe the patterns of a given 
+target architecture and emit directly from the abstract IR. achieving target independence 
+for instruction selection and scheduling. 
+
 
 

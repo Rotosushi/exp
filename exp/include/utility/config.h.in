@@ -30,9 +30,11 @@
 #cmakedefine EXP_HOST_SYSTEM_LINUX
 #cmakedefine EXP_HOST_SYSTEM_WINDOWS
 #cmakedefine EXP_HOST_SYSTEM_APPLE
-#cmakedefine EXP_HOST_CPU_x64
+#cmakedefine EXP_HOST_CPU_X86_64
 
 #define EXP_VERSION_STRING "${EXP_VERSION_STRING}"
+
+#cmakedefine EXP_REMOVE_ASSERTS
 // NOLINTEND
 // clang-format on
 

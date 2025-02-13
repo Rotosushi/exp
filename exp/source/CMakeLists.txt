@@ -9,12 +9,17 @@ set(EXP_UTILITY_SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/int_types.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
+  ${EXP_SOURCE_DIR}/utility/memory.c
   ${EXP_SOURCE_DIR}/utility/minmax.c
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
   ${EXP_SOURCE_DIR}/utility/panic.c
   ${EXP_SOURCE_DIR}/utility/process.c
+  ${EXP_SOURCE_DIR}/utility/pseudo_random.c
+  ${EXP_SOURCE_DIR}/utility/string.c
   ${EXP_SOURCE_DIR}/utility/string_view.c
+
+  ${EXP_SOURCE_DIR}/utility/syscall/exit.c
 )
 
 add_library(exp_utility
@@ -28,7 +33,6 @@ target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
 
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
-  ${EXP_SOURCE_DIR}/adt/string.c
 
   ${EXP_SOURCE_DIR}/analysis/allocation.c
   ${EXP_SOURCE_DIR}/analysis/finalize.c
@@ -71,23 +75,14 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/targets/ir/emit.c
 
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/add.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/call.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/idiv.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/imul.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/lea.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/mov.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/neg.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/pop.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/push.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/ret.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/instructions/sub.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/address.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/as_directives.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/imr/address.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/imr/block.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/imr/instruction.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/imr/operand.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/imr/registers.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/print/gnu_as_directives.c
   ${EXP_SOURCE_DIR}/targets/x86_64/emit.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/mnemonic.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/operand.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/registers.c
+  ${EXP_SOURCE_DIR}/targets/x86_64/print/mnemonic.c
 )
 
 add_library(exp_common

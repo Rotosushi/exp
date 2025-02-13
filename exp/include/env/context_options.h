@@ -17,8 +17,8 @@
 #ifndef EXP_ENV_OPTIONS_H
 #define EXP_ENV_OPTIONS_H
 
-#include "adt/string.h"
 #include "utility/bitset.h"
+#include "utility/string.h"
 
 typedef enum ContextOption {
     CONTEXT_OPTION_EMIT_IR_ASSEMBLY,

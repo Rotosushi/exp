@@ -17,8 +17,8 @@
 #ifndef EXP_UTILITY_CLI_OPTIONS_H
 #define EXP_UTILITY_CLI_OPTIONS_H
 
-#include "adt/string.h"
 #include "utility/bitset.h"
+#include "utility/string.h"
 
 typedef enum CLIFlag {
     CLI_EMIT_IR_ASSEMBLY,

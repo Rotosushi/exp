@@ -1,9 +1,10 @@
 
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "analysis/allocation.h"
 #include "env/context.h"
 // #include "utility/unreachable.h"
+#include "utility/assert.h"
 
 typedef struct Subject {
     //    LocalAllocator *allocator;
@@ -13,9 +14,9 @@ typedef struct Subject {
 
 static void
 subject_initialize(Subject *subject, Function *function, Context *context) {
-    assert(subject != nullptr);
-    assert(function != nullptr);
-    assert(context != nullptr);
+    EXP_ASSERT(subject != nullptr);
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
     //  subject->allocator = &function->allocator;
     subject->function = function;
     subject->context  = context;
@@ -29,16 +30,16 @@ subject_initialize(Subject *subject, Function *function, Context *context) {
 }
 
 Local *local_from_operand_A(Instruction *instruction, Subject *subject) {
-    assert(instruction != nullptr);
-    assert(nonnull_subject(subject));
-    assert(instruction->A_kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
+    EXP_ASSERT(instruction->A_kind == OPERAND_KIND_SSA);
     return function_local_at(subject->function, instruction->A_data.ssa);
 }
 
 static void
 allocate_A(Instruction *instruction, u32 block_index, Subject *subject) {
-    assert(instruction != nullptr);
-    assert(nonnull_subject(subject));
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
     Local *local = local_from_operand_A(instruction, subject);
     function_allocate_local(subject->function, local, block_index);
 }
@@ -46,24 +47,24 @@ allocate_A(Instruction *instruction, u32 block_index, Subject *subject) {
 static void allocate_instruction(Instruction *instruction,
                                  u32 block_index,
                                  Subject *subject) {
-    assert(instruction != nullptr);
-    assert(nonnull_subject(subject));
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
     allocate_A(instruction, block_index, subject);
 }
 
 static void allocate_formal_arguments(Subject *subject) {
-    assert(nonnull_subject(subject));
+    EXP_ASSERT(nonnull_subject(subject));
     FormalArgumentList *formal_arguments = &subject->function->arguments;
     for (u8 index = 0; index < formal_arguments->size; ++index) {
         Local *argument = formal_arguments->list[index];
-        assert(argument != nullptr);
+        EXP_ASSERT(argument != nullptr);
         function_allocate_local(subject->function, argument, 0);
     }
 }
 
 void allocate_locals(Function *function, Context *context) {
-    assert(function != nullptr);
-    assert(context != nullptr);
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
     Subject subject;
     subject_initialize(&subject, function, context);
 

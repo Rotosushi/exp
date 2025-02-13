@@ -20,11 +20,12 @@
 #define EXP_ANALYSIS_FINALIZE_H
 
 #include "imr/function.h"
+#include "utility/result.h"
 
 /**
  * @brief infers the type, lifetime, and location
  * of each local variable within the function.
  */
-i32 finalize_function(Function *function, struct Context *context);
+ExpResult finalize_function(Function *function, struct Context *context);
 
 #endif // !EXP_ANALYSIS_FINALIZE_H

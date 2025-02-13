@@ -16,21 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stdlib.h>
+// #include <assert.h>
+// #include <stdlib.h>
 
-#include "analysis/allocation.h"
 #include "analysis/finalize.h"
+#include "analysis/allocation.h"
 #include "analysis/infer_types.h"
 #include "analysis/lifetimes.h"
+#include "utility/assert.h"
 
-i32 finalize_function(Function *function, struct Context *context) {
-    assert(function != nullptr);
-    assert(context != nullptr);
-    if (infer_types_of_locals(function, context) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+ExpResult finalize_function(Function *function, struct Context *context) {
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
+    if (infer_types_of_locals(function, context) != EXP_SUCCESS) {
+        return EXP_FAILURE;
     }
     analyze_lifetimes_of_locals(function, context);
     allocate_locals(function, context);
-    return EXIT_SUCCESS;
+    return EXP_SUCCESS;
 }

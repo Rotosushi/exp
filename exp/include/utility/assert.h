@@ -17,10 +17,12 @@
 #ifndef EXP_UTILITY_ASSERT_H
 #define EXP_UTILITY_ASSERT_H
 
-#ifndef NDEBUG
+#include "utility/config.h"
+
+#ifndef EXP_REMOVE_ASSERTS
 #include "utility/break.h"
-#define EXP_ASSERT(expression) (expression) ? 1 : EXP_BREAK()
-#else 
+#define EXP_ASSERT(expression) ((expression) || (EXP_BREAK(), 1))
+#else
 #define EXP_ASSERT(expression)
 #endif
 

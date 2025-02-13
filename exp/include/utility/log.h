@@ -17,15 +17,13 @@
 #ifndef EXP_UTILITY_LOG_MESSAGE_H
 #define EXP_UTILITY_LOG_MESSAGE_H
 
-#include <stdio.h>
-
-#include "utility/int_types.h"
+#include "utility/io.h"
 
 typedef enum LogLevel {
-  LOG_FATAL,
-  LOG_ERROR,
-  LOG_WARNING,
-  LOG_STATUS
+    LOG_FATAL,
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_STATUS
 } LogLevel;
 
 /**
@@ -43,7 +41,7 @@ typedef enum LogLevel {
 void log_message(LogLevel level,
                  const char *restrict file,
                  u64 line,
-                 const char *restrict message,
-                 FILE *restrict stream);
+                 StringView message,
+                 struct File *stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

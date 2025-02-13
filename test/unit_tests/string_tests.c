@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "adt/string.h"
+#include "utility/string.h"
 
 // returns true on failure
 bool test_string_assign(StringView sv) {
@@ -32,7 +32,7 @@ bool test_string_assign(StringView sv) {
         failed = 0;
     }
 
-    string_destroy(&str);
+    string_terminate(&str);
     return failed;
 }
 
@@ -59,7 +59,7 @@ bool test_string_to_view(StringView sv) {
         failed |= 0;
     }
 
-    string_destroy(&str);
+    string_terminate(&str);
     return failed;
 }
 
@@ -78,7 +78,7 @@ bool test_string_append(StringView sv0, StringView sv1, StringView sv2) {
         failure = 0;
     }
 
-    string_destroy(&str);
+    string_terminate(&str);
     return failure;
 }
 
@@ -98,7 +98,7 @@ bool test_string_erase(StringView sv0, u64 offset, u64 length, StringView sv1) {
         failure = 0;
     }
 
-    string_destroy(&str);
+    string_terminate(&str);
     return failure;
 }
 
@@ -121,7 +121,25 @@ bool test_string_insert(StringView sv0,
         failure = 0;
     }
 
-    string_destroy(&str);
+    string_terminate(&str);
+    return failure;
+}
+
+bool test_string_extension(StringView view, StringView extension) {
+    String string;
+    string_initialize(&string);
+    string_assign(&string, view);
+
+    StringView computed = string_extension(&string);
+
+    bool failure = false;
+    if (!string_view_equality(computed, extension)) {
+        failure = true;
+    } else {
+        failure = false;
+    }
+
+    string_terminate(&string);
     return failure;
 }
 
@@ -152,6 +170,8 @@ i32 string_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
 
     failure |=
         test_string_insert(SV("hello"), 4, SV(", world!"), SV("hell, world!"));
+
+    failure |= test_string_extension(SV("hello.txt"), SV(".txt"));
 
     if (failure) {
         return 1;

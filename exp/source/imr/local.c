@@ -1,10 +1,11 @@
 
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "imr/local.h"
+#include "utility/assert.h"
 
 void local_initialize(Local *local) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->type     = nullptr;
     local->label    = string_view_create();
     local->location = location_create();
@@ -12,26 +13,26 @@ void local_initialize(Local *local) {
 }
 
 void local_update_type(Local *local, Type const *type) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->type = type;
 }
 
 void local_update_label(Local *local, StringView label) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->label = label;
 }
 
 void local_update_location(Local *local, Location location) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->location = location;
 }
 
 void local_update_first_use(Local *local, u32 first_use) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->lifetime.first_use = first_use;
 }
 
 void local_update_last_use(Local *local, u32 last_use) {
-    assert(local != nullptr);
+    EXP_ASSERT(local != nullptr);
     local->lifetime.last_use = last_use;
 }

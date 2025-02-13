@@ -19,9 +19,9 @@
 
 #include "utility/int_types.h"
 
-typedef enum ExpResult : u32 {
-    EXP_SUCCESS,
-    EXP_FAILURE,
+typedef enum ExpResult : i32 {
+    EXP_SUCCESS = 0x0,
+    EXP_FAILURE = 0x1,
 } ExpResult;
 
 #endif // EXP_UTILITY_RESULT_H

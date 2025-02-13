@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <stddef.h>
+// #include <stddef.h>
 
-#include "env/context.h"
 #include "imr/operand.h"
+#include "env/context.h"
 #include "utility/unreachable.h"
 
 Operand operand_construct(OperandKind kind, OperandData data) {

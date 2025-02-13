@@ -16,24 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 // #include <string.h>
 
-#include "env/context.h"
 #include "imr/value.h"
+#include "env/context.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 void tuple_initialize(Tuple *tuple) {
-    assert(tuple != nullptr);
+    EXP_ASSERT(tuple != nullptr);
     tuple->capacity = 0;
     tuple->size     = 0;
     tuple->elements = nullptr;
 }
 
 void tuple_terminate(Tuple *tuple) {
-    assert(tuple != nullptr);
+    EXP_ASSERT(tuple != nullptr);
     deallocate(tuple->elements);
     tuple->elements = nullptr;
     tuple->capacity = 0;
@@ -41,8 +42,8 @@ void tuple_terminate(Tuple *tuple) {
 }
 /*
 void tuple_assign(Tuple *A, Tuple *B) {
-    assert(A != nullptr);
-    assert(B != nullptr);
+    EXP_ASSERT(A != nullptr);
+    EXP_ASSERT(B != nullptr);
     tuple_terminate(A);
     A->capacity = B->capacity;
     A->size     = B->size;
@@ -53,6 +54,8 @@ void tuple_assign(Tuple *A, Tuple *B) {
 */
 
 bool tuple_equal(Tuple *A, Tuple *B) {
+    EXP_ASSERT(A != nullptr);
+    EXP_ASSERT(B != nullptr);
     if (A->size != B->size) { return 0; }
 
     for (u32 i = 0; i < A->size; ++i) {
@@ -63,16 +66,19 @@ bool tuple_equal(Tuple *A, Tuple *B) {
 }
 
 static bool tuple_full(Tuple *tuple) {
+    EXP_ASSERT(tuple != nullptr);
     return (tuple->size + 1) >= tuple->capacity;
 }
 
 static void tuple_grow(Tuple *tuple) {
+    EXP_ASSERT(tuple != nullptr);
     Growth32 g = array_growth_u32(tuple->capacity, sizeof(*tuple->elements));
     tuple->elements = reallocate(tuple->elements, g.alloc_size);
     tuple->capacity = g.new_capacity;
 }
 
 void tuple_append(Tuple *tuple, Operand element) {
+    EXP_ASSERT(tuple != nullptr);
     if (tuple_full(tuple)) { tuple_grow(tuple); }
 
     tuple->elements[tuple->size] = element;
@@ -80,13 +86,13 @@ void tuple_append(Tuple *tuple, Operand element) {
 }
 
 void value_initialize(Value *value) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     value->kind = VALUE_KIND_UNINITIALIZED;
     //    value->nil  = 0;
 }
 
 void value_terminate(Value *value) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     switch (value->kind) {
     case VALUE_KIND_TUPLE: {
         tuple_terminate(&value->tuple);
@@ -100,26 +106,26 @@ void value_terminate(Value *value) {
 
 /*
 void value_initialize_nil(Value *value) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     value->kind = VALUE_KIND_NIL;
     value->nil  = 0;
 }
 
 void value_initialize_boolean(Value *value, bool bool_) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     value->kind    = VALUE_KIND_BOOLEAN;
     value->boolean = bool_;
 }
 */
 
 void value_initialize_i32(Value *value, i32 i32_) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     value->kind = VALUE_KIND_I32;
     value->i32_ = i32_;
 }
 
 void value_initialize_tuple(Value *value, Tuple tuple) {
-    assert(value != nullptr);
+    EXP_ASSERT(value != nullptr);
     value->kind  = VALUE_KIND_TUPLE;
     value->tuple = tuple;
 }
@@ -145,6 +151,8 @@ tuple_initialize()}; tuple_assign(&target->tuple, &source->tuple); break;
 */
 
 bool value_equality(Value *A, Value *B) {
+    EXP_ASSERT(A != nullptr);
+    EXP_ASSERT(B != nullptr);
     if (A == B) { return true; }
     if (A->kind != B->kind) { return false; }
 
@@ -164,6 +172,9 @@ bool value_equality(Value *A, Value *B) {
 }
 
 static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
+    EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(tuple != nullptr);
+    EXP_ASSERT(context != nullptr);
     string_append(buffer, SV("("));
     for (u32 i = 0; i < tuple->size; ++i) {
         Operand element = tuple->elements[i];
@@ -174,8 +185,11 @@ static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
     string_append(buffer, SV(")"));
 }
 
-void print_value(String *buffer, Value const *v, Context *context) {
-    switch (v->kind) {
+void print_value(String *buffer, Value const *value, Context *context) {
+    EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(value != nullptr);
+    EXP_ASSERT(context != nullptr);
+    switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED:
         string_append(buffer, SV("uninitialized"));
         break;
@@ -190,8 +204,8 @@ void print_value(String *buffer, Value const *v, Context *context) {
         }
             */
 
-    case VALUE_KIND_I32:   string_append_i64(buffer, v->i32_); break;
-    case VALUE_KIND_TUPLE: print_tuple(buffer, &v->tuple, context); break;
+    case VALUE_KIND_I32:   string_append_i64(buffer, value->i32_); break;
+    case VALUE_KIND_TUPLE: print_tuple(buffer, &value->tuple, context); break;
 
     default: EXP_UNREACHABLE();
     }

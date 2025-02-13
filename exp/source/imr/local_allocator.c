@@ -1,21 +1,22 @@
 
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "imr/local_allocator.h"
 #include "intrinsics/size_of.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 static void locals_initialize(Locals *locals) {
-    assert(locals != nullptr);
+    EXP_ASSERT(locals != nullptr);
     locals->count    = 0;
     locals->capacity = 0;
     locals->buffer   = nullptr;
 }
 
 static void locals_terminate(Locals *locals) {
-    assert(locals != nullptr);
+    EXP_ASSERT(locals != nullptr);
     deallocate(locals->buffer);
     locals->count    = 0;
     locals->capacity = 0;
@@ -23,19 +24,19 @@ static void locals_terminate(Locals *locals) {
 }
 
 static bool locals_full(Locals *locals) {
-    assert(locals != nullptr);
+    EXP_ASSERT(locals != nullptr);
     return (locals->count + 1) >= locals->capacity;
 }
 
 static void locals_grow(Locals *locals) {
-    assert(locals != nullptr);
+    EXP_ASSERT(locals != nullptr);
     Growth32 g       = array_growth_u32(locals->capacity, sizeof(Local));
     locals->buffer   = reallocate(locals->buffer, g.alloc_size);
     locals->capacity = g.new_capacity;
 }
 
 static u32 locals_allocate(Locals *locals) {
-    assert(locals != nullptr);
+    EXP_ASSERT(locals != nullptr);
 
     if (locals_full(locals)) { locals_grow(locals); }
 
@@ -46,15 +47,15 @@ static u32 locals_allocate(Locals *locals) {
 }
 
 static Local *locals_at(Locals *locals, u32 index) {
-    assert(locals != nullptr);
-    assert(index < locals->count);
+    EXP_ASSERT(locals != nullptr);
+    EXP_ASSERT(index < locals->count);
     return locals->buffer + index;
 }
 
 /*
 static Local *locals_at_name(Locals *locals, StringView name) {
-    assert(locals != nullptr);
-    assert(!string_view_empty(name));
+    EXP_ASSERT(locals != nullptr);
+    EXP_ASSERT(!string_view_empty(name));
     for (u64 index = 0; index < locals->count; ++index) {
         Local *cursor = locals->buffer[index];
         if (string_view_equality(cursor->label, name)) { return cursor; }
@@ -64,42 +65,42 @@ static Local *locals_at_name(Locals *locals, StringView name) {
 */
 
 void local_allocator_initialize(LocalAllocator *allocator) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     locals_initialize(&allocator->locals);
 }
 
 void local_allocator_terminate(LocalAllocator *allocator) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     locals_terminate(&allocator->locals);
 }
 
 u32 local_allocator_declare_ssa(LocalAllocator *allocator) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     return locals_allocate(&allocator->locals);
 }
 
 Local *local_allocator_at(LocalAllocator *allocator, u32 ssa) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     return locals_at(&allocator->locals, ssa);
 }
 
 /*
 Local *local_allocator_at_name(LocalAllocator *allocator, StringView name) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     return locals_at_name(&allocator->locals, name);
 }
 */
 
 static void deallocate_register(LocalAllocator *allocator, u32 position) {
-    assert(allocator != nullptr);
-    assert(position < bitset_length());
-    assert(bitset_check_bit(&allocator->registers, (u8)position));
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(position < bitset_length());
+    EXP_ASSERT(bitset_check_bit(&allocator->registers, (u8)position));
     bitset_clear_bit(&allocator->registers, (u8)position);
 }
 
 static void deallocate_local(LocalAllocator *allocator, Local *local) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
     switch (local->location.kind) {
     case LOCATION_UNINITIALIZED: EXP_UNREACHABLE();
     case LOCATION_GENERAL_PURPOSE_REGISTER:
@@ -116,7 +117,7 @@ static void deallocate_local(LocalAllocator *allocator, Local *local) {
 
 static void deallocate_expired_locals(LocalAllocator *allocator,
                                       u32 block_index) {
-    assert(allocator != nullptr);
+    EXP_ASSERT(allocator != nullptr);
     Locals *locals = &allocator->locals;
     for (u32 index = 0; index < locals->count; ++index) {
         Local *local = locals->buffer + index;
@@ -127,13 +128,13 @@ static void deallocate_expired_locals(LocalAllocator *allocator,
 }
 
 static bool first_available_register(LocalAllocator *allocator, u8 *register_) {
-    assert(allocator != nullptr);
-    assert(register_ != nullptr);
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(register_ != nullptr);
 
     u32 bits = ~allocator->registers.bits;
     if (bits == 0) return false;
     int index = __builtin_ctz(bits);
-    assert(index < bitset_length());
+    EXP_ASSERT(index < bitset_length());
     *register_ = (u8)index;
     return true;
     // for (u8 index = 0; index < bitset_length(); ++index) {
@@ -145,9 +146,9 @@ static bool first_available_register(LocalAllocator *allocator, u8 *register_) {
 }
 
 static bool register_allocate(LocalAllocator *allocator, Local *local) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
     if (size_of(local->type) > 8) { return false; }
     u8 register_;
     if (!first_available_register(allocator, &register_)) { return false; }
@@ -157,9 +158,9 @@ static bool register_allocate(LocalAllocator *allocator, Local *local) {
 }
 
 static void stack_allocate(LocalAllocator *allocator, Local *local) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
     local_update_location(local, location_stack_slot(allocator->stack_slots++));
 }
 
@@ -169,38 +170,38 @@ static void stack_allocate(LocalAllocator *allocator, Local *local) {
 //  slots.
 /*
 void local_allocator_allocate_result(LocalAllocator *allocator, Local *local) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
-    assert(false); // #TODO:
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
+    EXP_ASSERT(false); // #TODO:
 }
 
 void local_allocator_allocate_formal_argument(LocalAllocator *allocator,
                                               Local *local,
                                               u8 argument_index) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
-    assert(false); // #TODO:
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
+    EXP_ASSERT(false); // #TODO:
 }
 
 void local_allocator_allocate_actual_argument(LocalAllocator *allocator,
                                               Local *local,
                                               u8 argument_index,
                                               u32 block_index) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
-    assert(false); // #TODO:
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
+    EXP_ASSERT(false); // #TODO:
 }
 */
 
 void local_allocator_allocate_local(LocalAllocator *allocator,
                                     Local *local,
                                     u32 block_index) {
-    assert(allocator != nullptr);
-    assert(local != nullptr);
-    assert(local->type != nullptr);
+    EXP_ASSERT(allocator != nullptr);
+    EXP_ASSERT(local != nullptr);
+    EXP_ASSERT(local->type != nullptr);
 
     deallocate_expired_locals(allocator, block_index);
 

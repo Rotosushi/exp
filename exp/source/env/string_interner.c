@@ -16,25 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 #include <math.h>
 
 #include "env/string_interner.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/assert.h"
 #include "utility/hash.h"
 
 #define STRING_INTERNER_MAX_LOAD 0.75
 
 void string_interner_initialize(StringInterner *string_interner) {
-    assert(string_interner != nullptr);
+    EXP_ASSERT(string_interner != nullptr);
     string_interner->count    = 0;
     string_interner->capacity = 0;
     string_interner->buffer   = nullptr;
 }
 
 void string_interner_terminate(StringInterner *string_interner) {
-    assert(string_interner != nullptr);
+    EXP_ASSERT(string_interner != nullptr);
 
     if (string_interner->buffer == nullptr) {
         string_interner->capacity = 0;
@@ -108,9 +109,9 @@ static bool string_interner_full(StringInterner *string_interner) {
     return (string_interner->count + 1) >= load_limit;
 }
 
-ConstantString *string_interner_insert(StringInterner *string_interner,
-                                       StringView view) {
-    assert(string_interner != nullptr);
+StringView string_interner_insert(StringInterner *string_interner,
+                                  StringView view) {
+    EXP_ASSERT(string_interner != nullptr);
     if (string_interner_full(string_interner)) {
         string_interner_grow(string_interner);
     }
@@ -119,9 +120,9 @@ ConstantString *string_interner_insert(StringInterner *string_interner,
                                                     string_interner->capacity,
                                                     view.length,
                                                     view.ptr);
-    if (*element != nullptr) { return *element; }
+    if (*element != nullptr) { return constant_string_to_view(*element); }
 
     string_interner->count++;
     *element = constant_string_allocate(view);
-    return *element;
+    return constant_string_to_view(*element);
 }

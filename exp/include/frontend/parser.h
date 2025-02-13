@@ -18,6 +18,7 @@
 #define EXP_FRONTEND_PARSER_H
 
 #include "env/context.h"
+#include "utility/result.h"
 
 /*
   definition = "fn" identifier formal-args "->" type body
@@ -55,8 +56,8 @@
  * @param context the context to parse within
  * @return i32 EXIT_FAILURE or EXIT_SUCCESS
  */
-i32 parse_buffer(char const *buffer, u64 length, Context *context);
+ExpResult parse_buffer(char const *buffer, u64 length, Context *context);
 
-i32 parse_source(Context *context);
+ExpResult parse_source(Context *context);
 
 #endif // !EXP_FRONTEND_PARSER_H

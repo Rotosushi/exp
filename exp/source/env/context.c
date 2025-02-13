@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "env/context.h"
+#include "utility/assert.h"
 
 void context_initialize(Context *context,
                         Bitset flags,
                         StringView source,
                         StringView output) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     context_options_initialize(&context->options, flags, source, output);
     string_interner_initialize(&context->string_interner);
     type_interner_initialize(&context->type_interner);
@@ -35,7 +36,7 @@ void context_initialize(Context *context,
 }
 
 void context_terminate(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     context_options_terminate(&(context->options));
     string_interner_terminate(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
@@ -46,127 +47,127 @@ void context_terminate(Context *context) {
 }
 
 bool context_emit_ir_assembly(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_emit_ir_assembly(&context->options);
 }
 
 bool context_emit_x86_64_assembly(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_emit_x86_64_assembly(&context->options);
 }
 
 bool context_create_elf_object(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_create_elf_object(&context->options);
 }
 
 bool context_create_elf_executable(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_create_elf_executable(&context->options);
 }
 
 bool context_cleanup_x86_64_assembly(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_cleanup_target_assembly(&context->options);
 }
 
 bool context_cleanup_elf_object(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context_options_cleanup_elf_object(&context->options);
 }
 
 StringView context_source_path(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&(context->options.source));
 }
 
 StringView context_ir_path(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&context->options.ir_assembly);
 }
 
 StringView context_assembly_path(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&context->options.assembly);
 }
 
 StringView context_object_path(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&context->options.object);
 }
 
 StringView context_output_path(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&(context->options.output));
 }
 
 Error *context_current_error(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return &context->current_error;
 }
 
 bool context_has_error(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->current_error.code != ERROR_NONE;
 }
 
-ConstantString *context_intern(Context *context, StringView sv) {
-    assert(context != nullptr);
+StringView context_intern(Context *context, StringView sv) {
+    EXP_ASSERT(context != nullptr);
     return string_interner_insert(&(context->string_interner), sv);
 }
 
 /*
 Type const *context_nil_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
 Type const *context_boolean_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_boolean_type(&(context->type_interner));
 }
 */
 
 Type const *context_i32_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_i32_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TupleType tuple) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
 Type const *context_function_type(Context *context,
                                   Type const *return_type,
                                   TupleType argument_types) {
-    assert(context != nullptr);
-    assert(return_type != nullptr);
+    EXP_ASSERT(context != nullptr);
+    EXP_ASSERT(return_type != nullptr);
     return type_interner_function_type(
         &context->type_interner, return_type, argument_types);
 }
 
 Symbol *context_symbol_table_at(Context *context, StringView name) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return symbol_table_at(&context->symbol_table, name);
 }
 
 u32 context_labels_append(Context *context, StringView label) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return labels_insert(&context->labels, label);
 }
 
 StringView context_labels_at(Context *context, u32 label) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return labels_at(&context->labels, label);
 }
 
 Value *context_constants_at(Context *context, u32 constant) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return constants_at(&context->constants, constant);
 }
 
 u32 context_constants_append_tuple(Context *context, Tuple tuple) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return constants_append_tuple(&(context->constants), tuple);
 }

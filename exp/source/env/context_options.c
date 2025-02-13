@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
+// #include <EXP_ASSERT.h>
 
 #include "env/context_options.h"
+#include "utility/assert.h"
 
 void context_options_initialize(ContextOptions *context_options,
                                 Bitset flags,
                                 StringView source,
                                 StringView output) {
-    assert(context_options != nullptr);
+    EXP_ASSERT(context_options != nullptr);
 
     context_options->flags = flags;
 
@@ -54,43 +55,43 @@ void context_options_initialize(ContextOptions *context_options,
 }
 
 void context_options_terminate(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     options->flags = bitset_create();
-    string_destroy(&options->source);
-    string_destroy(&options->assembly);
-    string_destroy(&options->object);
-    string_destroy(&options->output);
+    string_terminate(&options->source);
+    string_terminate(&options->assembly);
+    string_terminate(&options->object);
+    string_terminate(&options->output);
 }
 
 bool context_options_emit_ir_assembly(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags, CONTEXT_OPTION_EMIT_IR_ASSEMBLY);
 }
 
 bool context_options_emit_x86_64_assembly(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags,
                             CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY);
 }
 
 bool context_options_create_elf_object(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags, CONTEXT_OPTION_CREATE_ELF_OBJECT);
 }
 
 bool context_options_create_elf_executable(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags,
                             CONTEXT_OPTION_CREATE_ELF_EXECUTABLE);
 }
 
 bool context_options_cleanup_target_assembly(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags,
                             CONTEXT_OPTION_CLEANUP_TARGET_ASSEMBLY);
 }
 
 bool context_options_cleanup_elf_object(ContextOptions *options) {
-    assert(options != nullptr);
+    EXP_ASSERT(options != nullptr);
     return bitset_check_bit(&options->flags, CONTEXT_OPTION_CLEANUP_ELF_OBJECT);
 }

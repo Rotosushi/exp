@@ -23,7 +23,7 @@
 #include "utility/int_types.h"
 
 /**
- * @brief a fixed size bitset with capacity of 64 set members.
+ * @brief a fixed size bitset with capacity set members.
  */
 typedef struct Bitset {
     u32 bits;
