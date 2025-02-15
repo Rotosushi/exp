@@ -1,19 +1,6 @@
-// Copyright (C) 2024 Cade Weinberg
-//
-// This file is part of exp.
-//
-// exp is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// exp is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright 2025 Cade Weinberg. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
@@ -47,9 +34,7 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-void context_initialize(Context *context,
-                        Bitset flags,
-                        StringView source,
+void context_initialize(Context *context, Bitset flags, StringView source,
                         StringView output);
 void context_terminate(Context *context);
 
@@ -81,8 +66,7 @@ StringView context_intern(Context *context, StringView sv);
 // Type const *context_boolean_type(Context *context);
 Type const *context_i32_type(Context *context);
 Type const *context_tuple_type(Context *context, TupleType tuple);
-Type const *context_function_type(Context *context,
-                                  Type const *return_type,
+Type const *context_function_type(Context *context, Type const *return_type,
                                   TupleType argument_types);
 
 // symbol table functions

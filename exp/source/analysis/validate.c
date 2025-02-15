@@ -1,5 +1,8 @@
-
-// #include <EXP_ASSERT.h>
+/**
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
 
 #include "analysis/validate.h"
 #include "env/context.h"
@@ -12,8 +15,8 @@ typedef struct Subject {
     Context *context;
 } Subject;
 
-static void
-subject_initialize(Subject *subject, Function *function, Context *context) {
+static void subject_initialize(Subject *subject, Function *function,
+                               Context *context) {
     EXP_ASSERT(subject != nullptr);
     EXP_ASSERT(function != nullptr);
     EXP_ASSERT(context != nullptr);
@@ -60,26 +63,23 @@ static ExpResult validate_locals(Subject *subject) {
 // check that each use of a local is typesafe
 // check that each use of a value is typesafe
 // check that each use of a label is typesafe
-static ExpResult validate_operand(OperandKind kind,
-                                  OperandData data,
-                                  u32 block_index,
-                                  Subject *subject);
+static ExpResult validate_operand(OperandKind kind, OperandData data,
+                                  u32 block_index, Subject *subject);
 
-static ExpResult
-validate_tuple(Tuple *tuple, u32 block_index, Subject *subject) {
+static ExpResult validate_tuple(Tuple *tuple, u32 block_index,
+                                Subject *subject) {
     for (u32 index = 0; index < tuple->size; ++index) {
         Operand element = tuple->elements[index];
-        if (validate_operand(
-                element.kind, element.data, block_index, subject) !=
-            EXP_SUCCESS) {
+        if (validate_operand(element.kind, element.data, block_index,
+                             subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
     }
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_constant(Value *value, u32 block_index, Subject *subject) {
+static ExpResult validate_constant(Value *value, u32 block_index,
+                                   Subject *subject) {
     EXP_ASSERT(value != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -94,10 +94,8 @@ validate_constant(Value *value, u32 block_index, Subject *subject) {
     return EXP_SUCCESS;
 }
 
-static ExpResult validate_operand(OperandKind kind,
-                                  OperandData data,
-                                  u32 block_index,
-                                  Subject *subject) {
+static ExpResult validate_operand(OperandKind kind, OperandData data,
+                                  u32 block_index, Subject *subject) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
         Local *local = function_local_at(subject->function, data.ssa);
@@ -138,14 +136,13 @@ static ExpResult validate_operand(OperandKind kind,
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_A(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_A(Instruction *instruction, u32 block_index,
+                            Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
-    if (validate_operand(
-            instruction->A_kind, instruction->A_data, block_index, subject) !=
-        EXP_SUCCESS) {
+    if (validate_operand(instruction->A_kind, instruction->A_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
 
@@ -186,8 +183,8 @@ validate_A(Instruction *instruction, u32 block_index, Subject *subject) {
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_AB(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_AB(Instruction *instruction, u32 block_index,
+                             Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -195,16 +192,15 @@ validate_AB(Instruction *instruction, u32 block_index, Subject *subject) {
         return EXP_FAILURE;
     }
 
-    if (validate_operand(
-            instruction->B_kind, instruction->B_data, block_index, subject) !=
-        EXP_SUCCESS) {
+    if (validate_operand(instruction->B_kind, instruction->B_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_ABC(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_ABC(Instruction *instruction, u32 block_index,
+                              Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -212,16 +208,15 @@ validate_ABC(Instruction *instruction, u32 block_index, Subject *subject) {
         return EXP_FAILURE;
     }
 
-    if (validate_operand(
-            instruction->C_kind, instruction->C_data, block_index, subject) !=
-        EXP_SUCCESS) {
+    if (validate_operand(instruction->C_kind, instruction->C_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_load(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_load(Instruction *instruction, u32 block_index,
+                               Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(instruction->opcode == OPCODE_LOAD);
     EXP_ASSERT(nonnull_subject(subject));
@@ -230,22 +225,20 @@ validate_load(Instruction *instruction, u32 block_index, Subject *subject) {
         return EXP_FAILURE;
     }
 
-    Type const *target_type = type_of_operand(instruction->A_kind,
-                                              instruction->A_data,
-                                              subject->function,
-                                              subject->context);
+    Type const *target_type =
+        type_of_operand(instruction->A_kind, instruction->A_data,
+                        subject->function, subject->context);
     EXP_ASSERT(target_type != nullptr);
-    Type const *source_type = type_of_operand(instruction->B_kind,
-                                              instruction->B_data,
-                                              subject->function,
-                                              subject->context);
+    Type const *source_type =
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(source_type != nullptr);
     if (!type_equality(target_type, source_type)) { return EXP_FAILURE; }
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_return(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_return(Instruction *instruction, u32 block_index,
+                                 Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(instruction->opcode == OPCODE_RETURN);
 
@@ -253,16 +246,14 @@ validate_return(Instruction *instruction, u32 block_index, Subject *subject) {
         return EXP_FAILURE;
     }
 
-    Type const *A_type = type_of_operand(instruction->A_kind,
-                                         instruction->A_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *A_type =
+        type_of_operand(instruction->A_kind, instruction->A_data,
+                        subject->function, subject->context);
     EXP_ASSERT(A_type != nullptr);
 
-    Type const *B_type = type_of_operand(instruction->B_kind,
-                                         instruction->B_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *B_type =
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
     if (!type_equality(A_type, B_type)) { return EXP_FAILURE; }
@@ -274,8 +265,8 @@ validate_return(Instruction *instruction, u32 block_index, Subject *subject) {
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_call(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_call(Instruction *instruction, u32 block_index,
+                               Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -287,10 +278,9 @@ validate_call(Instruction *instruction, u32 block_index, Subject *subject) {
     Local *ssa = function_local_at(subject->function, instruction->A_data.ssa);
     EXP_ASSERT(ssa != nullptr);
 
-    Type const *B_type = type_of_operand(instruction->B_kind,
-                                         instruction->B_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *B_type =
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
     // #TODO: some sort of "callable" interface could be checked against here
@@ -299,10 +289,9 @@ validate_call(Instruction *instruction, u32 block_index, Subject *subject) {
     FunctionType const *callee_type   = &B_type->function_type;
     TupleType const *formal_arguments = &callee_type->argument_types;
 
-    Type const *C_type = type_of_operand(instruction->C_kind,
-                                         instruction->C_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *C_type =
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
     if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
@@ -332,8 +321,7 @@ validate_call(Instruction *instruction, u32 block_index, Subject *subject) {
 
 static ExpResult validate_unop(Type const *return_type,
                                Type const *argument_type,
-                               Instruction *instruction,
-                               u32 block_index,
+                               Instruction *instruction, u32 block_index,
                                Subject *subject) {
     EXP_ASSERT(return_type != nullptr);
     EXP_ASSERT(argument_type != nullptr);
@@ -350,10 +338,9 @@ static ExpResult validate_unop(Type const *return_type,
 
     if (!type_equality(return_type, ssa->type)) { return EXP_FAILURE; }
 
-    Type const *B_type = type_of_operand(instruction->B_kind,
-                                         instruction->B_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *B_type =
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
     if (!type_equality(argument_type, B_type)) { return EXP_FAILURE; }
@@ -361,8 +348,8 @@ static ExpResult validate_unop(Type const *return_type,
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_negate(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_negate(Instruction *instruction, u32 block_index,
+                                 Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -370,8 +357,8 @@ validate_negate(Instruction *instruction, u32 block_index, Subject *subject) {
     return validate_unop(i32_type, i32_type, instruction, block_index, subject);
 }
 
-static ExpResult
-validate_dot(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_dot(Instruction *instruction, u32 block_index,
+                              Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
@@ -388,10 +375,9 @@ validate_dot(Instruction *instruction, u32 block_index, Subject *subject) {
     if (instruction->B_kind != OPERAND_KIND_I32) { return EXP_FAILURE; }
     i32 index = instruction->B_data.i32_;
 
-    Type const *C_type = type_of_operand(instruction->C_kind,
-                                         instruction->C_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *C_type =
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
     if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
@@ -408,11 +394,9 @@ validate_dot(Instruction *instruction, u32 block_index, Subject *subject) {
     return EXP_SUCCESS;
 }
 
-static ExpResult validate_binop(Type const *return_type,
-                                Type const *left_type,
+static ExpResult validate_binop(Type const *return_type, Type const *left_type,
                                 Type const *right_type,
-                                Instruction *instruction,
-                                u32 block_index,
+                                Instruction *instruction, u32 block_index,
                                 Subject *subject) {
     EXP_ASSERT(return_type != nullptr);
     EXP_ASSERT(left_type != nullptr);
@@ -430,18 +414,16 @@ static ExpResult validate_binop(Type const *return_type,
 
     if (!type_equality(return_type, ssa->type)) { return EXP_FAILURE; }
 
-    Type const *B_type = type_of_operand(instruction->B_kind,
-                                         instruction->B_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *B_type =
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
     if (!type_equality(left_type, B_type)) { return EXP_FAILURE; }
 
-    Type const *C_type = type_of_operand(instruction->C_kind,
-                                         instruction->C_data,
-                                         subject->function,
-                                         subject->context);
+    Type const *C_type =
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
     if (!type_equality(right_type, C_type)) { return EXP_FAILURE; }
@@ -449,53 +431,52 @@ static ExpResult validate_binop(Type const *return_type,
     return EXP_SUCCESS;
 }
 
-static ExpResult
-validate_add(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_add(Instruction *instruction, u32 block_index,
+                              Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return validate_binop(
-        i32_type, i32_type, i32_type, instruction, block_index, subject);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
-static ExpResult
-validate_subtract(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_subtract(Instruction *instruction, u32 block_index,
+                                   Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return validate_binop(
-        i32_type, i32_type, i32_type, instruction, block_index, subject);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
-static ExpResult
-validate_multiply(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_multiply(Instruction *instruction, u32 block_index,
+                                   Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return validate_binop(
-        i32_type, i32_type, i32_type, instruction, block_index, subject);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
-static ExpResult
-validate_divide(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_divide(Instruction *instruction, u32 block_index,
+                                 Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return validate_binop(
-        i32_type, i32_type, i32_type, instruction, block_index, subject);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
-static ExpResult
-validate_modulus(Instruction *instruction, u32 block_index, Subject *subject) {
+static ExpResult validate_modulus(Instruction *instruction, u32 block_index,
+                                  Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return validate_binop(
-        i32_type, i32_type, i32_type, instruction, block_index, subject);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
-static ExpResult validate_instruction(Instruction *instruction,
-                                      u32 block_index,
+static ExpResult validate_instruction(Instruction *instruction, u32 block_index,
                                       Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));

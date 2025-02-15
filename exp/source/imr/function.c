@@ -1,25 +1,8 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
-// #include <EXP_ASSERT.h>
-//  #include <stdlib.h>
-//  #include <string.h>
-
 #include "imr/function.h"
 #include "env/context.h"
 #include "utility/alloc.h"
@@ -180,8 +163,7 @@ static void print_formal_argument(String *buffer,
     print_type(buffer, formal_argument->type);
 }
 
-void print_function(String *buffer,
-                    Function const *function,
+void print_function(String *buffer, Function const *function,
                     Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(function != nullptr);

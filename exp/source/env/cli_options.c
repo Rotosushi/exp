@@ -1,25 +1,9 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
-// #include <assert.h>
-// #include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
 
 #include "env/cli_options.h"
 #include "utility/assert.h"
@@ -31,7 +15,7 @@
 #include "utility/string.h"
 
 #ifndef EXP_HOST_SYSTEM_LINUX
-#error "unsupported host OS"
+    #error "unsupported host OS"
 #endif
 
 #include <getopt.h>
@@ -147,11 +131,8 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
         string_assign(&(options->source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        log_message(LOG_ERROR,
-                    nullptr,
-                    0,
-                    SV("an input file must be specified.\n"),
-                    program_error);
+        log_message(LOG_ERROR, nullptr, 0,
+                    SV("an input file must be specified.\n"), program_error);
         exit(EXP_SUCCESS);
     }
 

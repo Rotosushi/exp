@@ -1,21 +1,9 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
+
 #include <stdlib.h>
 
 #include "core/assemble.h"
@@ -44,23 +32,17 @@ static void context_flags_from_cli_flags(Bitset *context_flags,
                                          Bitset *cli_flags) {
     EXP_ASSERT(context_flags != nullptr);
     EXP_ASSERT(cli_flags != nullptr);
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_EMIT_IR_ASSEMBLY,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_EMIT_IR_ASSEMBLY,
                       bitset_check_bit(cli_flags, CLI_EMIT_IR_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY,
                       bitset_check_bit(cli_flags, CLI_EMIT_X86_64_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CREATE_ELF_OBJECT,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_CREATE_ELF_OBJECT,
                       bitset_check_bit(cli_flags, CLI_CREATE_ELF_OBJECT));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CREATE_ELF_EXECUTABLE,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_CREATE_ELF_EXECUTABLE,
                       bitset_check_bit(cli_flags, CLI_CREATE_ELF_EXECUTABLE));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CLEANUP_TARGET_ASSEMBLY,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_CLEANUP_TARGET_ASSEMBLY,
                       bitset_check_bit(cli_flags, CLI_CLEANUP_X86_64_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CLEANUP_ELF_OBJECT,
+    bitset_assign_bit(context_flags, CONTEXT_OPTION_CLEANUP_ELF_OBJECT,
                       bitset_check_bit(cli_flags, CLI_CLEANUP_ELF_OBJECT));
 }
 
@@ -73,8 +55,7 @@ i32 compile(i32 argc, char const *argv[]) {
     context_flags_from_cli_flags(&context_flags, &cli_options.flags);
 
     Context context;
-    context_initialize(&context,
-                       context_flags,
+    context_initialize(&context, context_flags,
                        string_to_view(&cli_options.source),
                        string_to_view(&cli_options.output));
 

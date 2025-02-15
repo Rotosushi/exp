@@ -1,25 +1,8 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
-// #include <EXP_ASSERT.h>
-// #include <ctype.h>
-// #include <string.h>
-
 #include "frontend/lexer.h"
 #include "utility/assert.h"
 #include "utility/memory.h"
@@ -136,11 +119,8 @@ static Token lexer_integer(Lexer *restrict lexer) {
     return TOK_INTEGER;
 }
 
-static Token lexer_check_keyword(Lexer *restrict lexer,
-                                 u64 begin,
-                                 u64 length,
-                                 const char *rest,
-                                 Token keyword) {
+static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
+                                 const char *rest, Token keyword) {
     if ((lexer_current_text_length(lexer) == (begin + length)) &&
         (memory_compare(lexer->token + begin, length, rest, length) == 0)) {
         return keyword;

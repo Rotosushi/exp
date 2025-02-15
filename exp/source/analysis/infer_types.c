@@ -1,23 +1,8 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
-// #include <EXP_ASSERT.h>
-
 #include "analysis/infer_types.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
@@ -29,8 +14,8 @@ typedef struct subject {
     Context *context;
 } Subject;
 
-static void
-subject_initialize(Subject *subject, Function *function, Context *context) {
+static void subject_initialize(Subject *subject, Function *function,
+                               Context *context) {
     EXP_ASSERT(subject != nullptr);
     EXP_ASSERT(function != nullptr);
     EXP_ASSERT(context != nullptr);
@@ -65,8 +50,7 @@ static ExpResult error_name_undefined(Subject *subject, StringView name) {
 }
 */
 
-static ExpResult error_type_mismatch(Subject *subject,
-                                     Type const *expected,
+static ExpResult error_type_mismatch(Subject *subject, Type const *expected,
                                      Type const *actual) {
     EXP_ASSERT(validate_subject(subject));
     String message;
@@ -131,8 +115,8 @@ static ExpResult error_tuple_index_not_immediate(Subject *subject) {
     return error(subject, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, message);
 }
 
-static ExpResult
-error_tuple_index_out_of_bounds(Subject *subject, i32 index, u32 bounds) {
+static ExpResult error_tuple_index_out_of_bounds(Subject *subject, i32 index,
+                                                 u32 bounds) {
     EXP_ASSERT(validate_subject(subject));
     String message;
     string_initialize(&message);
@@ -147,10 +131,8 @@ error_tuple_index_out_of_bounds(Subject *subject, i32 index, u32 bounds) {
 // static bool
 // infer_types_symbol(Type const **result, Symbol *symbol, Context *context);
 
-static ExpResult infer_types_operand(Type const **result,
-                                     OperandKind kind,
-                                     OperandData data,
-                                     Subject *subject) {
+static ExpResult infer_types_operand(Type const **result, OperandKind kind,
+                                     OperandData data, Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(validate_subject(subject));
     switch (kind) {
@@ -212,8 +194,7 @@ static Local *local_from_operand_A(Instruction *instruction, Subject *subject) {
     }
 }
 
-static ExpResult infer_types_load(Type const **result,
-                                  Instruction *instruction,
+static ExpResult infer_types_load(Type const **result, Instruction *instruction,
                                   Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
@@ -223,9 +204,8 @@ static ExpResult infer_types_load(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -246,9 +226,8 @@ static ExpResult infer_types_return(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -266,8 +245,7 @@ static ExpResult infer_types_return(Type const **result,
     return true;
 }
 
-static ExpResult infer_types_call(Type const **result,
-                                  Instruction *instruction,
+static ExpResult infer_types_call(Type const **result, Instruction *instruction,
                                   Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
@@ -276,9 +254,8 @@ static ExpResult infer_types_call(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -296,8 +273,8 @@ static ExpResult infer_types_call(Type const **result,
     Tuple *actual_arguments = &value->tuple;
 
     if (formal_arguments->count != actual_arguments->size) {
-        return error_argument_count_mismatch(
-            subject, formal_arguments, actual_arguments);
+        return error_argument_count_mismatch(subject, formal_arguments,
+                                             actual_arguments);
     }
 
     for (u8 i = 0; i < actual_arguments->size; ++i) {
@@ -305,9 +282,8 @@ static ExpResult infer_types_call(Type const **result,
         Operand operand         = actual_arguments->elements[i];
 
         Type const *actual_type = nullptr;
-        if (infer_types_operand(
-                &actual_type, operand.kind, operand.data, subject) !=
-            EXP_SUCCESS) {
+        if (infer_types_operand(&actual_type, operand.kind, operand.data,
+                                subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
         EXP_ASSERT(actual_type != nullptr);
@@ -327,8 +303,7 @@ static bool tuple_index_out_of_bounds(i64 index, TupleType const *tuple) {
     return ((index < 0) || ((u64)index >= tuple->count));
 }
 
-static ExpResult infer_types_dot(Type const **result,
-                                 Instruction *instruction,
+static ExpResult infer_types_dot(Type const **result, Instruction *instruction,
                                  Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
@@ -338,9 +313,8 @@ static ExpResult infer_types_dot(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -363,11 +337,9 @@ static ExpResult infer_types_dot(Type const **result,
     return true;
 }
 
-static ExpResult infer_types_unop(Type const **result,
-                                  Instruction *instruction,
+static ExpResult infer_types_unop(Type const **result, Instruction *instruction,
                                   Type const *argument_type,
-                                  Type const *result_type,
-                                  Subject *subject) {
+                                  Type const *result_type, Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(argument_type != nullptr);
@@ -378,9 +350,8 @@ static ExpResult infer_types_unop(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -408,8 +379,7 @@ static ExpResult infer_types_binop(Type const **result,
                                    Instruction *instruction,
                                    Type const *left_type,
                                    Type const *right_type,
-                                   Type const *result_type,
-                                   Subject *subject) {
+                                   Type const *result_type, Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(left_type != nullptr);
@@ -421,9 +391,8 @@ static ExpResult infer_types_binop(Type const **result,
     EXP_ASSERT(local != nullptr);
 
     Type const *B_type = nullptr;
-    if (infer_types_operand(
-            &B_type, instruction->B_kind, instruction->B_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&B_type, instruction->B_kind, instruction->B_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
@@ -433,9 +402,8 @@ static ExpResult infer_types_binop(Type const **result,
     }
 
     Type const *C_type = nullptr;
-    if (infer_types_operand(
-            &C_type, instruction->C_kind, instruction->C_data, subject) !=
-        EXP_SUCCESS) {
+    if (infer_types_operand(&C_type, instruction->C_kind, instruction->C_data,
+                            subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     EXP_ASSERT(C_type != nullptr);
@@ -449,15 +417,14 @@ static ExpResult infer_types_binop(Type const **result,
     return true;
 }
 
-static ExpResult infer_types_add(Type const **result,
-                                 Instruction *instruction,
+static ExpResult infer_types_add(Type const **result, Instruction *instruction,
                                  Subject *subject) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return infer_types_binop(
-        result, instruction, i32_type, i32_type, i32_type, subject);
+    return infer_types_binop(result, instruction, i32_type, i32_type, i32_type,
+                             subject);
 }
 
 static ExpResult infer_types_subtract(Type const **result,
@@ -467,8 +434,8 @@ static ExpResult infer_types_subtract(Type const **result,
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return infer_types_binop(
-        result, instruction, i32_type, i32_type, i32_type, subject);
+    return infer_types_binop(result, instruction, i32_type, i32_type, i32_type,
+                             subject);
 }
 
 static ExpResult infer_types_multiply(Type const **result,
@@ -478,8 +445,8 @@ static ExpResult infer_types_multiply(Type const **result,
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return infer_types_binop(
-        result, instruction, i32_type, i32_type, i32_type, subject);
+    return infer_types_binop(result, instruction, i32_type, i32_type, i32_type,
+                             subject);
 }
 
 static ExpResult infer_types_divide(Type const **result,
@@ -489,8 +456,8 @@ static ExpResult infer_types_divide(Type const **result,
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return infer_types_binop(
-        result, instruction, i32_type, i32_type, i32_type, subject);
+    return infer_types_binop(result, instruction, i32_type, i32_type, i32_type,
+                             subject);
 }
 
 static ExpResult infer_types_modulus(Type const **result,
@@ -500,8 +467,8 @@ static ExpResult infer_types_modulus(Type const **result,
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(validate_subject(subject));
     Type const *i32_type = context_i32_type(subject->context);
-    return infer_types_binop(
-        result, instruction, i32_type, i32_type, i32_type, subject);
+    return infer_types_binop(result, instruction, i32_type, i32_type, i32_type,
+                             subject);
 }
 
 static ExpResult infer_types_instruction(Type const **result,

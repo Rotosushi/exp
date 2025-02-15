@@ -1,5 +1,8 @@
-
-// #include <EXP_ASSERT.h>
+/**
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
 
 #include "analysis/lifetimes.h"
 #include "env/context.h"
@@ -11,8 +14,8 @@ typedef struct Subject {
     Context *context;
 } Subject;
 
-static void
-subject_initialize(Subject *subject, Function *function, Context *context) {
+static void subject_initialize(Subject *subject, Function *function,
+                               Context *context) {
     EXP_ASSERT(subject != nullptr);
     EXP_ASSERT(function != nullptr);
     EXP_ASSERT(context != nullptr);
@@ -27,10 +30,8 @@ subject_initialize(Subject *subject, Function *function, Context *context) {
     return true;
 }
 
-static void analyze_usage_of_operand(OperandKind kind,
-                                     OperandData data,
-                                     u32 block_index,
-                                     Subject *subject) {
+static void analyze_usage_of_operand(OperandKind kind, OperandData data,
+                                     u32 block_index, Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (kind) {
     case OPERAND_KIND_SSA: {
@@ -49,8 +50,8 @@ static void analyze_usage_of_operand(OperandKind kind,
         Tuple *tuple = &constant->tuple;
         for (u64 index = 0; index < tuple->size; ++index) {
             Operand element = tuple->elements[index];
-            analyze_usage_of_operand(
-                element.kind, element.data, block_index, subject);
+            analyze_usage_of_operand(element.kind, element.data, block_index,
+                                     subject);
         }
         break;
     }
@@ -63,8 +64,8 @@ static void analyze_usage_of_operand(OperandKind kind,
     }
 }
 
-static void
-analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
+static void analyze_first_use(Instruction *instruction, u32 block_index,
+                              Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (instruction->A_kind) {
     case OPERAND_KIND_SSA: {
@@ -92,29 +93,26 @@ analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
 }
 */
 
-static void analyze_usage_of_AB(Instruction *instruction,
-                                u32 block_index,
+static void analyze_usage_of_AB(Instruction *instruction, u32 block_index,
                                 Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->B_kind, instruction->B_data, block_index, subject);
+    analyze_usage_of_operand(instruction->B_kind, instruction->B_data,
+                             block_index, subject);
 }
 
-static void analyze_usage_of_ABC(Instruction *instruction,
-                                 u32 block_index,
+static void analyze_usage_of_ABC(Instruction *instruction, u32 block_index,
                                  Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->B_kind, instruction->B_data, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->C_kind, instruction->C_data, block_index, subject);
+    analyze_usage_of_operand(instruction->B_kind, instruction->B_data,
+                             block_index, subject);
+    analyze_usage_of_operand(instruction->C_kind, instruction->C_data,
+                             block_index, subject);
 }
 
 static void analyze_usage_of_instruction(Instruction *instruction,
-                                         u32 block_index,
-                                         Subject *subject) {
+                                         u32 block_index, Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (instruction->opcode) {
     case OPCODE_RETURN:

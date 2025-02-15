@@ -1,20 +1,7 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 
 #include "targets/x86_64/imr/register_allocator.h"
@@ -111,8 +98,7 @@ static x86_64_Allocation *x86_64_allocations_at(x86_64_Allocations *allocations,
 }
 
 void x86_64_register_allocator_initialize(
-    x86_64_RegisterAllocator *register_allocator,
-    Function *function,
+    x86_64_RegisterAllocator *register_allocator, Function *function,
     Context *context) {
     EXP_ASSERT(register_allocator != nullptr);
     register_allocator->active_general_purpose_registers = bitset_create();
@@ -130,12 +116,10 @@ void x86_64_register_allocator_terminate(
  */
 x86_64_Allocation *
 x86_64_register_allocator_allocate(x86_64_RegisterAllocator *register_allocator,
-                                   Local *local,
-                                   u32 block_index) {}
+                                   Local *local, u32 block_index) {}
 
 void x86_64_register_allocator_reallocate_active(
-    x86_64_RegisterAllocator *register_allocator,
-    x86_64_Allocation *active,
+    x86_64_RegisterAllocator *register_allocator, x86_64_Allocation *active,
     u32 block_index) {}
 /**
  * @brief handles the case where we want to allocate space for
@@ -143,10 +127,8 @@ void x86_64_register_allocator_reallocate_active(
  *  allocation of a given local.
  */
 x86_64_Allocation *x86_64_regsiter_allocator_allocate_from_active(
-    x86_64_RegisterAllocator *register_allocator,
-    Local *local,
-    x86_64_Allocation *active,
-    u32 block_index) {}
+    x86_64_RegisterAllocator *register_allocator, Local *local,
+    x86_64_Allocation *active, u32 block_index) {}
 
 /**
  * @brief handles the case where we need to allocate a given local to
@@ -154,9 +136,7 @@ x86_64_Allocation *x86_64_regsiter_allocator_allocate_from_active(
  *  operation.
  */
 x86_64_Allocation *x86_64_register_allocator_allocate_to_gpr(
-    x86_64_RegisterAllocator *register_allocator,
-    Local *local,
-    x86_64_GPR gpr,
+    x86_64_RegisterAllocator *register_allocator, Local *local, x86_64_GPR gpr,
     u32 block_index) {}
 
 /**
@@ -166,8 +146,7 @@ x86_64_Allocation *x86_64_register_allocator_allocate_to_gpr(
  * @warning doesn't do any validation of the given address.
  */
 x86_64_Allocation *x86_64_register_allocator_allocate_to_address(
-    x86_64_RegisterAllocator *register_allocator,
-    Local *local,
+    x86_64_RegisterAllocator *register_allocator, Local *local,
     x86_64_Address offset) {}
 
 /**
@@ -180,5 +159,4 @@ x86_64_Allocation *x86_64_register_allocator_allocate_to_address(
  */
 x86_64_Allocation *
 x86_64_allocator_allocate_result(x86_64_RegisterAllocator *register_allocator,
-                                 x86_64_Location location,
-                                 Type const *type) {}
+                                 x86_64_Location location, Type const *type) {}
