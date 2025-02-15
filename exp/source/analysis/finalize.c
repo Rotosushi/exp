@@ -20,9 +20,9 @@
 // #include <stdlib.h>
 
 #include "analysis/finalize.h"
-#include "analysis/allocation.h"
 #include "analysis/infer_types.h"
 #include "analysis/lifetimes.h"
+#include "analysis/validate.h"
 #include "utility/assert.h"
 
 ExpResult finalize_function(Function *function, struct Context *context) {
@@ -32,6 +32,6 @@ ExpResult finalize_function(Function *function, struct Context *context) {
         return EXP_FAILURE;
     }
     analyze_lifetimes_of_locals(function, context);
-    allocate_locals(function, context);
+    validate_function(function, context);
     return EXP_SUCCESS;
 }

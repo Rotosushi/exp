@@ -18,44 +18,37 @@
 #define EXP_IMR_FUNCTION_H
 
 #include "imr/block.h"
-#include "imr/local_allocator.h"
+#include "imr/local.h"
 #include "imr/type.h"
 
-typedef struct FormalArgumentList {
-    Local **list;
-    u8 size;
+typedef struct FormalArguments {
+    u8 length;
     u8 capacity;
-} FormalArgumentList;
+    Local *buffer;
+} FormalArguments;
+
+typedef struct Locals {
+    u32 length;
+    u32 capacity;
+    Local *buffer;
+} Locals;
 
 typedef struct Function {
-    FormalArgumentList arguments;
+    FormalArguments arguments;
+    Locals locals;
     Type const *return_type;
-    LocalAllocator allocator;
     Block block;
 } Function;
 
 void function_initialize(Function *function_body);
 void function_terminate(Function *function);
 
-void function_append_argument(Function *function, Local *arg);
+void function_arguments_append(Function *function, Local arg);
 Local *function_arguments_lookup(Function *function, StringView name);
 Local *function_arguments_at(Function *function, u8 index);
 
 u32 function_declare_local(Function *function);
 Local *function_local_at(Function *function, u32 ssa);
-// Local *function_local_at_name(Function *function, StringView name);
-
-/*
-void function_allocate_result(Function *function, Local *local);
-void function_allocate_formal_argument(Function *function,
-                                       Local *local,
-                                       u8 argument_index);
-void function_allocate_actual_argument(Function *function,
-                                       Local *local,
-                                       u8 argument_index,
-                                       u32 block_index);
-*/
-void function_allocate_local(Function *function, Local *local, u32 block_index);
 
 void function_append_instruction(Function *function, Instruction instruction);
 

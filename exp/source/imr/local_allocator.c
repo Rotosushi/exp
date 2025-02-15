@@ -8,50 +8,6 @@
 #include "utility/assert.h"
 #include "utility/unreachable.h"
 
-static void locals_initialize(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    locals->count    = 0;
-    locals->capacity = 0;
-    locals->buffer   = nullptr;
-}
-
-static void locals_terminate(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    deallocate(locals->buffer);
-    locals->count    = 0;
-    locals->capacity = 0;
-    locals->buffer   = nullptr;
-}
-
-static bool locals_full(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    return (locals->count + 1) >= locals->capacity;
-}
-
-static void locals_grow(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    Growth32 g       = array_growth_u32(locals->capacity, sizeof(Local));
-    locals->buffer   = reallocate(locals->buffer, g.alloc_size);
-    locals->capacity = g.new_capacity;
-}
-
-static u32 locals_allocate(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-
-    if (locals_full(locals)) { locals_grow(locals); }
-
-    u32 index    = locals->count++;
-    Local *local = locals->buffer + index;
-    local_initialize(local);
-    return index;
-}
-
-static Local *locals_at(Locals *locals, u32 index) {
-    EXP_ASSERT(locals != nullptr);
-    EXP_ASSERT(index < locals->count);
-    return locals->buffer + index;
-}
-
 /*
 static Local *locals_at_name(Locals *locals, StringView name) {
     EXP_ASSERT(locals != nullptr);

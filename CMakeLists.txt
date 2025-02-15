@@ -21,6 +21,7 @@ else()
   message(FATAL_ERROR "Unsupported Host CPU: ${HOST_CPU}")
 endif()
 
+
 set(C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 23)
 

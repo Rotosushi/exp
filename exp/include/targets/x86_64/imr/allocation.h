@@ -14,24 +14,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_LOCAL_H
-#define EXP_IMR_LOCAL_H
+#ifndef EXP_TARGETS_X86_64_IMR_ALLOCATION_H
+#define EXP_TARGETS_X86_64_IMR_ALLOCATION_H
 
-#include "imr/lifetime.h"
-#include "imr/type.h"
-#include "utility/string_view.h"
+#include "imr/local.h"
+#include "targets/x86_64/imr/address.h"
 
-typedef struct Local {
-    Type const *type;
-    StringView label;
-    Lifetime lifetime;
-} Local;
+typedef enum x86_64_LocationKind {
+    X86_64_LOCATION_UNINITIALIZED,
+    X86_64_LOCATION_GENERAL_PURPOSE_REGISTER,
+    X86_64_LOCATION_ADDRESS,
+} x86_64_LocationKind;
 
-void local_initialize(Local *local);
+typedef struct x86_64_Location {
+    x86_64_LocationKind kind;
+    union {
+        x86_64_GPR gpr;
+        x86_64_Address address;
+    };
+} x86_64_Location;
 
-void local_update_type(Local *local, Type const *type);
-void local_update_label(Local *local, StringView label);
-void local_update_first_use(Local *local, u32 first_use);
-void local_update_last_use(Local *local, u32 last_use);
+typedef struct x86_64_Allocation {
+    Local local;
+    x86_64_Location location;
+} x86_64_Allocation;
 
-#endif // EXP_IMR_LOCAL_H
+#endif // EXP_TARGETS_X86_64_IMR_ALLOCATION_H

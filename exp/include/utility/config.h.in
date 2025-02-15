@@ -31,6 +31,16 @@
 #cmakedefine EXP_HOST_SYSTEM_WINDOWS
 #cmakedefine EXP_HOST_SYSTEM_APPLE
 #cmakedefine EXP_HOST_CPU_X86_64
+#cmakedefine EXP_HOST_CPU_ARM_64
+#cmakedefine EXP_HOST_CPU_RISCV
+
+#if defined(__GNUC__) && !defined(__clang__)
+#define EXP_HOST_COMPILER_GCC
+#elif defined(__clang__)
+#define EXP_HOST_COMPILER_CLANG
+#elif defined(_MSC_VER)
+#define EXP_HOST_COMPILER_MSVC
+#endif
 
 #define EXP_VERSION_STRING "${EXP_VERSION_STRING}"
 

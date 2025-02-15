@@ -32,7 +32,6 @@ static ExpResult validate_local(Local *local, Subject *subject) {
     EXP_ASSERT(local != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     if (local->type == nullptr) return EXP_FAILURE;
-    if (local->location.kind == LOCATION_UNINITIALIZED) return EXP_FAILURE;
     Lifetime lifetime = local->lifetime;
     Lifetime bounds   = lifetime_construct(0, subject->function->block.length);
     if (lifetime.last_use < lifetime.first_use) return EXP_FAILURE;
@@ -43,8 +42,8 @@ static ExpResult validate_local(Local *local, Subject *subject) {
 
 static ExpResult validate_locals(Subject *subject) {
     EXP_ASSERT(nonnull_subject(subject));
-    Locals *locals = &subject->function->allocator.locals;
-    for (u32 index = 0; index < locals->count; ++index) {
+    Locals *locals = &subject->function->locals;
+    for (u32 index = 0; index < locals->length; ++index) {
         if (validate_local(locals->buffer + index, subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
