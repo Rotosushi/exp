@@ -36,7 +36,7 @@ bool tuple_type_equality(TupleType const *A, TupleType const *B) {
         Type const *t = A->types[i];
         Type const *u = B->types[i];
 
-        if (!type_equality(t, u)) { return false; }
+        if (!type_equal(t, u)) { return false; }
     }
 
     return true;
@@ -66,25 +66,75 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B) {
     EXP_ASSERT(A != nullptr);
     EXP_ASSERT(B != nullptr);
     if (A == B) { return true; }
-    if (!type_equality(A->return_type, B->return_type)) { return false; }
+    if (!type_equal(A->return_type, B->return_type)) { return false; }
     return tuple_type_equality(&A->argument_types, &B->argument_types);
 }
-/*
+
+Type const *tuple_type_at(TupleType const *tuple_type, Scalar index) {
+    EXP_ASSERT(tuple_type != nullptr);
+    EXP_ASSERT(scalar_is_index(index));
+    u64 i = scalar_index(index);
+    EXP_ASSERT(i < tuple_type->count);
+    return tuple_type->types[i];
+}
+
 Type *type_nil() {
     Type *type = callocate(1, sizeof(Type));
     type->kind = TYPE_KIND_NIL;
     return type;
 }
 
-Type *type_boolean() {
+Type *type_bool() {
     Type *type = callocate(1, sizeof(Type));
     type->kind = TYPE_KIND_BOOLEAN;
     return type;
 }
-*/
+
+Type *type_i8() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_I8;
+    return type;
+}
+
+Type *type_i16() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_I16;
+    return type;
+}
+
 Type *type_i32() {
     Type *type = callocate(1, sizeof(Type));
     type->kind = TYPE_KIND_I32;
+    return type;
+}
+
+Type *type_i64() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_I64;
+    return type;
+}
+
+Type *type_u8() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_U8;
+    return type;
+}
+
+Type *type_u16() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_U16;
+    return type;
+}
+
+Type *type_u32() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_U32;
+    return type;
+}
+
+Type *type_u64() {
+    Type *type = callocate(1, sizeof(Type));
+    type->kind = TYPE_KIND_U64;
     return type;
 }
 
@@ -123,7 +173,7 @@ void type_terminate(Type *type) {
     deallocate(type);
 }
 
-bool type_equality(Type const *A, Type const *B) {
+bool type_equal(Type const *A, Type const *B) {
     EXP_ASSERT(A != nullptr);
     EXP_ASSERT(B != nullptr);
     if (A->kind != B->kind) { return false; }
@@ -142,15 +192,64 @@ bool type_equality(Type const *A, Type const *B) {
 bool type_is_scalar(Type const *T) {
     EXP_ASSERT(T != nullptr);
     switch (T->kind) {
-        //   case TYPE_KIND_NIL:
-        //   case TYPE_KIND_BOOLEAN:
-    case TYPE_KIND_I32: return true;
+    case TYPE_KIND_NIL:
+    case TYPE_KIND_BOOLEAN:
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64:
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64:     return true;
 
-    // a tuple type of size two or more cannot be scalar
+    // #NOTE: a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
-    // and a tuple type of length 0 or 1 is never created.
-    case TYPE_KIND_TUPLE:
-    default:              return false;
+    default: return false;
+    }
+}
+
+bool type_is_index(Type const *T) {
+    EXP_ASSERT(T != nullptr);
+    switch (T->kind) {
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64:
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64: return true;
+
+    default: return false;
+    }
+}
+
+bool type_is_arithmetic(Type const *T) {
+    EXP_ASSERT(T != nullptr);
+    switch (T->kind) {
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64:
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64: return true;
+
+    default: return false;
+    }
+}
+
+bool type_is_signed(Type const *T) {
+    EXP_ASSERT(T != nullptr);
+    switch (T->kind) {
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64: return true;
+
+    default: return false;
     }
 }
 
@@ -181,10 +280,17 @@ void print_type(String *buffer, Type const *T) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(T != nullptr);
     switch (T->kind) {
-        // case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
-        // case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
-    case TYPE_KIND_I32:   string_append(buffer, SV("i32")); break;
-    case TYPE_KIND_TUPLE: print_tuple_type(buffer, &T->tuple_type); break;
+    case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
+    case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
+    case TYPE_KIND_I8:      string_append(buffer, SV("i8")); break;
+    case TYPE_KIND_I16:     string_append(buffer, SV("i16")); break;
+    case TYPE_KIND_I32:     string_append(buffer, SV("i32")); break;
+    case TYPE_KIND_I64:     string_append(buffer, SV("i64")); break;
+    case TYPE_KIND_U8:      string_append(buffer, SV("u8")); break;
+    case TYPE_KIND_U16:     string_append(buffer, SV("u16")); break;
+    case TYPE_KIND_U32:     string_append(buffer, SV("u32")); break;
+    case TYPE_KIND_U64:     string_append(buffer, SV("u64")); break;
+    case TYPE_KIND_TUPLE:   print_tuple_type(buffer, &T->tuple_type); break;
     case TYPE_KIND_FUNCTION:
         print_function_type(buffer, &T->function_type);
         break;

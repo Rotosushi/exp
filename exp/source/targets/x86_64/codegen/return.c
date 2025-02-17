@@ -4,10 +4,9 @@
  * license that can be found in the LICENSE file.
  */
 
-#include <assert.h>
-
-#include "intrinsics/type_of.h"
 #include "targets/x86_64/codegen/return.h"
+#include "intrinsics/type_of.h"
+#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 /*
@@ -20,19 +19,13 @@
 
 ExpResult x86_64_codegen_return(String *buffer, Instruction *instruction,
                                 Function *function, Context *context) {
-    assert(buffer != nullptr);
-    assert(instruction != nullptr);
-    assert(function != nullptr);
-    assert(context != nullptr);
-
-    assert(instruction->A_kind == OPERAND_KIND_SSA);
-    Local *result = function_local_at(function, instruction->A_data.ssa);
-    assert(result != nullptr);
+    EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(context != nullptr);
 
     switch (instruction->B_kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_local_at(function, instruction->B_data.ssa);
-        assert(local != nullptr);
 
         break;
     }
@@ -55,6 +48,5 @@ ExpResult x86_64_codegen_return(String *buffer, Instruction *instruction,
     default: EXP_UNREACHABLE();
     }
 
-    print_x86_64_ret(buffer);
     return EXP_SUCCESS;
 }

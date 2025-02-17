@@ -6,6 +6,7 @@
 
 #include "imr/value.h"
 #include "env/context.h"
+#include "imr/scalar.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/assert.h"
@@ -89,24 +90,10 @@ void value_terminate(Value *value) {
     }
 }
 
-/*
-void value_initialize_nil(Value *value) {
+void value_initialize_scalar(Value *value, Scalar scalar) {
     EXP_ASSERT(value != nullptr);
-    value->kind = VALUE_KIND_NIL;
-    value->nil  = 0;
-}
-
-void value_initialize_boolean(Value *value, bool bool_) {
-    EXP_ASSERT(value != nullptr);
-    value->kind    = VALUE_KIND_BOOLEAN;
-    value->boolean = bool_;
-}
-*/
-
-void value_initialize_i32(Value *value, i32 i32_) {
-    EXP_ASSERT(value != nullptr);
-    value->kind = VALUE_KIND_I32;
-    value->i32_ = i32_;
+    value->kind   = VALUE_KIND_SCALAR;
+    value->scalar = scalar;
 }
 
 void value_initialize_tuple(Value *value, Tuple tuple) {
@@ -135,7 +122,7 @@ tuple_initialize()}; tuple_assign(&target->tuple, &source->tuple); break;
 }
 */
 
-bool value_equality(Value *A, Value *B) {
+bool value_equal(Value *A, Value *B) {
     EXP_ASSERT(A != nullptr);
     EXP_ASSERT(B != nullptr);
     if (A == B) { return true; }
@@ -144,8 +131,8 @@ bool value_equality(Value *A, Value *B) {
     switch (A->kind) {
     case VALUE_KIND_UNINITIALIZED: return true;
 
-    case VALUE_KIND_I32: {
-        return A->i32_ == B->i32_;
+    case VALUE_KIND_SCALAR: {
+        return scalar_equal(A->scalar, B->scalar);
     }
 
     case VALUE_KIND_TUPLE: {
@@ -163,7 +150,7 @@ static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
     string_append(buffer, SV("("));
     for (u32 i = 0; i < tuple->size; ++i) {
         Operand element = tuple->elements[i];
-        print_operand(buffer, element.kind, element.data, context);
+        print_operand(buffer, element, context);
 
         if (i < (tuple->size - 1)) { string_append(buffer, SV(", ")); }
     }
@@ -178,19 +165,8 @@ void print_value(String *buffer, Value const *value, Context *context) {
     case VALUE_KIND_UNINITIALIZED:
         string_append(buffer, SV("uninitialized"));
         break;
-
-        /*
-            case VALUE_KIND_NIL: string_append(buffer, SV("()")); break;
-
-        case VALUE_KIND_BOOLEAN: {
-            if (v->boolean) string_append(buffer, SV("true"));
-            else string_append(buffer, SV("false"));
-            break;
-        }
-            */
-
-    case VALUE_KIND_I32:   string_append_i64(buffer, value->i32_); break;
-    case VALUE_KIND_TUPLE: print_tuple(buffer, &value->tuple, context); break;
+    case VALUE_KIND_SCALAR: print_scalar(buffer, value->scalar); break;
+    case VALUE_KIND_TUPLE:  print_tuple(buffer, &value->tuple, context); break;
 
     default: EXP_UNREACHABLE();
     }

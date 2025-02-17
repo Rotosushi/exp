@@ -28,13 +28,13 @@ i32 type_interner_tests([[maybe_unused]] i32 argc,
 
     Type const *t0 = type_interner_i32_type(&ti);
     Type const *t1 = type_interner_i32_type(&ti);
-    failure |= !type_equality(t0, t1);
+    failure |= !type_equal(t0, t1);
     failure |= t0 != t1;
 
     TupleType tuple;
     tuple_type_initialize(&tuple);
     Type const *t2 = type_interner_tuple_type(&ti, tuple);
-    failure |= type_equality(t2, t0);
+    failure |= type_equal(t2, t0);
     failure |= t0 == t2;
 
     type_interner_destroy(&ti);

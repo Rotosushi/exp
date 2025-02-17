@@ -9,8 +9,9 @@
 #include "imr/type.h"
 #include "imr/value.h"
 
-Type const *type_of_operand(OperandKind kind, OperandData data,
-                            Function *function, Context *context);
+Type const *type_of_scalar(Scalar scalar, Context *context);
+Type const *type_of_operand(Operand operand, Function *function,
+                            Context *context);
 Type const *type_of_value(Value *value, Function *function, Context *context);
 Type const *type_of_function(Function *body, Context *context);
 

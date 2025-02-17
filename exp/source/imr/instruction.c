@@ -10,33 +10,23 @@
 // #NOTE: unconditional jump will use this form, so we aren't removing it,
 //  even though return is no longer using this form, thus it is unused
 [[maybe_unused]] static Instruction instruction_A(Opcode opcode, Operand A) {
-    Instruction I = {.opcode = opcode, .A_kind = A.kind, .A_data = A.data};
+    Instruction I = {.opcode = opcode, .A = A};
     return I;
 }
 
 static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data};
+    Instruction I = {.opcode = opcode, .A = A, .B = B};
     return I;
 }
 
 static Instruction instruction_ABC(Opcode opcode, Operand A, Operand B,
                                    Operand C) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data,
-                     .C_kind = C.kind,
-                     .C_data = C.data};
+    Instruction I = {.opcode = opcode, .A = A, .B = B, .C = C};
     return I;
 }
 
 Instruction instruction_return(Operand dst, Operand result) {
-    return instruction_AB(OPCODE_RETURN, dst, result);
+    return instruction_AB(OPCODE_RET, dst, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
@@ -56,7 +46,7 @@ Instruction instruction_load(Operand dst, Operand src) {
 
 Instruction instruction_negate(Operand dst, Operand src) {
     EXP_ASSERT(dst.kind == OPERAND_KIND_SSA);
-    return instruction_AB(OPCODE_NEGATE, dst, src);
+    return instruction_AB(OPCODE_NEG, dst, src);
 }
 
 Instruction instruction_add(Operand dst, Operand left, Operand right) {
@@ -66,20 +56,20 @@ Instruction instruction_add(Operand dst, Operand left, Operand right) {
 
 Instruction instruction_subtract(Operand dst, Operand left, Operand right) {
     EXP_ASSERT(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_SUBTRACT, dst, left, right);
+    return instruction_ABC(OPCODE_SUB, dst, left, right);
 }
 
 Instruction instruction_multiply(Operand dst, Operand left, Operand right) {
     EXP_ASSERT(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MULTIPLY, dst, left, right);
+    return instruction_ABC(OPCODE_MUL, dst, left, right);
 }
 
 Instruction instruction_divide(Operand dst, Operand left, Operand right) {
     EXP_ASSERT(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_DIVIDE, dst, left, right);
+    return instruction_ABC(OPCODE_DIV, dst, left, right);
 }
 
 Instruction instruction_modulus(Operand dst, Operand left, Operand right) {
     EXP_ASSERT(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MODULUS, dst, left, right);
+    return instruction_ABC(OPCODE_MOD, dst, left, right);
 }

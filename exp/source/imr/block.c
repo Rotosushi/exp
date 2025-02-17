@@ -51,7 +51,7 @@ static void print_B(String *buffer, StringView mnemonic, Instruction I,
     EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
     string_append(buffer, SV(" "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
+    print_operand(buffer, I.B, context);
 }
 
 static void print_AB(String *buffer, StringView mnemonic, Instruction I,
@@ -60,9 +60,9 @@ static void print_AB(String *buffer, StringView mnemonic, Instruction I,
     EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
     string_append(buffer, SV(" "));
-    print_operand(buffer, I.A_kind, I.A_data, context);
+    print_operand(buffer, I.A, context);
     string_append(buffer, SV(", "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
+    print_operand(buffer, I.B, context);
 }
 
 static void print_ABC(String *buffer, StringView mnemonic, Instruction I,
@@ -71,27 +71,27 @@ static void print_ABC(String *buffer, StringView mnemonic, Instruction I,
     EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
     string_append(buffer, SV(" "));
-    print_operand(buffer, I.A_kind, I.A_data, context);
+    print_operand(buffer, I.A, context);
     string_append(buffer, SV(", "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
+    print_operand(buffer, I.B, context);
     string_append(buffer, SV(", "));
-    print_operand(buffer, I.C_kind, I.C_data, context);
+    print_operand(buffer, I.C, context);
 }
 
 static void print_instruction(String *buffer, Instruction I, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     switch (I.opcode) {
-    case OPCODE_RETURN:   print_B(buffer, SV("ret"), I, context); break;
-    case OPCODE_CALL:     print_ABC(buffer, SV("call"), I, context); break;
-    case OPCODE_DOT:      print_ABC(buffer, SV("dot"), I, context); break;
-    case OPCODE_LOAD:     print_AB(buffer, SV("load"), I, context); break;
-    case OPCODE_NEGATE:   print_AB(buffer, SV("neg"), I, context); break;
-    case OPCODE_ADD:      print_ABC(buffer, SV("add"), I, context); break;
-    case OPCODE_SUBTRACT: print_ABC(buffer, SV("sub"), I, context); break;
-    case OPCODE_MULTIPLY: print_ABC(buffer, SV("mul"), I, context); break;
-    case OPCODE_DIVIDE:   print_ABC(buffer, SV("div"), I, context); break;
-    case OPCODE_MODULUS:  print_ABC(buffer, SV("mod"), I, context); break;
+    case OPCODE_RET:  print_B(buffer, SV("ret"), I, context); break;
+    case OPCODE_CALL: print_ABC(buffer, SV("call"), I, context); break;
+    case OPCODE_DOT:  print_ABC(buffer, SV("dot"), I, context); break;
+    case OPCODE_LOAD: print_AB(buffer, SV("load"), I, context); break;
+    case OPCODE_NEG:  print_AB(buffer, SV("neg"), I, context); break;
+    case OPCODE_ADD:  print_ABC(buffer, SV("add"), I, context); break;
+    case OPCODE_SUB:  print_ABC(buffer, SV("sub"), I, context); break;
+    case OPCODE_MUL:  print_ABC(buffer, SV("mul"), I, context); break;
+    case OPCODE_DIV:  print_ABC(buffer, SV("div"), I, context); break;
+    case OPCODE_MOD:  print_ABC(buffer, SV("mod"), I, context); break;
 
     default: EXP_UNREACHABLE();
     }

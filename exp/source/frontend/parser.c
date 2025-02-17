@@ -686,6 +686,12 @@ static bool boolean_false(Operand *result, Parser *parser) {
 }
 */
 
+/**
+ * @brief Parse an integer literal.
+ *
+ * @todo handle different integer types. (i.e. i8, i16, i64, etc.).
+ * we need to add lexer support for typed integer literals.
+ */
 static bool integer(Operand *result, Parser *parser) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(parser != nullptr);
@@ -699,7 +705,7 @@ static bool integer(Operand *result, Parser *parser) {
 
     if (!nexttok(parser)) { return false; }
 
-    *result = operand_i32((i32)value);
+    *result = operand_scalar(scalar_i32((i32)value));
 
     return true;
 }

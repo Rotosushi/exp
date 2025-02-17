@@ -99,21 +99,54 @@ StringView context_intern(Context *context, StringView sv) {
     return string_interner_insert(&(context->string_interner), sv);
 }
 
-/*
 Type const *context_nil_type(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
-Type const *context_boolean_type(Context *context) {
+Type const *context_bool_type(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_boolean_type(&(context->type_interner));
 }
-*/
+
+Type const *context_i8_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_i8_type(&(context->type_interner));
+}
+
+Type const *context_i16_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_i16_type(&(context->type_interner));
+}
 
 Type const *context_i32_type(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_i32_type(&(context->type_interner));
+}
+
+Type const *context_i64_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_i64_type(&(context->type_interner));
+}
+
+Type const *context_u8_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_u8_type(&(context->type_interner));
+}
+
+Type const *context_u16_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_u16_type(&(context->type_interner));
+}
+
+Type const *context_u32_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_u32_type(&(context->type_interner));
+}
+
+Type const *context_u64_type(Context *context) {
+    EXP_ASSERT(context != nullptr);
+    return type_interner_u64_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TupleType tuple) {

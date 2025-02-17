@@ -64,6 +64,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/lifetime.c
   ${EXP_SOURCE_DIR}/imr/local.c
   ${EXP_SOURCE_DIR}/imr/operand.c
+  ${EXP_SOURCE_DIR}/imr/scalar.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
