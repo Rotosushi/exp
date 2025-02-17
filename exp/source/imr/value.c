@@ -73,14 +73,14 @@ void tuple_append(Tuple *tuple, Operand element) {
 
 void value_initialize(Value *value) {
     EXP_ASSERT(value != nullptr);
-    value->kind = VALUE_KIND_UNINITIALIZED;
+    value->kind = VALUE_UNINITIALIZED;
     //    value->nil  = 0;
 }
 
 void value_terminate(Value *value) {
     EXP_ASSERT(value != nullptr);
     switch (value->kind) {
-    case VALUE_KIND_TUPLE: {
+    case VALUE_TUPLE: {
         tuple_terminate(&value->tuple);
         break;
     }
@@ -92,13 +92,13 @@ void value_terminate(Value *value) {
 
 void value_initialize_scalar(Value *value, Scalar scalar) {
     EXP_ASSERT(value != nullptr);
-    value->kind   = VALUE_KIND_SCALAR;
+    value->kind   = VALUE_SCALAR;
     value->scalar = scalar;
 }
 
 void value_initialize_tuple(Value *value, Tuple tuple) {
     EXP_ASSERT(value != nullptr);
-    value->kind  = VALUE_KIND_TUPLE;
+    value->kind  = VALUE_TUPLE;
     value->tuple = tuple;
 }
 
@@ -129,13 +129,13 @@ bool value_equal(Value *A, Value *B) {
     if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
-    case VALUE_KIND_UNINITIALIZED: return true;
+    case VALUE_UNINITIALIZED: return true;
 
-    case VALUE_KIND_SCALAR: {
+    case VALUE_SCALAR: {
         return scalar_equal(A->scalar, B->scalar);
     }
 
-    case VALUE_KIND_TUPLE: {
+    case VALUE_TUPLE: {
         return tuple_equal(&A->tuple, &B->tuple);
     }
 
@@ -162,11 +162,9 @@ void print_value(String *buffer, Value const *value, Context *context) {
     EXP_ASSERT(value != nullptr);
     EXP_ASSERT(context != nullptr);
     switch (value->kind) {
-    case VALUE_KIND_UNINITIALIZED:
-        string_append(buffer, SV("uninitialized"));
-        break;
-    case VALUE_KIND_SCALAR: print_scalar(buffer, value->scalar); break;
-    case VALUE_KIND_TUPLE:  print_tuple(buffer, &value->tuple, context); break;
+    case VALUE_UNINITIALIZED: string_append(buffer, SV("uninitialized")); break;
+    case VALUE_SCALAR:        print_scalar(buffer, value->scalar); break;
+    case VALUE_TUPLE:         print_tuple(buffer, &value->tuple, context); break;
 
     default: EXP_UNREACHABLE();
     }

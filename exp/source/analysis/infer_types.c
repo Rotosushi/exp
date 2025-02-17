@@ -164,7 +164,7 @@ static ExpResult infer_types_operand(Type const **result, Operand operand,
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         Local *local = function_local_at(subject->function, operand.data.ssa);
         EXP_ASSERT(local != nullptr);
         // #NOTE: if we try and type a usage of an ssa local, and there is
@@ -177,7 +177,7 @@ static ExpResult infer_types_operand(Type const **result, Operand operand,
         return EXP_SUCCESS;
     }
 
-    case OPERAND_KIND_CONSTANT: {
+    case OPERAND_CONSTANT: {
         Value *constant =
             context_constants_at(subject->context, operand.data.constant);
         EXP_ASSERT(constant != nullptr);
@@ -185,12 +185,12 @@ static ExpResult infer_types_operand(Type const **result, Operand operand,
         return EXP_SUCCESS;
     }
 
-    case OPERAND_KIND_SCALAR: {
+    case OPERAND_SCALAR: {
         *result = type_of_scalar(operand.data.scalar, subject->context);
         return EXP_SUCCESS;
     }
 
-    case OPERAND_KIND_LABEL: {
+    case OPERAND_LABEL: {
         StringView label =
             context_labels_at(subject->context, operand.data.label);
         Symbol *global   = context_symbol_table_at(subject->context, label);
@@ -216,7 +216,7 @@ static Local *local_from_operand_A(Instruction *instruction, Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
     switch (instruction->A.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         return function_local_at(subject->function, instruction->A.data.ssa);
     }
 
@@ -286,17 +286,17 @@ static ExpResult infer_types_call(Type const **result, Instruction *instruction,
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
-    if (B_type->kind != TYPE_KIND_FUNCTION) {
+    if (B_type->kind != TYPE_FUNCTION) {
         return error_type_not_callable(subject, B_type);
     }
 
     FunctionType const *function_type = &B_type->function_type;
     TupleType const *formal_arguments = &function_type->argument_types;
 
-    EXP_ASSERT(instruction->C.kind == OPERAND_KIND_CONSTANT);
+    EXP_ASSERT(instruction->C.kind == OPERAND_CONSTANT);
     Value *value =
         context_constants_at(subject->context, instruction->C.data.constant);
-    EXP_ASSERT(value->kind == VALUE_KIND_TUPLE);
+    EXP_ASSERT(value->kind == VALUE_TUPLE);
     Tuple *actual_arguments = &value->tuple;
 
     if (formal_arguments->count != actual_arguments->size) {
@@ -387,7 +387,7 @@ static ExpResult infer_types_dot(Type const **result, Instruction *instruction,
         return EXP_FAILURE;
     }
     EXP_ASSERT(B_type != nullptr);
-    if (B_type->kind != TYPE_KIND_TUPLE) {
+    if (B_type->kind != TYPE_TUPLE) {
         return error_type_not_indexable(subject, B_type);
     }
     TupleType const *tuple = &B_type->tuple_type;

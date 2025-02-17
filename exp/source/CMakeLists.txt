@@ -34,12 +34,12 @@ target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
 
-  ${EXP_SOURCE_DIR}/analysis/finalize.c
+  ${EXP_SOURCE_DIR}/analysis/analyze.c
   ${EXP_SOURCE_DIR}/analysis/infer_types.c
   ${EXP_SOURCE_DIR}/analysis/lifetimes.c
   ${EXP_SOURCE_DIR}/analysis/validate.c
 
-  ${EXP_SOURCE_DIR}/core/finalize.c
+  ${EXP_SOURCE_DIR}/core/analyze.c
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c
   ${EXP_SOURCE_DIR}/core/compile.c

@@ -83,9 +83,9 @@ static ExpResult validate_constant(Value *value, u32 block_index,
     EXP_ASSERT(nonnull_subject(subject));
 
     switch (value->kind) {
-    case VALUE_KIND_UNINITIALIZED: break;
-    case VALUE_KIND_SCALAR:        break;
-    case VALUE_KIND_TUPLE:
+    case VALUE_UNINITIALIZED: break;
+    case VALUE_SCALAR:        break;
+    case VALUE_TUPLE:
         return validate_tuple(&value->tuple, block_index, subject);
     default: EXP_UNREACHABLE();
     }
@@ -96,7 +96,7 @@ static ExpResult validate_constant(Value *value, u32 block_index,
 static ExpResult validate_operand(Operand operand, u32 block_index,
                                   Subject *subject) {
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         Local *local = function_local_at(subject->function, operand.data.ssa);
         EXP_ASSERT(local != nullptr);
         if (validate_local(local, subject) != EXP_SUCCESS) {
@@ -108,11 +108,11 @@ static ExpResult validate_operand(Operand operand, u32 block_index,
         break;
     }
 
-    case OPERAND_KIND_SCALAR: {
+    case OPERAND_SCALAR: {
         break;
     }
 
-    case OPERAND_KIND_LABEL: {
+    case OPERAND_LABEL: {
         StringView label =
             context_labels_at(subject->context, operand.data.label);
         Symbol *symbol = context_symbol_table_at(subject->context, label);
@@ -121,7 +121,7 @@ static ExpResult validate_operand(Operand operand, u32 block_index,
         break;
     }
 
-    case OPERAND_KIND_CONSTANT: {
+    case OPERAND_CONSTANT: {
         Value *constant =
             context_constants_at(subject->context, operand.data.constant);
         EXP_ASSERT(constant != nullptr);
@@ -147,7 +147,7 @@ static ExpResult validate_A(Instruction *instruction, u32 block_index,
     }
 
     switch (instruction->A.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         Local *ssa =
             function_local_at(subject->function, instruction->A.data.ssa);
         EXP_ASSERT(ssa != nullptr);
@@ -165,17 +165,17 @@ static ExpResult validate_A(Instruction *instruction, u32 block_index,
 
     // #NOTE: scalar operands are disallowed in position A.
     //  though I might use a u32 there in jump instructions
-    case OPERAND_KIND_SCALAR:
+    case OPERAND_SCALAR:
     // #NOTE: constants are disallowed in position A.
     //  though a Tuple in position A could be used for
     //  multiple declaration statements.
     //  const (a, b) = f();
-    case OPERAND_KIND_CONSTANT:
+    case OPERAND_CONSTANT:
     // #NOTE: labels are disallowed, they are currently used
     //  for global access. so this would only be valid for
     //  a global store operation on a global variable. which
     //  is unsupported currently.
-    case OPERAND_KIND_LABEL: {
+    case OPERAND_LABEL: {
         return EXP_FAILURE;
     }
     }
@@ -268,7 +268,7 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(instruction->A.kind == OPERAND_SSA);
     Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
     EXP_ASSERT(ssa != nullptr);
 
@@ -278,7 +278,7 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
 
     // #TODO: some sort of "callable" interface could be checked against here
     //  instead of being hardcoded.
-    if (B_type->kind != TYPE_KIND_FUNCTION) { return EXP_FAILURE; }
+    if (B_type->kind != TYPE_FUNCTION) { return EXP_FAILURE; }
     FunctionType const *callee_type   = &B_type->function_type;
     TupleType const *formal_arguments = &callee_type->argument_types;
 
@@ -286,7 +286,7 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
         type_of_operand(instruction->C, subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
-    if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
+    if (C_type->kind != TYPE_TUPLE) { return EXP_FAILURE; }
     TupleType const *actual_arguments = &C_type->tuple_type;
 
     if (formal_arguments->count != actual_arguments->count) {
@@ -324,7 +324,7 @@ static ExpResult validate_unop(Type const *return_type,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(instruction->A.kind == OPERAND_SSA);
     Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 
@@ -357,11 +357,11 @@ static ExpResult validate_dot(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(instruction->A.kind == OPERAND_SSA);
     Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 
-    if (instruction->B.kind != OPERAND_KIND_SCALAR) { return EXP_FAILURE; }
+    if (instruction->B.kind != OPERAND_SCALAR) { return EXP_FAILURE; }
     if (!scalar_is_index(instruction->B.data.scalar)) { return EXP_FAILURE; }
     u64 index = scalar_index(instruction->B.data.scalar);
 
@@ -369,7 +369,7 @@ static ExpResult validate_dot(Instruction *instruction, u32 block_index,
         type_of_operand(instruction->C, subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
-    if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
+    if (C_type->kind != TYPE_TUPLE) { return EXP_FAILURE; }
     TupleType const *tuple = &C_type->tuple_type;
 
     if (index < 0) { return EXP_FAILURE; }
@@ -397,7 +397,7 @@ static ExpResult validate_binop(Type const *return_type, Type const *left_type,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(instruction->A.kind == OPERAND_SSA);
     Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 

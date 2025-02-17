@@ -7,6 +7,12 @@
 #include "env/context.h"
 #include "utility/result.h"
 
-ExpResult finalize_context(Context *context);
+/**
+ * @brief Perform Type Inference, Type Checking, and Lifetime Analysis
+ * on all functions within the given context.
+ *
+ *
+ */
+ExpResult analyze_context(Context *context);
 
 #endif // EXP_CORE_ANALYZE_H

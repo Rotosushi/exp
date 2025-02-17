@@ -34,7 +34,7 @@ static void analyze_usage_of_operand(Operand operand, u32 block_index,
                                      Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         Local *local = function_local_at(subject->function, operand.data.ssa);
         EXP_ASSERT(local != nullptr);
         if (block_index > local->lifetime.last_use) {
@@ -43,11 +43,11 @@ static void analyze_usage_of_operand(Operand operand, u32 block_index,
         break;
     }
 
-    case OPERAND_KIND_CONSTANT: {
+    case OPERAND_CONSTANT: {
         Value *constant =
             context_constants_at(subject->context, operand.data.constant);
         EXP_ASSERT(constant != nullptr);
-        if (constant->kind != VALUE_KIND_TUPLE) break;
+        if (constant->kind != VALUE_TUPLE) break;
         Tuple *tuple = &constant->tuple;
         for (u64 index = 0; index < tuple->size; ++index) {
             Operand element = tuple->elements[index];
@@ -68,7 +68,7 @@ static void analyze_first_use(Instruction *instruction, u32 block_index,
                               Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (instruction->A.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_SSA: {
         Local *local =
             function_local_at(subject->function, instruction->A.data.ssa);
         EXP_ASSERT(local != nullptr);

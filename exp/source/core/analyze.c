@@ -4,11 +4,11 @@
  * license that can be found in the LICENSE file.
  */
 
-#include "analysis/finalize.h"
-#include "core/finalize.h"
+#include "core/analyze.h"
+#include "analysis/analyze.h"
 #include "utility/assert.h"
 
-ExpResult finalize_context(Context *context) {
+ExpResult analyze_context(Context *context) {
     EXP_ASSERT(context != nullptr);
 
     SymbolTable *symbol_table = &context->symbol_table;
@@ -16,7 +16,7 @@ ExpResult finalize_context(Context *context) {
         Symbol *symbol = symbol_table->elements[index];
         if (symbol == nullptr) { continue; }
         Function *function = &symbol->function_body;
-        if (finalize_function(function, context) != EXP_SUCCESS) {
+        if (analyze_function(function, context) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
     }
