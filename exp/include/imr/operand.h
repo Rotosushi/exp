@@ -4,22 +4,16 @@
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
 
-#include "imr/scalar.h"
 #include "utility/string.h"
-#include <stdint.h>
 
 typedef enum OperandKind : u8 {
-    OPERAND_SSA,
-    OPERAND_LABEL,
-    OPERAND_SCALAR,
-    OPERAND_CONSTANT,
+    OPERAND_REGISTER,
+    OPERAND_STACK,
 } OperandKind;
 
 typedef union OperandPayload {
-    u32 ssa;
-    u32 constant;
-    u32 label;
-    Scalar scalar;
+    u8 register_;
+    u32 stack;
 } OperandData;
 
 typedef struct Operand {
@@ -28,10 +22,9 @@ typedef struct Operand {
 } Operand;
 
 Operand operand_construct(OperandKind kind, OperandData data);
-Operand operand_ssa(u32 ssa);
-Operand operand_constant(u32 constant);
-Operand operand_scalar(Scalar scalar);
-Operand operand_label(u32 label);
+Operand operand_register(u8 register_);
+Operand operand_stack(u32 stack);
+
 bool operand_equality(Operand A, Operand B);
 
 struct Context;

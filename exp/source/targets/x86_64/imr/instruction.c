@@ -76,7 +76,7 @@ x86_64_Instruction x86_64_idiv(x86_64_Operand source) {
 
 static void print_x86_64_instruction_A(String *buffer, StringView mnemonic,
                                        x86_64_Instruction instruction,
-                                       Context *context) {
+                                       TranslationUnit *context) {
     u8 size = x86_64_operand_size(instruction.A_kind, instruction.A_data);
     print_x86_64_mnemonic(buffer, mnemonic, size);
     print_x86_64_operand(buffer, instruction.A_kind, instruction.A_data,
@@ -85,7 +85,7 @@ static void print_x86_64_instruction_A(String *buffer, StringView mnemonic,
 
 static void print_x86_64_instruction_AB(String *buffer, StringView mnemonic,
                                         x86_64_Instruction instruction,
-                                        Context *context) {
+                                        TranslationUnit *context) {
     u8 size = x86_64_operand_size(instruction.A_kind, instruction.A_data);
     print_x86_64_mnemonic(buffer, mnemonic, size);
     print_x86_64_operand(buffer, instruction.B_kind, instruction.B_data,
@@ -96,7 +96,7 @@ static void print_x86_64_instruction_AB(String *buffer, StringView mnemonic,
 }
 
 void print_x86_64_instruction(String *buffer, x86_64_Instruction instruction,
-                              Context *context) {
+                              TranslationUnit *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     switch (instruction.opcode) {

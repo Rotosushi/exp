@@ -7,6 +7,7 @@
 #include "utility/result.h"
 
 ExpResult x86_64_codegen_instruction(String *buffer, Instruction *I,
-                                     Function *function, Context *context);
+                                     Function *function,
+                                     TranslationUnit *context);
 
 #endif // EXP_TARGETS_X86_64_CODEGEN_INSTRUCTION_H

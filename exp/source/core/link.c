@@ -9,7 +9,7 @@
 #include "utility/config.h"
 #include "utility/process.h"
 
-ExpResult link(Context *context) {
+ExpResult link(TranslationUnit *context) {
     StringView obj_path = context_object_path(context);
     StringView out_path = context_output_path(context);
 

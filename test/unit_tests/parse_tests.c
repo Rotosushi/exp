@@ -22,9 +22,9 @@
 #include "utility/io.h"
 
 bool test_parse(StringView body) {
-    Context context;
-    context_initialize(
-        &context, bitset_create(), string_view_create(), string_view_create());
+    TranslationUnit context;
+    context_initialize(&context, bitset_create(), string_view_create(),
+                       string_view_create());
 
     bool failure =
         (parse_buffer(body.ptr, body.length, &context) == EXIT_FAILURE);
