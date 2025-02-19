@@ -7,6 +7,8 @@
 #include "imr/function.h"
 #include "utility/result.h"
 
+struct Context;
+
 /**
  * @brief asserts that the function is correct in so far as the IR in
  * concerned.

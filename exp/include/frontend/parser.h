@@ -35,16 +35,6 @@
           | "()"
 */
 
-/**
- * @brief Parse the buffer
- *
- * @param buffer the buffer to parse
- * @param length the length of the buffer
- * @param context the context to parse within
- * @return i32 EXIT_FAILURE or EXIT_SUCCESS
- */
-ExpResult parse_buffer(char const *buffer, u64 length, Context *context);
-
-ExpResult parse_source(Context *context);
+ExpResult parse_expression(StringView source, Context *context);
 
 #endif // !EXP_FRONTEND_PARSER_H

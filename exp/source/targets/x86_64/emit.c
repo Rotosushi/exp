@@ -11,8 +11,7 @@
 #include "utility/config.h"
 #include "utility/io.h"
 
-static ExpResult emit_x86_64_file_prolouge(String *buffer,
-                                           TranslationUnit *context) {
+static ExpResult emit_x86_64_file_prolouge(String *buffer, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     directive_file(buffer, context_assembly_path(context));
@@ -20,8 +19,7 @@ static ExpResult emit_x86_64_file_prolouge(String *buffer,
     return EXP_SUCCESS;
 }
 
-static ExpResult emit_x86_64_file_epilouge(String *buffer,
-                                           TranslationUnit *context) {
+static ExpResult emit_x86_64_file_epilouge(String *buffer, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     directive_ident(buffer, SV(EXP_VERSION_STRING));
@@ -29,8 +27,7 @@ static ExpResult emit_x86_64_file_epilouge(String *buffer,
     return EXP_SUCCESS;
 }
 
-ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol,
-                             TranslationUnit *context) {
+ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(symbol != nullptr);
     EXP_ASSERT(context != nullptr);
@@ -52,7 +49,7 @@ ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol,
     return EXP_SUCCESS;
 }
 
-ExpResult emit_x86_64_assembly(TranslationUnit *context) {
+ExpResult emit_x86_64_assembly(Context *context) {
     EXP_ASSERT(context != nullptr);
 
     String buffer;

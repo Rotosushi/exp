@@ -22,7 +22,7 @@
 #include "utility/io.h"
 
 bool test_parse(StringView body) {
-    TranslationUnit context;
+    Context context;
     context_initialize(&context, bitset_create(), string_view_create(),
                        string_view_create());
 

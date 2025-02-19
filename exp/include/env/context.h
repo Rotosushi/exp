@@ -4,19 +4,22 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/constants.h"
+// #include "env/constants.h"
+// #include "env/labels.h"
 #include "env/context_options.h"
 #include "env/error.h"
-#include "env/labels.h"
 #include "env/registers.h"
 #include "env/stack.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
+#include "imr/frames.h"
+#include "imr/locals.h"
 
 /**
  * @brief A context holds the common information needed
- * by the compiler for interpretation.
+ * by the compiler for interpretation and the first
+ * stage of code generation.
  *
  */
 typedef struct Context {
@@ -25,8 +28,8 @@ typedef struct Context {
     StringInterner string_interner;
     TypeInterner type_interner;
     SymbolTable symbol_table;
-    Labels labels;
-    Constants constants;
+    Locals locals;
+    Frames frames;
     Stack stack;
     Registers registers;
 } Context;
@@ -68,7 +71,7 @@ StringView context_intern(Context *context, StringView sv);
 
 // type interner functions
 Type const *context_nil_type(Context *context);
-Type const *context_boolean_type(Context *context);
+Type const *context_bool_type(Context *context);
 Type const *context_i8_type(Context *context);
 Type const *context_i16_type(Context *context);
 Type const *context_i32_type(Context *context);
@@ -84,19 +87,20 @@ Type const *context_function_type(Context *context, Type const *return_type,
 // symbol table functions
 Symbol *context_symbol_table_at(Context *context, StringView name);
 
-// labels functions
-u32 context_labels_append(Context *context, StringView label);
-StringView context_labels_at(Context *context, u32 label);
+// locals functions
+void context_locals_push(Context *context, Local local);
+void context_locals_pop_n(Context *context, u32 n);
+Local *context_locals_lookup(Context *context, StringView label);
 
-// Values functions
-Value *context_constants_at(Context *context, u32 constant);
-u32 context_constants_append_tuple(Context *context, Tuple tuple);
+// frames functions
+Frame *context_frames_push(Context *context, Function *function, u32 base);
+void context_frames_pop(Context *context);
 
 // stack functions
 u32 context_stack_length(Context *context);
 Value *context_stack_top(Context *context);
 Value *context_stack_peek(Context *context, u32 n);
-void context_stack_push(Context *context, Value value);
+u32 context_stack_push(Context *context, Value value);
 Value context_stack_pop(Context *context);
 void context_stack_pop_n(Context *context, u32 n);
 

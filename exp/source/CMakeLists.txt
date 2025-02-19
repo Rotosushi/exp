@@ -34,16 +34,16 @@ target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
 
-  ${EXP_SOURCE_DIR}/analysis/analyze.c
-  ${EXP_SOURCE_DIR}/analysis/infer_types.c
-  ${EXP_SOURCE_DIR}/analysis/lifetimes.c
-  ${EXP_SOURCE_DIR}/analysis/validate.c
+#  ${EXP_SOURCE_DIR}/analysis/analyze.c
+#  ${EXP_SOURCE_DIR}/analysis/infer_types.c
+#  ${EXP_SOURCE_DIR}/analysis/lifetimes.c
+#  ${EXP_SOURCE_DIR}/analysis/validate.c
 
-  ${EXP_SOURCE_DIR}/core/analyze.c
-  ${EXP_SOURCE_DIR}/core/assemble.c
-  ${EXP_SOURCE_DIR}/core/codegen.c
-  ${EXP_SOURCE_DIR}/core/compile.c
-  ${EXP_SOURCE_DIR}/core/link.c
+#  ${EXP_SOURCE_DIR}/core/analyze.c
+#  ${EXP_SOURCE_DIR}/core/assemble.c
+#  ${EXP_SOURCE_DIR}/core/codegen.c
+#  ${EXP_SOURCE_DIR}/core/compile.c
+#  ${EXP_SOURCE_DIR}/core/link.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/context_options.c
@@ -68,20 +68,20 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
-  ${EXP_SOURCE_DIR}/intrinsics/align_of.c
-  ${EXP_SOURCE_DIR}/intrinsics/size_of.c
-  ${EXP_SOURCE_DIR}/intrinsics/type_of.c
+#  ${EXP_SOURCE_DIR}/intrinsics/align_of.c
+#  ${EXP_SOURCE_DIR}/intrinsics/size_of.c
+#  ${EXP_SOURCE_DIR}/intrinsics/type_of.c
 
-  ${EXP_SOURCE_DIR}/targets/ir/emit.c
+#  ${EXP_SOURCE_DIR}/targets/ir/emit.c
 
-  ${EXP_SOURCE_DIR}/targets/x86_64/imr/address.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/imr/block.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/imr/instruction.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/imr/operand.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/imr/registers.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/print/gnu_as_directives.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/emit.c
-  ${EXP_SOURCE_DIR}/targets/x86_64/print/mnemonic.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/imr/address.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/imr/block.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/imr/instruction.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/imr/operand.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/imr/registers.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/print/gnu_as_directives.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/emit.c
+#  ${EXP_SOURCE_DIR}/targets/x86_64/print/mnemonic.c
 )
 
 add_library(exp_common

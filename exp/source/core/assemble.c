@@ -9,7 +9,7 @@
 #include "core/assemble.h"
 #include "utility/process.h"
 
-ExpResult assemble(TranslationUnit *context) {
+ExpResult assemble(Context *context) {
     StringView asm_path = context_assembly_path(context);
     StringView obj_path = context_object_path(context);
 

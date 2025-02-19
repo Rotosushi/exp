@@ -5,23 +5,20 @@
 #define EXP_IMR_VALUE_H
 #include <stdbool.h>
 
-#include "imr/operand.h"
 #include "imr/scalar.h"
 
 typedef enum ValueKind {
     VALUE_UNINITIALIZED,
-
     VALUE_SCALAR,
-
     VALUE_TUPLE,
 } ValueKind;
 
 struct Value;
 
 typedef struct Tuple {
-    u32 size;
+    u32 length;
     u32 capacity;
-    Operand *elements;
+    struct Value *elements;
 } Tuple;
 
 /**
@@ -40,7 +37,7 @@ void tuple_initialize(Tuple *tuple);
 void tuple_terminate(Tuple *tuple);
 // void tuple_assign(Tuple *A, Tuple *B);
 bool tuple_equal(Tuple *A, Tuple *B);
-void tuple_append(Tuple *tuple, Operand element);
+void tuple_append(Tuple *tuple, Value element);
 
 void value_initialize(Value *value);
 void value_terminate(Value *value);
@@ -49,7 +46,6 @@ void value_initialize_tuple(Value *value, Tuple tuple);
 // void value_assign(Value *target, Value *source);
 bool value_equal(Value *A, Value *B);
 
-struct Context;
-void print_value(String *buffer, Value const *value, struct Context *context);
+void print_value(String *buffer, Value const *value);
 
 #endif // !EXP_IMR_VALUE_H

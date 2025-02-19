@@ -89,7 +89,7 @@ static ExpResult error_argument_count_mismatch(Subject *subject,
     string_append(&message, SV("Expected ["));
     string_append_u64(&message, formal->count);
     string_append(&message, SV("] arguments. Have ["));
-    string_append_u64(&message, actual->size);
+    string_append_u64(&message, actual->length);
     string_append(&message, SV("] arguments."));
     return error(subject, ERROR_TYPECHECK_TYPE_MISMATCH, message);
 }
@@ -299,12 +299,12 @@ static ExpResult infer_types_call(Type const **result, Instruction *instruction,
     EXP_ASSERT(value->kind == VALUE_TUPLE);
     Tuple *actual_arguments = &value->tuple;
 
-    if (formal_arguments->count != actual_arguments->size) {
+    if (formal_arguments->count != actual_arguments->length) {
         return error_argument_count_mismatch(subject, formal_arguments,
                                              actual_arguments);
     }
 
-    for (u8 i = 0; i < actual_arguments->size; ++i) {
+    for (u8 i = 0; i < actual_arguments->length; ++i) {
         Type const *formal_type = formal_arguments->types[i];
         Operand operand         = actual_arguments->elements[i];
 

@@ -7,6 +7,7 @@
 #include "imr/function.h"
 #include "utility/result.h"
 
+struct Context;
 /**
  * @brief infers the type, lifetime of each local variable within the function.
  */

@@ -6,6 +6,10 @@
 
 #include "imr/function.h"
 
+struct Context;
+/**
+ * @brief infers the lifetime of each local variable within the function.
+ */
 void analyze_lifetimes_of_locals(Function *function, struct Context *context);
 
 #endif // EXP_ANALYSIS_LIFETIMES_H
