@@ -12,6 +12,10 @@ Operand operand_construct(OperandKind kind, OperandData data) {
     return operand_;
 }
 
+Operand operand_uninitialized() {
+    return operand_construct(OPERAND_UNINITIALIZED, (OperandData){});
+}
+
 Operand operand_register(u8 register_) {
     return operand_construct(OPERAND_REGISTER,
                              (OperandData){.register_ = register_});

@@ -35,12 +35,16 @@ typedef enum Opcode : u8 {
 
 /**
  * @brief represents a single instruction in the IR
+ *
+ * @note the only way I can think to reduce the size of
+ * this struct any further is to use a variable length
+ * encoding.
  */
 typedef struct Instruction {
     Opcode opcode;
-    OperandKind A_kind;
-    OperandKind B_kind;
-    OperandKind C_kind;
+    unsigned A_kind : 2;
+    unsigned B_kind : 2;
+    unsigned C_kind : 2;
     OperandData A_data;
     OperandData B_data;
     OperandData C_data;

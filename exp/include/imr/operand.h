@@ -7,8 +7,9 @@
 #include "utility/string.h"
 
 typedef enum OperandKind : u8 {
-    OPERAND_REGISTER,
-    OPERAND_STACK,
+    OPERAND_UNINITIALIZED = 0x0,
+    OPERAND_REGISTER      = 0x1,
+    OPERAND_STACK         = 0x2,
 } OperandKind;
 
 /**
@@ -35,6 +36,7 @@ typedef struct Operand {
 } Operand;
 
 Operand operand_construct(OperandKind kind, OperandData data);
+Operand operand_uninitialized();
 Operand operand_register(u8 register_);
 Operand operand_stack(u16 stack);
 

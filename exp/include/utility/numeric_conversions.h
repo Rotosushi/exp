@@ -40,6 +40,9 @@ char *i64_to_str(i64 value, char *restrict buffer);
 
 char *u64_to_str(u64 value, char *restrict buffer);
 
+// @todo these functions should return success/failure
+// and allow the caller to handle the error, instead of
+// asserting.
 i64 str_to_i64(char const *restrict buffer, u64 length);
 
 u64 str_to_u64(char const *restrict buffer, u64 length);

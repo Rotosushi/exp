@@ -8,6 +8,8 @@
 #include "frontend/lexer.h"
 #include "frontend/token.h"
 #include "imr/operand.h"
+#include "imr/scalar.h"
+#include "imr/value.h"
 #include "utility/assert.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
@@ -34,8 +36,8 @@ typedef enum Precedence {
     PREC_PRIMARY,
 } Precedence;
 
-typedef bool (*PrefixFunction)(Operand *result, Parser *parser);
-typedef bool (*InfixFunction)(Operand *result, Operand left, Parser *parser);
+typedef bool (*PrefixFunction)(Parser *parser);
+typedef bool (*InfixFunction)(Operand left, Parser *parser);
 
 typedef struct ParseRule {
     PrefixFunction prefix;
@@ -146,9 +148,8 @@ static ExpectResult expect(Parser *parser, Token token) {
 }
 
 static ParseRule *get_rule(Token token);
-static bool expression(Operand *result, Parser *parser);
-static bool parse_precedence(Operand *result, Precedence precedence,
-                             Parser *parser);
+static bool expression(Parser *parser);
+static bool parse_precedence(Precedence precedence, Parser *parser);
 
 static bool parse_type(Type const **result, Parser *parser);
 
@@ -304,13 +305,13 @@ static bool parse_formal_argument_list(Parser *parser) {
 }
 
 // return = "return" expression ";"
-static bool return_(Operand *result, Parser *parser) {
-    EXP_ASSERT(result != nullptr);
+static bool return_(Parser *parser) {
     EXP_ASSERT(parser != nullptr);
     EXP_ASSERT(parser->function != nullptr);
+    EXP_ASSERT(peek(parser, TOK_RETURN));
     if (!nexttok(parser)) { return false; } // eat "return"
 
-    if (!expression(result, parser)) { return false; }
+    if (!expression(parser)) { return false; }
 
     switch (expect(parser, TOK_SEMICOLON)) {
     case EXPECT_RESULT_SUCCESS: break;
@@ -320,9 +321,6 @@ static bool return_(Operand *result, Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
-    u32 ssa = function_declare_local(parser->function);
-    function_append_instruction(parser->function,
-                                instruction_return(operand_ssa(ssa), *result));
     return true;
 }
 
@@ -654,13 +652,15 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     return true;
 }
 
-static bool nil(Operand *result, Parser *parser) {
+static bool nil(Parser *parser) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(parser != nullptr);
     EXP_ASSERT(parser->context != nullptr);
     EXP_ASSERT(peek(parser, TOK_NIL));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(parser->context, value_create_nil());
+    Value result;
+    value_initialize_scalar(&result, scalar_nil());
+    context_stack_push(parser->context, result);
     return true;
 }
 
@@ -670,8 +670,9 @@ static bool boolean_true(Operand *result, Parser *parser) {
     EXP_ASSERT(parser->context != nullptr);
     EXP_ASSERT(peek(parser, TOK_TRUE));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(parser->context,
-                                       value_initialize_boolean(true));
+    Value result;
+    value_initialize_scalar(&result, scalar_bool(true));
+    context_stack_push(parser->context, result);
     return true;
 }
 
@@ -681,30 +682,119 @@ static bool boolean_false(Operand *result, Parser *parser) {
     EXP_ASSERT(parser->context != nullptr);
     EXP_ASSERT(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
-    *result = return true;
+    Value result;
+    value_initialize_scalar(&result, scalar_bool(false));
+    context_stack_push(parser->context, result);
+    return true;
 }
 
-/**
- * @brief Parse an integer literal.
- *
- * @todo handle different integer types. (i.e. i8, i16, i64, etc.).
- * we need to add lexer support for typed integer literals.
- */
+static bool integer_annotated(Parser *parser) {
+    EXP_ASSERT(parser != nullptr);
+    EXP_ASSERT(parser->context != nullptr);
+    EXP_ASSERT(peek(parser, TOK_COLON));
+    if (!nexttok(parser)) { return false; }
+    Scalar scalar = scalar_uninitialized();
+    switch (parser->curtok) {
+    case TOK_TYPE_I8: {
+        if (u64_in_range_i8(value)) {
+            scalar = scalar_i8((i8)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_I16: {
+        if (u64_in_range_i16(value)) {
+            scalar = scalar_i16((i16)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_I32: {
+        if (u64_in_range_i32(value)) {
+            scalar = scalar_i32((i32)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_I64: {
+        if (u64_in_range_i64(value)) {
+            scalar = scalar_i64((i64)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_U8: {
+        if (u64_in_range_u8(value)) {
+            scalar = scalar_u8((u8)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_U16: {
+        if (u64_in_range_u16(value)) {
+            scalar = scalar_u16((u16)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    case TOK_TYPE_U32: {
+        if (u64_in_range_u32(value)) {
+            scalar = scalar_u32((u32)value);
+        } else {
+            return error(parser, ERROR_PARSER_INTEGER_OUT_OF_RANGE);
+        }
+        break;
+    }
+
+    default: return error(parser, ERROR_PARSER_EXPECTED_INTEGER_TYPE);
+    }
+    Value result;
+    value_initialize_scalar(&result, scalar);
+    context_stack_push(parser->context, result);
+    return true;
+}
+
 static bool integer(Operand *result, Parser *parser) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(parser != nullptr);
     EXP_ASSERT(parser->context != nullptr);
     EXP_ASSERT(peek(parser, TOK_INTEGER));
     StringView sv = curtxt(parser);
-    i64 value     = str_to_i64(sv.ptr, sv.length);
-    if (!i64_in_range_i32(value)) {
-        return error(parser, ERROR_INTEGER_TO_LARGE);
-    }
-
+    u64 value     = str_to_u64(sv.ptr, sv.length);
+    // eat the integer literal
     if (!nexttok(parser)) { return false; }
 
-    *result = operand_scalar(scalar_i32((i32)value));
+    // check if the user provided an integer type annotation.
+    if (peek(parser, TOK_COLON)) { return integer_annotated(parser); }
 
+    // @note the existence of a user provided type annotation telling
+    // the compiler what type to use for the integer literal gives me
+    // the thought of a type annotation to a string literal,
+    // allowing the user to construct a custom type out of that string,
+    // by way of a custom parsing function provided by the user.
+
+    Scalar scalar = scalar_uninitialized();
+    if (u64_in_range_i64(value)) {
+        scalar = scalar_i64((i64)value);
+    } else {
+        scalar = scalar_u64(value);
+    }
+
+    Value result;
+    value_initialize_scalar(&result, scalar);
+    context_stack_push(parser->context, result);
     return true;
 }
 
