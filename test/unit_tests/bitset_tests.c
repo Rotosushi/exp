@@ -17,6 +17,10 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file unit_tests/bitset_tests.c
+ */
+
 #include "utility/bitset.h"
 #include "utility/pseudo_random.h"
 #include "utility/result.h"

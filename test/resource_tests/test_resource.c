@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+ * @file test/resource_tests/test_resource.c
+ */
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

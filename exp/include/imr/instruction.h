@@ -1,6 +1,24 @@
-// Copyright 2025 Cade Weinberg. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright (C) 2025 Cade Weinberg
+//
+// This file is part of exp.
+//
+// exp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// exp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * @file imr/instruction.h
+ */
+
 #ifndef EXP_IMR_INSTRUCTION_H
 #define EXP_IMR_INSTRUCTION_H
 #include "imr/operand.h"
@@ -33,24 +51,17 @@ typedef enum Opcode : u8 {
     OPCODE_MOD,
 } Opcode;
 
-/**
- * @brief represents a single instruction in the IR
- *
- * @note the only way I can think to reduce the size of
- * this struct any further is to use a variable length
- * encoding.
- */
 typedef struct Instruction {
     Opcode opcode;
-    unsigned A_kind : 2;
-    unsigned B_kind : 2;
-    unsigned C_kind : 2;
+    OperandKind A_kind;
+    OperandKind B_kind;
+    OperandKind C_kind;
     OperandData A_data;
     OperandData B_data;
     OperandData C_data;
 } Instruction;
 
-Instruction instruction_return(Operand dst, Operand result);
+Instruction instruction_return(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
 Instruction instruction_load(Operand dst, Operand src);

@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * @file unit_tests/lexer_tests.c
+ */
+
 #include <stdio.h>
 #include <string.h>
 

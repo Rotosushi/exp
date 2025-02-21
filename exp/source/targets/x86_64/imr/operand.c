@@ -1,7 +1,24 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2025 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file targets/x86_64/imr/operand.c
  */
 
 #include "targets/x86_64/imr/operand.h"
@@ -52,7 +69,7 @@ u8 x86_64_operand_size(x86_64_OperandKind kind, x86_64_OperandData data) {
 }
 
 void print_x86_64_operand(String *buffer, x86_64_OperandKind kind,
-                          x86_64_OperandData data, TranslationUnit *context) {
+                          x86_64_OperandData data, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     switch (kind) {

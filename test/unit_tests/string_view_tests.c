@@ -17,6 +17,10 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file unit_tests/string_view_tests.c
+ */
+
 #include "utility/result.h"
 #include "utility/string_view.h"
 

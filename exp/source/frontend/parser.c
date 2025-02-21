@@ -1,7 +1,24 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2025 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file frontend/parser.h
  */
 #include "frontend/parser.h"
 #include "env/error.h"
@@ -10,8 +27,9 @@
 #include "imr/operand.h"
 #include "imr/scalar.h"
 #include "imr/value.h"
+#include "intrinsics/size_of.h"
+#include "intrinsics/type_of.h"
 #include "utility/assert.h"
-#include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"
 
@@ -36,8 +54,11 @@ typedef enum Precedence {
     PREC_PRIMARY,
 } Precedence;
 
-typedef bool (*PrefixFunction)(Parser *parser);
-typedef bool (*InfixFunction)(Operand left, Parser *parser);
+/**
+ * @brief
+ */
+typedef bool (*PrefixFunction)(Operand *result, Parser *parser);
+typedef bool (*InfixFunction)(Operand *result, Operand left, Parser *parser);
 
 typedef struct ParseRule {
     PrefixFunction prefix;
@@ -148,8 +169,9 @@ static ExpectResult expect(Parser *parser, Token token) {
 }
 
 static ParseRule *get_rule(Token token);
-static bool expression(Parser *parser);
-static bool parse_precedence(Precedence precedence, Parser *parser);
+static bool expression(Operand *result, Parser *parser);
+static bool parse_precedence(Operand *result, Precedence precedence,
+                             Parser *parser);
 
 static bool parse_type(Type const **result, Parser *parser);
 
@@ -305,13 +327,13 @@ static bool parse_formal_argument_list(Parser *parser) {
 }
 
 // return = "return" expression ";"
-static bool return_(Parser *parser) {
+static bool return_(Operand *result, Parser *parser) {
     EXP_ASSERT(parser != nullptr);
     EXP_ASSERT(parser->function != nullptr);
     EXP_ASSERT(peek(parser, TOK_RETURN));
     if (!nexttok(parser)) { return false; } // eat "return"
 
-    if (!expression(parser)) { return false; }
+    if (!expression(result, parser)) { return false; }
 
     switch (expect(parser, TOK_SEMICOLON)) {
     case EXPECT_RESULT_SUCCESS: break;
@@ -321,6 +343,7 @@ static bool return_(Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
+    function_append_return(parser->function, parser->context, *result);
     return true;
 }
 

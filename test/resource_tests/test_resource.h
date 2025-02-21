@@ -14,6 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * @file test/resource_tests/test_resource.h
+ */
+
 #ifndef EXP_TEST_RESOURCE_TESTS_TEST_RESOURCE_H
 #define EXP_TEST_RESOURCE_TESTS_TEST_RESOURCE_H
 
