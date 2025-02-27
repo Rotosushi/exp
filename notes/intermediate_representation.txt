@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
- 1 - "What is the in-memory-representation of the intermediate representation?"
+ 1 - "What is the IMR of the IR?"
       There are two representations of IR that I know of. 
       one is the Abstract Syntax Tree (AST)
       and the other is Bytecode (BC)
       
-      we can use a Tree based approach. 
-      that would be fairly standard as far as I can tell.
-      especially with respect to the Parser.
+      we can use a Tree based approach, even if we created a variant of 
+      the AST that wasted less space, and that would be fairly standard,
+      as far as I can tell.
       However, there are some real advantages to bytecode
       A - time and space efficiency
         reading and writing BC is as efficient as it gets when dealing 

@@ -34,24 +34,16 @@
  *   } x64_Operand
  */
 
-typedef enum x64_OperandKind : u8 {
+typedef enum x64_OperandFormat : u8 {
     X64_OPERAND_KIND_GPR,
     X64_OPERAND_KIND_ADDRESS,
     X64_OPERAND_KIND_IMMEDIATE,
     X64_OPERAND_KIND_LABEL,
     X64_OPERAND_KIND_CONSTANT,
-} x64_OperandKind;
-
-typedef struct x64_OperandData {
-    x64_GPR gpr;
-    x64_Address address;
-    i16 immediate;
-    u16 label;
-    u16 constant;
-} x64_OperandData;
+} x64_OperandFormat;
 
 typedef struct x64_Operand {
-    x64_OperandKind kind;
+    x64_OperandFormat format;
     union {
         x64_GPR gpr;
         x64_Address address;

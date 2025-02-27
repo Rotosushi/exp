@@ -22,10 +22,10 @@
 #include "imr/type.h"
 
 typedef struct x64_Allocation {
-    u64 ssa;
-    Lifetime lifetime;
-    x64_Location location;
-    Type *type;
+  u64 ssa;
+  Lifetime lifetime;
+  x64_Location location;
+  Type *type;
 } x64_Allocation;
 
 x64_Allocation *x64_allocation_allocate();

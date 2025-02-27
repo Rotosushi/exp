@@ -40,46 +40,46 @@ x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
     return I;
 }
 
-x64_Instruction x64_ret() { return x64_instruction(X64_OPCODE_RETURN); }
+x64_Instruction x64_ret() { return x64_instruction(X64OPC_RET); }
 
 x64_Instruction x64_call(x64_Operand label) {
-    return x64_instruction_A(X64_OPCODE_CALL, label);
+    return x64_instruction_A(X64OPC_CALL, label);
 }
 
 x64_Instruction x64_push(x64_Operand src) {
-    return x64_instruction_A(X64_OPCODE_PUSH, src);
+    return x64_instruction_A(X64OPC_PUSH, src);
 }
 
 x64_Instruction x64_pop(x64_Operand dst) {
-    return x64_instruction_A(X64_OPCODE_POP, dst);
+    return x64_instruction_A(X64OPC_POP, dst);
 }
 
 x64_Instruction x64_mov(x64_Operand dst, x64_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_MOV, dst, src);
+    return x64_instruction_AB(X64OPC_MOV, dst, src);
 }
 
 x64_Instruction x64_lea(x64_Operand dst, x64_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_LEA, dst, src);
+    return x64_instruction_AB(X64OPC_LEA, dst, src);
 }
 
 x64_Instruction x64_neg(x64_Operand dst) {
-    return x64_instruction_A(X64_OPCODE_NEG, dst);
+    return x64_instruction_A(X64OPC_NEG, dst);
 }
 
 x64_Instruction x64_add(x64_Operand dst, x64_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_ADD, dst, src);
+    return x64_instruction_AB(X64OPC_ADD, dst, src);
 }
 
 x64_Instruction x64_sub(x64_Operand dst, x64_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_SUB, dst, src);
+    return x64_instruction_AB(X64OPC_SUB, dst, src);
 }
 
 x64_Instruction x64_imul(x64_Operand src) {
-    return x64_instruction_A(X64_OPCODE_IMUL, src);
+    return x64_instruction_A(X64OPC_IMUL, src);
 }
 
 x64_Instruction x64_idiv(x64_Operand src) {
-    return x64_instruction_A(X64_OPCODE_IDIV, src);
+    return x64_instruction_A(X64OPC_IDIV, src);
 }
 
 static void x64_emit_mnemonic(StringView mnemonic,
@@ -115,7 +115,7 @@ static void x64_emit_mnemonic(StringView mnemonic,
 static void x64_emit_operand(x64_Operand operand,
                              String *restrict buffer,
                              Context *restrict context) {
-    switch (operand.kind) {
+    switch (operand.format) {
     case X64_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
         string_append(buffer, x64_gpr_to_sv(operand.gpr));
@@ -172,30 +172,30 @@ void x64_instruction_emit(x64_Instruction I,
                           String *restrict buffer,
                           Context *restrict context) {
     switch (I.opcode) {
-    case X64_OPCODE_RETURN: {
+    case X64OPC_RET: {
         string_append(buffer, SV("ret"));
         break;
     }
 
-    case X64_OPCODE_CALL: {
+    case X64OPC_CALL: {
         string_append(buffer, SV("call\t"));
         x64_emit_operand(I.A, buffer, context);
         break;
     }
 
-    case X64_OPCODE_PUSH: {
+    case X64OPC_PUSH: {
         x64_emit_mnemonic(SV("push"), I, buffer, context);
         x64_emit_operand(I.A, buffer, context);
         break;
     }
 
-    case X64_OPCODE_POP: {
+    case X64OPC_POP: {
         x64_emit_mnemonic(SV("pop"), I, buffer, context);
         x64_emit_operand(I.A, buffer, context);
         break;
     }
 
-    case X64_OPCODE_MOV: {
+    case X64OPC_MOV: {
         x64_emit_mnemonic(SV("mov"), I, buffer, context);
         x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
@@ -203,7 +203,7 @@ void x64_instruction_emit(x64_Instruction I,
         break;
     }
 
-    case X64_OPCODE_LEA: {
+    case X64OPC_LEA: {
         x64_emit_mnemonic(SV("lea"), I, buffer, context);
         x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
@@ -211,13 +211,13 @@ void x64_instruction_emit(x64_Instruction I,
         break;
     }
 
-    case X64_OPCODE_NEG: {
+    case X64OPC_NEG: {
         x64_emit_mnemonic(SV("neg"), I, buffer, context);
         x64_emit_operand(I.A, buffer, context);
         break;
     }
 
-    case X64_OPCODE_ADD: {
+    case X64OPC_ADD: {
         x64_emit_mnemonic(SV("add"), I, buffer, context);
         x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
@@ -225,7 +225,7 @@ void x64_instruction_emit(x64_Instruction I,
         break;
     }
 
-    case X64_OPCODE_SUB: {
+    case X64OPC_SUB: {
         x64_emit_mnemonic(SV("sub"), I, buffer, context);
         x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
@@ -233,13 +233,13 @@ void x64_instruction_emit(x64_Instruction I,
         break;
     }
 
-    case X64_OPCODE_IMUL: {
+    case X64OPC_IMUL: {
         x64_emit_mnemonic(SV("imul"), I, buffer, context);
         x64_emit_operand(I.A, buffer, context);
         break;
     }
 
-    case X64_OPCODE_IDIV: {
+    case X64OPC_IDIV: {
         x64_emit_mnemonic(SV("idiv"), I, buffer, context);
         x64_emit_operand(I.A, buffer, context);
         break;
