@@ -188,12 +188,16 @@ static Token lexer_identifier(Lexer *restrict lexer) {
     return lexer_identifier_or_keyword(lexer);
 }
 
+static Token lexer_integer_or_real(Lexer *restrict lexer) {
+    switch (lexer->token[0])
+}
+
 static Token lexer_number(Lexer *restrict lexer) {
-    while (is_digit(lexer_peek(lexer))) {
+    while (is_digit(lexer_peek(lexer)) || (lexer_peek(lexer) == '.')) {
         lexer_next(lexer);
     }
 
-    return TOK_INTEGER;
+    return lexer_integer_or_real(lexer);
 }
 
 static Token lexer_string_literal(Lexer *restrict lexer) {
@@ -231,7 +235,6 @@ Token lexer_scan(Lexer *restrict lexer) {
     case ';': return TOK_SEMICOLON;
     case ':': return TOK_COLON;
     case ',': return TOK_COMMA;
-    case '.': return TOK_DOT;
 
     case '-': return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
     case '+': return TOK_PLUS;
@@ -249,6 +252,7 @@ Token lexer_scan(Lexer *restrict lexer) {
 
     case '"': return lexer_string_literal(lexer);
 
+    case '.':
     case '0':
     case '1':
     case '2':

@@ -31,10 +31,9 @@ typedef signed long i64;
 #define i16_MIN (-32'768)
 #define i32_MAX (2'147'483'647)
 #define i32_MIN (-2'147'483'648)
-// 9223372036854775808
 #define i64_MAX (9'223'372'036'854'775'807L)
 #define i64_MIN (-1 + (9'223'372'036'854'775'807L))
-
+// 9223372036854775808
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
@@ -50,17 +49,5 @@ bool i64_in_range_i16(i64 value);
 bool i64_in_range_i8(i64 value);
 
 bool i64_in_range_u8(i64 value);
-bool i64_in_range_u16(i64 value);
-bool i64_in_range_u32(i64 value);
-bool i64_in_range_u64(i64 value);
-
-bool u64_in_range_i64(u64 value);
-bool u64_in_range_i32(u64 value);
-bool u64_in_range_i16(u64 value);
-bool u64_in_range_i8(u64 value);
-
-bool u64_in_range_u8(u64 value);
-bool u64_in_range_u16(u64 value);
-bool u64_in_range_u32(u64 value);
 
 #endif // !EXP_UTILITY_INT_TYPES_H
