@@ -124,16 +124,21 @@ static void x64_emit_operand(x64_Operand operand,
 
     case X64_OPERAND_KIND_ADDRESS: {
         x64_Address *address = &operand.address;
-        string_append_i64(buffer, address->offset);
+        if (address->offset.present) {
+            string_append_i64(buffer, address->offset.value);
+        }
 
         string_append(buffer, SV("(%"));
         string_append(buffer, x64_gpr_to_sv(address->base));
 
-        if (address->index != X64_GPR_NONE) {
+        if (address->index.present) {
             string_append(buffer, SV(", "));
-            string_append(buffer, x64_gpr_to_sv(address->index));
-            string_append(buffer, SV(", "));
-            string_append_u64(buffer, address->scale);
+            string_append(buffer, x64_gpr_to_sv(address->index.gpr));
+            string_append(buffer, SV(","));
+            if (address->scale.present) {
+                string_append(buffer, SV(" "));
+                string_append_u64(buffer, address->scale.value);
+            }
         }
 
         string_append(buffer, SV(")"));

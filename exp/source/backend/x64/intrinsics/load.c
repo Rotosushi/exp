@@ -158,7 +158,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
 
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
-            dst_element_address.offset += offset;
+            x64_address_increment_offset(&dst_element_address, offset);
         }
 
         break;
@@ -270,7 +270,7 @@ static void x64_codegen_load_argument_from_composite_operand(
 
             assert(element_size <= i64_MAX);
             i64 offset = -(i64)element_size;
-            dst_element_address.offset += offset;
+            x64_address_increment_offset(&dst_element_address, offset);
         }
 
         break;
@@ -379,7 +379,7 @@ static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
 
         assert(element_size <= i64_MAX);
         i64 offset = (i64)element_size;
-        dst_address.offset += offset;
+        x64_address_increment_offset(&dst_address, offset);
     }
 }
 

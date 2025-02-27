@@ -15,8 +15,3 @@ x64_address_create(x64_GPR base, x64_GPR index, u8 scale, i64 offset) {
         .base = base, .index = index, .scale = scale, .offset = offset};
     return address;
 }
-
-bool x64_address_equality(x64_Address A, x64_Address B) {
-    return (A.base == B.base) && (A.index == B.index) && (A.scale == B.scale) &&
-           (A.offset == B.offset);
-}

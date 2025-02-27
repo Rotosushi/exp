@@ -63,7 +63,10 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
     } else {
         x64_body.result = x64_allocator_allocate_result(
             allocator,
-            x64_location_address(X64_GPR_RDI, X64_GPR_NONE, 1, 0),
+            x64_location_address(X64_GPR_RDI,
+                                 x64_optional_gpr_empty(),
+                                 x64_optional_u8_empty(),
+                                 x64_optional_i64_empty()),
             body->return_type);
         scalar_argument_count += 1;
     }
