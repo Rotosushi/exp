@@ -151,20 +151,6 @@ static void x64_emit_operand(x64_Operand operand,
         break;
     }
 
-    case X64_OPERAND_KIND_CONSTANT: {
-        // #TODO: we currently have a full u64 in x64_Operand,
-        //  and it needs to be updated to a u16 to be in step with Operand.
-        assert(operand.index <= u16_MAX);
-        Value *constant = context_values_at(context, (u16)operand.index);
-        // #TODO: this needs to robustly handle all scalar constants.
-        //  and it is important to note that only scalar constants
-        //  can validly appear here.
-        assert(constant->kind == VALUEKIND_I64);
-        string_append(buffer, SV("$"));
-        string_append_i64(buffer, constant->i64_);
-        break;
-    }
-
     case X64_OPERAND_KIND_LABEL: {
         assert(operand.index <= u16_MAX);
         StringView name = context_global_labels_at(context, (u16)operand.index);
