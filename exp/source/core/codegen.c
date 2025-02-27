@@ -8,7 +8,7 @@
 #include "targets/ir/emit.h"
 #include "utility/assert.h"
 
-void codegen(TranslationUnit *context) {
+void codegen(Context *context) {
     EXP_ASSERT(context != nullptr);
 
     if (context_emit_ir_assembly(context)) { emit_ir_assembly(context); }

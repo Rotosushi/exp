@@ -7,6 +7,6 @@
 #include "env/context.h"
 #include "utility/result.h"
 
-ExpResult emit_x86_64_assembly(TranslationUnit *context);
+ExpResult emit_x86_64_assembly(Context *context);
 
 #endif // EXP_TARGETS_X86_64_EMIT_H

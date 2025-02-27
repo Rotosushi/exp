@@ -9,7 +9,7 @@
 #include "targets/ir/emit.h"
 #include "utility/io.h"
 
-ExpResult emit_ir_assembly(TranslationUnit *context) {
+ExpResult emit_ir_assembly(Context *context) {
     assert(context != nullptr);
 
     String buffer;

@@ -9,28 +9,72 @@
  * @brief the valid opcodes for instructions
  */
 typedef enum Opcode : u8 {
+    /*
+     * <...> -> side effect
+     * ip    -> the instruction index
+     * R     -> the return value location
+     * A|B|C -> an operand
+     * SSA[*]           -> indexing the locals array.
+     * Values[*]     -> indexing the constants array.
+     * GlobalSymbol[*]  -> indexing the global names array followed by
+     *          indexing the global symbol table.
+     * Calls[*]         -> indexing the actual argument lists array.
+     */
     // Memory
-    OPCODE_LOAD,
-    // @todo
-    // OPCODE_STORE,
+    OPCODE_LOAD, // AB  -- SSA[A] = B
+                 // AB  -- SSA[A] = Values[B]
+                 // AB  -- SSA[A] = SSA[B]
 
     // control flow
-    OPCODE_RET,
-    OPCODE_CALL,
-    // @todo:
-    // OPCODE_JUMP,
-    // OPCODE_JUMP_IF_EQUAL,
+    OPCODE_RET, // AB -- A = B,    <return>
+                // AB -- A = Values[B], <return>
+                // AB -- A = SSA[B], <return>
+
+    OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
+
+    // #TODO:
+    OPCODE_JUMP, // A -- <ip = A>
+
+    // #TODO:
+    OPCODE_JUMP_IF_EQUAL, // ABC -- <ip = A> if SSA[B] == C
+                          // ABC -- <ip = A> if Values[B] == C
+                          // ABC -- <ip = A> if SSA[B] == SSA[C]
+                          // ABC -- <ip = A> if Values[B] == SSA[C]
+                          // ABC -- <ip = A> if SSA[B] == Values[C]
+                          // ABC -- <ip = A> if Values[B] == Values[C]
 
     // Unops
-    OPCODE_NEG,
+    OPCODE_NEG, // AB  -- SSA[A] = -(B)
+                // AB  -- SSA[A] = -(SSA[B])
 
     // Binops
-    OPCODE_DOT,
-    OPCODE_ADD,
-    OPCODE_SUB,
-    OPCODE_MUL,
-    OPCODE_DIV,
-    OPCODE_MOD,
+    OPCODE_DOT, // ABC -- SSA[A] = SSA[B].C
+                // ABC -- SSA[A] = Values[B].C
+
+    OPCODE_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
+                // ABC -- SSA[A] = SSA[B] + C
+                // ABC -- SSA[A] = B    + SSA[C]
+                // ABC -- SSA[A] = B    + C
+
+    OPCODE_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
+                // ABC -- SSA[A] = SSA[B] - C
+                // ABC -- SSA[A] = B    - SSA[C]
+                // ABC -- SSA[A] = B    - C
+
+    OPCODE_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
+                // ABC -- SSA[A] = SSA[B] * C
+                // ABC -- SSA[A] = B    * SSA[C]
+                // ABC -- SSA[A] = B    * C
+
+    OPCODE_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
+                // ABC -- SSA[A] = SSA[B] / C
+                // ABC -- SSA[A] = B    / SSA[C]
+                // ABC -- SSA[A] = B    / C
+
+    OPCODE_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
+                // ABC -- SSA[A] = SSA[B] % C
+                // ABC -- SSA[A] = B    % SSA[C]
+                // ABC -- SSA[A] = B    % C
 } Opcode;
 
 /**
@@ -38,12 +82,9 @@ typedef enum Opcode : u8 {
  */
 typedef struct Instruction {
     Opcode opcode;
-    OperandKind A_kind;
-    OperandKind B_kind;
-    OperandKind C_kind;
-    OperandData A_data;
-    OperandData B_data;
-    OperandData C_data;
+    Operand A;
+    Operand B;
+    Operand C;
 } Instruction;
 
 Instruction instruction_return(Operand dst, Operand result);

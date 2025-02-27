@@ -164,7 +164,7 @@ static void print_formal_argument(String *buffer,
 }
 
 void print_function(String *buffer, Function const *function,
-                    TranslationUnit *context) {
+                    Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(function != nullptr);
     EXP_ASSERT(context != nullptr);
