@@ -56,7 +56,7 @@ u32 constants_append_tuple(Constants *constants, Tuple tuple) {
         Value *cursor = constants->buffer + index;
         EXP_ASSERT(cursor != nullptr);
 
-        if (value_equal(cursor, &value)) {
+        if (value_equality(cursor, &value)) {
             value_terminate(&value);
             return index;
         }

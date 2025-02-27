@@ -46,15 +46,12 @@ StringView error_code_sv(ErrorCode code) {
     case ERROR_TYPECHECK_TYPE_NOT_CALLABLE: return SV("Type is not Callable ");
     case ERROR_TYPECHECK_TYPE_NOT_INDEXABLE:
         return SV("Type is not Indexable ");
-    case ERROR_TYPECHECK_DOT_ARGUMENT_NOT_AN_INDEX:
-        return SV("Argument to dot operator is not an index ");
+    case ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE:
+        return SV("Tuple index is not known at compile time ");
     case ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS:
         return SV("Tuple index out of bounds ");
     case ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN:
         return SV("functions return type could not be inferred");
-    case ERROR_TYPECHECK_TYPE_NOT_ARITHMETIC:
-        return SV("Type is not Arithmetic ");
-    case ERROR_TYPECHECK_TYPE_NOT_SIGNED: return SV("Type is not Signed ");
 
     default: EXP_UNREACHABLE();
     }

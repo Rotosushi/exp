@@ -63,14 +63,15 @@ static ExpResult validate_locals(Subject *subject) {
 // check that each use of a local is typesafe
 // check that each use of a value is typesafe
 // check that each use of a label is typesafe
-static ExpResult validate_operand(Operand operand, u32 block_index,
-                                  Subject *subject);
+static ExpResult validate_operand(OperandKind kind, OperandData data,
+                                  u32 block_index, Subject *subject);
 
 static ExpResult validate_tuple(Tuple *tuple, u32 block_index,
                                 Subject *subject) {
     for (u32 index = 0; index < tuple->size; ++index) {
         Operand element = tuple->elements[index];
-        if (validate_operand(element, block_index, subject) != EXP_SUCCESS) {
+        if (validate_operand(element.kind, element.data, block_index,
+                             subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
     }
@@ -84,7 +85,7 @@ static ExpResult validate_constant(Value *value, u32 block_index,
 
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: break;
-    case VALUE_KIND_SCALAR:        break;
+    case VALUE_KIND_I32:           break;
     case VALUE_KIND_TUPLE:
         return validate_tuple(&value->tuple, block_index, subject);
     default: EXP_UNREACHABLE();
@@ -93,11 +94,11 @@ static ExpResult validate_constant(Value *value, u32 block_index,
     return EXP_SUCCESS;
 }
 
-static ExpResult validate_operand(Operand operand, u32 block_index,
-                                  Subject *subject) {
-    switch (operand.kind) {
+static ExpResult validate_operand(OperandKind kind, OperandData data,
+                                  u32 block_index, Subject *subject) {
+    switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_local_at(subject->function, operand.data.ssa);
+        Local *local = function_local_at(subject->function, data.ssa);
         EXP_ASSERT(local != nullptr);
         if (validate_local(local, subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
@@ -108,22 +109,20 @@ static ExpResult validate_operand(Operand operand, u32 block_index,
         break;
     }
 
-    case OPERAND_KIND_SCALAR: {
+    case OPERAND_KIND_I32: {
         break;
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView label =
-            context_labels_at(subject->context, operand.data.label);
-        Symbol *symbol = context_symbol_table_at(subject->context, label);
+        StringView label = context_labels_at(subject->context, data.label);
+        Symbol *symbol   = context_symbol_table_at(subject->context, label);
         EXP_ASSERT(symbol != nullptr);
         EXP_ASSERT(symbol->type != nullptr);
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant =
-            context_constants_at(subject->context, operand.data.constant);
+        Value *constant = context_constants_at(subject->context, data.constant);
         EXP_ASSERT(constant != nullptr);
         if (validate_constant(constant, block_index, subject) != EXP_SUCCESS) {
             return EXP_FAILURE;
@@ -142,14 +141,15 @@ static ExpResult validate_A(Instruction *instruction, u32 block_index,
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
 
-    if (validate_operand(instruction->A, block_index, subject) != EXP_SUCCESS) {
+    if (validate_operand(instruction->A_kind, instruction->A_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
 
-    switch (instruction->A.kind) {
+    switch (instruction->A_kind) {
     case OPERAND_KIND_SSA: {
         Local *ssa =
-            function_local_at(subject->function, instruction->A.data.ssa);
+            function_local_at(subject->function, instruction->A_data.ssa);
         EXP_ASSERT(ssa != nullptr);
         if (validate_local(ssa, subject) != EXP_SUCCESS) { return EXP_FAILURE; }
         // #NOTE: in addition to catching the mismatch between the declaration
@@ -165,7 +165,7 @@ static ExpResult validate_A(Instruction *instruction, u32 block_index,
 
     // #NOTE: scalar operands are disallowed in position A.
     //  though I might use a u32 there in jump instructions
-    case OPERAND_KIND_SCALAR:
+    case OPERAND_KIND_I32:
     // #NOTE: constants are disallowed in position A.
     //  though a Tuple in position A could be used for
     //  multiple declaration statements.
@@ -192,7 +192,8 @@ static ExpResult validate_AB(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    if (validate_operand(instruction->B, block_index, subject) != EXP_SUCCESS) {
+    if (validate_operand(instruction->B_kind, instruction->B_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     return EXP_SUCCESS;
@@ -207,7 +208,8 @@ static ExpResult validate_ABC(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    if (validate_operand(instruction->C, block_index, subject) != EXP_SUCCESS) {
+    if (validate_operand(instruction->C_kind, instruction->C_data, block_index,
+                         subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
     return EXP_SUCCESS;
@@ -224,38 +226,42 @@ static ExpResult validate_load(Instruction *instruction, u32 block_index,
     }
 
     Type const *target_type =
-        type_of_operand(instruction->A, subject->function, subject->context);
+        type_of_operand(instruction->A_kind, instruction->A_data,
+                        subject->function, subject->context);
     EXP_ASSERT(target_type != nullptr);
     Type const *source_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(source_type != nullptr);
-    if (!type_equal(target_type, source_type)) { return EXP_FAILURE; }
+    if (!type_equality(target_type, source_type)) { return EXP_FAILURE; }
     return EXP_SUCCESS;
 }
 
 static ExpResult validate_return(Instruction *instruction, u32 block_index,
                                  Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
-    EXP_ASSERT(instruction->opcode == OPCODE_RET);
+    EXP_ASSERT(instruction->opcode == OPCODE_RETURN);
 
     if (validate_AB(instruction, block_index, subject) != EXP_SUCCESS) {
         return EXP_FAILURE;
     }
 
     Type const *A_type =
-        type_of_operand(instruction->A, subject->function, subject->context);
+        type_of_operand(instruction->A_kind, instruction->A_data,
+                        subject->function, subject->context);
     EXP_ASSERT(A_type != nullptr);
 
     Type const *B_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
-    if (!type_equal(A_type, B_type)) { return EXP_FAILURE; }
+    if (!type_equality(A_type, B_type)) { return EXP_FAILURE; }
 
     Type const *return_type = subject->function->return_type;
     EXP_ASSERT(return_type != nullptr);
 
-    if (!type_equal(A_type, return_type)) { return EXP_FAILURE; }
+    if (!type_equality(A_type, return_type)) { return EXP_FAILURE; }
     return EXP_SUCCESS;
 }
 
@@ -268,12 +274,13 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
-    Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
+    EXP_ASSERT(instruction->A_kind == OPERAND_KIND_SSA);
+    Local *ssa = function_local_at(subject->function, instruction->A_data.ssa);
     EXP_ASSERT(ssa != nullptr);
 
     Type const *B_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
     // #TODO: some sort of "callable" interface could be checked against here
@@ -283,7 +290,8 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
     TupleType const *formal_arguments = &callee_type->argument_types;
 
     Type const *C_type =
-        type_of_operand(instruction->C, subject->function, subject->context);
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
     if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
@@ -300,13 +308,13 @@ static ExpResult validate_call(Instruction *instruction, u32 block_index,
         Type const *actual = actual_arguments->types[index];
         EXP_ASSERT(actual != nullptr);
 
-        if (!type_equal(formal, actual)) { return EXP_FAILURE; }
+        if (!type_equality(formal, actual)) { return EXP_FAILURE; }
     }
 
     Type const *result_type = callee_type->return_type;
     EXP_ASSERT(result_type != nullptr);
 
-    if (!type_equal(ssa->type, result_type)) { return EXP_FAILURE; }
+    if (!type_equality(ssa->type, result_type)) { return EXP_FAILURE; }
 
     return EXP_SUCCESS;
 }
@@ -324,17 +332,18 @@ static ExpResult validate_unop(Type const *return_type,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
-    Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
+    EXP_ASSERT(instruction->A_kind == OPERAND_KIND_SSA);
+    Local *ssa = function_local_at(subject->function, instruction->A_data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 
-    if (!type_equal(return_type, ssa->type)) { return EXP_FAILURE; }
+    if (!type_equality(return_type, ssa->type)) { return EXP_FAILURE; }
 
     Type const *B_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
-    if (!type_equal(argument_type, B_type)) { return EXP_FAILURE; }
+    if (!type_equality(argument_type, B_type)) { return EXP_FAILURE; }
 
     return EXP_SUCCESS;
 }
@@ -357,16 +366,18 @@ static ExpResult validate_dot(Instruction *instruction, u32 block_index,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
-    Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
+    EXP_ASSERT(instruction->A_kind == OPERAND_KIND_SSA);
+    Local *ssa = function_local_at(subject->function, instruction->A_data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 
-    if (instruction->B.kind != OPERAND_KIND_SCALAR) { return EXP_FAILURE; }
-    if (!scalar_is_index(instruction->B.data.scalar)) { return EXP_FAILURE; }
-    u64 index = scalar_index(instruction->B.data.scalar);
+    // #TODO: theoretically speaking, we can accept any integer type
+    //  as an index to the tuple.
+    if (instruction->B_kind != OPERAND_KIND_I32) { return EXP_FAILURE; }
+    i32 index = instruction->B_data.i32_;
 
     Type const *C_type =
-        type_of_operand(instruction->C, subject->function, subject->context);
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
     if (C_type->kind != TYPE_KIND_TUPLE) { return EXP_FAILURE; }
@@ -378,7 +389,7 @@ static ExpResult validate_dot(Instruction *instruction, u32 block_index,
     Type const *element_type = tuple->types[index];
     EXP_ASSERT(element_type != nullptr);
 
-    if (!type_equal(ssa->type, element_type)) { return EXP_FAILURE; }
+    if (!type_equality(ssa->type, element_type)) { return EXP_FAILURE; }
 
     return EXP_SUCCESS;
 }
@@ -397,39 +408,72 @@ static ExpResult validate_binop(Type const *return_type, Type const *left_type,
         return EXP_FAILURE;
     }
 
-    EXP_ASSERT(instruction->A.kind == OPERAND_KIND_SSA);
-    Local *ssa = function_local_at(subject->function, instruction->A.data.ssa);
+    EXP_ASSERT(instruction->A_kind == OPERAND_KIND_SSA);
+    Local *ssa = function_local_at(subject->function, instruction->A_data.ssa);
     EXP_ASSERT(ssa->type != nullptr);
 
-    if (!type_equal(return_type, ssa->type)) { return EXP_FAILURE; }
+    if (!type_equality(return_type, ssa->type)) { return EXP_FAILURE; }
 
     Type const *B_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
+        type_of_operand(instruction->B_kind, instruction->B_data,
+                        subject->function, subject->context);
     EXP_ASSERT(B_type != nullptr);
 
-    if (!type_equal(left_type, B_type)) { return EXP_FAILURE; }
+    if (!type_equality(left_type, B_type)) { return EXP_FAILURE; }
 
     Type const *C_type =
-        type_of_operand(instruction->C, subject->function, subject->context);
+        type_of_operand(instruction->C_kind, instruction->C_data,
+                        subject->function, subject->context);
     EXP_ASSERT(C_type != nullptr);
 
-    if (!type_equal(right_type, C_type)) { return EXP_FAILURE; }
+    if (!type_equality(right_type, C_type)) { return EXP_FAILURE; }
 
     return EXP_SUCCESS;
 }
 
-static ExpResult validate_arithmetic_binop(Instruction *instruction,
-                                           u32 block_index, Subject *subject) {
+static ExpResult validate_add(Instruction *instruction, u32 block_index,
+                              Subject *subject) {
     EXP_ASSERT(instruction != nullptr);
     EXP_ASSERT(nonnull_subject(subject));
+    Type const *i32_type = context_i32_type(subject->context);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
+}
 
-    Type const *B_type =
-        type_of_operand(instruction->B, subject->function, subject->context);
-    EXP_ASSERT(B_type != nullptr);
-    if (!type_is_arithmetic(B_type)) { return EXP_FAILURE; }
+static ExpResult validate_subtract(Instruction *instruction, u32 block_index,
+                                   Subject *subject) {
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
+    Type const *i32_type = context_i32_type(subject->context);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
+}
 
-    return validate_binop(B_type, B_type, B_type, instruction, block_index,
-                          subject);
+static ExpResult validate_multiply(Instruction *instruction, u32 block_index,
+                                   Subject *subject) {
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
+    Type const *i32_type = context_i32_type(subject->context);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
+}
+
+static ExpResult validate_divide(Instruction *instruction, u32 block_index,
+                                 Subject *subject) {
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
+    Type const *i32_type = context_i32_type(subject->context);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
+}
+
+static ExpResult validate_modulus(Instruction *instruction, u32 block_index,
+                                  Subject *subject) {
+    EXP_ASSERT(instruction != nullptr);
+    EXP_ASSERT(nonnull_subject(subject));
+    Type const *i32_type = context_i32_type(subject->context);
+    return validate_binop(i32_type, i32_type, i32_type, instruction,
+                          block_index, subject);
 }
 
 static ExpResult validate_instruction(Instruction *instruction, u32 block_index,
@@ -439,20 +483,21 @@ static ExpResult validate_instruction(Instruction *instruction, u32 block_index,
 
     switch (instruction->opcode) {
     case OPCODE_LOAD: return validate_load(instruction, block_index, subject);
-    case OPCODE_RET:  return validate_return(instruction, block_index, subject);
+    case OPCODE_RETURN:
+        return validate_return(instruction, block_index, subject);
     case OPCODE_CALL: return validate_call(instruction, block_index, subject);
-    case OPCODE_NEG:  return validate_negate(instruction, block_index, subject);
-    case OPCODE_DOT:  return validate_dot(instruction, block_index, subject);
-    case OPCODE_ADD:
-        return validate_arithmetic_binop(instruction, block_index, subject);
-    case OPCODE_SUB:
-        return validate_arithmetic_binop(instruction, block_index, subject);
-    case OPCODE_MUL:
-        return validate_arithmetic_binop(instruction, block_index, subject);
-    case OPCODE_DIV:
-        return validate_arithmetic_binop(instruction, block_index, subject);
-    case OPCODE_MOD:
-        return validate_arithmetic_binop(instruction, block_index, subject);
+    case OPCODE_NEGATE:
+        return validate_negate(instruction, block_index, subject);
+    case OPCODE_DOT: return validate_dot(instruction, block_index, subject);
+    case OPCODE_ADD: return validate_add(instruction, block_index, subject);
+    case OPCODE_SUBTRACT:
+        return validate_subtract(instruction, block_index, subject);
+    case OPCODE_MULTIPLY:
+        return validate_multiply(instruction, block_index, subject);
+    case OPCODE_DIVIDE:
+        return validate_divide(instruction, block_index, subject);
+    case OPCODE_MODULUS:
+        return validate_modulus(instruction, block_index, subject);
     default: EXP_UNREACHABLE();
     }
 

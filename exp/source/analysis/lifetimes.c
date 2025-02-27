@@ -30,12 +30,12 @@ static void subject_initialize(Subject *subject, Function *function,
     return true;
 }
 
-static void analyze_usage_of_operand(Operand operand, u32 block_index,
-                                     Subject *subject) {
+static void analyze_usage_of_operand(OperandKind kind, OperandData data,
+                                     u32 block_index, Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
-    switch (operand.kind) {
+    switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_local_at(subject->function, operand.data.ssa);
+        Local *local = function_local_at(subject->function, data.ssa);
         EXP_ASSERT(local != nullptr);
         if (block_index > local->lifetime.last_use) {
             local_update_last_use(local, block_index);
@@ -44,14 +44,14 @@ static void analyze_usage_of_operand(Operand operand, u32 block_index,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant =
-            context_constants_at(subject->context, operand.data.constant);
+        Value *constant = context_constants_at(subject->context, data.constant);
         EXP_ASSERT(constant != nullptr);
         if (constant->kind != VALUE_KIND_TUPLE) break;
         Tuple *tuple = &constant->tuple;
         for (u64 index = 0; index < tuple->size; ++index) {
             Operand element = tuple->elements[index];
-            analyze_usage_of_operand(element, block_index, subject);
+            analyze_usage_of_operand(element.kind, element.data, block_index,
+                                     subject);
         }
         break;
     }
@@ -67,10 +67,10 @@ static void analyze_usage_of_operand(Operand operand, u32 block_index,
 static void analyze_first_use(Instruction *instruction, u32 block_index,
                               Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
-    switch (instruction->A.kind) {
+    switch (instruction->A_kind) {
     case OPERAND_KIND_SSA: {
         Local *local =
-            function_local_at(subject->function, instruction->A.data.ssa);
+            function_local_at(subject->function, instruction->A_data.ssa);
         EXP_ASSERT(local != nullptr);
         local_update_first_use(local, block_index);
         break;
@@ -97,28 +97,31 @@ static void analyze_usage_of_AB(Instruction *instruction, u32 block_index,
                                 Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(instruction->B, block_index, subject);
+    analyze_usage_of_operand(instruction->B_kind, instruction->B_data,
+                             block_index, subject);
 }
 
 static void analyze_usage_of_ABC(Instruction *instruction, u32 block_index,
                                  Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(instruction->B, block_index, subject);
-    analyze_usage_of_operand(instruction->C, block_index, subject);
+    analyze_usage_of_operand(instruction->B_kind, instruction->B_data,
+                             block_index, subject);
+    analyze_usage_of_operand(instruction->C_kind, instruction->C_data,
+                             block_index, subject);
 }
 
 static void analyze_usage_of_instruction(Instruction *instruction,
                                          u32 block_index, Subject *subject) {
     EXP_ASSERT(validate_subject(subject));
     switch (instruction->opcode) {
-    case OPCODE_RET:
+    case OPCODE_RETURN:
         analyze_usage_of_AB(instruction, block_index, subject);
         break;
     case OPCODE_CALL:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
-    case OPCODE_NEG:
+    case OPCODE_NEGATE:
         analyze_usage_of_AB(instruction, block_index, subject);
         break;
     case OPCODE_DOT:
@@ -127,16 +130,16 @@ static void analyze_usage_of_instruction(Instruction *instruction,
     case OPCODE_ADD:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
-    case OPCODE_SUB:
+    case OPCODE_SUBTRACT:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
-    case OPCODE_MUL:
+    case OPCODE_MULTIPLY:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
-    case OPCODE_DIV:
+    case OPCODE_DIVIDE:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
-    case OPCODE_MOD:
+    case OPCODE_MODULUS:
         analyze_usage_of_ABC(instruction, block_index, subject);
         break;
 

@@ -6,12 +6,13 @@
 #include <stdbool.h>
 
 #include "imr/operand.h"
-#include "imr/scalar.h"
 
 typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,
 
-    VALUE_KIND_SCALAR,
+    //  VALUE_KIND_NIL,
+    //  VALUE_KIND_BOOLEAN,
+    VALUE_KIND_I32,
 
     VALUE_KIND_TUPLE,
 } ValueKind;
@@ -31,7 +32,9 @@ typedef struct Tuple {
 typedef struct Value {
     ValueKind kind;
     union {
-        Scalar scalar;
+        //        bool nil;
+        //        bool boolean;
+        i32 i32_;
         Tuple tuple;
     };
 } Value;
@@ -44,10 +47,12 @@ void tuple_append(Tuple *tuple, Operand element);
 
 void value_initialize(Value *value);
 void value_terminate(Value *value);
-void value_initialize_scalar(Value *value, Scalar scalar);
+// void value_initialize_nil(Value *value);
+// void value_initialize_boolean(Value *value, bool bool_);
+void value_initialize_i32(Value *value, i32 i32_);
 void value_initialize_tuple(Value *value, Tuple tuple);
 // void value_assign(Value *target, Value *source);
-bool value_equal(Value *A, Value *B);
+bool value_equality(Value *A, Value *B);
 
 struct Context;
 void print_value(String *buffer, Value const *value, struct Context *context);
