@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "exp.md",
+                "file": "compiling/codegen/codegen.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "exp"
+              "title": "codegen"
             }
           }
         ]
@@ -164,37 +164,37 @@
   },
   "active": "c6fdb2e6d255c008",
   "lastOpenFiles": [
-    "linking/ld.md",
-    "executing/Ubuntu.md",
-    "executing/system-v.md",
-    "executing/elf.md",
-    "executing/abi.md",
-    "debugging/dwarf.md",
-    "debugging/debugging.md",
-    "compiling/IR.md",
     "compiling/ssa.md",
-    "compiling/compiler.md",
-    "compiling/parsing/parser.md",
-    "compiling/parsing/clox.md",
-    "compiling/optimization/optimize.md",
     "compiling/codegen/codegen.md",
+    "compiling/optimization/optimize.md",
     "compiling/analysis/type-system.md",
+    "compiling/IR.md",
+    "compiling/compiler.md",
     "exp.md",
+    "debugging/debugging.md",
     "assembling/assembly.md",
     "compiling/analysis/typechecking.md",
     "compiling/optimization",
     "compiling/analysis",
     "Untitled.canvas",
     "recursive descent.md",
+    "compiling/parsing/parser.md",
     "compiling/codegen",
+    "executing/Ubuntu.md",
+    "executing/system-v.md",
     "compiling",
     "executing",
+    "linking/ld.md",
     "assembling/as.md",
     "linking",
     "debugging",
     "assembling",
+    "compiling/parsing/clox.md",
     "citations",
+    "debugging/dwarf.md",
+    "executing/abi.md",
     "compiling/parsing",
+    "executing/elf.md",
     "assembling/x86-64.md"
   ]
 }

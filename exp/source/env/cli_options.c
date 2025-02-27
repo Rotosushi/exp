@@ -25,7 +25,6 @@
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/log.h"
-#include "utility/panic.h"
 
 static void print_version(FILE *file) {
     file_write(EXP_VERSION_STRING, file);
@@ -39,19 +38,15 @@ static void print_help(FILE *file) {
     file_write("\t-o <filename> set output filename.\n", file);
     file_write("\t-c emit an object file.\n", file);
     file_write("\t-s emit an assembly file.\n", file);
-    file_write("\t-i emit an exp ir file.\n", file);
     file_write("\n", file);
 }
 
 void cli_options_initialize(CLIOptions *cli_options) {
     assert(cli_options != nullptr);
     cli_options->flags = bitset_create();
-    // #TODO: make this the default. (currently the x64 backend is broken)
-    //  bitset_set_bit(&cli_options->flags, CLI_EMIT_TARGET_ASSEMBLY);
-    //  bitset_set_bit(&cli_options->flags, CLI_CREATE_ELF_OBJECT);
-    //  bitset_set_bit(&cli_options->flags, CLI_CREATE_ELF_EXECUTABLE);
-    //  bitset_set_bit(&cli_options->flags, CLI_CLEANUP_TARGET_ASSEMBLY);
-    //  bitset_set_bit(&cli_options->flags, CLI_CLEANUP_ELF_OBJECT);
+    bitset_set_bit(&cli_options->flags, CLI_DO_ASSEMBLE);
+    bitset_set_bit(&cli_options->flags, CLI_DO_LINK);
+    bitset_set_bit(&cli_options->flags, CLI_DO_CLEANUP);
     string_initialize(&cli_options->source);
     string_initialize(&cli_options->output);
 }
@@ -69,7 +64,7 @@ void cli_options_terminate(CLIOptions *cli_options) {
 void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
     assert(options != nullptr);
     cli_options_initialize(options);
-    static char const *short_options = "hvo:cis";
+    static char const *short_options = "hvo:cs";
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -92,18 +87,15 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
         }
 
         case 'c': {
-            PANIC("#TODO:");
-            break;
-        }
-
-        case 'i': {
-            options->flags = bitset_create();
-            bitset_set_bit(&options->flags, CLI_EMIT_IR_ASSEMBLY);
+            bitset_clear_bit(&options->flags, CLI_DO_CLEANUP);
+            bitset_clear_bit(&options->flags, CLI_DO_LINK);
             break;
         }
 
         case 's': {
-            PANIC("#TODO:");
+            bitset_clear_bit(&options->flags, CLI_DO_CLEANUP);
+            bitset_clear_bit(&options->flags, CLI_DO_ASSEMBLE);
+            bitset_clear_bit(&options->flags, CLI_DO_LINK);
             break;
         }
 

@@ -34,36 +34,21 @@ typedef enum Opcode : u8 {
      *          indexing the global symbol table.
      * Calls[*]         -> indexing the actual argument lists array.
      */
-    // Memory
-    OPCODE_LOAD, // AB  -- SSA[A] = B
-                 // AB  -- SSA[A] = Values[B]
-                 // AB  -- SSA[A] = SSA[B]
-
-    // control flow
     OPCODE_RETURN, // B -- R = B,    <return>
                    // B -- R = Values[B], <return>
                    // B -- R = SSA[B], <return>
 
     OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
-    // #TODO:
-    OPCODE_JUMP, // B -- <ip = B>
-
-    // #TODO:
-    OPCODE_JUMP_IF_EQUAL, // ABC -- <ip = A> if SSA[B] == C
-                          // ABC -- <ip = A> if Values[B] == C
-                          // ABC -- <ip = A> if SSA[B] == SSA[C]
-                          // ABC -- <ip = A> if Values[B] == SSA[C]
-                          // ABC -- <ip = A> if SSA[B] == Values[C]
-                          // ABC -- <ip = A> if Values[B] == Values[C]
-
-    // Unops
-    OPCODE_NEGATE, // AB  -- SSA[A] = -(B)
-                   // AB  -- SSA[A] = -(SSA[B])
-
-    // Binops
     OPCODE_DOT, // ABC -- SSA[A] = SSA[B].C
                 // ABC -- SSA[A] = Values[B].C
+
+    OPCODE_LOAD, // AB  -- SSA[A] = B
+                 // AB  -- SSA[A] = Values[B]
+                 // AB  -- SSA[A] = SSA[B]
+
+    OPCODE_NEGATE, // AB  -- SSA[A] = -(B)
+                   // AB  -- SSA[A] = -(SSA[B])
 
     OPCODE_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
                 // ABC -- SSA[A] = SSA[B] + C
@@ -91,14 +76,25 @@ typedef enum Opcode : u8 {
                     // ABC -- SSA[A] = B    % C
 } Opcode;
 
-/**
- * @brief represents a single instruction
- *
- * sizeof(Opcode) == 1
- * sizeof(OperandKind) == 1
- * sizeof(OperandData) == 4
- * ->
- * sizeof(Instruction) == 16
+/*
+typedef struct InstructionFormat {
+  unsigned opcode : 7;
+  unsigned A_kind : 3;
+  unsigned B_kind : 3;
+  unsigned C_kind : 3;
+} InstructionFormat;
+ * #TODO:
+ *  typedef struct Instruction {
+ *    unsigned opcode : 7;
+ *    unsigned A_kind : 3;
+ *    unsigned B_kind : 3;
+ *    unsigned C_kind : 3;
+ *    unsigned A      : 16;
+ *    unsigned B      : 16;
+ *    unsigned C      : 16;
+ *  } Instruction;
+ *  if I am not mistaken:
+ *  sizeof(Instruction) == sizeof(u64) == 8
  */
 typedef struct Instruction {
     Opcode opcode;

@@ -38,6 +38,7 @@ typedef struct Context {
     Labels labels;
     Constants constants;
     Error current_error;
+    // FunctionBody *current_function;
 } Context;
 
 /**
@@ -48,24 +49,15 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-void context_initialize(Context *context,
-                        Bitset flags,
-                        StringView source,
-                        StringView output);
+void context_initialize(Context *context, CLIOptions *options);
 void context_terminate(Context *context);
 
 // context options functions
-bool context_emit_ir_assembly(Context *context);
-bool context_emit_x86_64_assembly(Context *context);
-
-bool context_create_elf_object(Context *context);
-bool context_create_elf_executable(Context *context);
-
-bool context_cleanup_x86_64_assembly(Context *context);
-bool context_cleanup_elf_object(Context *context);
+bool context_do_assemble(Context *context);
+bool context_do_link(Context *context);
+bool context_do_cleanup(Context *context);
 
 StringView context_source_path(Context *context);
-StringView context_ir_path(Context *context);
 StringView context_assembly_path(Context *context);
 StringView context_object_path(Context *context);
 StringView context_output_path(Context *context);

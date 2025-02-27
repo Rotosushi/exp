@@ -20,16 +20,11 @@
 #include "adt/string.h"
 #include "utility/bitset.h"
 
-typedef enum CLIFlag {
-    CLI_EMIT_IR_ASSEMBLY,
-    CLI_EMIT_X86_64_ASSEMBLY,
-
-    CLI_CREATE_ELF_OBJECT,
-    CLI_CREATE_ELF_EXECUTABLE,
-
-    CLI_CLEANUP_X86_64_ASSEMBLY,
-    CLI_CLEANUP_ELF_OBJECT,
-} CLIFlag;
+typedef enum CLIFlags {
+    CLI_DO_ASSEMBLE,
+    CLI_DO_LINK,
+    CLI_DO_CLEANUP,
+} CLIFlags;
 
 typedef struct CLIOptions {
     Bitset flags;

@@ -59,57 +59,106 @@ void block_append(Block *bytecode, Instruction I) {
 }
 
 static void
-print_B(String *buffer, StringView mnemonic, Instruction I, Context *context) {
-    string_append(buffer, mnemonic);
-    string_append(buffer, SV(" "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
+print_B(char const *inst, Instruction I, FILE *file, Context *context) {
+    file_write(inst, file);
+    file_write(" ", file);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
 }
 
 static void
-print_AB(String *buffer, StringView mnemonic, Instruction I, Context *context) {
-    string_append(buffer, mnemonic);
-    string_append(buffer, SV(" "));
-    print_operand(buffer, I.A_kind, I.A_data, context);
-    string_append(buffer, SV(", "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
+print_AB(char const *inst, Instruction I, FILE *file, Context *context) {
+    file_write(inst, file);
+    file_write(" ", file);
+    print_operand(operand_construct(I.A_kind, I.A_data), file, context);
+    file_write(", ", file);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
 }
 
-static void print_ABC(String *buffer,
-                      StringView mnemonic,
-                      Instruction I,
-                      Context *context) {
-    string_append(buffer, mnemonic);
-    string_append(buffer, SV(" "));
-    print_operand(buffer, I.A_kind, I.A_data, context);
-    string_append(buffer, SV(", "));
-    print_operand(buffer, I.B_kind, I.B_data, context);
-    string_append(buffer, SV(", "));
-    print_operand(buffer, I.C_kind, I.C_data, context);
+static void
+print_ABC(char const *inst, Instruction I, FILE *file, Context *context) {
+    file_write(inst, file);
+    file_write(" ", file);
+    print_operand(operand_construct(I.A_kind, I.A_data), file, context);
+    file_write(", ", file);
+    print_operand(operand_construct(I.B_kind, I.B_data), file, context);
+    file_write(", ", file);
+    print_operand(operand_construct(I.C_kind, I.C_data), file, context);
 }
 
-static void print_instruction(String *buffer, Instruction I, Context *context) {
+// "ret <B>"
+static void print_ret(Instruction I, FILE *file, Context *context) {
+    print_B("ret", I, file, context);
+}
+
+// "call SSA[<A>], GlobalSymbols[GlobalLabels[B]](Calls[C])"
+static void print_call(Instruction I, FILE *file, Context *context) {
+    print_ABC("call", I, file, context);
+}
+
+// "dot SSA[<A>], <B>, <C>"
+static void print_dot(Instruction I, FILE *file, Context *context) {
+    print_ABC("dot", I, file, context);
+}
+
+// "load SSA[<A>], <B>"
+static void print_load(Instruction I, FILE *file, Context *context) {
+    print_AB("load", I, file, context);
+}
+
+// "neg SSA[<A>], <B>"
+static void print_neg(Instruction I, FILE *file, Context *context) {
+    print_AB("neg", I, file, context);
+}
+
+// "add SSA[<A>], <B>, <C>"
+static void print_add(Instruction I, FILE *file, Context *context) {
+    print_ABC("add", I, file, context);
+}
+
+// "sub SSA[<A>], <B>, <C>"
+static void print_sub(Instruction I, FILE *file, Context *context) {
+    print_ABC("sub", I, file, context);
+}
+
+// "mul SSA[<A>], <B>, <C>"
+static void print_mul(Instruction I, FILE *file, Context *context) {
+    print_ABC("mul", I, file, context);
+}
+
+// "div SSA[<A>], <B>, <C>"
+static void print_div(Instruction I, FILE *file, Context *context) {
+    print_ABC("div", I, file, context);
+}
+
+// "mod SSA[<A>], <B>, <C>"
+static void print_mod(Instruction I, FILE *file, Context *context) {
+    print_ABC("mod", I, file, context);
+}
+
+static void print_instruction(Instruction I, FILE *file, Context *context) {
     switch (I.opcode) {
-    case OPCODE_RETURN:   print_B(buffer, SV("ret"), I, context); break;
-    case OPCODE_CALL:     print_ABC(buffer, SV("call"), I, context); break;
-    case OPCODE_DOT:      print_ABC(buffer, SV("dot"), I, context); break;
-    case OPCODE_LOAD:     print_AB(buffer, SV("load"), I, context); break;
-    case OPCODE_NEGATE:   print_AB(buffer, SV("neg"), I, context); break;
-    case OPCODE_ADD:      print_ABC(buffer, SV("add"), I, context); break;
-    case OPCODE_SUBTRACT: print_ABC(buffer, SV("sub"), I, context); break;
-    case OPCODE_MULTIPLY: print_ABC(buffer, SV("mul"), I, context); break;
-    case OPCODE_DIVIDE:   print_ABC(buffer, SV("div"), I, context); break;
-    case OPCODE_MODULUS:  print_ABC(buffer, SV("mod"), I, context); break;
+    case OPCODE_RETURN:   print_ret(I, file, context); break;
+    case OPCODE_CALL:     print_call(I, file, context); break;
+    case OPCODE_DOT:      print_dot(I, file, context); break;
+    case OPCODE_LOAD:     print_load(I, file, context); break;
+    case OPCODE_NEGATE:   print_neg(I, file, context); break;
+    case OPCODE_ADD:      print_add(I, file, context); break;
+    case OPCODE_SUBTRACT: print_sub(I, file, context); break;
+    case OPCODE_MULTIPLY: print_mul(I, file, context); break;
+    case OPCODE_DIVIDE:   print_div(I, file, context); break;
+    case OPCODE_MODULUS:  print_mod(I, file, context); break;
 
     default: EXP_UNREACHABLE();
     }
 }
 
-void print_block(String *buffer, Block const *bc, Context *context) {
+void print_block(Block const *bc, FILE *file, Context *context) {
+    // walk the entire buffer and print each instruction
     for (u32 i = 0; i < bc->length; ++i) {
-        string_append(buffer, SV("\t"));
-        string_append_u64(buffer, i);
-        string_append(buffer, SV(": "));
-        print_instruction(buffer, bc->buffer[i], context);
-        string_append(buffer, SV("\n"));
+        file_write("  ", file);
+        file_write_u64(i, file);
+        file_write(": ", file);
+        print_instruction(bc->buffer[i], file, context);
+        file_write("\n", file);
     }
 }

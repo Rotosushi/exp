@@ -20,12 +20,6 @@
 #include "utility/int_types.h"
 #include "utility/io.h"
 
-// #NOTE: the idea behind the Scalar type is that it represents a value that can
-// fit
-//  in the abstract register of the abstract machine, wheras a full value can be
-//  a scalar or it can be a larger structure. I don't know if this will actually
-//  be usefull yet. it's just one thing I have been thinking about
-
 typedef enum ScalarKind : u8 {
     SCALAR_UNINITIALIZED,
     SCALAR_NIL,

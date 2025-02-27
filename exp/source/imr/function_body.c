@@ -102,7 +102,7 @@ void function_body_terminate(FunctionBody *function) {
 void function_body_allocate_argument(FunctionBody *function,
                                      FormalArgument argument) {
     assert(function != nullptr);
-    argument.ssa = local_allocator_declare_ssa(&function->allocator);
+    argument.ssa = local_allocator_allocate(&function->allocator);
     formal_argument_list_append(&function->arguments, argument);
     Local *local = local_allocator_at(&function->allocator, argument.ssa);
     assert(local != nullptr);
@@ -122,9 +122,9 @@ FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index) {
     return formal_argument_list_at(&function->arguments, index);
 }
 
-u32 function_body_declare_local(FunctionBody *function) {
+u32 function_body_allocate_local(FunctionBody *function) {
     assert(function != nullptr);
-    return local_allocator_declare_ssa(&function->allocator);
+    return local_allocator_allocate(&function->allocator);
 }
 
 Local *function_body_local_at(FunctionBody *function, u32 ssa) {
@@ -132,7 +132,7 @@ Local *function_body_local_at(FunctionBody *function, u32 ssa) {
     return local_allocator_at(&function->allocator, ssa);
 }
 
-Local *function_body_local_at_name(FunctionBody *function, StringView name) {
+Local *function_body_local_named(FunctionBody *function, StringView name) {
     assert(function != nullptr);
     return local_allocator_at_name(&function->allocator, name);
 }
@@ -143,22 +143,20 @@ void function_body_append_instruction(FunctionBody *function,
     block_append(&function->block, instruction);
 }
 
-static void print_formal_argument(FormalArgument *arg, String *buffer) {
-    string_append(buffer, arg->name);
-    string_append(buffer, SV(": "));
-    print_type(buffer, arg->type);
+static void print_formal_argument(FormalArgument *arg, FILE *file) {
+    file_write(arg->name.ptr, file);
+    file_write(": ", file);
+    print_type(arg->type, file);
 }
 
-void print_function_body(String *buffer,
-                         FunctionBody const *f,
-                         Context *context) {
-    string_append(buffer, SV("("));
+void print_function_body(FunctionBody const *f, FILE *file, Context *context) {
+    file_write("(", file);
     FormalArgumentList const *args = &f->arguments;
     for (u8 i = 0; i < args->size; ++i) {
-        print_formal_argument(args->list + i, buffer);
+        print_formal_argument(args->list + i, file);
 
-        if (i < (u8)(args->size - 1)) { string_append(buffer, SV(", ")); }
+        if (i < (u8)(args->size - 1)) { file_write(", ", file); }
     }
-    string_append(buffer, SV(")\n"));
-    print_block(buffer, &f->block, context);
+    file_write(")\n", file);
+    print_block(&f->block, file, context);
 }

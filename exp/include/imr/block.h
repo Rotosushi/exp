@@ -35,5 +35,5 @@ void block_terminate(Block *block);
 void block_append(Block *block, Instruction instruction);
 
 struct Context;
-void print_block(String *buffer, Block const *block, struct Context *context);
+void print_block(Block const *block, FILE *file, struct Context *context);
 #endif // !EXP_IMR_BLOCK_H

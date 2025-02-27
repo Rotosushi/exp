@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include "imr/operand.h"
+#include "utility/io.h"
 
 typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,
@@ -53,10 +54,10 @@ typedef struct Value {
 } Value;
 
 Tuple tuple_create();
-void tuple_destroy(Tuple *tuple);
-void tuple_assign(Tuple *A, Tuple *B);
+void tuple_destroy(Tuple *restrict tuple);
+void tuple_assign(Tuple *restrict A, Tuple *restrict B);
 bool tuple_equal(Tuple *A, Tuple *B);
-void tuple_append(Tuple *tuple, Operand element);
+void tuple_append(Tuple *restrict tuple, Operand element);
 
 /**
  * @brief create an uninitialized value
@@ -65,7 +66,7 @@ void tuple_append(Tuple *tuple, Operand element);
  */
 Value value_create();
 
-void value_destroy(Value *value);
+void value_destroy(Value *restrict value);
 
 /**
  * @brief create a nil value
@@ -117,6 +118,8 @@ void value_assign(Value *dest, Value *source);
 bool value_equality(Value *v1, Value *v2);
 
 struct Context;
-void print_value(String *buffer, Value const *value, struct Context *context);
+void print_value(Value const *restrict v,
+                 FILE *restrict file,
+                 struct Context *restrict context);
 
 #endif // !EXP_IMR_VALUE_H

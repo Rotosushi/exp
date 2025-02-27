@@ -29,14 +29,14 @@ Tuple tuple_create() {
     return tuple;
 }
 
-void tuple_destroy(Tuple *tuple) {
+void tuple_destroy(Tuple *restrict tuple) {
     deallocate(tuple->elements);
     tuple->elements = NULL;
     tuple->capacity = 0;
     tuple->size     = 0;
 }
 
-void tuple_assign(Tuple *A, Tuple *B) {
+void tuple_assign(Tuple *restrict A, Tuple *restrict B) {
     tuple_destroy(A);
     A->capacity = B->capacity;
     A->size     = B->size;
@@ -55,17 +55,17 @@ bool tuple_equal(Tuple *A, Tuple *B) {
     return 1;
 }
 
-static bool tuple_full(Tuple *tuple) {
+static bool tuple_full(Tuple *restrict tuple) {
     return (tuple->size + 1) >= tuple->capacity;
 }
 
-static void tuple_grow(Tuple *tuple) {
+static void tuple_grow(Tuple *restrict tuple) {
     Growth32 g = array_growth_u32(tuple->capacity, sizeof(*tuple->elements));
     tuple->elements = reallocate(tuple->elements, g.alloc_size);
     tuple->capacity = g.new_capacity;
 }
 
-void tuple_append(Tuple *tuple, Operand element) {
+void tuple_append(Tuple *restrict tuple, Operand element) {
     if (tuple_full(tuple)) { tuple_grow(tuple); }
 
     tuple->elements[tuple->size] = element;
@@ -77,7 +77,7 @@ Value value_create() {
     return value;
 }
 
-void value_destroy(Value *value) {
+void value_destroy(Value *restrict value) {
     switch (value->kind) {
     case VALUE_KIND_TUPLE: {
         tuple_destroy(&value->tuple);
@@ -152,32 +152,32 @@ bool value_equality(Value *A, Value *B) {
     }
 }
 
-static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
-    string_append(buffer, SV("("));
+static void print_tuple(Tuple const *restrict tuple,
+                        FILE *restrict file,
+                        Context *restrict context) {
+    file_write("(", file);
     for (u64 i = 0; i < tuple->size; ++i) {
-        Operand element = tuple->elements[i];
-        print_operand(buffer, element.kind, element.data, context);
+        print_operand(tuple->elements[i], file, context);
 
-        if (i < (tuple->size - 1)) { string_append(buffer, SV(", ")); }
+        if (i < (tuple->size - 1)) { file_write(", ", file); }
     }
-    string_append(buffer, SV(")"));
+    file_write(")", file);
 }
 
-void print_value(String *buffer, Value const *v, Context *context) {
+void print_value(Value const *restrict v,
+                 FILE *restrict file,
+                 Context *restrict context) {
     switch (v->kind) {
     case VALUE_KIND_UNINITIALIZED:
-        string_append(buffer, SV("uninitialized"));
-        break;
-    case VALUE_KIND_NIL: string_append(buffer, SV("()")); break;
+    case VALUE_KIND_NIL:           file_write("()", file); break;
 
     case VALUE_KIND_BOOLEAN: {
-        if (v->boolean) string_append(buffer, SV("true"));
-        else string_append(buffer, SV("false"));
+        (v->boolean) ? file_write("true", file) : file_write("false", file);
         break;
     }
 
-    case VALUE_KIND_I32:   string_append_i64(buffer, v->i32_); break;
-    case VALUE_KIND_TUPLE: print_tuple(buffer, &v->tuple, context); break;
+    case VALUE_KIND_I32:   file_write_i64(v->i32_, file); break;
+    case VALUE_KIND_TUPLE: print_tuple(&v->tuple, file, context); break;
 
     default: EXP_UNREACHABLE();
     }

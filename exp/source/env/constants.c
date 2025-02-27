@@ -81,7 +81,7 @@ Value *constants_at(Constants *constants, u32 index) {
     assert(index < constants->count);
     return constants->buffer + index;
 }
-/*
+
 void print_constants(Constants const *constants, FILE *file, Context *context) {
     for (u64 i = 0; i < constants->count; ++i) {
         file_write_u64(i, file);
@@ -91,4 +91,3 @@ void print_constants(Constants const *constants, FILE *file, Context *context) {
         file_write("]\n", file);
     }
 }
-*/

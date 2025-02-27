@@ -18,16 +18,11 @@
 #define EXP_INTRINSICS_TYPE_OF_H
 
 #include "env/context.h"
-#include "imr/function_body.h"
 #include "imr/type.h"
 #include "imr/value.h"
 
-Type const *type_of_operand(OperandKind kind,
-                            OperandData data,
-                            FunctionBody *function,
-                            Context *context);
-Type const *
-type_of_value(Value *value, FunctionBody *function, Context *context);
+Type const *type_of_value(Value *value, Context *context);
 Type const *type_of_function(FunctionBody *body, Context *context);
+Type const *type_of_operand(Operand operand, Context *context);
 
 #endif // !EXP_INTRINSICS_TYPE_OF_H

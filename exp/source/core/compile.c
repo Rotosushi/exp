@@ -27,64 +27,36 @@
 #include "env/context.h"
 #include "frontend/parser.h"
 
-static i32 compile_context(Context *context) {
-    if (parse_source(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
+static i32 compile_context(Context *restrict c) {
+    if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-    if (analyze(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
+    if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-    codegen(context);
+    codegen(c);
 
-    if (context_create_elf_object(context)) { return assemble(context); }
     return EXIT_SUCCESS;
-}
-
-static void context_flags_from_cli_flags(Bitset *context_flags,
-                                         Bitset *cli_flags) {
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_EMIT_IR_ASSEMBLY,
-                      bitset_check_bit(cli_flags, CLI_EMIT_IR_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY,
-                      bitset_check_bit(cli_flags, CLI_EMIT_X86_64_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CREATE_ELF_OBJECT,
-                      bitset_check_bit(cli_flags, CLI_CREATE_ELF_OBJECT));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CREATE_ELF_EXECUTABLE,
-                      bitset_check_bit(cli_flags, CLI_CREATE_ELF_EXECUTABLE));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CLEANUP_TARGET_ASSEMBLY,
-                      bitset_check_bit(cli_flags, CLI_CLEANUP_X86_64_ASSEMBLY));
-    bitset_assign_bit(context_flags,
-                      CONTEXT_OPTION_CLEANUP_ELF_OBJECT,
-                      bitset_check_bit(cli_flags, CLI_CLEANUP_ELF_OBJECT));
 }
 
 i32 compile(i32 argc, char const *argv[]) {
     CLIOptions cli_options;
     parse_cli_options(&cli_options, argc, argv);
-
-    Bitset context_flags = bitset_create();
-    context_flags_from_cli_flags(&context_flags, &cli_options.flags);
-
     Context context;
-    context_initialize(&context,
-                       context_flags,
-                       string_to_view(&cli_options.source),
-                       string_to_view(&cli_options.output));
+    context_initialize(&context, &cli_options);
 
     i32 result = compile_context(&context);
 
-    if ((result != EXIT_FAILURE) && context_create_elf_executable(&context)) {
+    if ((result != EXIT_FAILURE) && context_do_assemble(&context)) {
+        result |= assemble(&context);
+    }
+
+    if ((result != EXIT_FAILURE) && context_do_link(&context)) {
         result |= link(&context);
     }
 
-    if ((result != EXIT_FAILURE) && context_cleanup_x86_64_assembly(&context)) {
+    if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
         StringView asm_path = context_assembly_path(&context);
         file_remove(asm_path.ptr);
-    }
 
-    if ((result != EXIT_FAILURE) && context_cleanup_elf_object(&context)) {
         StringView obj_path = context_object_path(&context);
         file_remove(obj_path.ptr);
     }
