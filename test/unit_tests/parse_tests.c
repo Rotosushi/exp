@@ -32,8 +32,8 @@ bool test_parse(StringView body) {
     context_terminate(&context);
 
     if (failure) {
-        file_write(body, program_error);
-        file_write(SV(" failed to parse."), program_error);
+        file_write(body.ptr, stderr);
+        file_write(" failed to parse.", stderr);
     }
 
     return failure;

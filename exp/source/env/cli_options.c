@@ -16,66 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-// #include <assert.h>
-// #include <stdio.h>
+#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
+#include <string.h>
 
 #include "env/cli_options.h"
-#include "utility/assert.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/log.h"
 #include "utility/panic.h"
-#include "utility/result.h"
-#include "utility/string.h"
 
-#ifndef EXP_HOST_SYSTEM_LINUX
-#error "unsupported host OS"
-#endif
-
-#include <getopt.h>
-
-static void print_version(File *file) {
-    EXP_ASSERT(file != nullptr);
-    String buffer;
-    string_initialize(&buffer);
-    string_append(&buffer, SV(EXP_VERSION_STRING));
-    string_append(&buffer, SV("\n"));
-    file_write(string_to_view(&buffer), file);
-    string_terminate(&buffer);
+static void print_version(FILE *file) {
+    file_write(EXP_VERSION_STRING, file);
+    file_write("\n", file);
 }
 
-static void print_help(File *file) {
-    EXP_ASSERT(file != nullptr);
-    String buffer;
-    string_initialize(&buffer);
-    string_append(&buffer, SV("exp [options] <source-file>\n\n"));
-    string_append(&buffer, SV("\t-h print help.\n"));
-    string_append(&buffer, SV("\t-v print version.\n"));
-    string_append(&buffer, SV("\t-o <filename> set output filename.\n"));
-    string_append(&buffer, SV("\t-c emit an object file.\n"));
-    string_append(&buffer, SV("\t-s emit an assembly file.\n"));
-    string_append(&buffer, SV("\t-i emit an exp ir file.\n"));
-    string_append(&buffer, SV("\n"));
-    file_write(string_to_view(&buffer), file);
-    string_terminate(&buffer);
-}
-
-static void print_unknown_option(char option, File *file) {
-    EXP_ASSERT(file != nullptr);
-    String buffer;
-    string_initialize(&buffer);
-    char buf[2] = {option, '\0'};
-    string_append(&buffer, SV("unknown option ["));
-    string_append(&buffer, string_view_from_str(buf, 1));
-    string_append(&buffer, SV("]\n"));
-    file_write(string_to_view(&buffer), file);
-    string_terminate(&buffer);
+static void print_help(FILE *file) {
+    file_write("exp [options] <source-file>\n\n", file);
+    file_write("\t-h print help.\n", file);
+    file_write("\t-v print version.\n", file);
+    file_write("\t-o <filename> set output filename.\n", file);
+    file_write("\t-c emit an object file.\n", file);
+    file_write("\t-s emit an assembly file.\n", file);
+    file_write("\t-i emit an exp ir file.\n", file);
+    file_write("\n", file);
 }
 
 void cli_options_initialize(CLIOptions *cli_options) {
-    EXP_ASSERT(cli_options != nullptr);
+    assert(cli_options != nullptr);
     cli_options->flags = bitset_create();
     // #TODO: make this the default. (currently the x64 backend is broken)
     //  bitset_set_bit(&cli_options->flags, CLI_EMIT_TARGET_ASSEMBLY);
@@ -88,15 +57,17 @@ void cli_options_initialize(CLIOptions *cli_options) {
 }
 
 void cli_options_terminate(CLIOptions *cli_options) {
-    EXP_ASSERT(cli_options != nullptr);
+    assert(cli_options != nullptr);
     cli_options->flags = bitset_create();
-    string_terminate(&cli_options->output);
-    string_terminate(&cli_options->source);
+    string_destroy(&cli_options->output);
+    string_destroy(&cli_options->source);
 }
 
+#if defined(EXP_HOST_SYSTEM_LINUX)
+#include <getopt.h>
+
 void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
-    EXP_ASSERT(options != nullptr);
-    EXP_ASSERT(argv != nullptr);
+    assert(options != nullptr);
     cli_options_initialize(options);
     static char const *short_options = "hvo:cis";
 
@@ -104,14 +75,14 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
         switch (option) {
         case 'h': {
-            print_help(program_output);
-            exit(EXP_SUCCESS);
+            print_help(stdout);
+            exit(EXIT_SUCCESS);
             break;
         }
 
         case 'v': {
-            print_version(program_output);
-            exit(EXP_SUCCESS);
+            print_version(stdout);
+            exit(EXIT_SUCCESS);
             break;
         }
 
@@ -137,7 +108,10 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
         }
 
         default: {
-            print_unknown_option((char)option, program_error);
+            char buf[2] = {(char)option, '\0'};
+            file_write("unknown option [", stderr);
+            file_write(buf, stderr);
+            file_write("]\n", stderr);
             break;
         }
         }
@@ -147,12 +121,9 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
         string_assign(&(options->source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        log_message(LOG_ERROR,
-                    nullptr,
-                    0,
-                    SV("an input file must be specified.\n"),
-                    program_error);
-        exit(EXP_SUCCESS);
+        log_message(
+            LOG_ERROR, NULL, 0, "an input file must be specified.\n", stderr);
+        exit(EXIT_SUCCESS);
     }
 
     // use the input filename as the default
@@ -162,3 +133,7 @@ void parse_cli_options(CLIOptions *options, i32 argc, char const *argv[]) {
         string_replace_extension(&options->output, SV(""));
     }
 }
+
+#else
+#error "unsupported host OS"
+#endif

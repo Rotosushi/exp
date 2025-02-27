@@ -20,17 +20,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "adt/string.h"
 #include "test_resource.h"
 #include "utility/config.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 #include "utility/process.h"
-#include "utility/string.h"
 
 static char const *exp_path = EXP_BINARY_DIR "/exp/source/exp";
 
-i32 test_exp(StringView source_path, StringView contents, i32 expected_code) {
+i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     i32 result = EXIT_SUCCESS;
 
     String exe;
@@ -39,9 +39,9 @@ i32 test_exp(StringView source_path, StringView contents, i32 expected_code) {
     string_replace_extension(&exe, SV(""));
     char const *exe_path = string_to_cstring(&exe);
 
-    File file = file_open(source_path, FILEMODE_WRITE);
-    file_write(contents, &file);
-    file_close(&file);
+    FILE *file = file_open(source_path.ptr, "w");
+    file_write(contents, file);
+    file_close(file);
 
     char const *exp_args[] = {exp_path, source_path.ptr, NULL};
     i32 exp_result         = process(exp_path, exp_args);
@@ -51,23 +51,19 @@ i32 test_exp(StringView source_path, StringView contents, i32 expected_code) {
         char const *test_args[] = {exe_path, NULL};
         i32 test_result         = process(exe_path, test_args);
         if (test_result != expected_code) {
-            String buffer;
-            string_initialize(&buffer);
-            string_append(&buffer, SV("expected code: "));
-            string_append_i64(&buffer, expected_code);
-            string_append(&buffer, SV(" actual code: "));
-            string_append_i64(&buffer, test_result);
-            string_append(&buffer, SV("\n"));
-            file_write(string_to_view(&buffer), program_error);
-            string_terminate(&buffer);
+            file_write("expected code: ", stderr);
+            file_write_i64(expected_code, stderr);
+            file_write(" actual code: ", stderr);
+            file_write_i64(test_result, stderr);
+            file_write("\n", stderr);
             result |= EXIT_FAILURE;
         }
 
-        file_remove(string_to_view(&exe));
+        file_remove(exe_path);
     }
 
-    file_remove(source_path);
-    string_terminate(&exe);
+    file_remove(source_path.ptr);
+    string_destroy(&exe);
     return result;
 }
 
@@ -106,30 +102,25 @@ i32 test_resource(StringView path) {
 
     char const *exp_args[] = {exp_path, path.ptr, nullptr};
     if (process(exp_path, exp_args) == EXIT_FAILURE) {
-        string_terminate(&exe_string);
-        file_write(SV("test failed! test resource"), program_error);
+        string_destroy(&exe_string);
         return EXIT_FAILURE;
     }
 
     char const *test_args[] = {exe_path, nullptr};
     i32 test_result         = process(exe_path, test_args);
     if (test_result != exit_code) {
-        string_terminate(&exe_string);
-        String buffer;
-        string_initialize(&buffer);
-        string_append(&buffer, SV("\ntest failed! test resource: "));
-        string_append(&buffer, path);
-        string_append(&buffer, SV("\nexpected exit code: "));
-        string_append_i64(&buffer, exit_code);
-        string_append(&buffer, SV(" actual exit code: "));
-        string_append_i64(&buffer, test_result);
-        string_append(&buffer, SV("\n"));
-        file_write(string_to_view(&buffer), program_error);
-        string_terminate(&buffer);
+        string_destroy(&exe_string);
+        file_write("\ntest failed: test resource: ", stderr);
+        file_write(path.ptr, stderr);
+        file_write("\nexpected exit code: ", stderr);
+        file_write_i64(exit_code, stderr);
+        file_write(" actual exit code: ", stderr);
+        file_write_i64(test_result, stderr);
+        file_write("\n", stderr);
         return EXIT_FAILURE;
     }
 
-    file_remove(string_to_view(&exe_string));
-    string_terminate(&exe_string);
+    file_remove(exe_path);
+    string_destroy(&exe_string);
     return EXIT_SUCCESS;
 }

@@ -1,32 +1,33 @@
 
 
-#include "targets/x86_64/emit.h"
+#include <assert.h>
+
+#include "targets/x86_64/as_directives.h"
 #include "targets/x86_64/codegen/instruction.h"
-#include "targets/x86_64/print/gnu_as_directives.h"
-#include "utility/assert.h"
+#include "targets/x86_64/emit.h"
 #include "utility/config.h"
 #include "utility/io.h"
 
 static ExpResult emit_x86_64_file_prolouge(String *buffer, Context *context) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(context != nullptr);
+    assert(buffer != nullptr);
+    assert(context != nullptr);
     directive_file(buffer, context_assembly_path(context));
     string_append(buffer, SV("\n"));
     return EXP_SUCCESS;
 }
 
 static ExpResult emit_x86_64_file_epilouge(String *buffer, Context *context) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(context != nullptr);
+    assert(buffer != nullptr);
+    assert(context != nullptr);
     directive_ident(buffer, SV(EXP_VERSION_STRING));
     directive_noexecstack(buffer);
     return EXP_SUCCESS;
 }
 
 ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol, Context *context) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(symbol != nullptr);
-    EXP_ASSERT(context != nullptr);
+    assert(buffer != nullptr);
+    assert(symbol != nullptr);
+    assert(context != nullptr);
 
     directive_text(buffer);
     directive_globl(buffer, symbol->name);
@@ -46,7 +47,7 @@ ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol, Context *context) {
 }
 
 ExpResult emit_x86_64_assembly(Context *context) {
-    EXP_ASSERT(context != nullptr);
+    assert(context != nullptr);
 
     String buffer;
     string_initialize(&buffer);
@@ -70,9 +71,9 @@ ExpResult emit_x86_64_assembly(Context *context) {
     }
 
     StringView path = context_assembly_path(context);
-    File file       = file_open(path, FILEMODE_WRITE);
-    file_write(string_to_view(&buffer), &file);
-    file_close(&file);
-    string_terminate(&buffer);
+    FILE *file      = file_open(path.ptr, "w");
+    file_write(string_to_cstring(&buffer), file);
+    file_close(file);
+    string_destroy(&buffer);
     return EXP_SUCCESS;
 }

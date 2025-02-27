@@ -16,26 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-// #include <EXP_ASSERT.h>
-// #include <stdlib.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #include "env/type_interner.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/assert.h"
 
 static void type_list_initialize(TypeList *type_list) {
-    EXP_ASSERT(type_list != nullptr);
+    assert(type_list != nullptr);
     type_list->count    = 0;
     type_list->capacity = 0;
     type_list->buffer   = nullptr;
 }
 
 static void type_list_termiante(TypeList *type_list) {
-    EXP_ASSERT(type_list != nullptr);
+    assert(type_list != nullptr);
     for (u64 i = 0; i < type_list->count; ++i) {
         Type *T = type_list->buffer[i];
-        EXP_ASSERT(T != nullptr);
+        assert(T != nullptr);
         type_terminate(T);
     }
 
@@ -46,7 +45,7 @@ static void type_list_termiante(TypeList *type_list) {
 }
 
 static bool type_list_full(TypeList *type_list) {
-    EXP_ASSERT(type_list != nullptr);
+    assert(type_list != nullptr);
     return (type_list->count + 1) >= type_list->capacity;
 }
 
@@ -57,8 +56,8 @@ static void type_list_grow(TypeList *type_list) {
 }
 
 static Type *type_list_append(TypeList *type_list, Type *T) {
-    EXP_ASSERT(type_list != nullptr);
-    EXP_ASSERT(T != nullptr);
+    assert(type_list != nullptr);
+    assert(T != nullptr);
 
     for (u32 i = 0; i < type_list->count; ++i) {
         Type *U = type_list->buffer[i];
@@ -75,7 +74,7 @@ static Type *type_list_append(TypeList *type_list, Type *T) {
 }
 
 void type_interner_initialize(TypeInterner *type_interner) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != nullptr);
     // type_interner->nil_type     = type_nil();
     // type_interner->boolean_type = type_boolean();
     type_interner->i32_type = type_i32();
@@ -84,7 +83,7 @@ void type_interner_initialize(TypeInterner *type_interner) {
 }
 
 void type_interner_destroy(TypeInterner *type_interner) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != NULL);
     // type_terminate(type_interner->nil_type);
     // type_terminate(type_interner->boolean_type);
     type_terminate(type_interner->i32_type);
@@ -94,24 +93,24 @@ void type_interner_destroy(TypeInterner *type_interner) {
 
 /*
 Type const *type_interner_nil_type(TypeInterner *type_interner) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != NULL);
     return type_interner->nil_type;
 }
 
 Type const *type_interner_boolean_type(TypeInterner *type_interner) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != NULL);
     return type_interner->boolean_type;
 }
 */
 
 Type const *type_interner_i32_type(TypeInterner *type_interner) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != NULL);
     return type_interner->i32_type;
 }
 
 Type const *type_interner_tuple_type(TypeInterner *type_interner,
                                      TupleType tuple) {
-    EXP_ASSERT(type_interner != nullptr);
+    assert(type_interner != NULL);
     Type *T = type_tuple(tuple);
     return type_list_append(&type_interner->tuple_types, T);
 }
@@ -119,8 +118,7 @@ Type const *type_interner_tuple_type(TypeInterner *type_interner,
 Type const *type_interner_function_type(TypeInterner *type_interner,
                                         Type const *return_type,
                                         TupleType argument_types) {
-    EXP_ASSERT(type_interner != nullptr);
-    EXP_ASSERT(return_type != nullptr);
+    assert(type_interner != NULL);
     Type *T = type_function(return_type, argument_types);
     return type_list_append(&type_interner->function_types, T);
 }

@@ -16,13 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-// #include <EXP_ASSERT.h>
-// #include <ctype.h>
-// #include <string.h>
+#include <assert.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "frontend/lexer.h"
-#include "utility/assert.h"
-#include "utility/memory.h"
 
 Lexer lexer_create() {
     Lexer lexer;
@@ -31,25 +29,25 @@ Lexer lexer_create() {
 }
 
 void lexer_init(Lexer *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     lexer->length = 0;
-    lexer->buffer = lexer->cursor = lexer->token = nullptr;
+    lexer->buffer = lexer->cursor = lexer->token = NULL;
     lexer->line = lexer->column = 1;
 }
 
 void lexer_reset(Lexer *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     lexer_init(lexer);
 }
 
 void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     lexer->buffer = lexer->cursor = lexer->token = buffer;
     lexer->length                                = length;
 }
 
 bool lexer_at_end(Lexer *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     return (u64)(lexer->cursor - lexer->buffer) >= lexer->length;
 }
 
@@ -58,27 +56,25 @@ static u64 lexer_current_text_length(Lexer const *restrict lexer) {
 }
 
 StringView lexer_current_text(Lexer const *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     StringView result =
         string_view_from_str(lexer->token, lexer_current_text_length(lexer));
     return result;
 }
 
 u64 lexer_current_line(Lexer const *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     return lexer->line;
 }
 
 u64 lexer_current_column(Lexer const *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     return lexer->column;
 }
 
-static bool is_id(char c) {
+static bool isid(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
 }
-
-static bool is_digit(char c) { return (c >= '0' && c <= '9'); }
 
 static char lexer_next(Lexer *restrict lexer) {
     lexer->column++;
@@ -129,7 +125,7 @@ static bool lexer_match(Lexer *restrict lexer, char c) {
 }
 
 static Token lexer_integer(Lexer *restrict lexer) {
-    while (is_digit(lexer_peek(lexer))) {
+    while (isdigit(lexer_peek(lexer))) {
         lexer_next(lexer);
     }
 
@@ -142,7 +138,7 @@ static Token lexer_check_keyword(Lexer *restrict lexer,
                                  const char *rest,
                                  Token keyword) {
     if ((lexer_current_text_length(lexer) == (begin + length)) &&
-        (memory_compare(lexer->token + begin, length, rest, length) == 0)) {
+        (memcmp(lexer->token + begin, rest, length) == 0)) {
         return keyword;
     }
 
@@ -193,7 +189,7 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
 }
 
 static Token lexer_identifier(Lexer *restrict lexer) {
-    while (is_id(lexer_peek(lexer)) || is_digit(lexer_peek(lexer))) {
+    while (isid(lexer_peek(lexer)) || isdigit(lexer_peek(lexer))) {
         lexer_next(lexer);
     }
 
@@ -201,7 +197,7 @@ static Token lexer_identifier(Lexer *restrict lexer) {
 }
 
 Token lexer_scan(Lexer *restrict lexer) {
-    EXP_ASSERT(lexer != nullptr);
+    assert(lexer != NULL);
     if (lexer_at_end(lexer)) { return TOK_END; }
 
     lexer_skip_whitespace(lexer);

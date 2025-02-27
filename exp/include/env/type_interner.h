@@ -16,7 +16,7 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_TYPE_INTERNER_H
 #define EXP_ENV_TYPE_INTERNER_H
-// #include <stddef.h>
+#include <stddef.h>
 
 #include "imr/type.h"
 

@@ -17,7 +17,6 @@
 cmake_minimum_required(VERSION 3.20)
 
 create_test_sourcelist(Tests exp_unit_tests.c
-  bitset_tests.c
   cli_options_tests.c
   constants_tests.c
   graph_tests.c
@@ -26,7 +25,6 @@ create_test_sourcelist(Tests exp_unit_tests.c
   parse_tests.c
   string_interner_tests.c
   string_tests.c
-  string_view_tests.c
   symbol_table_tests.c
   type_interner_tests.c
 )

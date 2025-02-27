@@ -14,22 +14,22 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-// #include <EXP_ASSERT.h>
+#include <assert.h>
 
 #include "env/labels.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/assert.h"
+#include "utility/panic.h"
 
 void labels_initialize(Labels *labels) {
-    EXP_ASSERT(labels != nullptr);
+    assert(labels != nullptr);
     labels->count    = 0;
     labels->capacity = 0;
     labels->buffer   = nullptr;
 }
 
 void labels_terminate(Labels *labels) {
-    EXP_ASSERT(labels != nullptr);
+    assert(labels != nullptr);
     deallocate(labels->buffer);
     labels->buffer   = nullptr;
     labels->count    = 0;
@@ -37,19 +37,19 @@ void labels_terminate(Labels *labels) {
 }
 
 static bool global_labels_full(Labels *labels) {
-    EXP_ASSERT(labels != nullptr);
+    assert(labels != nullptr);
     return (labels->count + 1) >= labels->capacity;
 }
 
 static void global_labels_grow(Labels *labels) {
-    EXP_ASSERT(labels != nullptr);
+    assert(labels != nullptr);
     Growth32 g       = array_growth_u32(labels->capacity, sizeof(StringView));
     labels->buffer   = reallocate(labels->buffer, g.alloc_size);
     labels->capacity = g.new_capacity;
 }
 
 u32 labels_insert(Labels *labels, StringView label) {
-    EXP_ASSERT(labels != nullptr);
+    assert(labels != nullptr);
 
     if (global_labels_full(labels)) { global_labels_grow(labels); }
 
@@ -65,7 +65,7 @@ u32 labels_insert(Labels *labels, StringView label) {
 }
 
 StringView labels_at(Labels *symbols, u32 index) {
-    EXP_ASSERT(symbols != nullptr);
-    EXP_ASSERT(index < symbols->count);
+    assert(symbols != nullptr);
+    assert(index < symbols->count);
     return symbols->buffer[index];
 }

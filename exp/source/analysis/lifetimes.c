@@ -1,9 +1,8 @@
 
-// #include <EXP_ASSERT.h>
+#include <assert.h>
 
 #include "analysis/lifetimes.h"
 #include "env/context.h"
-#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 typedef struct Subject {
@@ -13,9 +12,9 @@ typedef struct Subject {
 
 static void
 subject_initialize(Subject *subject, Function *function, Context *context) {
-    EXP_ASSERT(subject != nullptr);
-    EXP_ASSERT(function != nullptr);
-    EXP_ASSERT(context != nullptr);
+    assert(subject != nullptr);
+    assert(function != nullptr);
+    assert(context != nullptr);
     subject->function = function;
     subject->context  = context;
 }
@@ -31,11 +30,11 @@ static void analyze_usage_of_operand(OperandKind kind,
                                      OperandData data,
                                      u32 block_index,
                                      Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     switch (kind) {
     case OPERAND_KIND_SSA: {
         Local *local = function_local_at(subject->function, data.ssa);
-        EXP_ASSERT(local != nullptr);
+        assert(local != nullptr);
         if (block_index > local->lifetime.last_use) {
             local_update_last_use(local, block_index);
         }
@@ -44,7 +43,7 @@ static void analyze_usage_of_operand(OperandKind kind,
 
     case OPERAND_KIND_CONSTANT: {
         Value *constant = context_constants_at(subject->context, data.constant);
-        EXP_ASSERT(constant != nullptr);
+        assert(constant != nullptr);
         if (constant->kind != VALUE_KIND_TUPLE) break;
         Tuple *tuple = &constant->tuple;
         for (u64 index = 0; index < tuple->size; ++index) {
@@ -65,12 +64,12 @@ static void analyze_usage_of_operand(OperandKind kind,
 
 static void
 analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     switch (instruction->A_kind) {
     case OPERAND_KIND_SSA: {
         Local *local =
             function_local_at(subject->function, instruction->A_data.ssa);
-        EXP_ASSERT(local != nullptr);
+        assert(local != nullptr);
         local_update_first_use(local, block_index);
         break;
     }
@@ -86,7 +85,7 @@ analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
 [[maybe_unused]] static void analyze_usage_of_A(Instruction *instruction,
                                                 u64 block_index,
                                                 Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     analyze_usage_of_operand(
         instruction->B_kind, instruction->B_data, block_index, subject);
 }
@@ -95,7 +94,7 @@ analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
 static void analyze_usage_of_AB(Instruction *instruction,
                                 u32 block_index,
                                 Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
     analyze_usage_of_operand(
         instruction->B_kind, instruction->B_data, block_index, subject);
@@ -104,7 +103,7 @@ static void analyze_usage_of_AB(Instruction *instruction,
 static void analyze_usage_of_ABC(Instruction *instruction,
                                  u32 block_index,
                                  Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     analyze_first_use(instruction, block_index, subject);
     analyze_usage_of_operand(
         instruction->B_kind, instruction->B_data, block_index, subject);
@@ -115,7 +114,7 @@ static void analyze_usage_of_ABC(Instruction *instruction,
 static void analyze_usage_of_instruction(Instruction *instruction,
                                          u32 block_index,
                                          Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     switch (instruction->opcode) {
     case OPCODE_RETURN:
         analyze_usage_of_AB(instruction, block_index, subject);
@@ -150,7 +149,7 @@ static void analyze_usage_of_instruction(Instruction *instruction,
 }
 
 static void analyze_usage_of_block(Subject *subject) {
-    EXP_ASSERT(validate_subject(subject));
+    assert(validate_subject(subject));
     Block *block = &subject->function->block;
     for (u32 index = 0; index < block->length; ++index) {
         analyze_usage_of_instruction(block->buffer + index, index, subject);

@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 
 #include "env/error.h"
-#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 StringView error_code_sv(ErrorCode code) {
@@ -72,43 +72,40 @@ StringView error_code_sv(ErrorCode code) {
 }
 
 void error_initialize(Error *error) {
-    EXP_ASSERT(error != nullptr);
+    assert(error != nullptr);
     error->code = ERROR_NONE;
     string_initialize(&error->message);
 }
 
 void error_construct(Error *error, ErrorCode code, StringView sv) {
-    EXP_ASSERT(error != nullptr);
+    assert(error != nullptr);
     error->code = code;
     string_from_view(&error->message, sv);
 }
 
 void error_from_string(Error *error, ErrorCode code, String str) {
-    EXP_ASSERT(error != nullptr);
+    assert(error != nullptr);
     error->code    = code;
     error->message = str;
 }
 
 void error_terminate(Error *error) {
-    EXP_ASSERT(error != nullptr);
     error->code = ERROR_NONE;
-    string_terminate(&error->message);
+    string_destroy(&error->message);
 }
 
 void error_assign(Error *error, ErrorCode code, StringView sv) {
-    EXP_ASSERT(error != nullptr);
     error->code = code;
     string_assign(&error->message, sv);
 }
 
-void print_error(String *buffer, Error *error, StringView file, u64 line) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(error != nullptr);
-    string_append(buffer, SV("[error @"));
-    string_append(buffer, file);
-    string_append(buffer, SV(":"));
-    string_append_u64(buffer, line);
-    string_append(buffer, SV("] "));
-    string_append(buffer, error_code_sv(error->code));
-    string_append_string(buffer, &error->message);
+void error_print(Error *error, StringView file, u64 line) {
+    String msg;
+    string_initialize(&msg);
+    string_append(&msg, error_code_sv(error->code));
+    string_append(&msg, SV("["));
+    string_append_string(&msg, &error->message);
+    string_append(&msg, SV("]"));
+    log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
+    string_destroy(&msg);
 }

@@ -34,7 +34,7 @@ typedef struct StringInterner {
 
 void string_interner_initialize(StringInterner *string_interner);
 void string_interner_terminate(StringInterner *string_interner);
-StringView string_interner_insert(StringInterner *string_interner,
-                                  StringView sv);
+ConstantString *string_interner_insert(StringInterner *string_interner,
+                                       StringView sv);
 
 #endif // !EXP_ENV_STRING_INTERNER_H

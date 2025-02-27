@@ -21,8 +21,8 @@ ExpResult emit_ir_assembly(Context *context) {
     }
 
     StringView ir_path = context_ir_path(context);
-    File ir_file       = file_open(ir_path, FILEMODE_WRITE);
-    file_write(string_to_view(&buffer), &ir_file);
-    file_close(&ir_file);
+    FILE *ir_file      = file_open(ir_path.ptr, "w");
+    file_write(string_to_cstring(&buffer), ir_file);
+    file_close(ir_file);
     return EXP_SUCCESS;
 }

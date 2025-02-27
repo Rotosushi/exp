@@ -17,8 +17,8 @@
 #ifndef EXP_IMR_SCALAR_H
 #define EXP_IMR_SCALAR_H
 
+#include "adt/string.h"
 #include "utility/int_types.h"
-#include "utility/string.h"
 
 // #NOTE: the idea behind the Scalar type is that it represents a value that can
 //  fit in an abstract register of the abstract machine, where as a Value can be

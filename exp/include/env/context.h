@@ -74,7 +74,7 @@ Error *context_current_error(Context *context);
 bool context_has_error(Context *context);
 
 // string interner functions
-StringView context_intern(Context *context, StringView sv);
+ConstantString *context_intern(Context *context, StringView sv);
 
 // type interner functions
 // Type const *context_nil_type(Context *context);

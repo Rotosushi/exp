@@ -26,7 +26,7 @@
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
 
-    log_message(LOG_FATAL, file, (u64)line, msg, program_error);
+    log_message(LOG_FATAL, file, (u64)line, msg.ptr, stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }
@@ -43,11 +43,7 @@
     memcpy(buf + msglen + textlen, errmsg, errmsglen);
     buf[buflen] = '\0';
 
-    log_message(LOG_FATAL,
-                file,
-                (u64)line,
-                string_view_from_str(buf, buflen),
-                program_error);
+    log_message(LOG_FATAL, file, (u64)line, buf, stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }

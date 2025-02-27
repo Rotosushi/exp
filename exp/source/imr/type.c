@@ -16,33 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-// #include <EXP_ASSERT.h>
-// #include <stdlib.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #include "imr/type.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/assert.h"
 #include "utility/unreachable.h"
 
 void tuple_type_initialize(TupleType *tuple_type) {
-    EXP_ASSERT(tuple_type != nullptr);
+    assert(tuple_type != nullptr);
     tuple_type->capacity = 0;
     tuple_type->count    = 0;
-    tuple_type->types    = nullptr;
+    tuple_type->types    = NULL;
 }
 
 void tuple_type_terminate(TupleType *tuple_type) {
-    EXP_ASSERT(tuple_type != nullptr);
+    assert(tuple_type != NULL);
     tuple_type->capacity = 0;
     tuple_type->count    = 0;
     deallocate(tuple_type->types);
-    tuple_type->types = nullptr;
+    tuple_type->types = NULL;
 }
 
 bool tuple_type_equality(TupleType const *A, TupleType const *B) {
-    EXP_ASSERT(A != nullptr);
-    EXP_ASSERT(B != nullptr);
+    assert(A != NULL);
+    assert(B != NULL);
     if (A == B) { return true; }
 
     if (A->count != B->count) { return false; }
@@ -58,28 +57,28 @@ bool tuple_type_equality(TupleType const *A, TupleType const *B) {
 }
 
 static bool tuple_type_full(TupleType *tuple_type) {
-    EXP_ASSERT(tuple_type != nullptr);
+    assert(tuple_type != nullptr);
     return (tuple_type->count + 1) >= tuple_type->capacity;
 }
 
 static void tuple_type_grow(TupleType *tuple_type) {
-    EXP_ASSERT(tuple_type != nullptr);
+    assert(tuple_type != nullptr);
     Growth32 g        = array_growth_u32(tuple_type->capacity, sizeof(Type *));
     tuple_type->types = reallocate(tuple_type->types, g.alloc_size);
     tuple_type->capacity = g.new_capacity;
 }
 
 void tuple_type_append(TupleType *tuple_type, Type const *type) {
-    EXP_ASSERT(tuple_type != nullptr);
-    EXP_ASSERT(type != nullptr);
+    assert(tuple_type != NULL);
+    assert(type != nullptr);
     if (tuple_type_full(tuple_type)) { tuple_type_grow(tuple_type); }
     tuple_type->types[tuple_type->count] = type;
     tuple_type->count += 1;
 }
 
 bool function_type_equality(FunctionType const *A, FunctionType const *B) {
-    EXP_ASSERT(A != nullptr);
-    EXP_ASSERT(B != nullptr);
+    assert(A != NULL);
+    assert(B != NULL);
     if (A == B) { return true; }
     if (!type_equality(A->return_type, B->return_type)) { return false; }
     return tuple_type_equality(&A->argument_types, &B->argument_types);
@@ -111,7 +110,6 @@ Type *type_tuple(TupleType tuple_type) {
 }
 
 Type *type_function(Type const *result, TupleType args) {
-    EXP_ASSERT(result != nullptr);
     Type *type          = callocate(1, sizeof(Type));
     type->kind          = TYPE_KIND_FUNCTION;
     type->function_type = (FunctionType){result, args};
@@ -119,7 +117,6 @@ Type *type_function(Type const *result, TupleType args) {
 }
 
 void type_terminate(Type *type) {
-    EXP_ASSERT(type != nullptr);
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
         tuple_type_terminate(&type->tuple_type);
@@ -139,8 +136,6 @@ void type_terminate(Type *type) {
 }
 
 bool type_equality(Type const *A, Type const *B) {
-    EXP_ASSERT(A != nullptr);
-    EXP_ASSERT(B != nullptr);
     if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
@@ -155,7 +150,6 @@ bool type_equality(Type const *A, Type const *B) {
 }
 
 bool type_is_scalar(Type const *T) {
-    EXP_ASSERT(T != nullptr);
     switch (T->kind) {
         //   case TYPE_KIND_NIL:
         //   case TYPE_KIND_BOOLEAN:
@@ -170,8 +164,6 @@ bool type_is_scalar(Type const *T) {
 }
 
 static void print_tuple_type(String *buffer, TupleType const *tuple_type) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(tuple_type != nullptr);
     string_append(buffer, SV("("));
     for (u32 i = 0; i < tuple_type->count; ++i) {
         print_type(buffer, tuple_type->types[i]);
@@ -181,10 +173,8 @@ static void print_tuple_type(String *buffer, TupleType const *tuple_type) {
     string_append(buffer, SV(")"));
 }
 
-static void print_function_type(String *buffer,
-                                FunctionType const *function_type) {
-    EXP_ASSERT(function_type != nullptr);
-    EXP_ASSERT(buffer != nullptr);
+static void print_function_type(FunctionType const *function_type,
+                                String *buffer) {
     string_append(buffer, SV("fn "));
     TupleType const *tuple_type = &function_type->argument_types;
     print_tuple_type(buffer, tuple_type);
@@ -193,15 +183,13 @@ static void print_function_type(String *buffer,
 }
 
 void print_type(String *buffer, Type const *T) {
-    EXP_ASSERT(buffer != nullptr);
-    EXP_ASSERT(T != nullptr);
     switch (T->kind) {
         // case TYPE_KIND_NIL:     string_append(buffer, SV("nil")); break;
         // case TYPE_KIND_BOOLEAN: string_append(buffer, SV("bool")); break;
     case TYPE_KIND_I32:   string_append(buffer, SV("i32")); break;
     case TYPE_KIND_TUPLE: print_tuple_type(buffer, &T->tuple_type); break;
     case TYPE_KIND_FUNCTION:
-        print_function_type(buffer, &T->function_type);
+        print_function_type(&T->function_type, buffer);
         break;
 
     default: EXP_UNREACHABLE();
