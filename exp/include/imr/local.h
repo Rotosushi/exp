@@ -18,12 +18,14 @@
 #define EXP_IMR_LOCAL_H
 
 #include "imr/lifetime.h"
+#include "imr/location.h"
 #include "imr/type.h"
 #include "utility/string_view.h"
 
 typedef struct Local {
     Type const *type;
     StringView label;
+    Location location;
     Lifetime lifetime;
 } Local;
 
@@ -31,6 +33,7 @@ void local_initialize(Local *local);
 
 void local_update_type(Local *local, Type const *type);
 void local_update_label(Local *local, StringView label);
+void local_update_location(Local *local, Location location);
 void local_update_first_use(Local *local, u32 first_use);
 void local_update_last_use(Local *local, u32 last_use);
 

@@ -26,52 +26,62 @@
 #include "utility/array_growth.h"
 #include "utility/assert.h"
 
-static void formal_arguments_initialize(FormalArguments *arguments) {
+static void formal_argument_list_create(FormalArgumentList *arguments) {
     EXP_ASSERT(arguments != nullptr);
     arguments->capacity = 0;
-    arguments->length   = 0;
-    arguments->buffer   = nullptr;
+    arguments->size     = 0;
+    arguments->list     = nullptr;
 }
 
-static void formal_arguments_terminate(FormalArguments *arguments) {
+static void formal_argument_list_destroy(FormalArgumentList *arguments) {
     EXP_ASSERT(arguments != nullptr);
-    deallocate(arguments->buffer);
-    formal_arguments_initialize(arguments);
+    arguments->capacity = 0;
+    arguments->size     = 0;
+    deallocate(arguments->list);
+    arguments->list = nullptr;
 }
 
-static bool formal_arguments_full(FormalArguments const *arguments) {
+static bool formal_argument_list_full(FormalArgumentList *arguments) {
     EXP_ASSERT(arguments != nullptr);
-    return (arguments->length + 1) >= arguments->capacity;
+    return (arguments->size + 1) >= arguments->capacity;
 }
 
-static void formal_arguments_grow(FormalArguments *arguments) {
+static void formal_argument_list_grow(FormalArgumentList *arguments) {
     EXP_ASSERT(arguments != nullptr);
     Growth8 g           = array_growth_u8(arguments->capacity, sizeof(Local *));
-    arguments->buffer   = reallocate(arguments->buffer, g.alloc_size);
+    arguments->list     = reallocate(arguments->list, g.alloc_size);
     arguments->capacity = g.new_capacity;
 }
 
-static void formal_arguments_append(FormalArguments *arguments, Local arg) {
+static void formal_argument_list_append(FormalArgumentList *arguments,
+                                        Local *arg) {
     EXP_ASSERT(arguments != nullptr);
-    if (formal_arguments_full(arguments)) { formal_arguments_grow(arguments); }
+    EXP_ASSERT(arg != nullptr);
 
-    arguments->buffer[arguments->length] = arg;
-    arguments->length += 1;
+    if (formal_argument_list_full(arguments)) {
+        formal_argument_list_grow(arguments);
+    }
+
+    arguments->list[arguments->size] = arg;
+    arguments->size += 1;
 }
 
-static Local *formal_arguments_at(FormalArguments *arguments, u8 index) {
+static Local *formal_argument_list_at(FormalArgumentList *arguments, u8 index) {
     EXP_ASSERT(arguments != nullptr);
-    EXP_ASSERT(index < arguments->length);
-    return arguments->buffer + index;
+    EXP_ASSERT(index < arguments->size);
+    Local *formal_argument = arguments->list[index];
+    EXP_ASSERT(formal_argument != nullptr);
+    return formal_argument;
 }
 
-static Local *formal_argument_list_lookup(FormalArguments *arguments,
+static Local *formal_argument_list_lookup(FormalArgumentList *arguments,
                                           StringView name) {
     EXP_ASSERT(arguments != nullptr);
     EXP_ASSERT(!string_view_empty(name));
 
-    for (u8 index = 0; index < arguments->length; ++index) {
-        Local *formal_argument = arguments->buffer + index;
+    for (u8 i = 0; i < arguments->size; ++i) {
+        Local *formal_argument = arguments->list[i];
+        EXP_ASSERT(formal_argument != nullptr);
         if (string_view_equality(formal_argument->label, name)) {
             return formal_argument;
         }
@@ -80,67 +90,26 @@ static Local *formal_argument_list_lookup(FormalArguments *arguments,
     return nullptr;
 }
 
-static void locals_initialize(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    locals->length   = 0;
-    locals->capacity = 0;
-    locals->buffer   = nullptr;
-}
-
-static void locals_terminate(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    deallocate(locals->buffer);
-    locals_initialize(locals);
-}
-
-static bool locals_full(Locals const *locals) {
-    EXP_ASSERT(locals != nullptr);
-    return (locals->capacity + 1) >= locals->capacity;
-}
-
-static void locals_grow(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-    Growth32 g       = array_growth_u32(locals->capacity, sizeof(Local));
-    locals->buffer   = reallocate(locals->buffer, g.alloc_size);
-    locals->capacity = g.new_capacity;
-}
-
-static u32 locals_allocate(Locals *locals) {
-    EXP_ASSERT(locals != nullptr);
-
-    if (locals_full(locals)) { locals_grow(locals); }
-
-    u32 index    = locals->length++;
-    Local *local = locals->buffer + index;
-    local_initialize(local);
-    return index;
-}
-
-static Local *locals_at(Locals *locals, u32 index) {
-    EXP_ASSERT(locals != nullptr);
-    EXP_ASSERT(index < locals->length);
-    return locals->buffer + index;
-}
-
 void function_initialize(Function *function) {
     EXP_ASSERT(function != nullptr);
-    formal_arguments_initialize(&function->arguments);
-    locals_initialize(&function->locals);
+    formal_argument_list_create(&function->arguments);
+    local_allocator_initialize(&function->allocator);
     block_initialize(&function->block);
     function->return_type = nullptr;
 }
 
 void function_terminate(Function *function) {
     EXP_ASSERT(function != nullptr);
-    formal_arguments_terminate(&function->arguments);
-    locals_terminate(&function->locals);
+    formal_argument_list_destroy(&function->arguments);
+    local_allocator_terminate(&function->allocator);
     block_terminate(&function->block);
     function->return_type = nullptr;
 }
 
-void function_arguments_append(Function *function, Local argument) {
+void function_append_argument(Function *function, Local *argument) {
     EXP_ASSERT(function != nullptr);
-    formal_arguments_append(&function->arguments, argument);
+    EXP_ASSERT(argument != nullptr);
+    formal_argument_list_append(&function->arguments, argument);
 }
 
 Local *function_arguments_lookup(Function *function, StringView name) {
@@ -151,17 +120,58 @@ Local *function_arguments_lookup(Function *function, StringView name) {
 
 Local *function_arguments_at(Function *function, u8 index) {
     EXP_ASSERT(function != nullptr);
-    return formal_arguments_at(&function->arguments, index);
+    return formal_argument_list_at(&function->arguments, index);
 }
 
 u32 function_declare_local(Function *function) {
     EXP_ASSERT(function != nullptr);
-    return locals_allocate(&function->locals);
+    return local_allocator_declare_ssa(&function->allocator);
 }
 
 Local *function_local_at(Function *function, u32 ssa) {
     EXP_ASSERT(function != nullptr);
-    return locals_at(&function->locals, ssa);
+    return local_allocator_at(&function->allocator, ssa);
+}
+/*
+Local *function_local_at_name(Function *function, StringView name) {
+    EXP_ASSERT(function != nullptr);
+    return local_allocator_at_name(&function->allocator, name);
+}
+
+
+void function_allocate_result(Function *function, Local *local) {
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(local != nullptr);
+    local_allocator_allocate_result(&function->allocator, local);
+}
+
+void function_allocate_formal_argument(Function *function,
+                                       Local *local,
+                                       u8 argument_index) {
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(local != nullptr);
+    local_allocator_allocate_formal_argument(
+        &function->allocator, local, argument_index);
+}
+
+void function_allocate_actual_argument(Function *function,
+                                       Local *local,
+                                       u8 argument_index,
+                                       u32 block_index) {
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(local != nullptr);
+    local_allocator_allocate_actual_argument(
+        &function->allocator, local, argument_index, block_index);
+}
+
+*/
+
+void function_allocate_local(Function *function,
+                             Local *local,
+                             u32 block_index) {
+    EXP_ASSERT(function != nullptr);
+    EXP_ASSERT(local != nullptr);
+    local_allocator_allocate_local(&function->allocator, local, block_index);
 }
 
 void function_append_instruction(Function *function, Instruction instruction) {
@@ -169,8 +179,7 @@ void function_append_instruction(Function *function, Instruction instruction) {
     block_append(&function->block, instruction);
 }
 
-static void print_formal_argument(String *buffer,
-                                  Local const *formal_argument) {
+static void print_formal_argument(String *buffer, Local *formal_argument) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(formal_argument != nullptr);
     EXP_ASSERT(!string_view_empty(formal_argument->label));
@@ -187,12 +196,13 @@ void print_function(String *buffer,
     EXP_ASSERT(function != nullptr);
     EXP_ASSERT(context != nullptr);
     string_append(buffer, SV("("));
-    FormalArguments const *args = &function->arguments;
-    for (u8 index = 0; index < args->length; ++index) {
-        Local const *formal_argument = args->buffer + index;
+    FormalArgumentList const *args = &function->arguments;
+    for (u8 index = 0; index < args->size; ++index) {
+        Local *formal_argument = args->list[index];
+        EXP_ASSERT(formal_argument != nullptr);
         print_formal_argument(buffer, formal_argument);
 
-        if (index < (u8)(args->length - 1)) { string_append(buffer, SV(", ")); }
+        if (index < (u8)(args->size - 1)) { string_append(buffer, SV(", ")); }
     }
     string_append(buffer, SV(")"));
 

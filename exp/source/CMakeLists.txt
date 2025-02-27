@@ -34,10 +34,10 @@ target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
 
+  ${EXP_SOURCE_DIR}/analysis/allocation.c
   ${EXP_SOURCE_DIR}/analysis/finalize.c
-  ${EXP_SOURCE_DIR}/analysis/infer_types.c
   ${EXP_SOURCE_DIR}/analysis/lifetimes.c
-  ${EXP_SOURCE_DIR}/analysis/validate.c
+  ${EXP_SOURCE_DIR}/analysis/infer_types.c
 
   ${EXP_SOURCE_DIR}/core/finalize.c
   ${EXP_SOURCE_DIR}/core/assemble.c
@@ -63,6 +63,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/lifetime.c
   ${EXP_SOURCE_DIR}/imr/local.c
+  ${EXP_SOURCE_DIR}/imr/local_allocator.c
+  ${EXP_SOURCE_DIR}/imr/location.c
   ${EXP_SOURCE_DIR}/imr/operand.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c

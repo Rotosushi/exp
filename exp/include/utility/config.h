@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "42945bf"
+#define EXP_GIT_REVISION "328f9bb"
 #define EXP_TEST_DIR "/home/elise/Projects/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/elise/Projects/exp/test/resources"
 #define EXP_BINARY_DIR "/home/elise/Projects/exp/build"
@@ -31,18 +31,8 @@
 /* #undef EXP_HOST_SYSTEM_WINDOWS */
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_X86_64
-/* #undef EXP_HOST_CPU_ARM_64 */
-/* #undef EXP_HOST_CPU_RISCV */
 
-#if defined(__GNUC__) && !defined(__clang__)
-#define EXP_HOST_COMPILER_GCC
-#elif defined(__clang__)
-#define EXP_HOST_COMPILER_CLANG
-#elif defined(_MSC_VER)
-#define EXP_HOST_COMPILER_MSVC
-#endif
-
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-02-15 07:10:50) git revision (42945bf)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-02-12 22:03:36) git revision (328f9bb)"
 
 /* #undef EXP_REMOVE_ASSERTS */
 // NOLINTEND

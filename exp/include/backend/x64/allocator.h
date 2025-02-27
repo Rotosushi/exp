@@ -134,7 +134,7 @@ x64_allocator_allocate_to_gpr(x64_LocalRegisterAllocator *allocator,
 
 /**
  * @brief handles allocating outgoing arguments to the current stack frame
- *  until a better solution is found.
+ *  untile a better solution is found.
  *
  * @warning doesn't do any validation of the given address.
  */

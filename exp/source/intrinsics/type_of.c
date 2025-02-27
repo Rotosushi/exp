@@ -88,8 +88,9 @@ Type const *type_of_function(Function *body, Context *context) {
 
     TupleType argument_types;
     tuple_type_initialize(&argument_types);
-    for (u64 index = 0; index < body->arguments.length; ++index) {
-        Local *formal_argument    = body->arguments.buffer + index;
+    for (u64 i = 0; i < body->arguments.size; ++i) {
+        Local *formal_argument = body->arguments.list[i];
+        assert(formal_argument != nullptr);
         Type const *argument_type = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }

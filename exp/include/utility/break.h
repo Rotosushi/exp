@@ -18,14 +18,14 @@
 #define EXP_UTILITY_BREAK_H
 
 #ifndef NDEBUG
-    #if defined(__GNUC__) || defined(__clang__)
-        #define EXP_BREAK() __builtin_trap()
-    #else
-        #include <stdlib.h>
-        #define EXP_BREAK() abort()
-    #endif // if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
+#define EXP_BREAK() __builtin_trap()
 #else
-    #define EXP_BREAK()
+#include <stdlib.h>
+#define EXP_BREAK() abort()
+#endif // if defined(__GNUC__) || defined(__clang__)
+#else
+#define EXP_BREAK()
 #endif // if EXP_DEBUG
 
 #endif // !EXP_UTILITY_BREAK_H

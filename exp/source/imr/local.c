@@ -8,6 +8,7 @@ void local_initialize(Local *local) {
     EXP_ASSERT(local != nullptr);
     local->type     = nullptr;
     local->label    = string_view_create();
+    local->location = location_create();
     local->lifetime = lifetime_create();
 }
 
@@ -19,6 +20,11 @@ void local_update_type(Local *local, Type const *type) {
 void local_update_label(Local *local, StringView label) {
     EXP_ASSERT(local != nullptr);
     local->label = label;
+}
+
+void local_update_location(Local *local, Location location) {
+    EXP_ASSERT(local != nullptr);
+    local->location = location;
 }
 
 void local_update_first_use(Local *local, u32 first_use) {

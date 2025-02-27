@@ -54,9 +54,9 @@ static void allocate_instruction(Instruction *instruction,
 
 static void allocate_formal_arguments(Subject *subject) {
     EXP_ASSERT(nonnull_subject(subject));
-    FormalArguments *formal_arguments = &subject->function->arguments;
-    for (u8 index = 0; index < formal_arguments->length; ++index) {
-        Local *argument = formal_arguments->buffer[index];
+    FormalArgumentList *formal_arguments = &subject->function->arguments;
+    for (u8 index = 0; index < formal_arguments->size; ++index) {
+        Local *argument = formal_arguments->list[index];
         EXP_ASSERT(argument != nullptr);
         function_allocate_local(subject->function, argument, 0);
     }

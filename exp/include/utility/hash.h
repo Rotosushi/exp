@@ -21,9 +21,6 @@
 /**
  * @brief computes the hash of the given string.
  *
- * @note the algorithm is non-crypotgraphic, and based on djb2 hash
- *
- *
  * @param string
  * @return u64
  */
