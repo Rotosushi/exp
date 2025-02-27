@@ -63,7 +63,7 @@ void x64_codegen_call(Instruction I,
                       u64 block_index,
                       x64_Context *restrict context) {
     assert(I.A.kind == OPERAND_KIND_SSA);
-    LocalVariable *local     = x64_context_lookup_ssa(context, I.A.data.ssa);
+    LocalVariable *local     = x64_context_lookup_ssa(context, I.A.ssa);
     u8 scalar_argument_count = 0;
 
     if (type_is_scalar(local->type)) {
@@ -79,7 +79,7 @@ void x64_codegen_call(Instruction I,
                     x64_operand_address(result->location.address)));
     }
 
-    Value *value = x64_context_value_at(context, I.C.data.constant);
+    Value *value = x64_context_value_at(context, I.C.index);
     assert(value->kind == VALUEKIND_TUPLE);
     Tuple *args                 = &value->tuple;
     u64 current_bytecode_offset = x64_context_current_offset(context);
@@ -98,8 +98,7 @@ void x64_codegen_call(Instruction I,
     }
 
     if (stack_args.size == 0) {
-        x64_context_append(context,
-                           x64_call(x64_operand_label(I.B.data.label)));
+        x64_context_append(context, x64_call(x64_operand_label(I.B.index)));
         return;
     }
 
@@ -129,7 +128,7 @@ void x64_codegen_call(Instruction I,
                 x64_operand_immediate(actual_arguments_stack_size)),
         current_bytecode_offset);
 
-    x64_context_append(context, x64_call(x64_operand_label(I.B.data.label)));
+    x64_context_append(context, x64_call(x64_operand_label(I.B.index)));
 
     x64_context_append(
         context,

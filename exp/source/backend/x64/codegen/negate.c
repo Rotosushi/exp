@@ -24,10 +24,10 @@
 void x64_codegen_negate(Instruction I,
                         u64 block_index,
                         x64_Context *restrict context) {
-    LocalVariable *local = x64_context_lookup_ssa(context, I.A.data.ssa);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A.ssa);
     switch (I.B.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *B = x64_context_allocation_of(context, I.B.data.ssa);
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.ssa);
         x64_Allocation *A =
             x64_context_allocate_from_active(context, local, B, block_index);
 
@@ -39,16 +39,16 @@ void x64_codegen_negate(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B.data.immediate)));
+                                   x64_operand_immediate(I.B.immediate)));
         x64_context_append(context, x64_neg(x64_operand_alloc(A)));
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        x64_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B.data.constant)));
+        x64_context_append(
+            context,
+            x64_mov(x64_operand_alloc(A), x64_operand_constant(I.B.index)));
         x64_context_append(context, x64_neg(x64_operand_alloc(A)));
         break;
     }

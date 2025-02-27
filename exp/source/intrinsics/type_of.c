@@ -59,26 +59,24 @@ Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
 Type *type_of_operand(Operand operand, Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
-        LocalVariable *local = context_lookup_ssa(context, operand.data.ssa);
+        LocalVariable *local = context_lookup_ssa(context, operand.ssa);
         return local->type;
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_values_at(context, operand.data.constant);
+        Value *constant = context_values_at(context, operand.index);
         return type_of_value(constant, context);
         break;
     }
 
     case OPERAND_KIND_IMMEDIATE: {
-        // #TODO: we can theoretically fit a u8 and a i8 in an
-        //  immediate as well. so maybe let's do that?
         return context_i64_type(context);
         break;
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView label = context_labels_at(context, operand.data.label);
+        StringView label = context_labels_at(context, operand.index);
         SymbolTableElement *symbol =
             context_global_symbol_table_at(context, label);
         assert(!string_view_empty(symbol->name));
