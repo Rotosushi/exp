@@ -36,7 +36,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/backend/x64/intrinsics/load.c
 
-  ${EXP_SOURCE_DIR}/backend/x64/codegen/add.c
+  ${EXP_SOURCE_DIR}/backend/x64/codegen/addition.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/call.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/divide.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen/dot.c
@@ -70,7 +70,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
-  ${EXP_SOURCE_DIR}/env/labels.c
+  ${EXP_SOURCE_DIR}/env/global_labels.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c

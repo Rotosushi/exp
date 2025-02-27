@@ -493,7 +493,7 @@ static ParserResult unop(Parser *restrict p, Context *restrict c) {
     TRY(maybe, parse_precedence(p, c, PREC_UNARY));
 
     switch (op) {
-    case TOK_MINUS: return success(context_emit_negate(c, maybe.result));
+    case TOK_MINUS: return success(context_emit_neg(c, maybe.result));
 
     default: EXP_UNREACHABLE();
     }
@@ -511,10 +511,10 @@ binop(Parser *restrict p, Context *restrict c, Operand left) {
     switch (op) {
     case TOK_DOT:     return success(context_emit_dot(c, left, right));
     case TOK_PLUS:    return success(context_emit_add(c, left, right));
-    case TOK_MINUS:   return success(context_emit_subtract(c, left, right));
-    case TOK_STAR:    return success(context_emit_multiply(c, left, right));
-    case TOK_SLASH:   return success(context_emit_divide(c, left, right));
-    case TOK_PERCENT: return success(context_emit_modulus(c, left, right));
+    case TOK_MINUS:   return success(context_emit_sub(c, left, right));
+    case TOK_STAR:    return success(context_emit_mul(c, left, right));
+    case TOK_SLASH:   return success(context_emit_div(c, left, right));
+    case TOK_PERCENT: return success(context_emit_mod(c, left, right));
 
     default: EXP_UNREACHABLE();
     }
@@ -608,7 +608,7 @@ static ParserResult identifier(Parser *restrict p, Context *restrict c) {
         return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
     }
 
-    u16 index = context_labels_insert(c, name);
+    u16 index = context_global_labels_insert(c, name);
     return success(operand_label(index));
 }
 

@@ -37,7 +37,7 @@ instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
     return I;
 }
 
-Instruction instruction_return(Operand result) {
+Instruction instruction_ret(Operand result) {
     return instruction_B(OPCODE_RETURN, result);
 }
 
@@ -56,7 +56,7 @@ Instruction instruction_load(Operand dst, Operand src) {
     return instruction_AB(OPCODE_LOAD, dst, src);
 }
 
-Instruction instruction_negate(Operand dst, Operand src) {
+Instruction instruction_neg(Operand dst, Operand src) {
     assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_AB(OPCODE_NEGATE, dst, src);
 }
@@ -66,22 +66,22 @@ Instruction instruction_add(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_ADDITION, dst, left, right);
 }
 
-Instruction instruction_subtract(Operand dst, Operand left, Operand right) {
+Instruction instruction_sub(Operand dst, Operand left, Operand right) {
     assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_SUBTRACT, dst, left, right);
 }
 
-Instruction instruction_multiply(Operand dst, Operand left, Operand right) {
+Instruction instruction_mul(Operand dst, Operand left, Operand right) {
     assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_MULTIPLY, dst, left, right);
 }
 
-Instruction instruction_divide(Operand dst, Operand left, Operand right) {
+Instruction instruction_div(Operand dst, Operand left, Operand right) {
     assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_DIVIDE, dst, left, right);
 }
 
-Instruction instruction_modulus(Operand dst, Operand left, Operand right) {
+Instruction instruction_mod(Operand dst, Operand left, Operand right) {
     assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_MODULUS, dst, left, right);
 }

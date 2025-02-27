@@ -27,7 +27,7 @@ Context context_create(CLIOptions *restrict options) {
                        .string_interner     = string_interner_create(),
                        .type_interner       = type_interner_create(),
                        .global_symbol_table = symbol_table_create(),
-                       .global_labels       = labels_create(),
+                       .global_labels       = global_labels_create(),
                        .values              = values_create()};
     return context;
 }
@@ -38,7 +38,7 @@ void context_destroy(Context *restrict context) {
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->global_symbol_table));
-    labels_destroy(&(context->global_labels));
+    global_labels_destroy(&(context->global_labels));
     values_destroy(&(context->values));
 }
 
@@ -110,14 +110,14 @@ Type *context_function_type(Context *restrict context,
         &context->type_interner, return_type, argument_types);
 }
 
-u16 context_labels_insert(Context *restrict context, StringView symbol) {
+u16 context_global_labels_insert(Context *restrict context, StringView symbol) {
     assert(context != NULL);
-    return labels_insert(&context->global_labels, symbol);
+    return global_labels_insert(&context->global_labels, symbol);
 }
 
-StringView context_labels_at(Context *restrict context, u16 index) {
+StringView context_global_labels_at(Context *restrict context, u16 index) {
     assert(context != NULL);
-    return labels_at(&context->global_labels, index);
+    return global_labels_at(&context->global_labels, index);
 }
 
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
@@ -201,7 +201,7 @@ Value *context_values_at(Context *restrict context, u16 index) {
 void context_emit_return(Context *restrict c, Operand B) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
-    bytecode_append(bc, instruction_return(B));
+    bytecode_append(bc, instruction_ret(B));
 }
 
 Operand context_emit_call(Context *restrict c, Operand B, Operand C) {
@@ -228,11 +228,11 @@ Operand context_emit_load(Context *restrict c, Operand B) {
     return A;
 }
 
-Operand context_emit_negate(Context *restrict c, Operand B) {
+Operand context_emit_neg(Context *restrict c, Operand B) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
     Operand A    = context_new_ssa(c);
-    bytecode_append(bc, instruction_negate(A, B));
+    bytecode_append(bc, instruction_neg(A, B));
     return A;
 }
 
@@ -244,34 +244,34 @@ Operand context_emit_add(Context *restrict c, Operand B, Operand C) {
     return A;
 }
 
-Operand context_emit_subtract(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_sub(Context *restrict c, Operand B, Operand C) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
     Operand A    = context_new_ssa(c);
-    bytecode_append(bc, instruction_subtract(A, B, C));
+    bytecode_append(bc, instruction_sub(A, B, C));
     return A;
 }
 
-Operand context_emit_multiply(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mul(Context *restrict c, Operand B, Operand C) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
     Operand A    = context_new_ssa(c);
-    bytecode_append(bc, instruction_multiply(A, B, C));
+    bytecode_append(bc, instruction_mul(A, B, C));
     return A;
 }
 
-Operand context_emit_divide(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_div(Context *restrict c, Operand B, Operand C) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
     Operand A    = context_new_ssa(c);
-    bytecode_append(bc, instruction_divide(A, B, C));
+    bytecode_append(bc, instruction_div(A, B, C));
     return A;
 }
 
-Operand context_emit_modulus(Context *restrict c, Operand B, Operand C) {
+Operand context_emit_mod(Context *restrict c, Operand B, Operand C) {
     assert(c != NULL);
     Bytecode *bc = context_active_bytecode(c);
     Operand A    = context_new_ssa(c);
-    bytecode_append(bc, instruction_modulus(A, B, C));
+    bytecode_append(bc, instruction_mod(A, B, C));
     return A;
 }

@@ -21,6 +21,8 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_add(Instruction I, u64 Idx, x64_Context *restrict context);
+void x64_codegen_addition(Instruction I,
+                          u64 Idx,
+                          x64_Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_CODEGEN_ADD_H
