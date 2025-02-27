@@ -23,7 +23,7 @@
 typedef enum TypeKind {
     TYPE_KIND_NIL,
     TYPE_KIND_BOOLEAN,
-    TYPE_KIND_I32,
+    TYPE_KIND_I64,
     TYPE_KIND_TUPLE,
     TYPE_KIND_FUNCTION,
 } TypeKind;
@@ -69,7 +69,7 @@ typedef struct Type {
 
 Type *type_nil();
 Type *type_boolean();
-Type *type_i32();
+Type *type_i64();
 Type *type_tuple(TupleType tuple_type);
 Type *type_function(Type const *result, TupleType args);
 void type_terminate(Type *type);

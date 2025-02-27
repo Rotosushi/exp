@@ -17,7 +17,6 @@
 #ifndef EXP_BACKEND_X64_OPERAND_H
 #define EXP_BACKEND_X64_OPERAND_H
 
-#include "backend/x64/address.h"
 #include "backend/x64/location.h"
 #include "backend/x64/registers.h"
 
@@ -31,10 +30,10 @@ typedef enum x64_OperandKind : u8 {
 
 typedef struct x64_OperandData {
     x64_GPR gpr;
-    x64_Address address;
-    i32 immediate;
-    u32 label;
-    u32 constant;
+    u16 address;
+    i16 immediate;
+    u16 label;
+    u16 constant;
 } x64_OperandData;
 
 typedef struct x64_Operand {
@@ -43,11 +42,11 @@ typedef struct x64_Operand {
 } x64_Operand;
 
 x64_Operand x64_operand_gpr(x64_GPR gpr);
-x64_Operand x64_operand_address(x64_Address address);
+x64_Operand x64_operand_address(u16 address);
 x64_Operand x64_operand_location(x64_Location location);
 // x64_Operand x64_operand_alloc(x64_Allocation *alloc);
-x64_Operand x64_operand_immediate(i32 value);
-x64_Operand x64_operand_constant(u32 index);
-x64_Operand x64_operand_label(u32 index);
+x64_Operand x64_operand_immediate(i16 value);
+x64_Operand x64_operand_constant(u16 index);
+x64_Operand x64_operand_label(u16 index);
 
 #endif // !EXP_BACKEND_X64_OPERAND_H

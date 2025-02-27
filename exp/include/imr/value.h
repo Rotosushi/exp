@@ -26,7 +26,7 @@ typedef enum ValueKind {
 
     VALUE_KIND_NIL,
     VALUE_KIND_BOOLEAN,
-    VALUE_KIND_I32,
+    VALUE_KIND_I64,
 
     VALUE_KIND_TUPLE,
 } ValueKind;
@@ -34,8 +34,8 @@ typedef enum ValueKind {
 struct Value;
 
 typedef struct Tuple {
-    u32 size;
-    u32 capacity;
+    u64 size;
+    u64 capacity;
     Operand *elements;
 } Tuple;
 
@@ -48,7 +48,7 @@ typedef struct Value {
     union {
         bool nil;
         bool boolean;
-        i32 i32_;
+        i64 i64_;
         Tuple tuple;
     };
 } Value;
@@ -89,7 +89,7 @@ Value value_create_boolean(bool b);
  * @param i
  * @return Value
  */
-Value value_create_i32(i32 i);
+Value value_create_i64(i64 i);
 
 /**
  * @brief create a Tuple value

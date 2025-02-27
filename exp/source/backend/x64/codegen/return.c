@@ -31,9 +31,7 @@ void x64_codegen_return(Instruction I,
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
-        if (x64_allocation_location_equality(B, body->result->location)) {
-            break;
-        }
+        if (x64_allocation_location_eq(B, body->result->location)) { break; }
         x64_codegen_copy_allocation(body->result, B, block_index, context);
         break;
     }
@@ -46,10 +44,10 @@ void x64_codegen_return(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_I32: {
+    case OPERAND_KIND_IMMEDIATE: {
         x64_context_append(context,
                            x64_mov(x64_operand_location(body->result->location),
-                                   x64_operand_immediate(I.B_data.i32_)));
+                                   x64_operand_immediate(I.B_data.immediate)));
         break;
     }
 
@@ -72,7 +70,7 @@ void x64_codegen_return(Instruction I,
 
     x64_context_append(
         context,
-        x64_mov(x64_operand_gpr(X64_GPR_rSP), x64_operand_gpr(X64_GPR_rBP)));
-    x64_context_append(context, x64_pop(x64_operand_gpr(X64_GPR_rBP)));
+        x64_mov(x64_operand_gpr(X64_GPR_RSP), x64_operand_gpr(X64_GPR_RBP)));
+    x64_context_append(context, x64_pop(x64_operand_gpr(X64_GPR_RBP)));
     x64_context_append(context, x64_ret());
 }

@@ -98,9 +98,9 @@ Type *type_boolean() {
     return type;
 }
 
-Type *type_i32() {
+Type *type_i64() {
     Type *type        = allocate(sizeof(Type));
-    type->kind        = TYPE_KIND_I32;
+    type->kind        = TYPE_KIND_I64;
     type->scalar_type = 0;
     return type;
 }
@@ -156,7 +156,7 @@ bool type_is_scalar(Type const *T) {
     switch (T->kind) {
     case TYPE_KIND_NIL:
     case TYPE_KIND_BOOLEAN:
-    case TYPE_KIND_I32:     return true;
+    case TYPE_KIND_I64:     return true;
 
     // a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
@@ -188,7 +188,7 @@ void emit_type(Type const *T, String *buf) {
     switch (T->kind) {
     case TYPE_KIND_NIL:      string_append(buf, SV("nil")); break;
     case TYPE_KIND_BOOLEAN:  string_append(buf, SV("bool")); break;
-    case TYPE_KIND_I32:      string_append(buf, SV("i64")); break;
+    case TYPE_KIND_I64:      string_append(buf, SV("i64")); break;
     case TYPE_KIND_TUPLE:    emit_tuple_type(&T->tuple_type, buf); break;
     case TYPE_KIND_FUNCTION: emit_function_type(&T->function_type, buf); break;
 

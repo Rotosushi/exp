@@ -22,7 +22,7 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_load_address_from_operand(x64_Address target,
+void x64_codegen_load_address_from_operand(u16 target,
                                            Operand source,
                                            Type const *type,
                                            u64 block_index,
@@ -33,7 +33,7 @@ void x64_codegen_load_gpr_from_operand(x64_GPR target,
                                        u64 block_index,
                                        x64_Context *context);
 
-void x64_codegen_load_argument_from_operand(x64_Address target,
+void x64_codegen_load_argument_from_operand(u16 target,
                                             Operand source,
                                             Type const *type,
                                             u64 block_index,

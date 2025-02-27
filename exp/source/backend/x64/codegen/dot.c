@@ -28,9 +28,9 @@ void x64_codegen_dot(Instruction I, u64 block_index, x64_Context *context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
 
-    assert(I.C_kind == OPERAND_KIND_I32);
-    assert(I.C_data.i32_ >= 0);
-    u32 index = (u32)I.C_data.i32_;
+    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
+    assert(I.C_data.immediate >= 0);
+    u16 index = (u16)I.C_data.immediate;
 
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
@@ -38,8 +38,8 @@ void x64_codegen_dot(Instruction I, u64 block_index, x64_Context *context) {
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
-        x64_Address element_address =
-            x64_get_element_address(B->location.address, B->type, index);
+        u16 element_address = x64_get_element_address(
+            B->location.address, B->type, index, context);
         TupleType const *tuple_type = &B->type->tuple_type;
         Type const *element_type    = tuple_type->types[index];
 
@@ -63,7 +63,7 @@ void x64_codegen_dot(Instruction I, u64 block_index, x64_Context *context) {
     }
 
     // we will never store tuples as immediates
-    case OPERAND_KIND_I32:
+    case OPERAND_KIND_IMMEDIATE:
     // we don't support globals which are not functions yet
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();

@@ -8,14 +8,11 @@ typedef struct x64_Address {
     x64_GPR base;
     x64_GPR index;
     u8 scale;
-    bool has_index;
     i64 offset;
 } x64_Address;
 
-x64_Address x64_address_create(x64_GPR base, i64 offset);
-
 x64_Address
-x64_address_create_indexed(x64_GPR base, x64_GPR index, u8 scale, i64 offset);
+x64_address_create(x64_GPR base, x64_GPR index, u8 scale, i64 offset);
 
 bool x64_address_equality(x64_Address A, x64_Address B);
 

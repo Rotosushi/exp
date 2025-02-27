@@ -38,12 +38,12 @@ void lifetimes_destroy(Lifetimes *restrict lifetiems) {
 
 static void lifetimes_grow(Lifetimes *lifetimes) {
     assert(lifetimes != nullptr);
-    Growth32 g        = array_growth_u32(lifetimes->capacity, sizeof(Lifetime));
+    Growth64 g        = array_growth_u64(lifetimes->capacity, sizeof(Lifetime));
     lifetimes->buffer = reallocate(lifetimes->buffer, g.alloc_size);
     lifetimes->capacity = g.new_capacity;
 }
 
-void lifetimes_update(Lifetimes *lifetimes, u32 ssa, Lifetime lifetime) {
+void lifetimes_update(Lifetimes *lifetimes, u64 ssa, Lifetime lifetime) {
     assert(lifetimes != nullptr);
     while (lifetimes->capacity <= ssa) {
         lifetimes_grow(lifetimes);
@@ -52,7 +52,7 @@ void lifetimes_update(Lifetimes *lifetimes, u32 ssa, Lifetime lifetime) {
     if (lifetimes->count < ssa) { lifetimes->count = ssa; }
 }
 
-Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u32 ssa) {
+Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
     assert(ssa < lifetiems->count);
     return lifetiems->buffer + ssa;
 }

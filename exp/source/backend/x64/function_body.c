@@ -43,54 +43,57 @@ x64_FormalArgument *x64_formal_argument_list_at(x64_FormalArgumentList *args,
     return args->buffer + idx;
 }
 
-void x64_function_body_initialize(x64_FunctionBody *x64_body,
-                                  FunctionBody *body,
-                                  x64_Context *context) {
+void x64_function_body_create(x64_FunctionBody *x64_body,
+                              FunctionBody *body,
+                              x64_Context *context) {
     assert(x64_body != nullptr);
     assert(body != nullptr);
     assert(context != nullptr);
     x64_formal_argument_list_create(&x64_body->arguments, body->arguments.size);
     x64_block_initialize(&x64_body->block);
     x64_allocator_initialize(&x64_body->allocator, body, context);
-    x64_body->result                      = nullptr;
-    x64_LocalRegisterAllocator *allocator = &x64_body->allocator;
+    x64_body->result         = nullptr;
+    x64_Allocator *allocator = &x64_body->allocator;
 
     u8 scalar_argument_count = 0;
 
     if (type_is_scalar(body->return_type)) {
         x64_body->result = x64_allocator_allocate_result(
-            allocator, x64_location_gpr(X64_GPR_rAX), body->return_type);
+            allocator, x64_location_gpr(X64_GPR_RAX), body->return_type);
     } else {
-        x64_Address result_address = x64_address_create(X64_GPR_rDI, 0);
-        x64_body->result           = x64_allocator_allocate_result(
-            allocator, x64_location_address(result_address), body->return_type);
+        x64_Address result_address =
+            x64_address_create(X64_GPR_RDI, X64_GPR_NONE, 1, 0);
+        x64_body->result = x64_allocator_allocate_result(
+            allocator,
+            x64_location_address(
+                x64_context_addresses_insert(context, result_address)),
+            body->return_type);
         scalar_argument_count += 1;
     }
 
-    // #NOTE: the offset of the first incoming argument to this function
-    //  is 16, because we push the stack pointer on entering this function.
-    //  and because of something else which i am trying to remember.
-    x64_Address address = x64_address_create(X64_GPR_RSP, 16);
+    i64 offset = 16;
     for (u8 i = 0; i < body->arguments.size; ++i) {
         FormalArgument *arg  = body->arguments.list + i;
         LocalVariable *local = function_body_locals_ssa(body, arg->ssa);
 
         if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
-            x64_GPR gpr = x64_gpr_scalar_argument(scalar_argument_count++,
-                                                  size_of(local->type));
-            x64_allocator_allocate_to_gpr(allocator, local, gpr, 0);
+            x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
+            x64_allocator_allocate_to_gpr(allocator, gpr, 0, local);
         } else {
             u64 argument_size = size_of(arg->type);
             assert(argument_size <= i64_MAX);
 
-            x64_allocator_allocate_to_address(allocator, local, address);
-            address.offset += (i64)argument_size;
+            x64_allocator_allocate_to_stack(allocator, offset, local);
+
+            if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
+                PANIC("argument offset overflow");
+            }
         }
     }
 }
 
-void x64_function_body_terminate(x64_FunctionBody *body) {
-    assert(body != nullptr);
+void x64_function_body_destroy(x64_FunctionBody *body) {
+    assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
     x64_block_terminate(&body->block);
     x64_allocator_terminate(&body->allocator);

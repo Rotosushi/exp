@@ -18,13 +18,16 @@
  */
 #include <assert.h>
 
+#include "backend/x64/context.h"
 #include "backend/x64/intrinsics/get_element_address.h"
 #include "intrinsics/size_of.h"
 #include "utility/unreachable.h"
 
-x64_Address
-x64_get_element_address(x64_Address src, Type const *type, u64 index) {
-    x64_Address result = src;
+u16 x64_get_element_address(u16 src,
+                            Type const *type,
+                            u64 index,
+                            x64_Context *context) {
+    x64_Address result = *x64_context_addresses_at(context, src);
 
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
@@ -46,5 +49,5 @@ x64_get_element_address(x64_Address src, Type const *type, u64 index) {
     default: EXP_UNREACHABLE();
     }
 
-    return result;
+    return x64_context_addresses_insert(context, result);
 }

@@ -21,8 +21,8 @@
 #include "utility/string_view.h"
 
 typedef struct GlobalLabels {
-    u32 count;
-    u32 capacity;
+    u64 count;
+    u64 capacity;
     StringView *buffer;
 } Labels;
 
@@ -30,6 +30,6 @@ void labels_initialize(Labels *labels);
 void labels_terminate(Labels *labels);
 
 Operand labels_insert(Labels *labels, StringView label);
-StringView labels_at(Labels *labels, u32 index);
+StringView labels_at(Labels *labels, u16 index);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

@@ -85,7 +85,7 @@ x64_Instruction x64_idiv(x64_Operand src);
 
 struct x64_Context;
 void x64_instruction_emit(x64_Instruction I,
-                          String *buffer,
-                          struct x64_Context *x64_context);
+                          String *restrict buffer,
+                          struct x64_Context *restrict x64_context);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

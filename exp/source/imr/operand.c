@@ -22,27 +22,28 @@
 #include "imr/operand.h"
 #include "utility/unreachable.h"
 
-Operand operand_construct(OperandKind kind, OperandData data) {
+Operand operand(OperandKind kind, OperandData data) {
     Operand operand_ = {.kind = kind, .data = data};
     return operand_;
 }
 
-Operand operand_ssa(u32 ssa) {
+Operand operand_ssa(u16 ssa) {
     Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
     return operand;
 }
 
-Operand operand_constant(u32 index) {
+Operand operand_constant(u16 index) {
     Operand operand = {.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
     return operand;
 }
 
-Operand operand_i32(i32 immediate) {
-    Operand operand = {.kind = OPERAND_KIND_I32, .data.i32_ = immediate};
+Operand operand_immediate(i16 immediate) {
+    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
+                       .data.immediate = immediate};
     return operand;
 }
 
-Operand operand_label(u32 index) {
+Operand operand_label(u16 index) {
     Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
     return operand;
 }
@@ -51,31 +52,31 @@ bool operand_equality(Operand A, Operand B) {
     if (A.kind != B.kind) { return false; }
 
     switch (A.kind) {
-    case OPERAND_KIND_SSA:      return A.data.ssa == B.data.ssa;
-    case OPERAND_KIND_CONSTANT: return A.data.constant == B.data.constant;
-    case OPERAND_KIND_I32:      return A.data.i32_ == B.data.i32_;
-    case OPERAND_KIND_LABEL:    return A.data.label == B.data.label;
-    default:                    EXP_UNREACHABLE();
+    case OPERAND_KIND_SSA:       return A.data.ssa == B.data.ssa;
+    case OPERAND_KIND_CONSTANT:  return A.data.constant == B.data.constant;
+    case OPERAND_KIND_IMMEDIATE: return A.data.immediate == B.data.immediate;
+    case OPERAND_KIND_LABEL:     return A.data.label == B.data.label;
+    default:                     EXP_UNREACHABLE();
     }
 }
 
-static void print_operand_ssa(u32 ssa, FILE *restrict file) {
+static void print_operand_ssa(u16 ssa, FILE *restrict file) {
     file_write("%", file);
     file_write_u64(ssa, file);
 }
 
 static void
-print_operand_value(u32 index, FILE *restrict file, Context *restrict context) {
+print_operand_value(u16 index, FILE *restrict file, Context *restrict context) {
     Value *value = context_constants_at(context, index);
     print_value(value, file, context);
 }
 
-static void print_operand_i32(i32 i32_, FILE *restrict file) {
-    file_write_i64(i32_, file);
+static void print_operand_immediate(i16 immediate, FILE *restrict file) {
+    file_write_i64(immediate, file);
 }
 
 static void
-print_operand_label(u32 index, FILE *restrict file, Context *restrict context) {
+print_operand_label(u16 index, FILE *restrict file, Context *restrict context) {
     file_write("%", file);
     StringView name = context_labels_at(context, index);
     file_write(name.ptr, file);
@@ -89,7 +90,9 @@ void print_operand(Operand operand,
     case OPERAND_KIND_CONSTANT:
         print_operand_value(operand.data.constant, file, context);
         break;
-    case OPERAND_KIND_I32: print_operand_i32(operand.data.i32_, file); break;
+    case OPERAND_KIND_IMMEDIATE:
+        print_operand_immediate(operand.data.immediate, file);
+        break;
     case OPERAND_KIND_LABEL:
         print_operand_label(operand.data.label, file, context);
         break;

@@ -27,26 +27,26 @@ static bool x64_addresses_full(x64_Addresses *addresses) {
 
 static void x64_addresses_grow(x64_Addresses *addresses) {
     assert(addresses != nullptr);
-    Growth32 g = array_growth_u32(addresses->capacity, sizeof(x64_Address));
+    Growth64 g = array_growth_u64(addresses->capacity, sizeof(x64_Address));
     addresses->buffer   = reallocate(addresses->buffer, g.alloc_size);
     addresses->capacity = g.new_capacity;
 }
 
-u32 x64_addresses_insert_unique(x64_Addresses *addresses, x64_Address address) {
+u64 x64_addresses_insert(x64_Addresses *addresses, x64_Address address) {
     assert(addresses != nullptr);
     if (x64_addresses_full(addresses)) { x64_addresses_grow(addresses); }
 
-    for (u32 i = 0; i < addresses->count; ++i) {
+    for (u64 i = 0; i < addresses->count; ++i) {
         x64_Address *cursor = addresses->buffer + i;
         if (x64_address_equality(*cursor, address)) { return i; }
     }
 
-    u32 index                = addresses->count++;
+    u64 index                = addresses->count++;
     addresses->buffer[index] = address;
     return index;
 }
 
-x64_Address *x64_addresses_at(x64_Addresses *addresses, u32 index) {
+x64_Address *x64_addresses_at(x64_Addresses *addresses, u64 index) {
     assert(addresses != nullptr);
     assert(index < addresses->count);
     return addresses->buffer + index;

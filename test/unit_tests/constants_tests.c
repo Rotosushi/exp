@@ -39,10 +39,10 @@ i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     bool failure = 0;
 
     // #TODO:
-    failure |= test_constant(&constants, value_create_i32(rand()));
-    failure |= test_constant(&constants, value_create_i32(rand()));
-    failure |= test_constant(&constants, value_create_i32(rand()));
-    failure |= test_constant(&constants, value_create_i32(rand()));
+    failure |= test_constant(&constants, value_create_i64(rand()));
+    failure |= test_constant(&constants, value_create_i64(rand()));
+    failure |= test_constant(&constants, value_create_i64(rand()));
+    failure |= test_constant(&constants, value_create_i64(rand()));
 
     constants_terminate(&constants);
     if (failure) {
