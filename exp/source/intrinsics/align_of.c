@@ -29,18 +29,10 @@ u64 align_of(Type const *type) {
     //  string literals are align 8 as well. I assume
     //  this is due to machine word size alignment is
     //  the fastest to access.
-    case TYPE_NIL:  return 1;
-    case TYPE_BOOL: return 1;
-    case TYPE_I8:   return 1;
-    case TYPE_I16:  return 2;
-    case TYPE_I32:  return 4;
-    case TYPE_I64:  return 8;
-    case TYPE_U8:   return 1;
-    case TYPE_U16:  return 2;
-    case TYPE_U32:  return 4;
-    case TYPE_U64:  return 8;
-
-    case TYPE_TUPLE: {
+    //  case TYPE_KIND_NIL:     return 4;
+    //  case TYPE_KIND_BOOLEAN: return 4;
+    case TYPE_KIND_I32:   return 4;
+    case TYPE_KIND_TUPLE: {
         // #NOTE: the alignment of a Tuple is the
         //  largest alignment of it's elements.
         u64 result             = 0;

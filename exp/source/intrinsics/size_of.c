@@ -13,18 +13,11 @@ u64 size_of(Type const *type) {
     assert(type != NULL);
 
     switch (type->kind) {
-    case TYPE_NIL:  return 1;
-    case TYPE_BOOL: return 1;
-    case TYPE_I8:   return 1;
-    case TYPE_I16:  return 2;
-    case TYPE_I32:  return 4;
-    case TYPE_I64:  return 8;
-    case TYPE_U8:   return 1;
-    case TYPE_U16:  return 2;
-    case TYPE_U32:  return 4;
-    case TYPE_U64:  return 8;
+    // case TYPE_KIND_NIL:     return 4;
+    // case TYPE_KIND_BOOLEAN: return 4;
+    case TYPE_KIND_I32: return 4;
 
-    case TYPE_TUPLE: {
+    case TYPE_KIND_TUPLE: {
         TupleType const *tuple = &type->tuple_type;
         u64 acc                = 0;
         for (u64 i = 0; i < tuple->count; ++i) {

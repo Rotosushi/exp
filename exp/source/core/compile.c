@@ -6,10 +6,10 @@
 
 #include <stdlib.h>
 
-#include "core/analyze.h"
 #include "core/assemble.h"
 #include "core/codegen.h"
 #include "core/compile.h"
+#include "core/finalize.h"
 #include "core/link.h"
 #include "env/cli_options.h"
 #include "env/context.h"
@@ -20,7 +20,7 @@
 static ExpResult compile_context(Context *context) {
     EXP_ASSERT(context != nullptr);
     if (parse_source(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
-    if (analyze_context(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
+    if (finalize_context(context) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
     codegen(context);
 

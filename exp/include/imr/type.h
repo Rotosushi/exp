@@ -8,18 +8,18 @@
 #include "utility/string.h"
 
 typedef enum TypeKind {
-    TYPE_NIL,
-    TYPE_BOOL,
-    TYPE_I8,
-    TYPE_I16,
-    TYPE_I32,
-    TYPE_I64,
-    TYPE_U8,
-    TYPE_U16,
-    TYPE_U32,
-    TYPE_U64,
-    TYPE_TUPLE,
-    TYPE_FUNCTION,
+    TYPE_KIND_NIL,
+    TYPE_KIND_BOOLEAN,
+    TYPE_KIND_I8,
+    TYPE_KIND_I16,
+    TYPE_KIND_I32,
+    TYPE_KIND_I64,
+    TYPE_KIND_U8,
+    TYPE_KIND_U16,
+    TYPE_KIND_U32,
+    TYPE_KIND_U64,
+    TYPE_KIND_TUPLE,
+    TYPE_KIND_FUNCTION,
 } TypeKind;
 
 struct Type;

@@ -6,13 +6,12 @@
 
 #include "imr/scalar.h"
 #include "utility/string.h"
-#include <stdint.h>
 
 typedef enum OperandKind : u8 {
-    OPERAND_SSA,
-    OPERAND_LABEL,
-    OPERAND_SCALAR,
-    OPERAND_CONSTANT,
+    OPERAND_KIND_SSA,
+    OPERAND_KIND_LABEL,
+    OPERAND_KIND_SCALAR,
+    OPERAND_KIND_CONSTANT,
 } OperandKind;
 
 typedef union OperandPayload {

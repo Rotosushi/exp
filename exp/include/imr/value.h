@@ -9,11 +9,11 @@
 #include "imr/scalar.h"
 
 typedef enum ValueKind {
-    VALUE_UNINITIALIZED,
+    VALUE_KIND_UNINITIALIZED,
 
-    VALUE_SCALAR,
+    VALUE_KIND_SCALAR,
 
-    VALUE_TUPLE,
+    VALUE_KIND_TUPLE,
 } ValueKind;
 
 struct Value;

@@ -34,23 +34,23 @@ Type const *type_of_operand(Operand operand, Function *function,
     assert(function != nullptr);
     assert(context != nullptr);
     switch (operand.kind) {
-    case OPERAND_SSA: {
+    case OPERAND_KIND_SSA: {
         Local *local = function_local_at(function, operand.data.ssa);
         assert(local != nullptr);
         assert(local->type != nullptr);
         return local->type;
     }
 
-    case OPERAND_SCALAR: {
+    case OPERAND_KIND_SCALAR: {
         return type_of_scalar(operand.data.scalar, context);
     }
 
-    case OPERAND_CONSTANT: {
+    case OPERAND_KIND_CONSTANT: {
         Value *constant = context_constants_at(context, operand.data.constant);
         return type_of_value(constant, function, context);
     }
 
-    case OPERAND_LABEL: {
+    case OPERAND_KIND_LABEL: {
         StringView name = context_labels_at(context, operand.data.label);
         Symbol *global  = context_symbol_table_at(context, name);
         assert(global->type != nullptr);
@@ -66,9 +66,9 @@ Type const *type_of_value(Value *value, Function *function, Context *context) {
     assert(function != nullptr);
     assert(context != nullptr);
     switch (value->kind) {
-    case VALUE_UNINITIALIZED: PANIC("uninitialized Value");
-    case VALUE_SCALAR:        return type_of_scalar(value->scalar, context);
-    case VALUE_TUPLE:         {
+    case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
+    case VALUE_KIND_SCALAR:        return type_of_scalar(value->scalar, context);
+    case VALUE_KIND_TUPLE:         {
         Tuple *tuple = &value->tuple;
         TupleType tuple_type;
         tuple_type_initialize(&tuple_type);
