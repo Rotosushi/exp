@@ -155,7 +155,7 @@ static void x64_emit_operand(x64_Operand operand,
         // #TODO: we currently have a full u64 in x64_Operand,
         //  and it needs to be updated to a u16 to be in step with Operand.
         assert(operand.index <= u16_MAX);
-        Value *constant = context_constants_at(context, (u16)operand.index);
+        Value *constant = context_values_at(context, (u16)operand.index);
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
         //  can validly appear here.

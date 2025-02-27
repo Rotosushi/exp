@@ -21,25 +21,25 @@
 #include "imr/value.h"
 #include "utility/io.h"
 
-typedef struct Constants {
-    u16 count;
-    u16 capacity;
-    Value *buffer;
-} Constants;
+typedef struct Values {
+  u16 count;
+  u16 capacity;
+  Value *buffer;
+} Values;
 
 /**
  * @brief create a Values buffer
  *
  * @return Values
  */
-Constants constants_create();
+Values values_create();
 
 /**
  * @brief destroy a Values buffer
  *
  * @param values
  */
-void constants_destroy(Constants *restrict values);
+void values_destroy(Values *restrict values);
 
 /**
  * @brief add a new Value to the Values buffer
@@ -48,7 +48,7 @@ void constants_destroy(Constants *restrict values);
  * @param value
  * @return Value*
  */
-Operand constants_append(Constants *restrict values, Value value);
+Operand values_add(Values *restrict values, Value value);
 
 /**
  * @brief return the constant at the given index in the buffer
@@ -57,11 +57,11 @@ Operand constants_append(Constants *restrict values, Value value);
  * @param index
  * @return Value*
  */
-Value *constants_at(Constants *restrict values, u16 index);
+Value *values_at(Values *restrict values, u16 index);
 
 struct Context;
-void print_constants(Constants const *restrict values,
-                     FILE *restrict file,
-                     struct Context *restrict context);
+void print_values(Values const *restrict values,
+                  FILE *restrict file,
+                  struct Context *restrict context);
 
 #endif // !EXP_IMR_CONSTANTS_H

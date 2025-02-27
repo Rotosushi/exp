@@ -28,7 +28,7 @@ Context context_create(CLIOptions *restrict options) {
                        .type_interner       = type_interner_create(),
                        .global_symbol_table = symbol_table_create(),
                        .global_labels       = labels_create(),
-                       .constants           = constants_create()};
+                       .values              = values_create()};
     return context;
 }
 
@@ -39,7 +39,7 @@ void context_destroy(Context *restrict context) {
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->global_symbol_table));
     labels_destroy(&(context->global_labels));
-    constants_destroy(&(context->constants));
+    values_destroy(&(context->values));
 }
 
 bool context_do_assemble(Context *restrict context) {
@@ -188,14 +188,14 @@ void context_leave_function(Context *restrict c) {
     c->current_function = NULL;
 }
 
-Operand context_constants_append(Context *restrict context, Value value) {
+Operand context_values_append(Context *restrict context, Value value) {
     assert(context != NULL);
-    return constants_append(&(context->constants), value);
+    return values_add(&(context->values), value);
 }
 
-Value *context_constants_at(Context *restrict context, u16 index) {
+Value *context_values_at(Context *restrict context, u16 index) {
     assert(context != NULL);
-    return constants_at(&(context->constants), index);
+    return values_at(&(context->values), index);
 }
 
 void context_emit_return(Context *restrict c, Operand B) {

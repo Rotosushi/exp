@@ -21,9 +21,9 @@
 
 #include "env/values.h"
 
-bool test_constant(Constants *restrict values, Value value) {
-    Operand index   = constants_append(values, value);
-    Value *constant = constants_at(values, index.data.constant);
+bool test_values(Values *restrict values, Value value) {
+    Operand index   = values_add(values, value);
+    Value *constant = values_at(values, index.data.constant);
 
     if (value_equality(constant, &value)) {
         return 0;
@@ -34,16 +34,16 @@ bool test_constant(Constants *restrict values, Value value) {
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     srand((unsigned)time(NULL));
-    Constants values = constants_create();
-    bool failure     = 0;
+    Values values = values_create();
+    bool failure  = 0;
 
     // #TODO:
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
+    failure |= test_values(&values, value_create_i64(rand()));
 
-    constants_destroy(&values);
+    values_destroy(&values);
     if (failure) {
         return EXIT_FAILURE;
     } else {

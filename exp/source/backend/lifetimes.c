@@ -59,7 +59,7 @@ static void lifetimes_compute_operand(Operand operand,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, operand.data.constant);
+        Value *constant = context_values_at(context, operand.data.constant);
         if (constant->kind == VALUEKIND_TUPLE) {
             Tuple *tuple = &constant->tuple;
 
