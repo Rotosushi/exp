@@ -34,17 +34,16 @@ bool test_constant(Constants *restrict values, Value value) {
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     srand((unsigned)time(NULL));
-    Constants constants;
-    constants_initialize(&constants);
-    bool failure = 0;
+    Constants values = constants_create();
+    bool failure     = 0;
 
     // #TODO:
-    failure |= test_constant(&constants, value_create_i64(rand()));
-    failure |= test_constant(&constants, value_create_i64(rand()));
-    failure |= test_constant(&constants, value_create_i64(rand()));
-    failure |= test_constant(&constants, value_create_i64(rand()));
+    failure |= test_constant(&values, value_create_i64(rand()));
+    failure |= test_constant(&values, value_create_i64(rand()));
+    failure |= test_constant(&values, value_create_i64(rand()));
+    failure |= test_constant(&values, value_create_i64(rand()));
 
-    constants_terminate(&constants);
+    constants_destroy(&values);
     if (failure) {
         return EXIT_FAILURE;
     } else {

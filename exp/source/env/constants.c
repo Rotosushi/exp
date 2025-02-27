@@ -23,16 +23,16 @@
 #include "env/context.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
 
-void constants_initialize(Constants *constants) {
-    assert(constants != nullptr);
-    constants->count    = 0;
-    constants->capacity = 0;
-    constants->buffer   = NULL;
+Constants constants_create() {
+    Constants constants;
+    constants.count    = 0;
+    constants.capacity = 0;
+    constants.buffer   = NULL;
+    return constants;
 }
 
-void constants_terminate(Constants *constants) {
+void constants_destroy(Constants *restrict constants) {
     assert(constants != NULL);
     for (u16 i = 0; i < constants->count; ++i) {
         Value *constant = constants->buffer + i;
@@ -45,47 +45,49 @@ void constants_terminate(Constants *constants) {
     constants->buffer = NULL;
 }
 
-static bool constants_full(Constants *constants) {
+static bool constants_full(Constants *restrict constants) {
     assert(constants != NULL);
     return (constants->count + 1) >= constants->capacity;
 }
 
-static void constants_grow(Constants *constants) {
+static void constants_grow(Constants *restrict constants) {
     assert(constants != NULL);
-    Growth64 g          = array_growth_u64(constants->capacity, sizeof(Value));
+    Growth16 g          = array_growth_u16(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
     constants->capacity = g.new_capacity;
 }
 
-Operand constants_append(Constants *constants, Value value) {
+Operand constants_append(Constants *restrict constants, Value value) {
+
     assert(constants != NULL);
-    for (u64 index = 0; index < constants->count; ++index) {
-        Value *cursor = constants->buffer + index;
-        if (value_equality(cursor, &value)) {
+    for (u16 i = 0; i < constants->count; ++i) {
+        Value *v = constants->buffer + i;
+        if (value_equality(v, &value)) {
             value_destroy(&value);
-            return operand_constant((u16)index);
+            return operand_constant(i);
         }
     }
 
     if (constants_full(constants)) { constants_grow(constants); }
 
-    u64 index = constants->count;
+    u16 index = constants->count;
     assert(constants != NULL);
     constants->buffer[constants->count] = value;
     constants->count += 1;
 
-    if (index > u16_MAX) { PANIC("constant index out of bounds"); }
-    return operand_constant((u16)index);
+    return operand_constant(index);
 }
 
-Value *constants_at(Constants *constants, u16 index) {
+Value *constants_at(Constants *restrict constants, u16 index) {
     assert(constants != NULL);
     assert(index < constants->count);
     return constants->buffer + index;
 }
 
-void print_constants(Constants const *constants, FILE *file, Context *context) {
-    for (u64 i = 0; i < constants->count; ++i) {
+void print_constants(Constants const *restrict constants,
+                     FILE *restrict file,
+                     Context *restrict context) {
+    for (u16 i = 0; i < constants->count; ++i) {
         file_write_u64(i, file);
         file_write(": ", file);
         file_write("[", file);
