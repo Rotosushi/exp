@@ -25,24 +25,24 @@ void context_initialize(Context *context, CLIOptions *options) {
     assert(options != nullptr);
     assert(context != nullptr);
     context_options_initialize(&context->options, options);
-    string_interner_initialize(&context->string_interner);
+    context->string_interner = string_interner_create();
     type_interner_initialize(&context->type_interner);
-    symbol_table_create(&context->symbol_table);
-    labels_initialize(&context->labels);
+    context->symbol_table = symbol_table_create();
+    context->labels       = labels_create();
     constants_initialize(&context->constants);
-    error_initialize(&context->current_error);
+    context->current_error    = error_create();
     context->current_function = nullptr;
 }
 
 void context_terminate(Context *context) {
     assert(context != nullptr);
     context_options_terminate(&(context->options));
-    string_interner_terminate(&(context->string_interner));
+    string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));
-    labels_terminate(&(context->labels));
+    labels_destroy(&(context->labels));
     constants_terminate(&(context->constants));
-    error_terminate(&context->current_error);
+    error_destroy(&context->current_error);
     context->current_function = nullptr;
 }
 
@@ -124,7 +124,7 @@ Type const *context_function_type(Context *context,
         &context->type_interner, return_type, argument_types);
 }
 
-Operand context_labels_insert(Context *context, StringView symbol) {
+u16 context_labels_insert(Context *context, StringView symbol) {
     assert(context != nullptr);
     return labels_insert(&context->labels, symbol);
 }
@@ -139,9 +139,17 @@ Symbol *context_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->symbol_table, name);
 }
 
+void context_gather_symbols(Context *context, SymbolList *symbol_list) {
+    assert(context != nullptr);
+    assert(symbol_list != nullptr);
+    symbol_list_initialize(symbol_list, &context->symbol_table);
+}
+
 FunctionBody *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
-    Symbol *element     = symbol_table_at(&c->symbol_table, name);
+    Symbol *element = symbol_table_at(&c->symbol_table, name);
+    if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
+
     c->current_function = &element->function_body;
     return c->current_function;
 }

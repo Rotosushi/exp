@@ -37,9 +37,8 @@ bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
 i32 symbol_table_tests([[maybe_unused]] i32 argc,
                        [[maybe_unused]] char *argv[]) {
     srand((unsigned)time(NULL));
-    bool failure = 0;
-    SymbolTable symbol_table;
-    symbol_table_create(&symbol_table);
+    bool failure             = 0;
+    SymbolTable symbol_table = symbol_table_create();
 
     failure |= test_symbol_table(&symbol_table, "foo");
     failure |= test_symbol_table(&symbol_table, "bar");

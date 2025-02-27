@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-
 #include "env/error.h"
 #include "utility/unreachable.h"
 
@@ -62,35 +60,36 @@ StringView error_code_sv(ErrorCode code) {
     }
 }
 
-void error_initialize(Error *error) {
-    assert(error != nullptr);
-    error->code = ERROR_NONE;
-    string_initialize(&error->message);
+Error error_create() {
+    Error error;
+    error.code = ERROR_NONE;
+    string_initialize(&error.message);
+    return error;
 }
 
-void error_construct(Error *error, ErrorCode code, StringView sv) {
-    assert(error != nullptr);
-    error->code = code;
-    string_from_view(&error->message, sv);
+Error error_construct(ErrorCode code, StringView sv) {
+    Error error = error_create();
+    error.code  = code;
+    string_assign(&error.message, sv);
+    return error;
 }
 
-void error_from_string(Error *error, ErrorCode code, String str) {
-    assert(error != nullptr);
-    error->code    = code;
-    error->message = str;
+Error error_from_string(ErrorCode code, String str) {
+    Error error = {.code = code, .message = str};
+    return error;
 }
 
-void error_terminate(Error *error) {
+void error_destroy(Error *restrict error) {
     error->code = ERROR_NONE;
     string_destroy(&error->message);
 }
 
-void error_assign(Error *error, ErrorCode code, StringView sv) {
+void error_assign(Error *restrict error, ErrorCode code, StringView sv) {
     error->code = code;
     string_assign(&error->message, sv);
 }
 
-void error_print(Error *error, StringView file, u64 line) {
+void error_print(Error *restrict error, StringView file, u64 line) {
     String msg;
     string_initialize(&msg);
     string_append(&msg, error_code_sv(error->code));

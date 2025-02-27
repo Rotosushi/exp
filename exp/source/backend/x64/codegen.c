@@ -136,22 +136,35 @@ static void x64_codegen_function(x64_Context *x64_context) {
     x64_codegen_prepend_function_header(x64_context);
 }
 
-static void x64_codegen_symbol(x64_Context *x64_context, Symbol *symbol) {
+static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     StringView name = symbol->name;
-    x64_context_enter_function(x64_context, name);
-    x64_codegen_function(x64_context);
-    x64_context_leave_function(x64_context);
+
+    switch (symbol->kind) {
+    case STE_UNDEFINED: {
+        // #TODO this should lower to a forward declaration
+        break;
+    }
+
+    case STE_FUNCTION: {
+        x64_context_enter_function(x64_context, name);
+        x64_codegen_function(x64_context);
+        x64_context_leave_function(x64_context);
+        break;
+    }
+
+    default: EXP_UNREACHABLE();
+    }
 }
 
 void x64_codegen(Context *context) {
     x64_Context x64_context = x64_context_create(context);
 
-    SymbolTable *symbol_table = &context->symbol_table;
-    for (u64 i = 0; i < symbol_table->capacity; ++i) {
-        Symbol *symbol = symbol_table->elements[i];
-        if (symbol == nullptr) { continue; }
-        x64_codegen_symbol(&x64_context, symbol);
+    SymbolList symbol_list;
+    context_gather_symbols(x64_context.context, &symbol_list);
+    for (u64 i = 0; i < symbol_list.count; ++i) {
+        x64_codegen_symbol(symbol_list.buffer[i], &x64_context);
     }
+    symbol_list_terminate(&symbol_list);
 
     x64_emit(&x64_context);
     x64_context_destroy(&x64_context);

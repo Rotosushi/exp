@@ -19,6 +19,6 @@
 
 #include "env/context.h"
 
-i32 typecheck(Context *context);
+i32 typecheck(Context *restrict context);
 
 #endif // !EXP_ANALYSIS_TYPECHECK_H
