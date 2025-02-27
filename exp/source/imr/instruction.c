@@ -51,7 +51,7 @@ Instruction instruction_load(Operand dst, Operand src) {
     return instruction_AB(OPCODE_LOAD, dst, src);
 }
 
-Instruction instruction_neg(Operand dst, Operand src) {
+Instruction instruction_negate(Operand dst, Operand src) {
     return instruction_AB(OPCODE_NEG, dst, src);
 }
 
@@ -59,18 +59,18 @@ Instruction instruction_add(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_ADD, dst, left, right);
 }
 
-Instruction instruction_sub(Operand dst, Operand left, Operand right) {
+Instruction instruction_subtract(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_SUB, dst, left, right);
 }
 
-Instruction instruction_mul(Operand dst, Operand left, Operand right) {
+Instruction instruction_multiply(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_MUL, dst, left, right);
 }
 
-Instruction instruction_div(Operand dst, Operand left, Operand right) {
+Instruction instruction_divide(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_DIV, dst, left, right);
 }
 
-Instruction instruction_mod(Operand dst, Operand left, Operand right) {
+Instruction instruction_modulus(Operand dst, Operand left, Operand right) {
     return instruction_ABC(OPCODE_MOD, dst, left, right);
 }

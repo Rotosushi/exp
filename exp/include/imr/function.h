@@ -5,34 +5,42 @@
 #define EXP_IMR_FUNCTION_H
 
 #include "imr/block.h"
+#include "imr/local.h"
 #include "imr/type.h"
-
-typedef struct FormalArgument {
-    StringView name;
-    Type const *type;
-} FormalArgument;
 
 typedef struct FormalArguments {
     u8 length;
     u8 capacity;
-    FormalArgument *buffer;
+    Local *buffer;
 } FormalArguments;
+
+typedef struct Locals {
+    u32 length;
+    u32 capacity;
+    Local *buffer;
+} Locals;
 
 typedef struct Function {
     FormalArguments arguments;
+    Locals locals;
     Type const *return_type;
     Block block;
 } Function;
 
-void function_initialize(Function *function);
+void function_initialize(Function *function_body);
 void function_terminate(Function *function);
 
-void function_arguments_append(Function *function, FormalArgument arg);
-FormalArgument *function_arguments_lookup(Function *function, StringView name);
-FormalArgument function_arguments_at(Function *function, u8 index);
+void function_arguments_append(Function *function, Local arg);
+Local *function_arguments_lookup(Function *function, StringView name);
+Local *function_arguments_at(Function *function, u8 index);
+
+u32 function_declare_local(Function *function);
+Local *function_local_at(Function *function, u32 ssa);
 
 void function_append_instruction(Function *function, Instruction instruction);
 
-void print_function(String *buffer, Function const *function);
+struct Context;
+void print_function(String *buffer, Function const *function,
+                    struct Context *context);
 
 #endif // !EXP_IMR_FUNCTION_H

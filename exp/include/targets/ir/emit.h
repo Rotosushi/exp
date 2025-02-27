@@ -7,6 +7,6 @@
 #include "env/context.h"
 #include "utility/result.h"
 
-ExpResult emit_ir_assembly(Context *context);
+ExpResult emit_ir_assembly(TranslationUnit *context);
 
 #endif // EXP_TARGETS_IR_EMIT_H

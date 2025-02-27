@@ -53,13 +53,11 @@ static void stack_grow(Stack *stack) {
     stack->capacity = g.new_capacity;
 }
 
-u32 stack_push(Stack *stack, Value value) {
+void stack_push(Stack *stack, Value value) {
     EXP_ASSERT(stack != nullptr);
     if (stack_full(stack)) { stack_grow(stack); }
 
-    u32 index            = stack->length++;
-    stack->buffer[index] = value;
-    return index;
+    stack->buffer[stack->length++] = value;
 }
 
 Value stack_pop(Stack *stack) {
@@ -68,11 +66,12 @@ Value stack_pop(Stack *stack) {
     return stack->buffer[--stack->length];
 }
 
+// @todo this function is not quite correct!
 void stack_pop_n(Stack *stack, u32 n) {
     EXP_ASSERT(stack != nullptr);
     EXP_ASSERT(stack->length >= n);
     for (u32 i = 0; i < n; ++i) {
-        value_terminate(&stack->buffer[stack->length - (i - 1)]);
+        value_terminate(&stack->buffer[stack->length - i - 1]);
     }
     stack->length -= n;
 }

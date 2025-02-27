@@ -5,7 +5,6 @@
  */
 #include "imr/block.h"
 #include "env/context.h"
-#include "imr/operand.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/assert.h"
@@ -46,52 +45,67 @@ void block_append(Block *bytecode, Instruction I) {
     bytecode->length += 1;
 }
 
-static void print_AB(String *buffer, StringView mnemonic, Instruction I) {
+static void print_B(String *buffer, StringView mnemonic, Instruction I,
+                    Context *context) {
     EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
     string_append(buffer, SV(" "));
-    print_operand(buffer, operand_construct(I.A_kind, I.A_data));
-    string_append(buffer, SV(", "));
-    print_operand(buffer, operand_construct(I.B_kind, I.B_data));
+    print_operand(buffer, I.B, context);
 }
 
-static void print_ABC(String *buffer, StringView mnemonic, Instruction I) {
+static void print_AB(String *buffer, StringView mnemonic, Instruction I,
+                     Context *context) {
     EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
     string_append(buffer, SV(" "));
-    print_operand(buffer, operand_construct(I.A_kind, I.A_data));
+    print_operand(buffer, I.A, context);
     string_append(buffer, SV(", "));
-    print_operand(buffer, operand_construct(I.B_kind, I.B_data));
-    string_append(buffer, SV(", "));
-    print_operand(buffer, operand_construct(I.C_kind, I.C_data));
+    print_operand(buffer, I.B, context);
 }
 
-static void print_instruction(String *buffer, Instruction I) {
+static void print_ABC(String *buffer, StringView mnemonic, Instruction I,
+                      Context *context) {
     EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(context != nullptr);
+    string_append(buffer, mnemonic);
+    string_append(buffer, SV(" "));
+    print_operand(buffer, I.A, context);
+    string_append(buffer, SV(", "));
+    print_operand(buffer, I.B, context);
+    string_append(buffer, SV(", "));
+    print_operand(buffer, I.C, context);
+}
+
+static void print_instruction(String *buffer, Instruction I, Context *context) {
+    EXP_ASSERT(buffer != nullptr);
+    EXP_ASSERT(context != nullptr);
     switch (I.opcode) {
-    case OPCODE_RET:  print_AB(buffer, SV("ret"), I); break;
-    case OPCODE_CALL: print_ABC(buffer, SV("call"), I); break;
-    case OPCODE_DOT:  print_ABC(buffer, SV("dot"), I); break;
-    case OPCODE_LOAD: print_AB(buffer, SV("load"), I); break;
-    case OPCODE_NEG:  print_AB(buffer, SV("neg"), I); break;
-    case OPCODE_ADD:  print_ABC(buffer, SV("add"), I); break;
-    case OPCODE_SUB:  print_ABC(buffer, SV("sub"), I); break;
-    case OPCODE_MUL:  print_ABC(buffer, SV("mul"), I); break;
-    case OPCODE_DIV:  print_ABC(buffer, SV("div"), I); break;
-    case OPCODE_MOD:  print_ABC(buffer, SV("mod"), I); break;
+    case OPCODE_RET:  print_B(buffer, SV("ret"), I, context); break;
+    case OPCODE_CALL: print_ABC(buffer, SV("call"), I, context); break;
+    case OPCODE_DOT:  print_ABC(buffer, SV("dot"), I, context); break;
+    case OPCODE_LOAD: print_AB(buffer, SV("load"), I, context); break;
+    case OPCODE_NEG:  print_AB(buffer, SV("neg"), I, context); break;
+    case OPCODE_ADD:  print_ABC(buffer, SV("add"), I, context); break;
+    case OPCODE_SUB:  print_ABC(buffer, SV("sub"), I, context); break;
+    case OPCODE_MUL:  print_ABC(buffer, SV("mul"), I, context); break;
+    case OPCODE_DIV:  print_ABC(buffer, SV("div"), I, context); break;
+    case OPCODE_MOD:  print_ABC(buffer, SV("mod"), I, context); break;
 
     default: EXP_UNREACHABLE();
     }
 }
 
-void print_block(String *buffer, Block const *bytecode) {
+void print_block(String *buffer, Block const *bytecode, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(bytecode != nullptr);
+    EXP_ASSERT(context != nullptr);
     for (u32 i = 0; i < bytecode->length; ++i) {
         string_append(buffer, SV("\t"));
         string_append_u64(buffer, i);
         string_append(buffer, SV(": "));
-        print_instruction(buffer, bytecode->buffer[i]);
+        print_instruction(buffer, bytecode->buffer[i], context);
         string_append(buffer, SV("\n"));
     }
 }

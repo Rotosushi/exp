@@ -6,7 +6,6 @@
 #include "frontend/parser.h"
 #include "env/error.h"
 #include "frontend/lexer.h"
-#include "frontend/token.h"
 #include "imr/operand.h"
 #include "utility/assert.h"
 #include "utility/io.h"
@@ -203,16 +202,14 @@ static bool parse_type(Type const **result, Parser *parser) {
     case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser);
 
     // scalar types
-    case TOK_TYPE_NIL:  *result = context_nil_type(parser->context); break;
-    case TOK_TYPE_BOOL: *result = context_bool_type(parser->context); break;
-    case TOK_TYPE_I8:   *result = context_i8_type(parser->context); break;
-    case TOK_TYPE_I16:  *result = context_i16_type(parser->context); break;
-    case TOK_TYPE_I32:  *result = context_i32_type(parser->context); break;
-    case TOK_TYPE_I64:  *result = context_i64_type(parser->context); break;
-    case TOK_TYPE_U8:   *result = context_u8_type(parser->context); break;
-    case TOK_TYPE_U16:  *result = context_u16_type(parser->context); break;
-    case TOK_TYPE_U32:  *result = context_u32_type(parser->context); break;
-    case TOK_TYPE_U64:  *result = context_u64_type(parser->context); break;
+    case TOK_NIL: {
+        TupleType tuple_type;
+        tuple_type_initialize(&tuple_type);
+        *result = context_tuple_type(parser->context, tuple_type);
+        break;
+    }
+
+    case TOK_TYPE_I32: *result = context_i32_type(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);
     }
@@ -222,7 +219,7 @@ static bool parse_type(Type const **result, Parser *parser) {
 }
 
 // formal-argument = identifier ":" type
-static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
+static bool parse_formal_argument(Local *arg, Parser *parser) {
     EXP_ASSERT(arg != nullptr);
     EXP_ASSERT(parser != nullptr);
     if (!peek(parser, TOK_IDENTIFIER)) {
@@ -244,8 +241,8 @@ static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
     if (!parse_type(&type, parser)) { return false; }
     EXP_ASSERT(type != NULL);
 
-    arg->type = type;
-    arg->name = name;
+    local_update_label(arg, name);
+    local_update_type(arg, type);
     return true;
 }
 
@@ -276,10 +273,11 @@ static bool parse_formal_argument_list(Parser *parser) {
         // u8 index         = 0;
         bool comma_found = false;
         do {
-            FormalArgument argument = {};
-            if (!parse_formal_argument(&argument, parser)) { return false; }
-            function_arguments_append(parser->function, argument);
-
+            u32 ssa    = function_declare_local(parser->function);
+            Local *arg = function_local_at(parser->function, ssa);
+            if (!parse_formal_argument(arg, parser)) { return false; }
+            // function_allocate_formal_argument(parser->function, arg, index);
+            // index += 1;
             switch (expect(parser, TOK_COMMA)) {
             case EXPECT_RESULT_SUCCESS:         comma_found = true; break;
             case EXPECT_RESULT_TOKEN_NOT_FOUND: comma_found = false; break;
@@ -537,10 +535,10 @@ static bool parens(Operand *result, Parser *parser) {
 
     if (!parse_tuple(&tuple, parser)) { return false; };
 
-    if (tuple.length == 0) {
+    if (tuple.size == 0) {
         *result = operand_constant(
             context_constants_append_tuple(parser->context, tuple));
-    } else if (tuple.length == 1) {
+    } else if (tuple.size == 1) {
         *result = tuple.elements[0];
         tuple_terminate(&tuple);
     } else {
@@ -565,7 +563,7 @@ static bool unop(Operand *result, Parser *parser) {
     case TOK_MINUS: {
         *result = operand_ssa(function_declare_local(parser->function));
         function_append_instruction(parser->function,
-                                    instruction_neg(*result, right));
+                                    instruction_negate(*result, right));
         break;
     }
     default: EXP_UNREACHABLE();
@@ -605,28 +603,28 @@ static bool binop(Operand *result, Operand left, Parser *parser) {
     case TOK_MINUS: {
         *result = operand_ssa(function_declare_local(parser->function));
         function_append_instruction(parser->function,
-                                    instruction_sub(*result, left, right));
+                                    instruction_subtract(*result, left, right));
         break;
     }
 
     case TOK_STAR: {
         *result = operand_ssa(function_declare_local(parser->function));
         function_append_instruction(parser->function,
-                                    instruction_mul(*result, left, right));
+                                    instruction_multiply(*result, left, right));
         break;
     }
 
     case TOK_SLASH: {
         *result = operand_ssa(function_declare_local(parser->function));
         function_append_instruction(parser->function,
-                                    instruction_div(*result, left, right));
+                                    instruction_divide(*result, left, right));
         break;
     }
 
     case TOK_PERCENT: {
         *result = operand_ssa(function_declare_local(parser->function));
         function_append_instruction(parser->function,
-                                    instruction_mod(*result, left, right));
+                                    instruction_modulus(*result, left, right));
         break;
     }
 
@@ -654,6 +652,7 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     return true;
 }
 
+/*
 static bool nil(Operand *result, Parser *parser) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(parser != nullptr);
@@ -681,8 +680,11 @@ static bool boolean_false(Operand *result, Parser *parser) {
     EXP_ASSERT(parser->context != nullptr);
     EXP_ASSERT(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
-    *result = return true;
+    *result =
+        context_constants_append(parser->context, value_initialize_boolean(0));
+    return true;
 }
+*/
 
 /**
  * @brief Parse an integer literal.
@@ -808,9 +810,51 @@ static ParseRule *get_rule(Token token) {
     return &rules[token];
 }
 
-ExpResult parse_expression(StringView source, Context *context) {
-    EXP_ASSERT(context != nullptr);
+ExpResult parse_buffer(char const *buffer, u64 length, Context *context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
+
     Parser parser;
     parser_initialize(&parser, context);
-    parser_set_view(&parser, source.ptr, source.length);
+    parser_set_view(&parser, buffer, length);
+
+    if (!nexttok(&parser)) {
+        String buffer;
+        string_initialize(&buffer);
+        print_error(&buffer, context_current_error(context),
+                    context_source_path(context), curline(&parser));
+        file_write(string_to_view(&buffer), program_error);
+        string_terminate(&buffer);
+        return EXP_FAILURE;
+    }
+
+    while (!finished(&parser)) {
+        Operand result;
+        if (!definition(&result, &parser)) {
+            String buffer;
+            string_initialize(&buffer);
+            print_error(&buffer, context_current_error(context),
+                        context_source_path(context), curline(&parser));
+            file_write(string_to_view(&buffer), program_error);
+            string_terminate(&buffer);
+            return EXP_FAILURE;
+        }
+    }
+
+    return EXP_SUCCESS;
+}
+
+ExpResult parse_source(Context *context) {
+    EXP_ASSERT(context != NULL);
+    StringView path = context_source_path(context);
+    File file       = file_open(path, FILEMODE_READ);
+    u64 length      = file_length(&file);
+    String buffer;
+    string_resize(&buffer, length);
+    file_read(string_data(&buffer), length, &file);
+    file_close(&file);
+    ExpResult result =
+        parse_buffer(string_to_cstring(&buffer), buffer.length, context);
+    string_terminate(&buffer);
+    return result;
 }

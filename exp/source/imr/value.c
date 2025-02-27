@@ -15,7 +15,7 @@
 void tuple_initialize(Tuple *tuple) {
     EXP_ASSERT(tuple != nullptr);
     tuple->capacity = 0;
-    tuple->length   = 0;
+    tuple->size     = 0;
     tuple->elements = nullptr;
 }
 
@@ -24,7 +24,7 @@ void tuple_terminate(Tuple *tuple) {
     deallocate(tuple->elements);
     tuple->elements = nullptr;
     tuple->capacity = 0;
-    tuple->length   = 0;
+    tuple->size     = 0;
 }
 /*
 void tuple_assign(Tuple *A, Tuple *B) {
@@ -42,12 +42,10 @@ void tuple_assign(Tuple *A, Tuple *B) {
 bool tuple_equal(Tuple *A, Tuple *B) {
     EXP_ASSERT(A != nullptr);
     EXP_ASSERT(B != nullptr);
-    if (A->length != B->length) { return 0; }
+    if (A->size != B->size) { return 0; }
 
-    for (u32 index = 0; index < A->length; ++index) {
-        if (!value_equal(A->elements + index, B->elements + index)) {
-            return 0;
-        }
+    for (u32 i = 0; i < A->size; ++i) {
+        if (!operand_equality(A->elements[i], B->elements[i])) { return 0; }
     }
 
     return 1;
@@ -55,7 +53,7 @@ bool tuple_equal(Tuple *A, Tuple *B) {
 
 static bool tuple_full(Tuple *tuple) {
     EXP_ASSERT(tuple != nullptr);
-    return (tuple->length + 1) >= tuple->capacity;
+    return (tuple->size + 1) >= tuple->capacity;
 }
 
 static void tuple_grow(Tuple *tuple) {
@@ -65,17 +63,18 @@ static void tuple_grow(Tuple *tuple) {
     tuple->capacity = g.new_capacity;
 }
 
-void tuple_append(Tuple *tuple, Value element) {
+void tuple_append(Tuple *tuple, Operand element) {
     EXP_ASSERT(tuple != nullptr);
     if (tuple_full(tuple)) { tuple_grow(tuple); }
 
-    tuple->elements[tuple->length++] = element;
+    tuple->elements[tuple->size] = element;
+    tuple->size += 1;
 }
 
 void value_initialize(Value *value) {
     EXP_ASSERT(value != nullptr);
-    value->kind   = VALUE_UNINITIALIZED;
-    value->scalar = scalar_uninitialized();
+    value->kind = VALUE_UNINITIALIZED;
+    //    value->nil  = 0;
 }
 
 void value_terminate(Value *value) {
@@ -130,7 +129,7 @@ bool value_equal(Value *A, Value *B) {
     if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
-    case VALUE_UNINITIALIZED: return false;
+    case VALUE_UNINITIALIZED: return true;
 
     case VALUE_SCALAR: {
         return scalar_equal(A->scalar, B->scalar);
@@ -144,25 +143,28 @@ bool value_equal(Value *A, Value *B) {
     }
 }
 
-static void print_tuple(String *buffer, Tuple const *tuple) {
+static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(tuple != nullptr);
+    EXP_ASSERT(context != nullptr);
     string_append(buffer, SV("("));
-    for (u32 i = 0; i < tuple->length; ++i) {
-        print_value(buffer, tuple->elements + i);
+    for (u32 i = 0; i < tuple->size; ++i) {
+        Operand element = tuple->elements[i];
+        print_operand(buffer, element, context);
 
-        if (i < (tuple->length - 1)) { string_append(buffer, SV(", ")); }
+        if (i < (tuple->size - 1)) { string_append(buffer, SV(", ")); }
     }
     string_append(buffer, SV(")"));
 }
 
-void print_value(String *buffer, Value const *value) {
+void print_value(String *buffer, Value const *value, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(value != nullptr);
+    EXP_ASSERT(context != nullptr);
     switch (value->kind) {
     case VALUE_UNINITIALIZED: string_append(buffer, SV("uninitialized")); break;
     case VALUE_SCALAR:        print_scalar(buffer, value->scalar); break;
-    case VALUE_TUPLE:         print_tuple(buffer, &value->tuple); break;
+    case VALUE_TUPLE:         print_tuple(buffer, &value->tuple, context); break;
 
     default: EXP_UNREACHABLE();
     }

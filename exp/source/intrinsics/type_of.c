@@ -34,9 +34,27 @@ Type const *type_of_operand(Operand operand, Function *function,
     assert(function != nullptr);
     assert(context != nullptr);
     switch (operand.kind) {
-    case OPERAND_REGISTER: {
-        Scalar scalar = context_registers_get(context, operand.data.register_);
-        return type_of_scalar(scalar, context);
+    case OPERAND_SSA: {
+        Local *local = function_local_at(function, operand.data.ssa);
+        assert(local != nullptr);
+        assert(local->type != nullptr);
+        return local->type;
+    }
+
+    case OPERAND_SCALAR: {
+        return type_of_scalar(operand.data.scalar, context);
+    }
+
+    case OPERAND_CONSTANT: {
+        Value *constant = context_constants_at(context, operand.data.constant);
+        return type_of_value(constant, function, context);
+    }
+
+    case OPERAND_LABEL: {
+        StringView name = context_labels_at(context, operand.data.label);
+        Symbol *global  = context_symbol_table_at(context, name);
+        assert(global->type != nullptr);
+        return global->type;
     }
 
     default: EXP_UNREACHABLE();
@@ -54,7 +72,7 @@ Type const *type_of_value(Value *value, Function *function, Context *context) {
         Tuple *tuple = &value->tuple;
         TupleType tuple_type;
         tuple_type_initialize(&tuple_type);
-        for (u64 i = 0; i < tuple->length; ++i) {
+        for (u64 i = 0; i < tuple->size; ++i) {
             Operand element = tuple->elements[i];
             Type const *T   = type_of_operand(element, function, context);
             tuple_type_append(&tuple_type, T);
@@ -73,8 +91,8 @@ Type const *type_of_function(Function *body, Context *context) {
     TupleType argument_types;
     tuple_type_initialize(&argument_types);
     for (u64 index = 0; index < body->arguments.length; ++index) {
-        FormalArgument formal_argument = body->arguments.buffer[index];
-        Type const *argument_type      = formal_argument.type;
+        Local *formal_argument    = body->arguments.buffer + index;
+        Type const *argument_type = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 

@@ -102,13 +102,21 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
 }
 
 static bool lexer_match(Lexer *restrict lexer, char c) {
-    if (lexer_at_end(lexer)) { return false; }
+    if (lexer_at_end(lexer)) { return 0; }
 
-    if (lexer_peek(lexer) != c) { return false; }
+    if (lexer_peek(lexer) != c) { return 0; }
 
     lexer->column++;
     lexer->cursor++;
-    return true;
+    return 1;
+}
+
+static Token lexer_integer(Lexer *restrict lexer) {
+    while (is_digit(lexer_peek(lexer))) {
+        lexer_next(lexer);
+    }
+
+    return TOK_INTEGER;
 }
 
 static Token lexer_check_keyword(Lexer *restrict lexer, u64 begin, u64 length,
@@ -130,74 +138,21 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
             switch (lexer->token[1]) {
             case 'a': return lexer_check_keyword(lexer, 2, 3, "lse", TOK_FALSE);
             case 'n': return lexer_check_keyword(lexer, 2, 0, "", TOK_FN);
-            case '3':
-                return lexer_check_keyword(lexer, 2, 1, "2", TOK_TYPE_F32);
-            case '6':
-                return lexer_check_keyword(lexer, 2, 1, "4", TOK_TYPE_F64);
-            default: break;
+            default:  break;
             }
         }
         break;
 
-    case 'i':
-        if (lexer_current_text_length(lexer) > 1) {
-            switch (lexer->token[1]) {
-            case '8': return lexer_check_keyword(lexer, 2, 0, "", TOK_TYPE_I8);
-            case '1':
-                return lexer_check_keyword(lexer, 2, 1, "6", TOK_TYPE_I16);
-            case '3':
-                return lexer_check_keyword(lexer, 2, 1, "2", TOK_TYPE_I32);
-            case '6':
-                return lexer_check_keyword(lexer, 2, 1, "4", TOK_TYPE_I64);
-            default: break;
-            }
-        }
-        break;
-
+    case 'i': return lexer_check_keyword(lexer, 1, 2, "32", TOK_TYPE_I32);
     case 'n': return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
     case 'r': return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
     case 't': return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
-
-    case 'u':
-        if (lexer_current_text_length(lexer) > 1) {
-            switch (lexer->token[1]) {
-            case '8': return lexer_check_keyword(lexer, 2, 0, "", TOK_TYPE_U8);
-            case '1':
-                return lexer_check_keyword(lexer, 2, 1, "6", TOK_TYPE_U16);
-            case '3':
-                return lexer_check_keyword(lexer, 2, 1, "2", TOK_TYPE_U32);
-            case '6':
-                return lexer_check_keyword(lexer, 2, 1, "4", TOK_TYPE_U64);
-            }
-        }
-        break;
-
     case 'v': return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
 
     default: break;
     }
 
     return TOK_IDENTIFIER;
-}
-
-static Token lexer_identifier(Lexer *restrict lexer) {
-    while (is_id(lexer_peek(lexer)) || is_digit(lexer_peek(lexer))) {
-        lexer_next(lexer);
-    }
-
-    return lexer_identifier_or_keyword(lexer);
-}
-
-static Token lexer_integer_or_real(Lexer *restrict lexer) {
-    switch (lexer->token[0])
-}
-
-static Token lexer_number(Lexer *restrict lexer) {
-    while (is_digit(lexer_peek(lexer)) || (lexer_peek(lexer) == '.')) {
-        lexer_next(lexer);
-    }
-
-    return lexer_integer_or_real(lexer);
 }
 
 static Token lexer_string_literal(Lexer *restrict lexer) {
@@ -215,6 +170,14 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
     lexer->cursor++;
 
     return TOK_STRING_LITERAL;
+}
+
+static Token lexer_identifier(Lexer *restrict lexer) {
+    while (is_id(lexer_peek(lexer)) || is_digit(lexer_peek(lexer))) {
+        lexer_next(lexer);
+    }
+
+    return lexer_identifier_or_keyword(lexer);
 }
 
 Token lexer_scan(Lexer *restrict lexer) {
@@ -235,6 +198,7 @@ Token lexer_scan(Lexer *restrict lexer) {
     case ';': return TOK_SEMICOLON;
     case ':': return TOK_COLON;
     case ',': return TOK_COMMA;
+    case '.': return TOK_DOT;
 
     case '-': return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
     case '+': return TOK_PLUS;
@@ -252,7 +216,6 @@ Token lexer_scan(Lexer *restrict lexer) {
 
     case '"': return lexer_string_literal(lexer);
 
-    case '.':
     case '0':
     case '1':
     case '2':
@@ -262,7 +225,7 @@ Token lexer_scan(Lexer *restrict lexer) {
     case '6':
     case '7':
     case '8':
-    case '9': return lexer_number(lexer);
+    case '9': return lexer_integer(lexer);
 
     case '_':
     case 'a':

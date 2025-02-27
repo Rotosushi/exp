@@ -50,11 +50,11 @@ Instruction instruction_return(Operand dst, Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
 Instruction instruction_load(Operand dst, Operand src);
-Instruction instruction_neg(Operand dst, Operand src);
+Instruction instruction_negate(Operand dst, Operand src);
 Instruction instruction_add(Operand dst, Operand left, Operand right);
-Instruction instruction_sub(Operand dst, Operand left, Operand right);
-Instruction instruction_mul(Operand dst, Operand left, Operand right);
-Instruction instruction_div(Operand dst, Operand left, Operand right);
-Instruction instruction_mod(Operand dst, Operand left, Operand right);
+Instruction instruction_subtract(Operand dst, Operand left, Operand right);
+Instruction instruction_multiply(Operand dst, Operand left, Operand right);
+Instruction instruction_divide(Operand dst, Operand left, Operand right);
+Instruction instruction_modulus(Operand dst, Operand left, Operand right);
 
 #endif // !EXP_IMR_INSTRUCTION_H

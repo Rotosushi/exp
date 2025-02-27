@@ -20,7 +20,7 @@ void stack_terminate(Stack *stack);
 
 Value *stack_top(Stack *stack);
 Value *stack_peek(Stack *stack, u32 index);
-u32 stack_push(Stack *stack, Value value);
+void stack_push(Stack *stack, Value value);
 Value stack_pop(Stack *stack);
 void stack_pop_n(Stack *stack, u32 n);
 

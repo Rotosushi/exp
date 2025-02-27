@@ -5,19 +5,12 @@
  */
 
 #include "imr/operand.h"
+#include "env/context.h"
 #include "utility/unreachable.h"
 
 Operand operand_construct(OperandKind kind, OperandData data) {
     Operand operand_ = {.kind = kind, .data = data};
     return operand_;
-}
-
-Operand operand_register(u8 register_) {
-    return operand_construct(OPERAND_REGISTER,
-                             (OperandData){.register_ = register_});
-}
-Operand operand_stack(u16 stack) {
-    return operand_construct(OPERAND_STACK, (OperandData){.stack = stack});
 }
 
 bool operand_equality(Operand A, Operand B) {
@@ -30,18 +23,25 @@ bool operand_equality(Operand A, Operand B) {
     }
 }
 
-void print_operand(String *buffer, Operand operand) {
+void print_operand(String *buffer, Operand operand, Context *context) {
     switch (operand.kind) {
     case OPERAND_REGISTER:
         u8 register_ = operand.data.register_;
         string_append(buffer, SV("r"));
         string_append_u64(buffer, register_);
+        string_append(buffer, SV("["));
+        print_scalar(buffer, context_registers_at(context, register_));
         break;
-    case OPERAND_STACK:
-        u16 stack = operand.data.stack;
-        string_append(buffer, SV("s"));
-        string_append_u64(buffer, stack);
+    case OPERAND_CONSTANT:
+        Value *constant = context_constants_at(context, operand.data.constant);
+        print_value(buffer, constant, context);
         break;
+    case OPERAND_SCALAR: print_scalar(buffer, operand.data.scalar); break;
+    case OPERAND_LABEL:
+        StringView label = context_labels_at(context, operand.data.label);
+        string_append(buffer, label);
+        break;
+
     default: EXP_UNREACHABLE();
     }
 }

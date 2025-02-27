@@ -68,7 +68,7 @@ static ExpResult validate_operand(Operand operand, u32 block_index,
 
 static ExpResult validate_tuple(Tuple *tuple, u32 block_index,
                                 Subject *subject) {
-    for (u32 index = 0; index < tuple->length; ++index) {
+    for (u32 index = 0; index < tuple->size; ++index) {
         Operand element = tuple->elements[index];
         if (validate_operand(element, block_index, subject) != EXP_SUCCESS) {
             return EXP_FAILURE;

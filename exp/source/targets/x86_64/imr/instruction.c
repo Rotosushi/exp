@@ -76,7 +76,7 @@ x86_64_Instruction x86_64_idiv(x86_64_Operand source) {
 
 static void print_x86_64_instruction_A(String *buffer, StringView mnemonic,
                                        x86_64_Instruction instruction,
-                                       Context *context) {
+                                       TranslationUnit *context) {
     u8 size = x86_64_operand_size(instruction.A_kind, instruction.A_data);
     print_x86_64_mnemonic(buffer, mnemonic, size);
     print_x86_64_operand(buffer, instruction.A_kind, instruction.A_data,

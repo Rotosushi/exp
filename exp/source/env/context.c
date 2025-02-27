@@ -4,7 +4,6 @@
  * license that can be found in the LICENSE file.
  */
 #include "env/context.h"
-#include "imr/locals.h"
 #include "utility/assert.h"
 
 void context_initialize(Context *context, Bitset flags, StringView source,
@@ -14,9 +13,8 @@ void context_initialize(Context *context, Bitset flags, StringView source,
     string_interner_initialize(&context->string_interner);
     type_interner_initialize(&context->type_interner);
     symbol_table_create(&context->symbol_table);
-    locals_initialize(&context->locals);
-    frames_initialize(&context->frames);
-    stack_initialize(&context->stack);
+    labels_initialize(&context->labels);
+    constants_initialize(&context->constants);
     error_initialize(&context->current_error);
 }
 
@@ -26,9 +24,8 @@ void context_terminate(Context *context) {
     string_interner_terminate(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));
-    locals_terminate(&context->locals);
-    frames_terminate(&context->frames);
-    stack_terminate(&context->stack);
+    labels_terminate(&(context->labels));
+    constants_terminate(&(context->constants));
     error_terminate(&context->current_error);
 }
 
@@ -170,6 +167,26 @@ Symbol *context_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->symbol_table, name);
 }
 
+u32 context_labels_append(Context *context, StringView label) {
+    EXP_ASSERT(context != nullptr);
+    return labels_insert(&context->labels, label);
+}
+
+StringView context_labels_at(Context *context, u32 label) {
+    EXP_ASSERT(context != nullptr);
+    return labels_at(&context->labels, label);
+}
+
+Value *context_constants_at(Context *context, u32 constant) {
+    EXP_ASSERT(context != nullptr);
+    return constants_at(&context->constants, constant);
+}
+
+u32 context_constants_append_tuple(Context *context, Tuple tuple) {
+    EXP_ASSERT(context != nullptr);
+    return constants_append_tuple(&(context->constants), tuple);
+}
+
 u32 context_stack_length(Context *context) {
     EXP_ASSERT(context != nullptr);
     return context->stack.length;
@@ -185,9 +202,9 @@ Value *context_stack_peek(Context *context, u32 n) {
     return stack_peek(&context->stack, n);
 }
 
-u32 context_stack_push(Context *context, Value value) {
+void context_stack_push(Context *context, Value value) {
     EXP_ASSERT(context != nullptr);
-    return stack_push(&context->stack, value);
+    stack_push(&context->stack, value);
 }
 
 Value context_stack_pop(Context *context) {

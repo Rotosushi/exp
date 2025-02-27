@@ -9,7 +9,7 @@
 #include "targets/ir/emit.h"
 #include "utility/io.h"
 
-ExpResult emit_ir_assembly(Context *context) {
+ExpResult emit_ir_assembly(TranslationUnit *context) {
     assert(context != nullptr);
 
     String buffer;
@@ -21,7 +21,7 @@ ExpResult emit_ir_assembly(Context *context) {
         if (symbol == nullptr) { continue; }
         string_append(&buffer, symbol->name);
         string_append(&buffer, SV(" "));
-        print_function(&buffer, &symbol->function_body);
+        print_function(&buffer, &symbol->function_body, context);
         string_append(&buffer, SV("\n"));
     }
 

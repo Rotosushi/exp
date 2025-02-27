@@ -7,7 +7,6 @@
 #include "imr/function.h"
 #include "utility/result.h"
 
-struct Context;
 /**
  * @brief Attempts to assign a static type to each local declared in the
  * function and to the function itself.
