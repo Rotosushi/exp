@@ -53,7 +53,7 @@ void test_resources_append(TestResources *test_resources,
     }
 
     String *string = test_resources->buffer + test_resources->count++;
-    string_initialize(string);
+    *string        = string_create();
     string_assign(string, string_to_view(resource));
 }
 
@@ -83,8 +83,7 @@ void test_resources_gather(TestResources *test_resources,
         char const *name = directory_entry->d_name;
         if (*name == '.') { continue; }
 
-        String full_path;
-        string_initialize(&full_path);
+        String full_path = string_create();
         string_append(&full_path, string_view_from_cstring(directory));
         string_append(&full_path, SV("/"));
         string_append(&full_path, string_view_from_cstring(name));

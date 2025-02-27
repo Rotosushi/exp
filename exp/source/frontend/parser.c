@@ -779,8 +779,7 @@ i32 parse_source(Context *c) {
     assert(c != NULL);
     StringView path = context_source_path(c);
     FILE *file      = file_open(path.ptr, "r");
-    String buffer;
-    string_from_file(&buffer, file);
+    String buffer   = string_from_file(file);
     file_close(file);
     i32 result = parse_buffer(string_to_cstring(&buffer), buffer.length, c);
     string_destroy(&buffer);

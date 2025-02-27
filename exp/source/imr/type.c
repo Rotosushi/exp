@@ -197,8 +197,7 @@ void emit_type(Type const *T, String *buf) {
 }
 
 void print_type(Type const *T, FILE *file) {
-    String buf;
-    string_initialize(&buf);
+    String buf = string_create();
     emit_type(T, &buf);
     print_string_view(string_to_view(&buf), file);
     string_destroy(&buf);

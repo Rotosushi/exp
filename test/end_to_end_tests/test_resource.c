@@ -33,8 +33,7 @@ static char const *exp_path = EXP_BINARY_DIR "/exp/source/exp";
 i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     i32 result = EXIT_SUCCESS;
 
-    String exe;
-    string_initialize(&exe);
+    String exe = string_create();
     string_assign(&exe, source_path);
     string_replace_extension(&exe, SV(""));
     char const *exe_path = string_to_cstring(&exe);
@@ -92,8 +91,7 @@ u8 parse_exit_code(StringView path) {
 }
 
 i32 test_resource(StringView path) {
-    String exe_string;
-    string_initialize(&exe_string);
+    String exe_string = string_create();
     string_assign(&exe_string, path);
     string_replace_extension(&exe_string, SV(""));
     char const *exe_path = string_to_cstring(&exe_string);

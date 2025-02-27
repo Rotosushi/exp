@@ -36,37 +36,37 @@ typedef struct String {
     };
 } String;
 
-void string_initialize(String *string);
+String string_create();
 
-void string_destroy(String *str);
+void string_destroy(String *restrict str);
 
-StringView string_to_view(String const *str);
+StringView string_to_view(String const *restrict str);
 
-char const *string_to_cstring(String const *str);
+char const *string_to_cstring(String const *restrict str);
 
-void string_from_view(String *string, StringView view);
+String string_from_view(StringView sv);
 
-void string_from_cstring(String *string, char const *cstring);
+String string_from_cstring(char const *cstring);
 
-void string_from_file(String *string, FILE *file);
+String string_from_file(FILE *restrict file);
 
-bool string_empty(String const *string);
+bool string_empty(String const *restrict string);
 
-bool string_equality(String const *str, StringView sv);
+bool string_eq(String const *restrict str, StringView sv);
 
-void string_resize(String *str, u64 capacity);
+void string_resize(String *restrict str, u64 capacity);
 
-void string_assign(String *str, StringView sv);
+void string_assign(String *restrict str, StringView sv);
 
-void string_assign_string(String *dst, String const *src);
+void string_assign_string(String *restrict dst, String const *restrict src);
 
-void string_append(String *str, StringView sv);
+void string_append(String *restrict str, StringView sv);
 
-void string_append_string(String *dst, String const *src);
+void string_append_string(String *restrict dst, String const *restrict src);
 
-void string_append_i64(String *str, i64 i);
+void string_append_i64(String *restrict str, i64 i);
 
-void string_append_u64(String *str, u64 u);
+void string_append_u64(String *restrict str, u64 u);
 
 /**
  * @brief erases the substring of str->buffer[offset]
@@ -79,7 +79,7 @@ void string_append_u64(String *str, u64 u);
  * @param offset
  * @param length
  */
-void string_erase(String *str, u64 offset, u64 length);
+void string_erase(String *restrict str, u64 offset, u64 length);
 
 /**
  * @brief insert data into <str>; growing <str> as necessary
@@ -87,8 +87,8 @@ void string_erase(String *str, u64 offset, u64 length);
  * @param offset
  * @param data
  */
-void string_insert(String *str, u64 offset, StringView sv);
+void string_insert(String *restrict str, u64 offset, StringView sv);
 
-void string_replace_extension(String *str, StringView ext);
+void string_replace_extension(String *restrict str, StringView ext);
 
 #endif // !EXP_UTILITY_STRING_H

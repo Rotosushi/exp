@@ -25,103 +25,110 @@
 #include "utility/io.h"
 #include "utility/log.h"
 
+#define SET_BIT(B, r) ((B) |= (u64)(1 << r))
+#define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
+#define CHK_BIT(B, r) (((B) >> r) & 1)
+
 static void print_version(FILE *file) {
-    file_write(EXP_VERSION_STRING, file);
-    file_write("\n", file);
+  file_write(EXP_VERSION_STRING, file);
+  file_write("\n", file);
 }
 
 static void print_help(FILE *file) {
-    file_write("exp [options] <source-file>\n\n", file);
-    file_write("\t-h print help.\n", file);
-    file_write("\t-v print version.\n", file);
-    file_write("\t-o <filename> set output filename.\n", file);
-    file_write("\t-c emit an object file.\n", file);
-    file_write("\t-s emit an assembly file.\n", file);
-    file_write("\n", file);
+  file_write("exp [options] <source-file>\n\n", file);
+  file_write("\t-h print help.\n", file);
+  file_write("\t-v print version.\n", file);
+  file_write("\t-o <filename> set output filename.\n", file);
+  file_write("\t-c emit an object file.\n", file);
+  file_write("\t-s emit an assembly file.\n", file);
+  file_write("\n", file);
 }
 
 CLIOptions cli_options_create() {
-    CLIOptions cli_options = {.flags = bitset_create()};
-    bitset_set_bit(&cli_options.flags, CLI_DO_ASSEMBLE);
-    bitset_set_bit(&cli_options.flags, CLI_DO_LINK);
-    bitset_set_bit(&cli_options.flags, CLI_DO_CLEANUP);
-    return cli_options;
+  CLIOptions cli_options = {.flags = 0};
+  SET_BIT(cli_options.flags, CLI_DO_ASSEMBLE);
+  SET_BIT(cli_options.flags, CLI_DO_LINK);
+  SET_BIT(cli_options.flags, CLI_DO_CLEANUP);
+  return cli_options;
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
-    cli_options->flags = bitset_create();
-    string_destroy(&cli_options->output);
-    string_destroy(&cli_options->source);
+  cli_options->flags = 0;
+  string_destroy(&cli_options->output);
+  string_destroy(&cli_options->source);
 }
 
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <getopt.h>
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
-    CLIOptions options               = cli_options_create();
-    static char const *short_options = "hvo:cs";
+  CLIOptions options               = cli_options_create();
+  static char const *short_options = "hvo:cs";
 
-    i32 option = 0;
-    while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
-        switch (option) {
-        case 'h': {
-            print_help(stdout);
-            exit(EXIT_SUCCESS);
-            break;
-        }
-
-        case 'v': {
-            print_version(stdout);
-            exit(EXIT_SUCCESS);
-            break;
-        }
-
-        case 'o': {
-            string_assign(&(options.output), string_view_from_cstring(optarg));
-            break;
-        }
-
-        case 'c': {
-            bitset_clear_bit(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear_bit(&options.flags, CLI_DO_LINK);
-            break;
-        }
-
-        case 's': {
-            bitset_clear_bit(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear_bit(&options.flags, CLI_DO_ASSEMBLE);
-            bitset_clear_bit(&options.flags, CLI_DO_LINK);
-            break;
-        }
-
-        default: {
-            char buf[2] = {(char)option, '\0'};
-            file_write("unknown option [", stderr);
-            file_write(buf, stderr);
-            file_write("]\n", stderr);
-            break;
-        }
-        }
+  i32 option = 0;
+  while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
+    switch (option) {
+    case 'h': {
+      print_help(stdout);
+      exit(EXIT_SUCCESS);
+      break;
     }
 
-    if (optind < argc) {
-        string_assign(&(options.source),
-                      string_view_from_cstring(argv[optind]));
-    } else { // no input file given
-        log_message(
-            LOG_ERROR, NULL, 0, "an input file must be specified.\n", stderr);
-        exit(EXIT_SUCCESS);
+    case 'v': {
+      print_version(stdout);
+      exit(EXIT_SUCCESS);
+      break;
     }
 
-    // use the input filename as the default
-    // base of the output filename
-    if (string_empty(&(options.output))) {
-        string_assign_string(&options.output, &options.source);
-        string_replace_extension(&options.output, SV(""));
+    case 'o': {
+      string_assign(&(options.output), string_view_from_cstring(optarg));
+      break;
     }
 
-    return options;
+    case 'c': {
+      CLR_BIT(options.flags, CLI_DO_CLEANUP);
+      CLR_BIT(options.flags, CLI_DO_LINK);
+      break;
+    }
+
+    case 's': {
+      CLR_BIT(options.flags, CLI_DO_CLEANUP);
+      CLR_BIT(options.flags, CLI_DO_ASSEMBLE);
+      CLR_BIT(options.flags, CLI_DO_LINK);
+      break;
+    }
+
+    default: {
+      char buf[2] = {(char)option, '\0'};
+      file_write("unknown option [", stderr);
+      file_write(buf, stderr);
+      file_write("]\n", stderr);
+      break;
+    }
+    }
+  }
+
+  if (optind < argc) {
+    string_assign(&(options.source), string_view_from_cstring(argv[optind]));
+  } else { // no input file given
+    log_message(
+        LOG_ERROR, NULL, 0, "an input file must be specified.\n", stderr);
+    exit(EXIT_SUCCESS);
+  }
+
+  // use the input filename as the default
+  // base of the output filename
+  if (string_empty(&(options.output))) {
+    string_assign_string(&options.output, &options.source);
+    string_replace_extension(&options.output, SV(""));
+  }
+
+  return options;
 }
+
+#undef SET_BIT
+#undef CLR_BIT
+#undef CHK_BIT
 
 #else
 #error "unsupported host OS"

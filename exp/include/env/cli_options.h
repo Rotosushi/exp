@@ -18,18 +18,17 @@
 #define EXP_UTILITY_CLI_OPTIONS_H
 
 #include "adt/string.h"
-#include "utility/bitset.h"
 
 typedef enum CLIFlags {
-    CLI_DO_ASSEMBLE,
-    CLI_DO_LINK,
-    CLI_DO_CLEANUP,
+  CLI_DO_ASSEMBLE,
+  CLI_DO_LINK,
+  CLI_DO_CLEANUP,
 } CLIFlags;
 
 typedef struct CLIOptions {
-    Bitset flags;
-    String source;
-    String output;
+  u64 flags;
+  String source;
+  String output;
 } CLIOptions;
 
 CLIOptions cli_options_create();
