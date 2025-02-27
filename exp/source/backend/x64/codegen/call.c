@@ -24,6 +24,7 @@
 #include "intrinsics/type_of.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/panic.h"
 
 typedef struct OperandArray {
     u8 size;
@@ -140,11 +141,9 @@ void x64_codegen_call(Instruction I,
         return;
     }
 
-    i64 stack_space         = 0;
-    x64_Address arg_address = x64_address_construct(X64_GPR_RSP,
-                                                    x64_optional_gpr_empty(),
-                                                    x64_optional_u8_empty(),
-                                                    x64_optional_i64_empty());
+    i64 stack_space = 0;
+    x64_Address arg_address =
+        x64_address_create(X64_GPR_RSP, X64_GPR_NONE, 1, 0);
 
     for (u8 i = 0; i < stack_args.size; ++i) {
         Operand arg    = stack_args.buffer[i];
@@ -157,7 +156,7 @@ void x64_codegen_call(Instruction I,
         x64_codegen_load_address_from_operand(
             &arg_address, arg, arg_type, block_index, context);
 
-        x64_address_increment_offset(&arg_address, offset);
+        arg_address.offset += offset;
     }
 
     x64_codegen_allocate_stack_space_for_arguments(
