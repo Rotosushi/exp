@@ -1,0 +1,4 @@
+fn main () {
+	const x = -4;
+	return 5 + x;
+}

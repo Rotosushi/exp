@@ -134,8 +134,7 @@ StringView context_labels_at(Context *context, u16 index) {
     return labels_at(&context->global_labels, index);
 }
 
-SymbolTableElement *context_global_symbol_table_at(Context *context,
-                                                   StringView name) {
+Symbol *context_global_symbol_table_at(Context *context, StringView name) {
     assert(context != nullptr);
     return symbol_table_at(&context->global_symbol_table, name);
 }
@@ -147,8 +146,7 @@ SymbolTableIterator context_global_symbol_table_iterator(Context *context) {
 
 FunctionBody *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
-    SymbolTableElement *element =
-        symbol_table_at(&c->global_symbol_table, name);
+    Symbol *element = symbol_table_at(&c->global_symbol_table, name);
     if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
 
     c->current_function = &element->function_body;

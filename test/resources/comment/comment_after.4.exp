@@ -1,0 +1,2 @@
+fn main() { return 4; }
+/* this comment block appears after the code */

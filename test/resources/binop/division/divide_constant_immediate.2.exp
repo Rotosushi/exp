@@ -1,0 +1,4 @@
+fn main () {
+	const x = 18;
+	return x / 9;
+}

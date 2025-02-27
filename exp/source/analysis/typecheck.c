@@ -55,8 +55,7 @@ static TResult success(Type *type) {
     }                                                                          \
     assert(decl != NULL)
 
-static TResult typecheck_global(Context *restrict c,
-                                SymbolTableElement *restrict element);
+static TResult typecheck_global(Context *restrict c, Symbol *restrict element);
 
 static TResult
 typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
@@ -82,9 +81,9 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name            = context_labels_at(c, data.label);
-        SymbolTableElement *global = context_global_symbol_table_at(c, name);
-        Type *type                 = global->type;
+        StringView name = context_labels_at(c, data.label);
+        Symbol *global  = context_global_symbol_table_at(c, name);
+        Type *type      = global->type;
         if (type == NULL) {
             try(Gty, typecheck_global(c, global));
             type = Gty;
@@ -442,8 +441,9 @@ static TResult typecheck_function(Context *restrict c) {
     return success(return_type);
 }
 
-static TResult typecheck_global(Context *restrict c,
-                                SymbolTableElement *restrict element) {
+static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
+    assert(c != nullptr);
+    assert(element != nullptr);
     if (element->type != NULL) { return success(element->type); }
 
     switch (element->kind) {
@@ -493,7 +493,7 @@ i32 typecheck(Context *restrict context) {
     i32 result               = EXIT_SUCCESS;
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
     while (!symbol_table_iterator_done(&iter)) {
-        TResult tr = typecheck_global(context, iter.element);
+        TResult tr = typecheck_global(context, (*iter.element));
         if (tr.has_error) {
             error_print(&tr.error, context_source_path(context), 0);
             tresult_destroy(&tr);

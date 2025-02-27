@@ -1,0 +1,9 @@
+
+fn f () {
+	return 255;
+}
+
+fn main () {
+	return f();
+}
+

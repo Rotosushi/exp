@@ -1,0 +1,89 @@
+
+
+/-----------------------------------------------------------------------------
+
+there is at least one use of goto: that is not made manifest in the
+c programming language structures. (a'la structured programming, not structs)
+and that is breaking out of a loop or switch one level up.
+we could have a numbered, or a labeled break statement. where we introduce
+labels for scope introduction constructs and allow a break statement to
+jump out of that level of nesting. or we assign an implicit number to each 
+level of nesting starting at 0, and going -1, -2, -3, ...
+for each scope above the one we are at; that one being 0.
+or just simply break; with no number.
+
+This is however, beside a conversation of how hard it is to reason about
+nested switch statements in and of themselves. and how large that code
+becomes. This sounds like something a compiler optimization might be
+able to come in and reason about that? but when, and why?
+usually it's because of the structure of the logic, we know that we
+need to return up and out.
+the thing is, usually if you want that you also want to simply return out
+of the function in the first place. at least if it's the error path we
+are talking about.
+
+
+/-------------------------------------------------------------------------------
+
+
+when you return multiple types out of a function with an implied return type, those
+multiple types are placed into a sum type. Thus the function is primed to be pattern
+matched over.
+
+This is seemingly a good idea.we use sum types wherever we have multiple kinds of types
+to be returned. The only thing about C is that you explicitly create a tag, and use an
+union type, and explicitly call out that you are switching over the tag. and you
+have to roll the if statements or further switches inside the case to further
+disambiguate the state of your enum object/struct/data/bits explicitly,
+whereas pattern matching does all of the same with less keystrokes.
+
+C++ has std::variant. rust has built-in enums. haskell has sum types
+
+but these are all explicit types created by the user and named.
+
+so, for the same reasons you might choose a tuple over a struct,
+or a lambda over a function,
+you could have an implicit enum type created by a function. 
+from a certain perspective, the function becomes the declaration 
+syntax of the enum type.
+(or product type, if you will)
+
+all it really does semantically is save on keystrokes.
+because you can always promote the type to an explicit
+typedef, and have the same semantics. which is what C has
+already.
+
+/--------------------------------------------------------------------------------
+
+If we consider a struct to be a series of data members of any concrete type.
+(first order kind? the * type) along with a series of functions with type * -> *
+
+then a program in-and-of-itself is as a struct. or class if you will.
+its functions are known, and it's available types are to. 
+We use a "well-known address" to start up each program. (it's called "main")
+
+tuples allow for multiple arguments and multiple return, as a sum type. (and)
+"the type is all of these alternatives, at any given moment in time"
+
+implicit enums also allow for multiple return, as a product type. (xor)
+"the type is one of these alternatives, at any given moment in time"
+
+you know "or" doesn't have a well known type, but semantically I
+would imagine it as a tuple where each member was implicitly an optional type.
+"the type is zero or more of these alternatives, at the same moment in time"
+bitmask types work like this. an "or" type could have the same layout as a tuple, 
+plus a comptime length bitmask of "presence" of any given member. so like, the size 
+of the equivalent struct plus a byte, but since it's the compiler, that byte, or bytes,
+can be placed in, or split acrost, any padding of the struct.
+
+functions have the C type: <void * (*)(void *)> as far as I understand it,
+thats what the type * -> * is/means, semantically.
+or maybe more accurately in C++ <T (*)(U)>
+it's just that the C compiler lets you implicitly pass a tuple of arguments, instead of 
+always forcing you to wrap them all into a type, unlike with it's return type, where it 
+must be a single type. thus you have to use structs to return multiple out of a function.
+and C++ inherits this syntax.
+
+
+/--------------------------------------------------------------------------------
+
