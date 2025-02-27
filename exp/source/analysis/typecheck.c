@@ -72,7 +72,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = context_values_at(c, operand.data.constant);
+        Value *value = context_constants_at(c, operand.data.constant);
         return success(type_of_value(value, c));
     }
 
@@ -123,7 +123,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
 
     FunctionType *function_type = &Bty->function_type;
     TupleType *formal_types     = &function_type->argument_types;
-    Value *value                = context_values_at(c, I.C.data.constant);
+    Value *value                = context_constants_at(c, I.C.data.constant);
     assert(value->kind == VALUEKIND_TUPLE);
     Tuple *actual_args = &value->tuple;
 
