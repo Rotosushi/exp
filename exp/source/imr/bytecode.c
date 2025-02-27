@@ -20,53 +20,58 @@
 #include <stddef.h>
 
 #include "env/context.h"
-#include "imr/block.h"
+#include "imr/bytecode.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/io.h"
 #include "utility/unreachable.h"
 
-void block_initialize(Block *block) {
-    assert(block != nullptr);
-    block->length   = 0;
-    block->capacity = 0;
-    block->buffer   = nullptr;
+Bytecode bytecode_create() {
+    Bytecode bc;
+    bc.length   = 0;
+    bc.capacity = 0;
+    bc.buffer   = NULL;
+    return bc;
 }
 
-void block_terminate(Block *bytecode) {
-    assert(bytecode != nullptr);
+void bytecode_destroy(Bytecode *restrict bytecode) {
+    assert(bytecode != NULL);
     bytecode->length   = 0;
     bytecode->capacity = 0;
     deallocate(bytecode->buffer);
-    bytecode->buffer = nullptr;
+    bytecode->buffer = NULL;
 }
 
-static bool bytecode_full(Block *bytecode) {
+static bool bytecode_full(Bytecode *restrict bytecode) {
     return bytecode->capacity <= (bytecode->length + 1);
 }
 
-static void bytecode_grow(Block *bytecode) {
+static void bytecode_grow(Bytecode *restrict bytecode) {
     Growth64 g = array_growth_u64(bytecode->capacity, sizeof(Instruction));
     bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
     bytecode->capacity = g.new_capacity;
 }
 
-void block_append(Block *bytecode, Instruction I) {
+void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
     if (bytecode_full(bytecode)) { bytecode_grow(bytecode); }
 
     bytecode->buffer[bytecode->length] = I;
     bytecode->length += 1;
 }
 
-static void
-print_B(char const *inst, Instruction I, FILE *file, Context *context) {
+static void print_B(char const *restrict inst,
+                    Instruction I,
+                    FILE *restrict file,
+                    Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
     print_operand(operand(I.B_kind, I.B_data), file, context);
 }
 
-static void
-print_AB(char const *inst, Instruction I, FILE *file, Context *context) {
+static void print_AB(char const *restrict inst,
+                     Instruction I,
+                     FILE *restrict file,
+                     Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
     print_operand(operand(I.A_kind, I.A_data), file, context);
@@ -74,8 +79,10 @@ print_AB(char const *inst, Instruction I, FILE *file, Context *context) {
     print_operand(operand(I.B_kind, I.B_data), file, context);
 }
 
-static void
-print_ABC(char const *inst, Instruction I, FILE *file, Context *context) {
+static void print_ABC(char const *restrict inst,
+                      Instruction I,
+                      FILE *restrict file,
+                      Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
     print_operand(operand(I.A_kind, I.A_data), file, context);
@@ -86,56 +93,68 @@ print_ABC(char const *inst, Instruction I, FILE *file, Context *context) {
 }
 
 // "ret <B>"
-static void print_ret(Instruction I, FILE *file, Context *context) {
+static void
+print_ret(Instruction I, FILE *restrict file, Context *restrict context) {
     print_B("ret", I, file, context);
 }
 
 // "call SSA[<A>], GlobalSymbols[GlobalLabels[B]](Calls[C])"
-static void print_call(Instruction I, FILE *file, Context *context) {
+static void
+print_call(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("call", I, file, context);
 }
 
 // "dot SSA[<A>], <B>, <C>"
-static void print_dot(Instruction I, FILE *file, Context *context) {
+static void
+print_dot(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("dot", I, file, context);
 }
 
 // "load SSA[<A>], <B>"
-static void print_load(Instruction I, FILE *file, Context *context) {
+static void
+print_load(Instruction I, FILE *restrict file, Context *restrict context) {
     print_AB("load", I, file, context);
 }
 
 // "neg SSA[<A>], <B>"
-static void print_neg(Instruction I, FILE *file, Context *context) {
+static void
+print_neg(Instruction I, FILE *restrict file, Context *restrict context) {
     print_AB("neg", I, file, context);
 }
 
 // "add SSA[<A>], <B>, <C>"
-static void print_add(Instruction I, FILE *file, Context *context) {
+static void
+print_add(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("add", I, file, context);
 }
 
 // "sub SSA[<A>], <B>, <C>"
-static void print_sub(Instruction I, FILE *file, Context *context) {
+static void
+print_sub(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("sub", I, file, context);
 }
 
 // "mul SSA[<A>], <B>, <C>"
-static void print_mul(Instruction I, FILE *file, Context *context) {
+static void
+print_mul(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("mul", I, file, context);
 }
 
 // "div SSA[<A>], <B>, <C>"
-static void print_div(Instruction I, FILE *file, Context *context) {
+static void
+print_div(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("div", I, file, context);
 }
 
 // "mod SSA[<A>], <B>, <C>"
-static void print_mod(Instruction I, FILE *file, Context *context) {
+static void
+print_mod(Instruction I, FILE *restrict file, Context *restrict context) {
     print_ABC("mod", I, file, context);
 }
 
-static void print_instruction(Instruction I, FILE *file, Context *context) {
+static void print_instruction(Instruction I,
+                              FILE *restrict file,
+                              Context *restrict context) {
     switch (I.opcode) {
     case OPCODE_RETURN:   print_ret(I, file, context); break;
     case OPCODE_CALL:     print_call(I, file, context); break;
@@ -152,7 +171,9 @@ static void print_instruction(Instruction I, FILE *file, Context *context) {
     }
 }
 
-void print_block(Block const *bc, FILE *file, Context *context) {
+void print_bytecode(Bytecode const *restrict bc,
+                    FILE *restrict file,
+                    Context *restrict context) {
     // walk the entire buffer and print each instruction
     for (u64 i = 0; i < bc->length; ++i) {
         file_write("  ", file);

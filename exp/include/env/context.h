@@ -86,10 +86,9 @@ StringView context_labels_at(Context *context, u16 index);
 Symbol *context_symbol_table_at(Context *context, StringView name);
 
 // function functions
-void context_enter_function(Context *c, FunctionBody *body);
-void context_leave_function(Context *c);
+FunctionBody *context_enter_function(Context *c, StringView name);
 FunctionBody *context_current_function(Context *c);
-Block *context_current_block(Context *c);
+Bytecode *context_active_bytecode(Context *c);
 
 // CallPair context_new_call(Context * c);
 // ActualArgumentList *context_call_at(Context * c, u64 idx);
@@ -101,6 +100,8 @@ LocalVariable *context_lookup_ssa(Context *c, u16 ssa);
 
 FormalArgument *context_lookup_argument(Context *c, StringView name);
 FormalArgument *context_argument_at(Context *c, u8 index);
+
+void context_leave_function(Context *c);
 
 // Values functions
 Operand context_constants_append(Context *context, Value value);

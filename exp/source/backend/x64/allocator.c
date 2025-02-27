@@ -371,9 +371,10 @@ static void x64_allocator_spill_allocation(x64_Allocator *allocator,
         &allocator->stack_allocations, allocation, allocator->context);
     assert(allocation->location.kind == LOCATION_ADDRESS);
 
-    x64_block_append(x64_context_current_x64_block(allocator->context),
-                     x64_mov(x64_operand_address(allocation->location.address),
-                             x64_operand_gpr(gpr)));
+    x64_bytecode_append(
+        x64_context_current_x64_bc(allocator->context),
+        x64_mov(x64_operand_address(allocation->location.address),
+                x64_operand_gpr(gpr)));
 }
 
 x64_Allocation *x64_allocator_allocation_of(x64_Allocator *allocator, u64 ssa) {
@@ -389,9 +390,9 @@ void x64_allocator_reallocate_active(x64_Allocator *allocator,
 
     x64_GPR prev_gpr = active->location.gpr;
     if (x64_gprp_reallocate(&allocator->gprp, active)) {
-        x64_block_append(x64_context_current_x64_block(allocator->context),
-                         x64_mov(x64_operand_gpr(active->location.gpr),
-                                 x64_operand_gpr(prev_gpr)));
+        x64_bytecode_append(x64_context_current_x64_bc(allocator->context),
+                            x64_mov(x64_operand_gpr(active->location.gpr),
+                                    x64_operand_gpr(prev_gpr)));
     } else {
         x64_allocator_spill_allocation(allocator, active);
     }
@@ -545,24 +546,24 @@ x64_Allocation *x64_allocator_allocate_from_active(x64_Allocator *allocator,
     }
 
     // we have to keep the existing allocation around
-    x64_Allocation *new     = x64_allocator_allocate(allocator, Idx, local);
-    x64_Block *x64_bytecode = x64_context_current_x64_block(allocator->context);
+    x64_Allocation *new        = x64_allocator_allocate(allocator, Idx, local);
+    x64_Bytecode *x64_bytecode = x64_context_current_x64_bc(allocator->context);
 
     // initialize the new allocation
     if ((active->location.kind == LOCATION_ADDRESS) &&
         (new->location.kind == LOCATION_ADDRESS)) {
         x64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx);
-        x64_block_append(
+        x64_bytecode_append(
             x64_bytecode,
             x64_mov(x64_operand_gpr(gpr),
                     x64_operand_address(active->location.address)));
-        x64_block_append(x64_bytecode,
-                         x64_mov(x64_operand_address(new->location.address),
-                                 x64_operand_gpr(gpr)));
+        x64_bytecode_append(x64_bytecode,
+                            x64_mov(x64_operand_address(new->location.address),
+                                    x64_operand_gpr(gpr)));
     } else {
-        x64_block_append(x64_bytecode,
-                         x64_mov(x64_operand_location(new->location),
-                                 x64_operand_location(active->location)));
+        x64_bytecode_append(x64_bytecode,
+                            x64_mov(x64_operand_location(new->location),
+                                    x64_operand_location(active->location)));
     }
 
     return new;

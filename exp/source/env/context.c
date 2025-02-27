@@ -139,15 +139,11 @@ Symbol *context_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->symbol_table, name);
 }
 
-void context_enter_function(Context *c, FunctionBody *body) {
+FunctionBody *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
-    assert(body != nullptr);
-    c->current_function = body;
-}
-
-void context_leave_function(Context *c) {
-    assert(c != nullptr);
-    c->current_function = nullptr;
+    Symbol *element     = symbol_table_at(&c->symbol_table, name);
+    c->current_function = &element->function_body;
+    return c->current_function;
 }
 
 FunctionBody *context_current_function(Context *c) {
@@ -156,41 +152,42 @@ FunctionBody *context_current_function(Context *c) {
     return c->current_function;
 }
 
-Block *context_current_block(Context *c) {
-    assert(c != nullptr);
-    return &(context_current_function(c)->block);
+Bytecode *context_active_bytecode(Context *c) {
+    return &(context_current_function(c)->bc);
 }
 
 static Operand context_new_ssa(Context *c) {
-    assert(c != nullptr);
     return function_body_new_ssa(context_current_function(c));
 }
 
 void context_def_local_const(Context *c, StringView name, Operand value) {
-    assert(c != nullptr);
     Operand A = context_emit_load(c, value);
     assert(A.kind == OPERAND_KIND_SSA);
     function_body_new_local(context_current_function(c), name, A.data.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *c, StringView name) {
-    assert(c != nullptr);
-    return function_body_locals_lookup(context_current_function(c), name);
+    return local_variables_lookup(&(context_current_function(c)->locals), name);
 }
 
 LocalVariable *context_lookup_ssa(Context *c, u16 ssa) {
-    assert(c != nullptr);
-    return function_body_locals_ssa(context_current_function(c), ssa);
+    return local_variables_lookup_ssa(&(context_current_function(c)->locals),
+                                      ssa);
 }
 
 FormalArgument *context_lookup_argument(Context *c, StringView name) {
-    assert(c != nullptr);
-    return function_body_arguments_lookup(context_current_function(c), name);
+    return formal_argument_list_lookup(
+        &(context_current_function(c)->arguments), name);
 }
 
 FormalArgument *context_argument_at(Context *c, u8 index) {
+    return formal_argument_list_at(&(context_current_function(c)->arguments),
+                                   index);
+}
+
+void context_leave_function(Context *c) {
     assert(c != nullptr);
-    return function_body_arguments_at(context_current_function(c), index);
+    c->current_function = nullptr;
 }
 
 Operand context_constants_append(Context *context, Value value) {
@@ -205,78 +202,78 @@ Value *context_constants_at(Context *context, u16 index) {
 
 void context_emit_return(Context *c, Operand B) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    block_append(bc, instruction_return(B));
+    Bytecode *bc = context_active_bytecode(c);
+    bytecode_append(bc, instruction_return(B));
 }
 
 Operand context_emit_call(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_call(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_call(A, B, C));
     return A;
 }
 
 Operand context_emit_dot(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_dot(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_dot(A, B, C));
     return A;
 }
 
 Operand context_emit_load(Context *c, Operand B) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_load(A, B));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_load(A, B));
     return A;
 }
 
 Operand context_emit_negate(Context *c, Operand B) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_negate(A, B));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_negate(A, B));
     return A;
 }
 
 Operand context_emit_add(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_add(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_add(A, B, C));
     return A;
 }
 
 Operand context_emit_subtract(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_subtract(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_subtract(A, B, C));
     return A;
 }
 
 Operand context_emit_multiply(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_multiply(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_multiply(A, B, C));
     return A;
 }
 
 Operand context_emit_divide(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_divide(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_divide(A, B, C));
     return A;
 }
 
 Operand context_emit_modulus(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Block *bc = context_current_block(c);
-    Operand A = context_new_ssa(c);
-    block_append(bc, instruction_modulus(A, B, C));
+    Bytecode *bc = context_active_bytecode(c);
+    Operand A    = context_new_ssa(c);
+    bytecode_append(bc, instruction_modulus(A, B, C));
     return A;
 }

@@ -30,10 +30,16 @@ Lifetime lifetime_immortal() {
     return lifetime;
 }
 
+Lifetimes lifetimes_create(u64 count) {
+    Lifetimes lifetiems = {.count  = count,
+                           .buffer = callocate(count, sizeof(Lifetime))};
+    return lifetiems;
+}
+
 void lifetimes_destroy(Lifetimes *restrict lifetiems) {
     lifetiems->count = 0;
     deallocate(lifetiems->buffer);
-    lifetiems->buffer = nullptr;
+    lifetiems->buffer = NULL;
 }
 
 static void lifetimes_grow(Lifetimes *lifetimes) {
@@ -149,7 +155,7 @@ void lifetimes_initialize(Lifetimes *lifetimes,
     lifetimes->capacity = body->ssa_count;
     lifetimes->buffer   = callocate(body->ssa_count, sizeof(Lifetime));
 
-    Block *bc = &body->block;
+    Bytecode *bc = &body->bc;
 
     for (u64 i = bc->length; i > 0; --i) {
         u64 block_index = i - 1;

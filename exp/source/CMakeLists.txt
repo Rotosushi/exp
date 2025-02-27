@@ -53,7 +53,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/backend/x64/addresses.c
   ${EXP_SOURCE_DIR}/backend/x64/allocation.c
   ${EXP_SOURCE_DIR}/backend/x64/allocator.c
-  ${EXP_SOURCE_DIR}/backend/x64/block.c
+  ${EXP_SOURCE_DIR}/backend/x64/bytecode.c
   ${EXP_SOURCE_DIR}/backend/x64/codegen.c
   ${EXP_SOURCE_DIR}/backend/x64/context.c
   ${EXP_SOURCE_DIR}/backend/x64/emit.c
@@ -83,7 +83,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c
 
-  ${EXP_SOURCE_DIR}/imr/block.c
+  ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function_body.c
   ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/operand.c
