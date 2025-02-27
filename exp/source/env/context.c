@@ -1,24 +1,7 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file env/context.c
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 #include "env/context.h"
 #include "imr/locals.h"
@@ -185,21 +168,6 @@ Type const *context_function_type(Context *context, Type const *return_type,
 Symbol *context_symbol_table_at(Context *context, StringView name) {
     EXP_ASSERT(context != nullptr);
     return symbol_table_at(&context->symbol_table, name);
-}
-
-Frame *context_frames_top(Context *context) {
-    EXP_ASSERT(context != nullptr);
-    return frames_top(&context->frames);
-}
-
-Frame *context_frames_push(Context *context, Function *function, u32 base) {
-    EXP_ASSERT(context != nullptr);
-    return frames_push(&context->frames, function, base);
-}
-
-void context_frames_pop(Context *context) {
-    EXP_ASSERT(context != nullptr);
-    frames_pop(&context->frames);
 }
 
 u32 context_stack_length(Context *context) {

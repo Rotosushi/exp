@@ -15,10 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @file unit_tests/string_tests.c
- */
-
 #include "utility/string.h"
 
 // returns true on failure
@@ -106,7 +102,9 @@ bool test_string_erase(StringView sv0, u64 offset, u64 length, StringView sv1) {
     return failure;
 }
 
-bool test_string_insert(StringView sv0, u64 offset, StringView sv1,
+bool test_string_insert(StringView sv0,
+                        u64 offset,
+                        StringView sv1,
                         StringView sv2) {
     String str;
     string_initialize(&str);

@@ -1,24 +1,7 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file imr/frames.c
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 
 #include "imr/frames.h"
@@ -48,12 +31,6 @@ static void frames_grow(Frames *frames) {
     Growth32 g       = array_growth_u32(frames->capacity, sizeof(Frame));
     frames->buffer   = reallocate(frames->buffer, g.alloc_size);
     frames->capacity = g.new_capacity;
-}
-
-Frame *frames_top(Frames *frames) {
-    EXP_ASSERT(frames != nullptr);
-    EXP_ASSERT(frames->length > 0);
-    return &frames->buffer[frames->length - 1];
 }
 
 Frame *frames_push(Frames *frames, Function *function, u32 base) {

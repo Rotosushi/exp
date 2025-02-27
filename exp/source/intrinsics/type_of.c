@@ -9,7 +9,6 @@
 #include "imr/operand.h"
 #include "imr/scalar.h"
 #include "intrinsics/type_of.h"
-#include "utility/assert.h"
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
@@ -30,7 +29,9 @@ Type const *type_of_scalar(Scalar scalar, Context *context) {
     }
 }
 
-Type const *type_of_operand(Operand operand, Context *context) {
+Type const *type_of_operand(Operand operand, Function *function,
+                            Context *context) {
+    assert(function != nullptr);
     assert(context != nullptr);
     switch (operand.kind) {
     case OPERAND_REGISTER: {
@@ -38,34 +39,13 @@ Type const *type_of_operand(Operand operand, Context *context) {
         return type_of_scalar(scalar, context);
     }
 
-    case OPERAND_STACK: {
-        Frame *frame = context_frames_top(context);
-        EXP_ASSERT(frame != nullptr);
-
-        u32 stack_index = operand.data.stack + frame->base;
-        EXP_ASSERT(stack_index < (frame->base + frame->length));
-
-        Value *value = context_stack_peek(context, stack_index);
-        return type_of_value(value, context);
-    }
-
-    case OPERAND_SCALAR_NIL:  return context_nil_type(context);
-    case OPERAND_SCALAR_BOOL: return context_bool_type(context);
-    case OPERAND_SCALAR_I8:   return context_i8_type(context);
-    case OPERAND_SCALAR_I16:  return context_i16_type(context);
-    case OPERAND_SCALAR_I32:  return context_i32_type(context);
-    case OPERAND_SCALAR_I64:  return context_i64_type(context);
-    case OPERAND_SCALAR_U8:   return context_u8_type(context);
-    case OPERAND_SCALAR_U16:  return context_u16_type(context);
-    case OPERAND_SCALAR_U32:  return context_u32_type(context);
-    case OPERAND_SCALAR_U64:  return context_u64_type(context);
-
     default: EXP_UNREACHABLE();
     }
 }
 
-Type const *type_of_value(Value *value, Context *context) {
+Type const *type_of_value(Value *value, Function *function, Context *context) {
     assert(value != nullptr);
+    assert(function != nullptr);
     assert(context != nullptr);
     switch (value->kind) {
     case VALUE_UNINITIALIZED: PANIC("uninitialized Value");
@@ -75,8 +55,8 @@ Type const *type_of_value(Value *value, Context *context) {
         TupleType tuple_type;
         tuple_type_initialize(&tuple_type);
         for (u64 i = 0; i < tuple->length; ++i) {
-            Value *element = tuple->elements + i;
-            Type const *T  = type_of_value(element, context);
+            Operand element = tuple->elements[i];
+            Type const *T   = type_of_operand(element, function, context);
             tuple_type_append(&tuple_type, T);
         }
         return context_tuple_type(context, tuple_type);

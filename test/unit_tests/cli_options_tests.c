@@ -16,11 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @file unit_tests/cli_options_tests.c
- */
-
 #include <stdlib.h>
 #include <string.h>
 

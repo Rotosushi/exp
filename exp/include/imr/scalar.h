@@ -1,29 +1,16 @@
-// Copyright (C) 2025 Cade Weinberg
-//
-// This file is part of exp.
-//
-// exp is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// exp is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file imr/scalar.h
- */
-
+// Copyright 2025 Cade Weinberg. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 #ifndef EXP_IMR_SCALAR_H
 #define EXP_IMR_SCALAR_H
 
 #include "utility/int_types.h"
 #include "utility/string.h"
+
+// #NOTE: the idea behind the Scalar type is that it represents a value that can
+//  fit in an abstract register of the abstract machine, where as a Value can be
+//  a scalar or it can be a larger layout type. (and it just so happens that we
+//  use a size which fits in an actual register on an actual 64 bit machine)
 
 typedef enum ScalarKind : u8 {
     SCALAR_UNINITIALIZED,

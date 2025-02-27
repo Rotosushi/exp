@@ -1,29 +1,9 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file imr/function.c
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 #include "imr/function.h"
-#include "env/context.h"
-#include "intrinsics/size_of.h"
-#include "intrinsics/type_of.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
 #include "utility/assert.h"
@@ -113,34 +93,10 @@ FormalArgument function_arguments_at(Function *function, u8 index) {
     return formal_arguments_at(&function->arguments, index);
 }
 
-Operand function_append_return(Function *function, Context *context,
-                               Operand result) {
+void function_append_instruction(Function *function, Instruction instruction) {
     EXP_ASSERT(function != nullptr);
-    EXP_ASSERT(context != nullptr);
-    block_append(&function->block, instruction_return(result));
-    return result;
+    block_append(&function->block, instruction);
 }
-
-Operand function_append_call(Function *function, Context *context,
-                             Operand label, Operand args) {
-    EXP_ASSERT(function != nullptr);
-    EXP_ASSERT(context != nullptr);
-    u32 stack_index = context_stack_push(context, )
-}
-Operand function_append_dot(Function *function, Context *context, Operand src,
-                            Operand index);
-Operand function_append_load(Function *function, Context *context, Operand src);
-Operand function_append_neg(Function *function, Context *context, Operand src);
-Operand function_append_add(Function *function, Context *context, Operand left,
-                            Operand right);
-Operand function_append_sub(Function *function, Context *context, Operand left,
-                            Operand right);
-Operand function_append_mul(Function *function, Context *context, Operand left,
-                            Operand right);
-Operand function_append_div(Function *function, Context *context, Operand left,
-                            Operand right);
-Operand function_append_mod(Function *function, Context *context, Operand left,
-                            Operand right);
 
 static void print_formal_argument(String *buffer,
                                   FormalArgument const *formal_argument) {

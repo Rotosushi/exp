@@ -1,29 +1,14 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
- *
- * This file is part of exp.
- *
- * exp is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * exp is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file imr/instruction.c
+ * Copyright 2025 Cade Weinberg. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 
 #include "imr/instruction.h"
 #include "utility/assert.h"
 
+// #NOTE: unconditional jump will use this form, so we aren't removing it,
+//  even though return is no longer using this form, thus it is unused
 [[maybe_unused]] static Instruction instruction_A(Opcode opcode, Operand A) {
     Instruction I = {.opcode = opcode, .A_kind = A.kind, .A_data = A.data};
     return I;
@@ -50,8 +35,8 @@ static Instruction instruction_ABC(Opcode opcode, Operand A, Operand B,
     return I;
 }
 
-Instruction instruction_return(Operand result) {
-    return instruction_A(OPCODE_RET, result);
+Instruction instruction_return(Operand dst, Operand result) {
+    return instruction_AB(OPCODE_RET, dst, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
