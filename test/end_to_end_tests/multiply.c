@@ -21,20 +21,22 @@
 #include "test_exp.h"
 #include "utility/config.h"
 
-int multiplication([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-  int result = EXIT_SUCCESS;
+int multiply([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+    int result = EXIT_SUCCESS;
 
-  StringView source_path = SV(EXP_TEST_DIR "/multcation.exp");
+    StringView source_path = SV(EXP_TEST_DIR "/multcation.exp");
 
-  result |= test_exp(
-      source_path, "fn main() { const x = 3; const y = 3; return x * y; }", 9);
+    result |= test_exp(source_path,
+                       "fn main() { const x = 3; const y = 3; return x * y; }",
+                       9);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 2; return x * 3; }", 6);
+    result |=
+        test_exp(source_path, "fn main() { const x = 2; return x * 3; }", 6);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return 1 * x; }", 3);
+    result |=
+        test_exp(source_path, "fn main() { const x = 3; return 1 * x; }", 3);
 
-  return result;
+    result |= test_exp(source_path, "fn main() { return 4 * 4; }", 16);
+
+    return result;
 }
-

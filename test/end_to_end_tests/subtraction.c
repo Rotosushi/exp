@@ -22,24 +22,26 @@
 #include "utility/config.h"
 
 int subtraction([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-  int result = EXIT_SUCCESS;
+    int result = EXIT_SUCCESS;
 
-  StringView source_path = SV(EXP_TEST_DIR "/subtraction.exp");
+    StringView source_path = SV(EXP_TEST_DIR "/subtraction.exp");
 
-  result |= test_exp(
-      source_path, "fn main() { const x = 3; const y = 3; return x - y; }", 0);
+    result |= test_exp(source_path,
+                       "fn main() { const x = 3; const y = 3; return x - y; }",
+                       0);
 
-  result |=
-      test_exp(source_path,
-               "fn main() { const x = 66100; const y = 66000; return x - y; }",
-               100);
+    result |= test_exp(
+        source_path,
+        "fn main() { const x = 66100; const y = 66000; return x - y; }",
+        100);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return x - 3; }", 0);
+    result |=
+        test_exp(source_path, "fn main() { const x = 3; return x - 2; }", 1);
 
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return 3 - x; }", 0);
+    result |=
+        test_exp(source_path, "fn main() { const x = 1; return 3 - x; }", 2);
 
-  return result;
+    result |= test_exp(source_path, "fn main() { return 4 - 1; }", 3);
+
+    return result;
 }
-
