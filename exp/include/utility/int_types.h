@@ -35,8 +35,6 @@ typedef int64_t i64;
 #define i64_MAX INT64_MAX
 #define i64_MIN INT64_MIN
 
-bool i64_in_range_i16(i64 value);
-
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;

@@ -35,66 +35,71 @@
 #include "utility/unreachable.h"
 
 /*
- * #TODO:
- *  a popular replacement for this handrolled backend is to generate
- *  assembly based on some form of x86-64 specification language.
- *  which if done well, can allow other backends to be written only
- *  by adding a specification of them.
+ * #TODO #CLEANUP
+ *  so, this code is rather difficult to read and modify.
+ *  as it is all handrolled nested switch statements.
+ *  The best thing for now is going to be factoring out
+ *  each case into it's own function. This is going to
+ *  create a lot more functions, but hopefully it will make
+ *  them all easier to read, and hopefully maintain.
+ *
+ *  a popular replacement for this handrolling is to generate
+ *  these switches based on some form of x64 specification language.
  */
 
-static void x64_codegen_bytecode(x64_Context *x64_context) {
-    Bytecode *bc = current_bc(x64_context);
+static void x64_codegen_bytecode(x64_Context *restrict context) {
+    Bytecode *bc = current_bc(context);
     for (u64 idx = 0; idx < bc->length; ++idx) {
         Instruction I = bc->buffer[idx];
 
         switch (I.opcode) {
         case OPCODE_RETURN: {
-            x64_codegen_return(I, idx, x64_context);
+            x64_codegen_return(I, idx, context);
             break;
         }
 
         case OPCODE_CALL: {
-            x64_codegen_call(I, idx, x64_context);
+            x64_codegen_call(I, idx, context);
             break;
         }
 
         case OPCODE_DOT: {
-            x64_codegen_dot(I, idx, x64_context);
+            x64_codegen_dot(I, idx, context);
             break;
         }
 
         case OPCODE_LOAD: {
-            x64_codegen_load(I, idx, x64_context);
+            x64_codegen_load(I, idx, context);
             break;
         }
 
         case OPCODE_NEGATE: {
-            x64_codegen_negate(I, idx, x64_context);
+            x64_codegen_negate(I, idx, context);
             break;
         }
 
         case OPCODE_ADD: {
-            x64_codegen_add(I, idx, x64_context);
+            x64_codegen_add(I, idx, context);
             break;
         }
 
         case OPCODE_SUBTRACT: {
-            x64_codegen_subtract(I, idx, x64_context);
+            x64_codegen_subtract(I, idx, context);
             break;
         }
 
         case OPCODE_MULTIPLY: {
-            x64_codegen_multiply(I, idx, x64_context);
+            x64_codegen_multiply(I, idx, context);
             break;
         }
 
         case OPCODE_DIVIDE: {
-            x64_codegen_divide(I, idx, x64_context);
+            x64_codegen_divide(I, idx, context);
             break;
         }
 
         case OPCODE_MODULUS: {
-            x64_codegen_modulus(I, idx, x64_context);
+            x64_codegen_modulus(I, idx, context);
             break;
         }
 
@@ -103,53 +108,38 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
     }
 }
 
-static void x64_codegen_allocate_stack_space(x64_Context *x64_context) {
-    i64 stack_size = x64_context_stack_size(x64_context);
-    if (i64_in_range_i16(stack_size)) {
-        x64_context_prepend(x64_context,
-                            x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                                    x64_operand_immediate((i16)stack_size)));
-    } else {
-        Operand operand = context_constants_append(
-            x64_context->context, value_create_i64(stack_size));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
+static void x64_codegen_function_header(x64_Context *restrict context) {
+    if (x64_context_uses_stack(context)) {
         x64_context_prepend(
-            x64_context,
+            context,
             x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                    x64_operand_constant(operand.data.constant)));
+                    x64_operand_immediate(x64_context_stack_size(context))));
     }
-}
-
-static void x64_codegen_prepend_function_header(x64_Context *x64_context) {
-    if (x64_context_uses_stack(x64_context)) {
-        x64_codegen_allocate_stack_space(x64_context);
-    }
-
     x64_context_prepend(
-        x64_context,
+        context,
         x64_mov(x64_operand_gpr(X64_GPR_RBP), x64_operand_gpr(X64_GPR_RSP)));
-    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X64_GPR_RBP)));
+    x64_context_prepend(context, x64_push(x64_operand_gpr(X64_GPR_RBP)));
 }
 
-static void x64_codegen_function(x64_Context *x64_context) {
-    x64_codegen_bytecode(x64_context);
-    x64_codegen_prepend_function_header(x64_context);
+static void x64_codegen_function(x64_Context *restrict context) {
+    x64_codegen_bytecode(context);
+    x64_codegen_function_header(context);
 }
 
-static void x64_codegen_symbol(SymbolTableElement *symbol,
-                               x64_Context *x64_context) {
-    StringView name = symbol->name;
+static void x64_codegen_ste(SymbolTableElement *restrict ste,
+                            x64_Context *restrict context) {
+    StringView name = ste->name;
 
-    switch (symbol->kind) {
+    switch (ste->kind) {
     case STE_UNDEFINED: {
         // #TODO this should lower to a forward declaration
         break;
     }
 
     case STE_FUNCTION: {
-        x64_context_enter_function(x64_context, name);
-        x64_codegen_function(x64_context);
-        x64_context_leave_function(x64_context);
+        x64_context_enter_function(context, name);
+        x64_codegen_function(context);
+        x64_context_leave_function(context);
         break;
     }
 
@@ -157,12 +147,13 @@ static void x64_codegen_symbol(SymbolTableElement *symbol,
     }
 }
 
-void x64_codegen(Context *context) {
-    x64_Context x64context   = x64_context_create(context);
+void x64_codegen(Context *restrict context) {
+    x64_Context x64context = x64_context_create(context);
+
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
     while (!symbol_table_iterator_done(&iter)) {
-        x64_codegen_symbol(iter.element, &x64context);
+        x64_codegen_ste(iter.element, &x64context);
 
         symbol_table_iterator_next(&iter);
     }

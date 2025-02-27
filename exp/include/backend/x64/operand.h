@@ -35,30 +35,29 @@
  */
 
 typedef enum x64_OperandFormat : u8 {
-    X64_OPERAND_KIND_GPR,
-    X64_OPERAND_KIND_ADDRESS,
-    X64_OPERAND_KIND_IMMEDIATE,
-    X64_OPERAND_KIND_LABEL,
-    X64_OPERAND_KIND_CONSTANT,
+  X64_OPERAND_KIND_GPR,
+  X64_OPERAND_KIND_ADDRESS,
+  X64_OPERAND_KIND_IMMEDIATE,
+  X64_OPERAND_KIND_LABEL,
+  X64_OPERAND_KIND_CONSTANT,
 } x64_OperandFormat;
 
 typedef struct x64_Operand {
-    x64_OperandFormat format;
-    union {
-        x64_GPR gpr;
-        x64_Address address;
-        i16 immediate;
-        u16 label;
-        u16 constant;
-    };
+  x64_OperandFormat format;
+  union {
+    x64_GPR gpr;
+    x64_Address address;
+    u64 index;
+    i64 immediate;
+  };
 } x64_Operand;
 
 x64_Operand x64_operand_gpr(x64_GPR gpr);
 x64_Operand x64_operand_address(x64_Address address);
 x64_Operand x64_operand_location(x64_Location location);
 x64_Operand x64_operand_alloc(x64_Allocation *alloc);
-x64_Operand x64_operand_immediate(i16 value);
+x64_Operand x64_operand_immediate(i64 value);
 x64_Operand x64_operand_constant(u16 index);
-x64_Operand x64_operand_label(u16 index);
+x64_Operand x64_operand_label(u64 index);
 
 #endif // !EXP_BACKEND_X64_OPERAND_H

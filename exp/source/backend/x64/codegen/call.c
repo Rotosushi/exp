@@ -59,43 +59,6 @@ static void operand_array_append(OperandArray *restrict array,
     array->buffer[array->size++] = operand;
 }
 
-static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
-                                                           i64 stack_space,
-                                                           u64 block_index) {
-    if (i64_in_range_i16(stack_space)) {
-        x64_context_insert(context,
-                           x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                                   x64_operand_immediate((i16)stack_space)),
-                           block_index);
-    } else {
-        Operand operand = context_constants_append(
-            context->context, value_create_i64(stack_space));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_insert(context,
-                           x64_sub(x64_operand_gpr(X64_GPR_RSP),
-                                   x64_operand_constant(operand.data.constant)),
-                           block_index);
-    }
-}
-
-static void
-x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
-                                                 i64 stack_space) {
-    if (i64_in_range_i16(stack_space)) {
-        x64_context_append(x64_context,
-                           x64_add(x64_operand_gpr(X64_GPR_RSP),
-                                   x64_operand_immediate((i16)stack_space)));
-    } else {
-        Operand operand = context_constants_append(
-            x64_context->context, value_create_i64(stack_space));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_append(
-            x64_context,
-            x64_add(x64_operand_gpr(X64_GPR_RSP),
-                    x64_operand_constant(operand.data.constant)));
-    }
-}
-
 void x64_codegen_call(Instruction I,
                       u64 block_index,
                       x64_Context *restrict context) {
@@ -118,9 +81,9 @@ void x64_codegen_call(Instruction I,
 
     Value *value = x64_context_value_at(context, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
-    Tuple *args             = &value->tuple;
-    u64 call_start          = x64_context_current_offset(context);
-    OperandArray stack_args = operand_array_create();
+    Tuple *args                 = &value->tuple;
+    u64 current_bytecode_offset = x64_context_current_offset(context);
+    OperandArray stack_args     = operand_array_create();
 
     for (u8 i = 0; i < args->size; ++i) {
         Operand arg    = args->elements[i];
@@ -140,8 +103,8 @@ void x64_codegen_call(Instruction I,
         return;
     }
 
-    i64 stack_space         = 0;
-    x64_Address arg_address = x64_address_construct(X64_GPR_RSP,
+    i64 actual_arguments_stack_size = 0;
+    x64_Address arg_address         = x64_address_construct(X64_GPR_RSP,
                                                     x64_optional_gpr_empty(),
                                                     x64_optional_u8_empty(),
                                                     x64_optional_i64_empty());
@@ -152,7 +115,7 @@ void x64_codegen_call(Instruction I,
         u64 arg_size   = size_of(arg_type);
         assert(arg_size <= i64_MAX);
         i64 offset = (i64)(arg_size);
-        stack_space += offset;
+        actual_arguments_stack_size += offset;
 
         x64_codegen_load_address_from_operand(
             &arg_address, arg, arg_type, block_index, context);
@@ -160,12 +123,18 @@ void x64_codegen_call(Instruction I,
         x64_address_increment_offset(&arg_address, offset);
     }
 
-    x64_codegen_allocate_stack_space_for_arguments(
-        context, stack_space, call_start);
+    x64_context_insert(
+        context,
+        x64_sub(x64_operand_gpr(X64_GPR_RSP),
+                x64_operand_immediate(actual_arguments_stack_size)),
+        current_bytecode_offset);
 
     x64_context_append(context, x64_call(x64_operand_label(I.B_data.label)));
 
-    x64_codegen_deallocate_stack_space_for_arguments(context, stack_space);
+    x64_context_append(
+        context,
+        x64_add(x64_operand_gpr(X64_GPR_RSP),
+                x64_operand_immediate(actual_arguments_stack_size)));
 
     operand_array_destroy(&stack_args);
 }

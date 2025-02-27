@@ -27,23 +27,6 @@
 #include "utility/unreachable.h"
 
 static void
-x64_codegen_load_i64(x64_Address *dst, i64 value, x64_Context *x64_context) {
-    if (i64_in_range_i16(value)) {
-        x64_context_append(x64_context,
-                           x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate((i16)value)));
-    } else {
-        Operand operand = context_constants_append(x64_context->context,
-                                                   value_create_i64(value));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_append(
-            x64_context,
-            x64_mov(x64_operand_address(*dst),
-                    x64_operand_constant(operand.data.constant)));
-    }
-}
-
-static void
 x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
                                            Value *restrict value,
                                            x64_Context *restrict context) {
@@ -60,12 +43,14 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
     case VALUE_KIND_BOOLEAN: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate((i16)value->boolean)));
+                                   x64_operand_immediate((i64)value->boolean)));
         break;
     }
 
     case VALUE_KIND_I64: {
-        x64_codegen_load_i64(dst, value->i64_, context);
+        x64_context_append(context,
+                           x64_mov(x64_operand_address(*dst),
+                                   x64_operand_immediate(value->i64_)));
         break;
     }
 
@@ -106,7 +91,7 @@ static void x64_codegen_load_address_from_scalar_operand(
     }
 
     case OPERAND_KIND_LABEL: {
-        PANIC("#TODO #GLOBAL_CONSTANTS");
+        PANIC("#TODO");
         break;
     }
 
@@ -165,7 +150,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 
     case OPERAND_KIND_LABEL: {
-        PANIC("#TODO #GLOBAL_CONSTANTS");
+        PANIC("#TODO");
         break;
     }
 
@@ -219,14 +204,12 @@ static void x64_codegen_load_argument_from_scalar_operand(
     }
 
     case OPERAND_KIND_LABEL: {
-        PANIC("#TODO #GLOBAL_CONSTANTS");
+        PANIC("#TODO");
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src.data.constant);
-        x64_codegen_load_address_from_scalar_value(dst, value, context);
-        break;
+        PANIC("#TODO");
     }
 
     default: EXP_UNREACHABLE();
@@ -277,7 +260,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 
     case OPERAND_KIND_LABEL: {
-        PANIC("#TODO #GLOBAL_CONSTANTS");
+        PANIC("#TODO");
         break;
     }
 
@@ -345,49 +328,12 @@ void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
     }
 }
 
-static void x64_codegen_load_allocation_from_i64(x64_Allocation *dst,
-                                                 i64 value,
-                                                 x64_Context *context) {
-    if (i64_in_range_i16(value)) {
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_alloc(dst), x64_operand_immediate((i16)value)));
-    } else {
-        Operand operand =
-            context_constants_append(context->context, value_create_i64(value));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_append(
-            context,
-            x64_mov(x64_operand_alloc(dst),
-                    x64_operand_constant(operand.data.constant)));
-    }
-}
-
-static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
-                                                   Tuple *tuple,
-                                                   u64 Idx,
-                                                   x64_Context *context) {
-    assert(dst->location.kind == LOCATION_ADDRESS);
-    x64_Address dst_address = dst->location.address;
-    for (u64 i = 0; i < tuple->size; ++i) {
-        Operand element    = tuple->elements[i];
-        Type *element_type = type_of_operand(element, context->context);
-        u64 element_size   = size_of(element_type);
-
-        x64_codegen_load_address_from_operand(
-            &dst_address, element, element_type, Idx, context);
-
-        assert(element_size <= i64_MAX);
-        i64 offset = (i64)element_size;
-        x64_address_increment_offset(&dst_address, offset);
-    }
-}
-
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
-                                            Value *value,
+                                            u16 index,
                                             u64 Idx,
-                                            x64_Context *restrict x64_context) {
-    Type *type = type_of_value(value, x64_context->context);
+                                            x64_Context *restrict context) {
+    Value *value = x64_context_value_at(context, index);
+    Type *type   = type_of_value(value, context->context);
     assert(type_equality(dst->type, type));
     (void)type;
 
@@ -396,26 +342,40 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
 
     case VALUE_KIND_NIL: {
         x64_context_append(
-            x64_context,
-            x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
+            context, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
         break;
     }
 
     case VALUE_KIND_BOOLEAN: {
-        x64_context_append(x64_context,
+        x64_context_append(context,
                            x64_mov(x64_operand_alloc(dst),
-                                   x64_operand_immediate((i16)value->boolean)));
+                                   x64_operand_immediate((i64)value->boolean)));
         break;
     }
 
     case VALUE_KIND_I64: {
-        x64_codegen_load_allocation_from_i64(dst, value->i64_, x64_context);
+        x64_context_append(context,
+                           x64_mov(x64_operand_alloc(dst),
+                                   x64_operand_immediate(value->i64_)));
         break;
     }
 
     case VALUE_KIND_TUPLE: {
-        x64_codegen_load_allocation_from_tuple(
-            dst, &value->tuple, Idx, x64_context);
+        assert(dst->location.kind == LOCATION_ADDRESS);
+        Tuple *tuple            = &value->tuple;
+        x64_Address dst_address = dst->location.address;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            Operand element    = tuple->elements[i];
+            Type *element_type = type_of_operand(element, context->context);
+            u64 element_size   = size_of(element_type);
+
+            x64_codegen_load_address_from_operand(
+                &dst_address, element, element_type, Idx, context);
+
+            assert(element_size <= i64_MAX);
+            i64 offset = (i64)element_size;
+            x64_address_increment_offset(&dst_address, offset);
+        }
         break;
     }
 

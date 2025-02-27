@@ -37,10 +37,8 @@ void x64_codegen_return(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value =
-            context_constants_at(context->context, I.B_data.constant);
         x64_codegen_load_allocation_from_value(
-            body->result, value, block_index, context);
+            body->result, I.B_data.constant, block_index, context);
         break;
     }
 
