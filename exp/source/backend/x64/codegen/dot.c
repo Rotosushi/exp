@@ -38,13 +38,14 @@ void x64_codegen_dot(Instruction I, u64 block_index, x64_Context *context) {
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
-        u16 element_address = x64_get_element_address(
-            B->location.address, B->type, index, context);
+        x64_Address *tuple_address = &B->location.address;
+        x64_Address element_address =
+            x64_get_element_address(tuple_address, B->type, index);
         TupleType const *tuple_type = &B->type->tuple_type;
         Type const *element_type    = tuple_type->types[index];
 
         x64_codegen_copy_allocation_from_memory(
-            A, element_address, element_type, block_index, context);
+            A, &element_address, element_type, block_index, context);
         break;
     }
 

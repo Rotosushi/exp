@@ -98,13 +98,6 @@ Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
 
     Symbol **element =
         symbol_table_find(symbol_table->elements, symbol_table->capacity, name);
-    // #TODO: We allocate a new element when we find any new name. if we lookup
-    //  names that never get defined they will be considered "user defined
-    //  symbols" by the for-each implementation of typecheck and codegen.
-    //  This will be considered an error by both, though I think any symbols
-    //  that get looked up before they are defined is something we want to
-    //  handle.
-
     if ((*element) == nullptr) {
         (*element)       = callocate(1, sizeof(Symbol));
         (*element)->name = name;

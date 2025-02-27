@@ -21,9 +21,9 @@
 #include "backend/x64/instruction.h"
 
 typedef struct x64_Bytecode {
-    u64 length;
-    u64 capacity;
-    x64_Instruction *buffer;
+  u64 length;
+  u64 capacity;
+  x64_Instruction *buffer;
 } x64_Bytecode;
 
 x64_Bytecode x64_bytecode_create();
@@ -76,5 +76,5 @@ void x64_bytecode_append_idiv(x64_Bytecode *restrict bc, x64_Operand A);*/
 
 void x64_bytecode_emit(x64_Bytecode *restrict bc,
                        String *restrict buffer,
-                       struct x64_Context *restrict context);
+                       Context *restrict context);
 #endif // !EXP_BACKEND_X64_BYTECODE_H

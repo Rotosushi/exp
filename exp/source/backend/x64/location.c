@@ -27,8 +27,17 @@ x64_Location x64_location_gpr(x64_GPR gpr) {
     return location;
 }
 
-x64_Location x64_location_address(u16 address) {
-    x64_Location location = {.kind = LOCATION_ADDRESS, .address = address};
+x64_Location x64_location_address(x64_GPR base,
+                                  x64_GPR optional_index,
+                                  u8 optional_scale,
+                                  i64 optional_offset) {
+    x64_Location location = {
+        .kind    = LOCATION_ADDRESS,
+        .address = {.base   = base,
+                    .index  = optional_index,
+                    .scale  = optional_scale,
+                    .offset = optional_offset}
+    };
     return location;
 }
 
@@ -37,7 +46,7 @@ bool x64_location_eq(x64_Location A, x64_Location B) {
 
     switch (A.kind) {
     case LOCATION_GPR:     return A.gpr == B.gpr;
-    case LOCATION_ADDRESS: return A.address == B.address;
+    case LOCATION_ADDRESS: return x64_address_equality(A.address, B.address);
     default:               EXP_UNREACHABLE();
     }
 }

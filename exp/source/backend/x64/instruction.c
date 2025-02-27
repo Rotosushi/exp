@@ -19,8 +19,8 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "backend/x64/context.h"
 #include "backend/x64/instruction.h"
+#include "backend/x64/location.h"
 #include "backend/x64/registers.h"
 #include "utility/unreachable.h"
 
@@ -30,17 +30,13 @@ static x64_Instruction x64_instruction(x64_Opcode opcode) {
 }
 
 static x64_Instruction x64_instruction_A(x64_Opcode opcode, x64_Operand A) {
-    x64_Instruction I = {.opcode = opcode, .A_kind = A.kind, .A_data = A.data};
+    x64_Instruction I = {.opcode = opcode, .A = A};
     return I;
 }
 
 static x64_Instruction
 x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
-    x64_Instruction I = {.opcode = opcode,
-                         .A_kind = A.kind,
-                         .A_data = A.data,
-                         .B_kind = B.kind,
-                         .B_data = B.data};
+    x64_Instruction I = {.opcode = opcode, .A = A, .B = B};
     return I;
 }
 
@@ -89,7 +85,7 @@ x64_Instruction x64_idiv(x64_Operand src) {
 static void x64_emit_mnemonic(StringView mnemonic,
                               [[maybe_unused]] x64_Instruction I,
                               String *restrict buffer,
-                              [[maybe_unused]] x64_Context *restrict context) {
+                              [[maybe_unused]] Context *restrict context) {
     string_append(buffer, mnemonic);
     // if either operand is a register then it is a 64 bit GPR, so we
     // know we need the 'q' suffix. because, as a simplification, we
@@ -116,20 +112,18 @@ static void x64_emit_mnemonic(StringView mnemonic,
     string_append(buffer, SV("q\t"));
 }
 
-static void x64_emit_operand(x64_OperandKind kind,
-                             x64_OperandData data,
+static void x64_emit_operand(x64_Operand operand,
                              String *restrict buffer,
-                             x64_Context *restrict x64_context) {
-    switch (kind) {
+                             Context *restrict context) {
+    switch (operand.kind) {
     case X64_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
-        string_append(buffer, x64_gpr_to_sv(data.gpr));
+        string_append(buffer, x64_gpr_to_sv(operand.gpr));
         break;
     }
 
     case X64_OPERAND_KIND_ADDRESS: {
-        x64_Address *address =
-            x64_context_addresses_at(x64_context, data.address);
+        x64_Address *address = &operand.address;
         string_append_i64(buffer, address->offset);
 
         string_append(buffer, SV("(%"));
@@ -148,12 +142,12 @@ static void x64_emit_operand(x64_OperandKind kind,
 
     case X64_OPERAND_KIND_IMMEDIATE: {
         string_append(buffer, SV("$"));
-        string_append_i64(buffer, data.immediate);
+        string_append_i64(buffer, operand.immediate);
         break;
     }
 
     case X64_OPERAND_KIND_CONSTANT: {
-        Value *constant = x64_context_constants_at(x64_context, data.constant);
+        Value *constant = context_constants_at(context, operand.constant);
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
         //  can validly appear here.
@@ -164,7 +158,8 @@ static void x64_emit_operand(x64_OperandKind kind,
     }
 
     case X64_OPERAND_KIND_LABEL: {
-        StringView name = x64_context_labels_at(x64_context, data.label);
+        assert(operand.label <= u16_MAX);
+        StringView name = context_labels_at(context, operand.label);
         string_append(buffer, name);
         break;
     }
@@ -175,7 +170,7 @@ static void x64_emit_operand(x64_OperandKind kind,
 
 void x64_instruction_emit(x64_Instruction I,
                           String *restrict buffer,
-                          x64_Context *restrict x64_context) {
+                          Context *restrict context) {
     switch (I.opcode) {
     case X64_OPCODE_RETURN: {
         string_append(buffer, SV("ret"));
@@ -184,69 +179,69 @@ void x64_instruction_emit(x64_Instruction I,
 
     case X64_OPCODE_CALL: {
         string_append(buffer, SV("call\t"));
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_PUSH: {
-        x64_emit_mnemonic(SV("push"), I, buffer, x64_context);
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("push"), I, buffer, context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_POP: {
-        x64_emit_mnemonic(SV("pop"), I, buffer, x64_context);
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("pop"), I, buffer, context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_MOV: {
-        x64_emit_mnemonic(SV("mov"), I, buffer, x64_context);
-        x64_emit_operand(I.B_kind, I.B_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("mov"), I, buffer, context);
+        x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_LEA: {
-        x64_emit_mnemonic(SV("lea"), I, buffer, x64_context);
-        x64_emit_operand(I.B_kind, I.B_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("lea"), I, buffer, context);
+        x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_NEG: {
-        x64_emit_mnemonic(SV("neg"), I, buffer, x64_context);
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("neg"), I, buffer, context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_ADD: {
-        x64_emit_mnemonic(SV("add"), I, buffer, x64_context);
-        x64_emit_operand(I.B_kind, I.B_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("add"), I, buffer, context);
+        x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_SUB: {
-        x64_emit_mnemonic(SV("sub"), I, buffer, x64_context);
-        x64_emit_operand(I.B_kind, I.B_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("sub"), I, buffer, context);
+        x64_emit_operand(I.B, buffer, context);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_IMUL: {
-        x64_emit_mnemonic(SV("imul"), I, buffer, x64_context);
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("imul"), I, buffer, context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 
     case X64_OPCODE_IDIV: {
-        x64_emit_mnemonic(SV("idiv"), I, buffer, x64_context);
-        x64_emit_operand(I.A_kind, I.A_data, buffer, x64_context);
+        x64_emit_mnemonic(SV("idiv"), I, buffer, context);
+        x64_emit_operand(I.A, buffer, context);
         break;
     }
 

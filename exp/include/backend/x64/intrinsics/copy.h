@@ -21,32 +21,32 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_copy_scalar_memory(u16 target,
-                                    u16 source,
-                                    u64 block_index,
+void x64_codegen_copy_scalar_memory(x64_Address *dst,
+                                    x64_Address *src,
+                                    u64 Idx,
                                     x64_Context *context);
 
-void x64_codegen_copy_composite_memory(u16 target,
-                                       u16 source,
+void x64_codegen_copy_composite_memory(x64_Address *dst,
+                                       x64_Address *src,
                                        Type const *type,
-                                       u64 block_index,
+                                       u64 Idx,
                                        x64_Context *context);
 
-void x64_codegen_copy_memory(u16 target,
-                             u16 source,
+void x64_codegen_copy_memory(x64_Address *dst,
+                             x64_Address *src,
                              Type const *type,
-                             u64 block_index,
+                             u64 Idx,
                              x64_Context *context);
 
-void x64_codegen_copy_allocation_from_memory(x64_Allocation *target,
-                                             u16 source,
+void x64_codegen_copy_allocation_from_memory(x64_Allocation *dst,
+                                             x64_Address *src,
                                              Type const *type,
-                                             u64 block_index,
+                                             u64 Idx,
                                              x64_Context *context);
 
-void x64_codegen_copy_allocation(x64_Allocation *target,
-                                 x64_Allocation *source,
-                                 u64 block_index,
+void x64_codegen_copy_allocation(x64_Allocation *dst,
+                                 x64_Allocation *src,
+                                 u64 Idx,
                                  x64_Context *context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_H

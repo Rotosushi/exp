@@ -121,7 +121,7 @@ void x64_codegen_call(Instruction I, u64 block_index, x64_Context *context) {
                     x64_operand_address(result->location.address)));
     }
 
-    Value *value = x64_context_constants_at(context, I.C_data.constant);
+    Value *value = x64_context_value_at(context, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *args             = &value->tuple;
     u64 call_start          = x64_context_current_offset(context);
@@ -157,9 +157,8 @@ void x64_codegen_call(Instruction I, u64 block_index, x64_Context *context) {
         i64 offset = (i64)(arg_size);
         stack_space += offset;
 
-        u16 address_index = x64_context_addresses_insert(context, arg_address);
         x64_codegen_load_address_from_operand(
-            address_index, arg, arg_type, block_index, context);
+            &arg_address, arg, arg_type, block_index, context);
 
         arg_address.offset += offset;
     }

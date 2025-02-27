@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.20)
 set(EXP_UTILITY_SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/alloc.c
   ${EXP_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_SOURCE_DIR}/utility/bitset.c
   ${EXP_SOURCE_DIR}/utility/hash.c
   ${EXP_SOURCE_DIR}/utility/int_types.c
   ${EXP_SOURCE_DIR}/utility/io.c

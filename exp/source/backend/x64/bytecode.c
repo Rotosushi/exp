@@ -88,7 +88,7 @@ void x64_bytecode_prepend(x64_Bytecode *restrict bc, x64_Instruction I) {
 
 void x64_bytecode_emit(x64_Bytecode *restrict bc,
                        String *restrict buffer,
-                       struct x64_Context *restrict context) {
+                       Context *restrict context) {
     for (u16 i = 0; i < bc->length; ++i) {
         string_append(buffer, SV("\t"));
         x64_instruction_emit(bc->buffer[i], buffer, context);

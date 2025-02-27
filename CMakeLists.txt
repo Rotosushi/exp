@@ -34,7 +34,7 @@ set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
 set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
-set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion)
+set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
 set(EXP_SANITIZERS -fsanitize=address,undefined,leak)
 set(EXP_PROFILE -pg)
 

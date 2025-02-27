@@ -22,31 +22,31 @@
 
 #include "backend/x64/context.h"
 
-void x64_codegen_load_address_from_operand(u16 target,
-                                           Operand source,
+void x64_codegen_load_address_from_operand(x64_Address *dst,
+                                           Operand src,
                                            Type const *type,
-                                           u64 block_index,
+                                           u64 Idx,
                                            x64_Context *context);
 
-void x64_codegen_load_gpr_from_operand(x64_GPR target,
-                                       Operand source,
-                                       u64 block_index,
+void x64_codegen_load_gpr_from_operand(x64_GPR dst,
+                                       Operand src,
+                                       u64 Idx,
                                        x64_Context *context);
 
-void x64_codegen_load_argument_from_operand(u16 target,
-                                            Operand source,
+void x64_codegen_load_argument_from_operand(x64_Address *dst,
+                                            Operand src,
                                             Type const *type,
-                                            u64 block_index,
+                                            u64 Idx,
                                             x64_Context *context);
 
-void x64_codegen_load_allocation_from_operand(x64_Allocation *target,
-                                              Operand source,
-                                              u64 block_index,
+void x64_codegen_load_allocation_from_operand(x64_Allocation *dst,
+                                              Operand src,
+                                              u64 Idx,
                                               x64_Context *context);
 
-void x64_codegen_load_allocation_from_value(x64_Allocation *target,
+void x64_codegen_load_allocation_from_value(x64_Allocation *dst,
                                             Value *value,
-                                            u64 block_index,
+                                            u64 Idx,
                                             x64_Context *context);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_LOAD_H

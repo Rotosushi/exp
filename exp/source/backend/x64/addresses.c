@@ -32,14 +32,9 @@ static void x64_addresses_grow(x64_Addresses *addresses) {
     addresses->capacity = g.new_capacity;
 }
 
-u64 x64_addresses_insert(x64_Addresses *addresses, x64_Address address) {
+u64 x64_addresses_append(x64_Addresses *addresses, x64_Address address) {
     assert(addresses != nullptr);
     if (x64_addresses_full(addresses)) { x64_addresses_grow(addresses); }
-
-    for (u64 i = 0; i < addresses->count; ++i) {
-        x64_Address *cursor = addresses->buffer + i;
-        if (x64_address_equality(*cursor, address)) { return i; }
-    }
 
     u64 index                = addresses->count++;
     addresses->buffer[index] = address;
