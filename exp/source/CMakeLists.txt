@@ -74,7 +74,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
-  ${EXP_SOURCE_DIR}/env/constants.c
+  ${EXP_SOURCE_DIR}/env/values.c
 
   ${EXP_SOURCE_DIR}/frontend/lexer.c
   ${EXP_SOURCE_DIR}/frontend/parser.c

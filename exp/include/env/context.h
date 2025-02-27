@@ -17,12 +17,12 @@
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-#include "env/constants.h"
 #include "env/context_options.h"
 #include "env/labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
+#include "env/values.h"
 #include "imr/function_body.h"
 
 /**

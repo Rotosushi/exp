@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "env/constants.h"
+#include "env/values.h"
 
 bool test_constant(Constants *restrict values, Value value) {
     Operand index   = constants_append(values, value);
