@@ -50,10 +50,10 @@ typedef enum Opcode : u8 {
     OPCODE_NEGATE, // AB  -- SSA[A] = -(B)
                    // AB  -- SSA[A] = -(SSA[B])
 
-    OPCODE_ADDITION, // ABC -- SSA[A] = SSA[B] + SSA[C]
-                     // ABC -- SSA[A] = SSA[B] + C
-                     // ABC -- SSA[A] = B    + SSA[C]
-                     // ABC -- SSA[A] = B    + C
+    OPCODE_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
+                // ABC -- SSA[A] = SSA[B] + C
+                // ABC -- SSA[A] = B    + SSA[C]
+                // ABC -- SSA[A] = B    + C
 
     OPCODE_SUBTRACT, // ABC -- SSA[A] = SSA[B] - SSA[C]
                      // ABC -- SSA[A] = SSA[B] - C
@@ -76,13 +76,13 @@ typedef enum Opcode : u8 {
                     // ABC -- SSA[A] = B    % C
 } Opcode;
 
-typedef enum InstructionFormat : u8 {
-    IFMT_B,
-    IFMT_AB,
-    IFMT_ABC,
-} InstructionFormat;
-
 /*
+typedef struct InstructionFormat {
+  unsigned opcode : 7;
+  unsigned A_kind : 3;
+  unsigned B_kind : 3;
+  unsigned C_kind : 3;
+} InstructionFormat;
  * #TODO:
  *  typedef struct Instruction {
  *    unsigned opcode : 7;
@@ -96,16 +96,14 @@ typedef enum InstructionFormat : u8 {
  *  if I am not mistaken:
  *  sizeof(Instruction) == sizeof(u64) == 8
  */
-
-/**
- * @brief represents a bytecode instruction
- */
 typedef struct Instruction {
-    Opcode opcode;
-    InstructionFormat format;
-    Operand A;
-    Operand B;
-    Operand C;
+    unsigned opcode : 7;
+    unsigned A_kind : 3;
+    unsigned B_kind : 3;
+    unsigned C_kind : 3;
+    OperandData A_data;
+    OperandData B_data;
+    OperandData C_data;
 } Instruction;
 
 Instruction instruction_return(Operand result);

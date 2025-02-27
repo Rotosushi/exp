@@ -45,13 +45,14 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
     return lifetiems->buffer + ssa;
 }
 
-static void lifetimes_compute_operand(Operand operand,
+static void lifetimes_compute_operand(OperandKind kind,
+                                      OperandData data,
                                       u64 block_index,
                                       Lifetimes *lifetimes,
                                       Context *context) {
-    switch (operand.kind) {
+    switch (kind) {
     case OPERAND_KIND_SSA: {
-        Lifetime *lifetime = lifetimes_at(lifetimes, operand.data.ssa);
+        Lifetime *lifetime = lifetimes_at(lifetimes, data.ssa);
         if (block_index > lifetime->last_use) {
             lifetime->last_use = block_index;
         }
@@ -59,13 +60,17 @@ static void lifetimes_compute_operand(Operand operand,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, operand.data.constant);
+        Value *constant = context_constants_at(context, data.constant);
         if (constant->kind == VALUE_KIND_TUPLE) {
             Tuple *tuple = &constant->tuple;
 
             for (u64 i = 0; i < tuple->size; ++i) {
-                lifetimes_compute_operand(
-                    tuple->elements[i], block_index, lifetimes, context);
+                Operand element = tuple->elements[i];
+                lifetimes_compute_operand(element.kind,
+                                          element.data,
+                                          block_index,
+                                          lifetimes,
+                                          context);
             }
         }
         break;
@@ -75,6 +80,36 @@ static void lifetimes_compute_operand(Operand operand,
     }
 }
 
+static void lifetimes_compute_B(Instruction I,
+                                u64 block_index,
+                                Lifetimes *lifetimes,
+                                Context *context) {
+
+    lifetimes_compute_operand(
+        I.B_kind, I.B_data, block_index, lifetimes, context);
+}
+
+static void lifetimes_compute_AB(Instruction I,
+                                 u64 block_index,
+                                 Lifetimes *lifetimes,
+                                 Context *context) {
+    lifetimes_compute_operand(
+        I.A_kind, I.A_data, block_index, lifetimes, context);
+    lifetimes_compute_operand(
+        I.B_kind, I.B_data, block_index, lifetimes, context);
+}
+
+static void lifetimes_compute_ABC(Instruction I,
+                                  u64 block_index,
+                                  Lifetimes *lifetimes,
+                                  Context *context) {
+    lifetimes_compute_operand(
+        I.A_kind, I.A_data, block_index, lifetimes, context);
+    lifetimes_compute_operand(
+        I.B_kind, I.B_data, block_index, lifetimes, context);
+    lifetimes_compute_operand(
+        I.C_kind, I.C_data, block_index, lifetimes, context);
+}
 // walk the bytecode representing the function body.
 // if an instruction assigns a value to a SSA local
 // that is the first use of the SSA local.
@@ -93,25 +128,56 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     for (u64 i = bc->length; i > 0; --i) {
         u64 block_index = i - 1;
         Instruction I   = bc->buffer[block_index];
-        switch (I.format) {
-        case IFMT_B: {
-            lifetimes_compute_operand(I.B, block_index, &lifetimes, context);
+        switch (I.opcode) {
+        case OPCODE_RETURN: {
+            lifetimes_compute_B(I, block_index, &lifetimes, context);
             break;
         }
 
-        case IFMT_AB: {
-            lifetimes_compute_operand(I.A, block_index, &lifetimes, context);
-            lifetimes_compute_operand(I.B, block_index, &lifetimes, context);
+        case OPCODE_CALL: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }
 
-        case IFMT_ABC: {
-            lifetimes_compute_operand(I.A, block_index, &lifetimes, context);
-            lifetimes_compute_operand(I.B, block_index, &lifetimes, context);
-            lifetimes_compute_operand(I.C, block_index, &lifetimes, context);
+        case OPCODE_DOT: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }
 
+        case OPCODE_LOAD: {
+            lifetimes_compute_AB(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_NEGATE: {
+            lifetimes_compute_AB(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_ADD: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_SUBTRACT: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_MULTIPLY: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_DIVIDE: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
+            break;
+        }
+
+        case OPCODE_MODULUS: {
+            lifetimes_compute_ABC(I, block_index, &lifetimes, context);
+            break;
+        }
         default: EXP_UNREACHABLE();
         }
     }
