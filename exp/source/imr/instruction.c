@@ -21,28 +21,19 @@
 #include "imr/instruction.h"
 
 static Instruction instruction_B(Opcode opcode, Operand B) {
-    Instruction I = {.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
+    Instruction I = {.opcode = opcode, .format = IFMT_B, .B = B};
     return I;
 }
 
 static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data};
+    Instruction I = {.opcode = opcode, .format = IFMT_AB, .A = A, .B = B};
     return I;
 }
 
 static Instruction
 instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data,
-                     .C_kind = C.kind,
-                     .C_data = C.data};
+    Instruction I = {
+        .opcode = opcode, .format = IFMT_ABC, .A = A, .B = B, .C = C};
     return I;
 }
 
@@ -72,7 +63,7 @@ Instruction instruction_negate(Operand dst, Operand src) {
 
 Instruction instruction_add(Operand dst, Operand left, Operand right) {
     assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_ADD, dst, left, right);
+    return instruction_ABC(OPCODE_ADDITION, dst, left, right);
 }
 
 Instruction instruction_subtract(Operand dst, Operand left, Operand right) {

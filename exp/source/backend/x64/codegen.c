@@ -78,7 +78,7 @@ static void x64_codegen_bytecode(x64_Context *restrict context) {
             break;
         }
 
-        case OPCODE_ADD: {
+        case OPCODE_ADDITION: {
             x64_codegen_add(I, idx, context);
             break;
         }

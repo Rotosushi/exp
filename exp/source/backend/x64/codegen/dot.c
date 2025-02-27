@@ -27,17 +27,17 @@
 void x64_codegen_dot(Instruction I,
                      u64 block_index,
                      x64_Context *restrict context) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
+    assert(I.A.kind == OPERAND_KIND_SSA);
+    LocalVariable *local = x64_context_lookup_ssa(context, I.A.data.ssa);
 
-    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
-    assert(I.C_data.immediate >= 0);
-    u16 index = (u16)I.C_data.immediate;
+    assert(I.C.kind == OPERAND_KIND_IMMEDIATE);
+    assert(I.C.data.immediate >= 0);
+    u16 index = (u16)I.C.data.immediate;
 
-    switch (I.B_kind) {
+    switch (I.B.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x64_Address *tuple_address = &B->location.address;
@@ -54,7 +54,7 @@ void x64_codegen_dot(Instruction I,
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_codegen_load_allocation_from_value(
-            A, I.B_data.constant, block_index, context);
+            A, I.B.data.constant, block_index, context);
         break;
     }
 

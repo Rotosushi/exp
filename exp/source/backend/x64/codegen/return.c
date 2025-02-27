@@ -28,9 +28,9 @@ void x64_codegen_return(Instruction I,
                         u64 block_index,
                         x64_Context *restrict context) {
     x64_FunctionBody *body = current_x64_body(context);
-    switch (I.B_kind) {
+    switch (I.B.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
+        x64_Allocation *B = x64_context_allocation_of(context, I.B.data.ssa);
         if (x64_allocation_location_eq(B, body->result->location)) { break; }
         x64_codegen_copy_allocation(body->result, B, block_index, context);
         break;
@@ -38,14 +38,14 @@ void x64_codegen_return(Instruction I,
 
     case OPERAND_KIND_CONSTANT: {
         x64_codegen_load_allocation_from_value(
-            body->result, I.B_data.constant, block_index, context);
+            body->result, I.B.data.constant, block_index, context);
         break;
     }
 
     case OPERAND_KIND_IMMEDIATE: {
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(body->result),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B.data.immediate)));
         break;
     }
 

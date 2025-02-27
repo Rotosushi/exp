@@ -65,7 +65,7 @@ static void print_B(char const *restrict inst,
                     Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(I.B, file, context);
 }
 
 static void print_AB(char const *restrict inst,
@@ -74,9 +74,9 @@ static void print_AB(char const *restrict inst,
                      Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.A_kind, I.A_data), file, context);
+    print_operand(I.A, file, context);
     file_write(", ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(I.B, file, context);
 }
 
 static void print_ABC(char const *restrict inst,
@@ -85,11 +85,11 @@ static void print_ABC(char const *restrict inst,
                       Context *restrict context) {
     file_write(inst, file);
     file_write(" ", file);
-    print_operand(operand(I.A_kind, I.A_data), file, context);
+    print_operand(I.A, file, context);
     file_write(", ", file);
-    print_operand(operand(I.B_kind, I.B_data), file, context);
+    print_operand(I.B, file, context);
     file_write(", ", file);
-    print_operand(operand(I.C_kind, I.C_data), file, context);
+    print_operand(I.C, file, context);
 }
 
 // "ret <B>"
@@ -161,7 +161,7 @@ static void print_instruction(Instruction I,
     case OPCODE_DOT:      print_dot(I, file, context); break;
     case OPCODE_LOAD:     print_load(I, file, context); break;
     case OPCODE_NEGATE:   print_neg(I, file, context); break;
-    case OPCODE_ADD:      print_add(I, file, context); break;
+    case OPCODE_ADDITION: print_add(I, file, context); break;
     case OPCODE_SUBTRACT: print_sub(I, file, context); break;
     case OPCODE_MULTIPLY: print_mul(I, file, context); break;
     case OPCODE_DIVIDE:   print_div(I, file, context); break;

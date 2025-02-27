@@ -22,11 +22,6 @@
 #include "imr/operand.h"
 #include "utility/unreachable.h"
 
-Operand operand(OperandKind kind, OperandData data) {
-    Operand operand_ = {.kind = kind, .data = data};
-    return operand_;
-}
-
 Operand operand_ssa(u16 ssa) {
     Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
     return operand;
