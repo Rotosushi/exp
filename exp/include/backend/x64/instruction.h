@@ -36,8 +36,8 @@
 
   --
 
-  generally speaking x64 instructions have the opcode
-  and then the first operand together determine the
+  generally speaking x64 instructions use the opcode
+  and the first operand together to determine the
   size of the operands.
 
   so we are simplifying this for now, just to represent
@@ -50,23 +50,23 @@
 */
 
 typedef enum x64_Opcode : u8 {
-  X64OPC_RET,
-  X64OPC_CALL,
-  X64OPC_PUSH,
-  X64OPC_POP,
-  X64OPC_MOV,
-  X64OPC_LEA,
-  X64OPC_NEG,
-  X64OPC_ADD,
-  X64OPC_SUB,
-  X64OPC_IMUL,
-  X64OPC_IDIV,
+    X64_OPCODE_RETURN,
+    X64_OPCODE_CALL,
+    X64_OPCODE_PUSH,
+    X64_OPCODE_POP,
+    X64_OPCODE_MOV,
+    X64_OPCODE_LEA,
+    X64_OPCODE_NEG,
+    X64_OPCODE_ADD,
+    X64_OPCODE_SUB,
+    X64_OPCODE_IMUL,
+    X64_OPCODE_IDIV,
 } x64_Opcode;
 
 typedef struct x64_Instruction {
-  x64_Opcode opcode;
-  x64_Operand A;
-  x64_Operand B;
+    x64_Opcode opcode;
+    x64_Operand A;
+    x64_Operand B;
 } x64_Instruction;
 
 x64_Instruction x64_ret();

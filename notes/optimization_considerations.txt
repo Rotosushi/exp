@@ -1,0 +1,72 @@
+
+
+
+When considering how to implement any portion of the program
+we have to lay down code in some particular way to add the 
+desired behavior. And while "premature optimization is the 
+root of all evil", I also believe "A problem solved in Design 
+is easier than a problem solved in Implementation, which is 
+easier than a problem solved in Refactoring/Maintinence/Release"
+and as the any project gets written we have an increasing amount
+of preexisting solutions/code which we must work with.
+
+So the strategy I am going to adopt is
+
+- make a plan 
+    - try not to pessimize the design.
+    - don't worry about optimizing the design so much.
+- follow the plan
+    - allow for failure
+    - allow for redesign
+
+- try and take small steps so it's less painful to clean up mistakes.
+    - ideally after each change, a full recompile is done, and all tests pass.
+
+- try and design small plans.
+
+
+
+when considering code I have a few rules of thumb
+
+    space can be traded for time,
+    time can be traded for space.
+
+    branching is slower than not branching
+        even with prediction branching adds 
+        some slowdown.
+
+    getting data from a pointer is slower
+        than reading the pointer's value
+        A) accessing a pointers value is required
+            to fetch the data being pointed to,
+            thus the time it takes to access data
+            via a pointer must be at least the time
+            it takes to access the pointer plus
+            something more.
+
+    malloc/free are slower than stack allocations, 
+    because A) you always access via pointer to the heap,
+                whereas stack allocations are via pointers to 
+                the stack, which is almost always in cache.
+            B) robust heap implementations take time
+                to run. whereas allocating on the stack is
+                always equivalent to incrementing a pointer.
+                (only the simplest heap strategies are this simple)
+                and can usually be computed at compile time.
+            C) most heap implementations have control structures 
+                which add memory overhead to heap allocations.
+                whereas allocating on the stack can be done with 
+                no overhead, as usually, all bookkeeping can be 
+                done at compile time.
+
+
+    there is a ratio (usable-bytes / struct-size) which should be as
+    close to one as possible.
+        This reduces the amount of overhead you are writing into the 
+        data structure itself.
+
+
+    
+
+
+

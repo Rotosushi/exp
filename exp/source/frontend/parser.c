@@ -32,6 +32,7 @@ typedef struct Parser {
     Token curtok;
 } Parser;
 
+/*
 typedef struct ParserResult {
     bool has_error;
     union {
@@ -40,11 +41,11 @@ typedef struct ParserResult {
     };
 } ParserResult;
 
-static void parser_result_destroy(ParserResult *restrict pr) {
+static void parser_result_destroy(ParserResult * pr) {
     if (pr->has_error) { error_destroy(&pr->error); }
 }
 
-static ParserResult error(Parser *restrict p, ErrorCode code) {
+static ParserResult error(Parser * p, ErrorCode code) {
     ParserResult result = {
         .has_error = 1,
         .error     = error_construct(code, lexer_current_text(&p->lexer))};
@@ -57,6 +58,7 @@ static ParserResult success(Operand result) {
 }
 
 static Operand zero() { return operand_immediate(0); }
+*/
 
 typedef enum Precedence {
     PREC_NONE,
@@ -72,10 +74,13 @@ typedef enum Precedence {
     PREC_PRIMARY,
 } Precedence;
 
-typedef ParserResult (*PrefixFunction)(Parser *restrict p, Context *restrict c);
-typedef ParserResult (*InfixFunction)(Parser *restrict p,
-                                      Context *restrict c,
-                                      Operand left);
+typedef bool (*PrefixFunction)(Operand *result,
+                               Parser *parser,
+                               Context *context);
+typedef bool (*InfixFunction)(Operand *result,
+                              Operand left,
+                              Parser *parser,
+                              Context *context);
 
 typedef struct ParseRule {
     PrefixFunction prefix;
@@ -90,34 +95,37 @@ static Parser parser_create() {
     return parser;
 }
 
-static void
-parser_set_view(Parser *restrict parser, char const *buffer, u64 length) {
+static void parser_set_view(Parser *parser, char const *buffer, u64 length) {
     assert(parser != NULL);
     assert(buffer != NULL);
     lexer_set_view(&(parser->lexer), buffer, length);
 }
 
-static bool finished(Parser *restrict parser) {
-    return parser->curtok == TOK_END;
-}
+static bool finished(Parser *parser) { return parser->curtok == TOK_END; }
 
-static StringView curtxt(Parser *restrict parser) {
+static StringView curtxt(Parser *parser) {
     return lexer_current_text(&parser->lexer);
 }
 
-static u64 curline(Parser *restrict parser) {
+static u64 curline(Parser *parser) {
     return lexer_current_line(&parser->lexer);
 }
 
-// static u64 curcol(Parser *restrict parser) {
+static bool error(Parser *p, Context *c, ErrorCode code) {
+    Error *current_error = context_current_error(c);
+    error_assign(current_error, code, lexer_current_text(&p->lexer));
+    return false;
+}
+
+// static u64 curcol(Parser * parser) {
 //   return lexer_current_column(&parser->lexer);
 // }
 
-static bool peek(Parser *restrict parser, Token token) {
+static bool peek(Parser *parser, Token token) {
     return parser->curtok == token;
 }
 
-static ParserResult comment(Parser *restrict parser) {
+static bool comment(Parser *parser, Context *context) {
     // a comment starts with '/*' and lasts until
     // it's matching '*/'.
     // we handle any number of comment blocks to
@@ -130,311 +138,337 @@ static ParserResult comment(Parser *restrict parser) {
         parser->curtok = lexer_scan(&parser->lexer);
 
         if (peek(parser, TOK_END)) {
-            return error(parser, ERROR_PARSER_EXPECTED_END_COMMENT);
+            return error(parser, context, ERROR_PARSER_EXPECTED_END_COMMENT);
         }
 
         if (peek(parser, TOK_BEGIN_COMMENT)) {
-            ParserResult result = comment(parser);
-            if (result.has_error) { return result; }
+            if (!comment(parser, context)) { return false; }
         }
     }
 
     // eat '*/'
     parser->curtok = lexer_scan(&parser->lexer);
-    return success(zero());
+    return true;
 }
 
-static ParserResult nexttok(Parser *restrict parser) {
+static bool nexttok(Parser *parser, Context *context) {
     if (lexer_at_end(&parser->lexer)) {
         parser->curtok = TOK_END;
-        return success(zero());
+        return true;
     }
 
     parser->curtok = lexer_scan(&parser->lexer);
 
     while (parser->curtok == TOK_BEGIN_COMMENT) {
-        ParserResult result = comment(parser);
-        if (result.has_error) { return result; }
+        if (!comment(parser, context)) { return false; }
     }
 
-    return success(zero());
+    return true;
 }
 
-typedef struct ExpectResult {
-    bool has_error;
-    union {
-        bool found;
-        Error error;
-    };
+typedef enum ExpectResult {
+    EXPECT_RESULT_SUCCESS,
+    EXPECT_RESULT_TOKEN_NOT_FOUND,
+    EXPECT_RESULT_FAILURE,
 } ExpectResult;
 
-static ExpectResult expect_error(ParserResult result) {
-    ExpectResult expect = {.has_error = result.has_error,
-                           .error     = result.error};
-    return expect;
+static ExpectResult expect(Parser *parser, Context *context, Token token) {
+    if (!peek(parser, token)) { return EXPECT_RESULT_TOKEN_NOT_FOUND; }
+    if (!nexttok(parser, context)) { return EXPECT_RESULT_FAILURE; }
+    return EXPECT_RESULT_SUCCESS;
 }
-
-static ExpectResult expect_success(bool found) {
-    ExpectResult expect = {.has_error = false, .found = found};
-    return expect;
-}
-
-static ParserResult from_expect(ExpectResult expect) {
-    ParserResult result = {.has_error = expect.has_error};
-    if (expect.has_error) {
-        result.error = expect.error;
-    } else {
-        result.result = zero();
-    }
-    return result;
-}
-
-static ExpectResult expect(Parser *restrict parser, Token token) {
-    if (peek(parser, token)) {
-        ParserResult result = nexttok(parser);
-        if (result.has_error) {
-            return expect_error(result);
-        } else {
-            return expect_success(true);
-        }
-    } else {
-        return expect_success(false);
-    }
-}
-
-#define EXPECT(name, token)                                                    \
-    ExpectResult name = expect(p, token);                                      \
-    if (name.has_error) { return from_expect(name); }
-
-#define NEXTTOK(parser)                                                        \
-    {                                                                          \
-        ParserResult result = nexttok(parser);                                 \
-        if (result.has_error) { return result; }                               \
-    }
-
-#define TRY(name, call)                                                        \
-    ParserResult name = call;                                                  \
-    if (name.has_error) { return name; }
 
 static ParseRule *get_rule(Token token);
-static ParserResult expression(Parser *restrict p, Context *restrict c);
-static ParserResult parse_precedence(Parser *restrict p,
-                                     Context *restrict c,
-                                     Precedence precedence);
+static bool expression(Operand *result, Parser *parser, Context *context);
+static bool parse_precedence(Operand *result,
+                             Precedence precedence,
+                             Parser *parser,
+                             Context *context);
 
-static ParserResult
-parse_type(Parser *restrict p, Context *restrict c, Type **type);
+static bool parse_type(Type **result, Parser *parser, Context *context);
 
-static ParserResult
-parse_tuple_type(Parser *restrict p, Context *restrict c, Type **type) {
-    NEXTTOK(p); // eat '('
+static bool parse_tuple_type(Type **result, Parser *parser, Context *context) {
 
     // an empty tuple type is equivalent to a nil type.
-    EXPECT(nil, TOK_NIL);
-    if (nil.found) {
-        *type = context_nil_type(c);
-        return success(zero());
+    switch (expect(parser, context, TOK_NIL)) {
+    case EXPECT_RESULT_SUCCESS: {
+        *result = context_nil_type(context);
+        return true;
     }
+
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
+    }
+
+    assert(peek(parser, TOK_BEGIN_PAREN));
+    if (!nexttok(parser, context)) { return false; } // eat '('
 
     TupleType tuple_type = tuple_type_create();
 
     bool found_comma = false;
     do {
         Type *element = NULL;
-        TRY(result, parse_type(p, c, &element));
+        if (!parse_type(&element, parser, context)) { return false; }
         assert(element != NULL);
 
         tuple_type_append(&tuple_type, element);
 
-        EXPECT(comma, TOK_COMMA);
-        found_comma = comma.found;
+        switch (expect(parser, context, TOK_COMMA)) {
+        case EXPECT_RESULT_SUCCESS:         found_comma = true; break;
+        case EXPECT_RESULT_TOKEN_NOT_FOUND: found_comma = false; break;
+        case EXPECT_RESULT_FAILURE:         return false;
+        default:                            EXP_UNREACHABLE();
+        }
     } while (found_comma);
 
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+    switch (expect(parser, context, TOK_END_PAREN)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, context, ERROR_PARSER_EXPECTED_END_PAREN);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 
     // a tuple type of length 1 is equivalent to that type.
     if (tuple_type.size == 1) {
-        *type = tuple_type.types[0];
+        *result = tuple_type.types[0];
         tuple_type_destroy(&tuple_type);
     } else {
-        *type = context_tuple_type(c, tuple_type);
+        *result = context_tuple_type(context, tuple_type);
     }
 
-    return success(zero());
+    return true;
 }
 
-static ParserResult
-parse_type(Parser *restrict p, Context *restrict c, Type **type) {
-    switch (p->curtok) {
+static bool parse_type(Type **result, Parser *parser, Context *context) {
+    switch (parser->curtok) {
     // composite types
-    case TOK_BEGIN_PAREN: return parse_tuple_type(p, c, type);
+    case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser, context);
 
     // scalar types
-    case TOK_NIL:       *type = context_nil_type(c); break;
-    case TOK_TYPE_NIL:  *type = context_nil_type(c); break;
-    case TOK_TYPE_BOOL: *type = context_boolean_type(c); break;
-    case TOK_TYPE_I64:  *type = context_i64_type(c); break;
+    case TOK_NIL:       *result = context_nil_type(context); break;
+    case TOK_TYPE_NIL:  *result = context_nil_type(context); break;
+    case TOK_TYPE_BOOL: *result = context_boolean_type(context); break;
+    case TOK_TYPE_I64:  *result = context_i64_type(context); break;
 
-    default: return error(p, ERROR_PARSER_EXPECTED_TYPE);
+    default: return error(parser, context, ERROR_PARSER_EXPECTED_TYPE);
     }
 
-    NEXTTOK(p); // eat scalar-type
-    return success(zero());
+    if (!nexttok(parser, context)) { return false; } // eat scalar-type
+    return true;
 }
 
 // formal-argument = identifier ":" type
-static ParserResult parse_formal_argument(Parser *restrict p,
-                                          Context *restrict c,
-                                          FormalArgument *arg) {
-    if (!peek(p, TOK_IDENTIFIER)) {
-        return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
+static bool
+parse_formal_argument(FormalArgument *arg, Parser *parser, Context *context) {
+    if (!peek(parser, TOK_IDENTIFIER)) {
+        return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    StringView name = context_intern(c, curtxt(p));
-    NEXTTOK(p);
+    StringView name = context_intern(context, curtxt(parser));
+    if (!nexttok(parser, context)) { return false; }
 
-    EXPECT(colon, TOK_COLON);
-    if (!colon.found) { return error(p, ERROR_PARSER_EXPECTED_COLON); }
+    switch (expect(parser, context, TOK_COLON)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, context, ERROR_PARSER_EXPECTED_COLON);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 
     Type *type = NULL;
-    TRY(maybe, parse_type(p, c, &type));
+    if (!parse_type(&type, parser, context)) { return false; }
     assert(type != NULL);
 
     arg->name = name;
     arg->type = type;
-    return success(zero());
+    return true;
 }
 
 // formal-argument-list = "(" (formal-argument ("," formal-argument)*)? ")"
-static ParserResult parse_formal_argument_list(Parser *restrict p,
-                                               Context *restrict c,
-                                               FunctionBody *body) {
+static bool parse_formal_argument_list(FunctionBody *body,
+                                       Parser *parser,
+                                       Context *context) {
     // #note: the nil literal is spelled "()", which is
     // lexically identical to an empty argument list. so we parse it as such
-    EXPECT(nil, TOK_NIL);
-    if (nil.found) { return success(zero()); }
-
-    EXPECT(begin_paren, TOK_BEGIN_PAREN);
-    if (!begin_paren.found) {
-        return error(p, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
+    switch (expect(parser, context, TOK_NIL)) {
+    case EXPECT_RESULT_SUCCESS:         return true;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
     }
 
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) {
+    switch (expect(parser, context, TOK_BEGIN_PAREN)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, context, ERROR_PARSER_EXPECTED_BEGIN_PAREN);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
+
+    switch (expect(parser, context, TOK_END_PAREN)) {
+    case EXPECT_RESULT_SUCCESS:         return true;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: {
         u8 index         = 0;
         bool comma_found = false;
         do {
             FormalArgument arg = {.index = index++};
 
-            TRY(maybe, parse_formal_argument(p, c, &arg));
+            if (!parse_formal_argument(&arg, parser, context)) { return false; }
 
             function_body_new_argument(body, arg);
 
-            EXPECT(comma, TOK_COMMA);
-            comma_found = comma.found;
+            switch (expect(parser, context, TOK_COMMA)) {
+            case EXPECT_RESULT_SUCCESS:         comma_found = true; break;
+            case EXPECT_RESULT_TOKEN_NOT_FOUND: comma_found = false; break;
+            case EXPECT_RESULT_FAILURE:         return false;
+            default:                            EXP_UNREACHABLE();
+            }
         } while (comma_found);
 
-        EXPECT(end_paren, TOK_END_PAREN);
-        if (!end_paren.found) {
-            return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
+        switch (expect(parser, context, TOK_END_PAREN)) {
+        case EXPECT_RESULT_SUCCESS: break;
+        case EXPECT_RESULT_TOKEN_NOT_FOUND:
+            return error(parser, context, ERROR_PARSER_EXPECTED_END_PAREN);
+        case EXPECT_RESULT_FAILURE: return false;
+        default:                    EXP_UNREACHABLE();
         }
+        return true;
     }
 
-    return success(zero());
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 }
 
 // return = "return" expression ";"
-static ParserResult return_(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p); // eat "return"
+static bool return_(Operand *result, Parser *parser, Context *context) {
+    if (!nexttok(parser, context)) { return false; } // eat "return"
 
-    TRY(maybe, expression(p, c));
+    if (!expression(result, parser, context)) { return false; }
 
-    EXPECT(semicolon, TOK_SEMICOLON);
-    if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+    switch (expect(parser, context, TOK_SEMICOLON)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, context, ERROR_PARSER_EXPECTED_SEMICOLON);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 
-    context_emit_return(c, maybe.result);
-    return success(zero());
+    context_emit_return(context, *result);
+    return true;
 }
 
 // constant = "const" identifier "=" expression ";"
-static ParserResult constant(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p); // eat 'const'
+static bool constant(Operand *result, Parser *parser, Context *constant) {
+    if (!nexttok(parser, constant)) { return false; } // eat 'const'
 
-    if (!peek(p, TOK_IDENTIFIER)) {
-        return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
+    if (!peek(parser, TOK_IDENTIFIER)) {
+        return error(parser, constant, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
-    StringView name = context_intern(c, curtxt(p));
-    NEXTTOK(p);
+    StringView name = context_intern(constant, curtxt(parser));
+    if (!nexttok(parser, constant)) { return false; }
 
-    EXPECT(equal, TOK_EQUAL);
-    if (!equal.found) { return error(p, ERROR_PARSER_EXPECTED_EQUAL); }
+    switch (expect(parser, constant, TOK_EQUAL)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, constant, ERROR_PARSER_EXPECTED_EQUAL);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 
-    TRY(maybe, expression(p, c));
+    if (!expression(result, parser, constant)) { return false; }
 
-    EXPECT(semicolon, TOK_SEMICOLON);
-    if (!semicolon.found) { return error(p, ERROR_PARSER_EXPECTED_SEMICOLON); }
+    switch (expect(parser, constant, TOK_SEMICOLON)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, constant, ERROR_PARSER_EXPECTED_SEMICOLON);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 
-    context_def_local_const(c, name, maybe.result);
-    return success(zero());
+    context_def_local_const(constant, name, *result);
+    return true;
 }
 
 // statement = return
 //           | constant
 //           | expression
-static ParserResult statement(Parser *restrict p, Context *restrict c) {
-    switch (p->curtok) {
-    case TOK_RETURN: return return_(p, c);
-    case TOK_CONST:  return constant(p, c);
+static bool statement(Operand *result, Parser *parser, Context *context) {
+    switch (parser->curtok) {
+    case TOK_RETURN: return return_(result, parser, context);
+    case TOK_CONST:  return constant(result, parser, context);
 
     default: {
-        TRY(result, expression(p, c));
+        if (!expression(result, parser, context)) { return false; }
 
-        EXPECT(semicolon, TOK_SEMICOLON);
-        if (!semicolon.found) {
-            return error(p, ERROR_PARSER_EXPECTED_SEMICOLON);
+        switch (expect(parser, context, TOK_SEMICOLON)) {
+        case EXPECT_RESULT_SUCCESS: break;
+        case EXPECT_RESULT_TOKEN_NOT_FOUND:
+            return error(parser, context, ERROR_PARSER_EXPECTED_SEMICOLON);
+        case EXPECT_RESULT_FAILURE: return false;
+        default:                    EXP_UNREACHABLE();
         }
 
-        return result;
+        return true;
     }
     }
 }
 
-static ParserResult parse_block(Parser *restrict p, Context *restrict c) {
-    EXPECT(begin_brace, TOK_BEGIN_BRACE);
-    if (!begin_brace.found) {
-        return error(p, ERROR_PARSER_EXPECTED_BEGIN_BRACE);
+static bool parse_block(Operand *result, Parser *parser, Context *context) {
+    switch (expect(parser, context, TOK_BEGIN_BRACE)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND:
+        return error(parser, context, ERROR_PARSER_EXPECTED_BEGIN_BRACE);
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
     }
 
-    EXPECT(end_brace, TOK_END_BRACE);
-    bool found_end_brace = end_brace.found;
-    while (!found_end_brace) {
-        TRY(maybe, statement(p, c));
-        EXPECT(end_brace, TOK_END_BRACE);
-        found_end_brace = end_brace.found;
+    switch (expect(parser, context, TOK_END_BRACE)) {
+    case EXPECT_RESULT_SUCCESS:         return true;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: {
+        bool found_end_brace = false;
+        while (!found_end_brace) {
+            if (!statement(result, parser, context)) { return false; }
+            switch (expect(parser, context, TOK_END_BRACE)) {
+            case EXPECT_RESULT_SUCCESS:         found_end_brace = true; break;
+            case EXPECT_RESULT_TOKEN_NOT_FOUND: found_end_brace = false; break;
+            case EXPECT_RESULT_FAILURE:         return false;
+            default:                            EXP_UNREACHABLE();
+            }
+        }
+        return true;
     }
 
-    return success(zero());
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
 }
 
-static ParserResult function(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p); // eat "fn"
+static bool function(Operand *result, Parser *parser, Context *context) {
+    if (!nexttok(parser, context)) { return false; } // eat "fn"
 
-    if (!peek(p, TOK_IDENTIFIER)) {
-        return error(p, ERROR_PARSER_EXPECTED_IDENTIFIER);
+    if (!peek(parser, TOK_IDENTIFIER)) {
+        return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    StringView name = context_intern(c, curtxt(p));
-    NEXTTOK(p);
+    StringView name = context_intern(context, curtxt(parser));
+    if (!nexttok(parser, context)) { return false; }
 
-    FunctionBody *body = context_enter_function(c, name);
+    FunctionBody *body = context_enter_function(context, name);
 
-    { TRY(maybe, parse_formal_argument_list(p, c, body)); }
+    if (!parse_formal_argument_list(body, parser, context)) { return false; }
 
-    EXPECT(right_arrow, TOK_RIGHT_ARROW);
-    if (right_arrow.found) { TRY(maybe, parse_type(p, c, &body->return_type)); }
+    switch (expect(parser, context, TOK_RIGHT_ARROW)) {
+    case EXPECT_RESULT_SUCCESS:
+        if (!parse_type(&body->return_type, parser, context)) { return false; }
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
+    }
 
-    { TRY(maybe, parse_block(p, c)); }
+    if (!parse_block(result, parser, context)) { return false; }
 
 #if EXP_DEBUG
     file_write("parsed a function: \nfn ", stdout);
@@ -443,201 +477,220 @@ static ParserResult function(Parser *restrict p, Context *restrict c) {
     file_write("\n", stdout);
 #endif
 
-    context_leave_function(c);
-    return success(zero());
+    context_leave_function(context);
+    return true;
 }
 
-static ParserResult definition(Parser *restrict p, Context *restrict c) {
-    switch (p->curtok) {
-    case TOK_FN: return function(p, c);
+static bool definition(Operand *result, Parser *parser, Context *context) {
+    switch (parser->curtok) {
+    case TOK_FN: return function(result, parser, context);
 
-    default: return error(p, ERROR_PARSER_EXPECTED_KEYWORD_FN);
+    default: return error(parser, context, ERROR_PARSER_EXPECTED_KEYWORD_FN);
     }
 }
 
-static ParserResult parens(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p); // eat '('
+static bool parse_tuple(Tuple *tuple, Parser *parser, Context *context) {
+    switch (expect(parser, context, TOK_NIL)) {
+    case EXPECT_RESULT_SUCCESS:         return true;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
+    }
 
-    Tuple tuple      = tuple_create();
-    bool found_comma = false;
-    do {
-        TRY(result, expression(p, c));
-        tuple_append(&tuple, result.result);
+    assert(peek(parser, TOK_BEGIN_PAREN));
+    if (!nexttok(parser, context)) { return false; }
 
-        EXPECT(comma, TOK_COMMA);
-        found_comma = comma.found;
-    } while (found_comma);
+    switch (expect(parser, context, TOK_END_PAREN)) {
+    case EXPECT_RESULT_SUCCESS:         break;
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: {
+        bool found_comma = false;
+        do {
+            Operand result;
+            if (!expression(&result, parser, context)) { return false; }
+            tuple_append(tuple, result);
 
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) { return error(p, ERROR_PARSER_EXPECTED_END_PAREN); }
+            switch (expect(parser, context, TOK_COMMA)) {
+            case EXPECT_RESULT_SUCCESS:         found_comma = true; break;
+            case EXPECT_RESULT_TOKEN_NOT_FOUND: found_comma = false; break;
+            case EXPECT_RESULT_FAILURE:         {
+                tuple_destroy(tuple);
+                return false;
+            }
+            default: EXP_UNREACHABLE();
+            }
+        } while (found_comma);
 
-    Operand result;
+        switch (expect(parser, context, TOK_END_PAREN)) {
+        case EXPECT_RESULT_SUCCESS: break;
+        case EXPECT_RESULT_TOKEN_NOT_FOUND:
+            return error(parser, context, ERROR_PARSER_EXPECTED_END_PAREN);
+        case EXPECT_RESULT_FAILURE: return false;
+        default:                    EXP_UNREACHABLE();
+        }
+        break;
+    }
+    case EXPECT_RESULT_FAILURE: return false;
+    default:                    EXP_UNREACHABLE();
+    }
+
+    return true;
+}
+
+static bool parens(Operand *result, Parser *parser, Context *context) {
+    Tuple tuple = tuple_create();
+
+    if (!parse_tuple(&tuple, parser, context)) { return false; };
 
     if (tuple.size == 0) {
-        result = context_constants_append(c, value_create_nil());
+        *result = context_constants_append(context, value_create_nil());
         tuple_destroy(&tuple);
     } else if (tuple.size == 1) {
-        result = tuple.elements[0];
+        *result = tuple.elements[0];
         tuple_destroy(&tuple);
     } else {
-        result = context_constants_append(c, value_create_tuple(tuple));
+        *result = context_constants_append(context, value_create_tuple(tuple));
     }
 
-    return success(result);
+    return true;
 }
 
-static ParserResult unop(Parser *restrict p, Context *restrict c) {
-    Token op = p->curtok;
-    NEXTTOK(p);
+static bool unop(Operand *result, Parser *parser, Context *context) {
+    Token op = parser->curtok;
+    if (!nexttok(parser, context)) { return false; }
 
-    TRY(maybe, parse_precedence(p, c, PREC_UNARY));
+    if (!parse_precedence(result, PREC_UNARY, parser, context)) {
+        return false;
+    }
 
     switch (op) {
-    case TOK_MINUS: return success(context_emit_negate(c, maybe.result));
-
-    default: EXP_UNREACHABLE();
+    case TOK_MINUS: *result = context_emit_negate(context, *result); break;
+    default:        EXP_UNREACHABLE();
     }
+    return true;
 }
 
-static ParserResult
-binop(Parser *restrict p, Context *restrict c, Operand left) {
-    Token op        = p->curtok;
+static bool
+binop(Operand *result, Operand left, Parser *parser, Context *context) {
+    Token op        = parser->curtok;
     ParseRule *rule = get_rule(op);
-    NEXTTOK(p); // eat the operator
+    if (!nexttok(parser, context)) { return false; } // eat the operator
 
-    TRY(maybe, parse_precedence(p, c, (Precedence)(rule->precedence + 1)));
-    Operand right = maybe.result;
+    if (!parse_precedence(
+            result, (Precedence)(rule->precedence + 1), parser, context)) {
+        return false;
+    }
+    Operand right = *result;
 
     switch (op) {
-    case TOK_DOT:     return success(context_emit_dot(c, left, right));
-    case TOK_PLUS:    return success(context_emit_add(c, left, right));
-    case TOK_MINUS:   return success(context_emit_subtract(c, left, right));
-    case TOK_STAR:    return success(context_emit_multiply(c, left, right));
-    case TOK_SLASH:   return success(context_emit_divide(c, left, right));
-    case TOK_PERCENT: return success(context_emit_modulus(c, left, right));
+    case TOK_DOT:  *result = context_emit_dot(context, left, right); break;
+    case TOK_PLUS: *result = context_emit_add(context, left, right); break;
+    case TOK_MINUS:
+        *result = context_emit_subtract(context, left, right);
+        break;
+    case TOK_STAR:  *result = context_emit_multiply(context, left, right); break;
+    case TOK_SLASH: *result = context_emit_divide(context, left, right); break;
+    case TOK_PERCENT:
+        *result = context_emit_modulus(context, left, right);
+        break;
 
     default: EXP_UNREACHABLE();
     }
+    return true;
 }
 
-static ParserResult parse_actual_argument_list(Parser *restrict p,
-                                               Context *restrict c,
-                                               Tuple *restrict argument_list) {
-    // #note: the nil literal is spelled "()", which is
-    // lexically identical to an empty argument list
-    EXPECT(nil, TOK_NIL);
-    if (nil.found) { return success(zero()); }
-
-    NEXTTOK(p); // eat '('
-
-    EXPECT(end_paren, TOK_END_PAREN);
-    if (!end_paren.found) {
-        bool comma_found = false;
-        do {
-            TRY(maybe, expression(p, c));
-
-            tuple_append(argument_list, maybe.result);
-
-            EXPECT(comma, TOK_COMMA);
-            comma_found = comma.found;
-        } while (comma_found);
-
-        EXPECT(end_paren, TOK_END_PAREN);
-        if (!end_paren.found) {
-            return error(p, ERROR_PARSER_EXPECTED_END_PAREN);
-        }
-    }
-
-    return success(zero());
-}
-
-static ParserResult
-call(Parser *restrict p, Context *restrict c, Operand left) {
+static bool
+call(Operand *result, Operand left, Parser *parser, Context *context) {
     Tuple argument_list = tuple_create();
 
-    TRY(maybe, parse_actual_argument_list(p, c, &argument_list));
+    if (!parse_tuple(&argument_list, parser, context)) { return false; }
 
     Operand actual_arguments =
-        context_constants_append(c, value_create_tuple(argument_list));
-    return success(context_emit_call(c, left, actual_arguments));
+        context_constants_append(context, value_create_tuple(argument_list));
+
+    *result = context_emit_call(context, left, actual_arguments);
+    return true;
 }
 
-static ParserResult nil(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p);
-    Operand idx = context_constants_append(c, value_create_nil());
-    return success(idx);
+static bool nil(Operand *result, Parser *parser, Context *context) {
+    if (!nexttok(parser, context)) { return false; }
+    *result = context_constants_append(context, value_create_nil());
+    return true;
 }
 
-static ParserResult boolean_true(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p);
-    Operand idx = context_constants_append(c, value_create_boolean(1));
-    return success(idx);
+static bool boolean_true(Operand *result, Parser *parser, Context *context) {
+    if (!nexttok(parser, context)) { return false; }
+    *result = context_constants_append(context, value_create_boolean(true));
+    return true;
 }
 
-static ParserResult boolean_false(Parser *restrict p, Context *restrict c) {
-    NEXTTOK(p);
-    Operand idx = context_constants_append(c, value_create_boolean(0));
-    return success(idx);
+static bool boolean_false(Operand *result, Parser *parser, Context *context) {
+    if (!nexttok(parser, context)) { return false; }
+    *result = context_constants_append(context, value_create_boolean(0));
+    return true;
 }
 
-static ParserResult integer(Parser *restrict p,
-                            [[maybe_unused]] Context *restrict c) {
-    StringView sv = curtxt(p);
+static bool integer(Operand *result, Parser *parser, Context *context) {
+    StringView sv = curtxt(parser);
     i64 integer   = str_to_i64(sv.ptr, sv.length);
 
-    NEXTTOK(p);
-    Operand B;
+    if (!nexttok(parser, context)) { return false; }
     if (i64_in_range_i16(integer)) {
-        B = operand_immediate((i16)integer);
+        *result = operand_immediate((i16)integer);
     } else {
-        B = context_constants_append(c, value_create_i64(integer));
+        *result = context_constants_append(context, value_create_i64(integer));
     }
 
-    return success(B);
+    return true;
 }
 
-static ParserResult identifier(Parser *restrict p, Context *restrict c) {
-    StringView name = context_intern(c, curtxt(p));
-    NEXTTOK(p);
+static bool identifier(Operand *result, Parser *parser, Context *context) {
+    StringView name = context_intern(context, curtxt(parser));
+    if (!nexttok(parser, context)) { return false; }
 
-    LocalVariable *var = context_lookup_local(c, name);
-    if (var != NULL) { return success(operand_ssa(var->ssa)); }
+    LocalVariable *var = context_lookup_local(context, name);
+    if (var != NULL) {
+        *result = operand_ssa(var->ssa);
+        return true;
+    }
 
-    SymbolTableElement *global = context_global_symbol_table_at(c, name);
+    SymbolTableElement *global = context_global_symbol_table_at(context, name);
     if (string_view_empty(global->name)) {
-        return error(p, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
+        return error(parser, context, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
     }
 
-    u16 index = context_labels_insert(c, name);
-    return success(operand_label(index));
+    u16 index = context_labels_insert(context, name);
+    *result   = operand_label(index);
+    return true;
 }
 
-static ParserResult expression(Parser *restrict p, Context *restrict c) {
-    return parse_precedence(p, c, PREC_ASSIGNMENT);
+static bool expression(Operand *result, Parser *parser, Context *context) {
+    return parse_precedence(result, PREC_ASSIGNMENT, parser, context);
 }
 
-static ParserResult parse_precedence(Parser *restrict p,
-                                     Context *restrict c,
-                                     Precedence precedence) {
-    ParseRule *rule = get_rule(p->curtok);
+static bool parse_precedence(Operand *result,
+                             Precedence precedence,
+                             Parser *parser,
+                             Context *context) {
+    ParseRule *rule = get_rule(parser->curtok);
     if (rule->prefix == NULL) {
-        return error(p, ERROR_PARSER_EXPECTED_EXPRESSION);
+        return error(parser, context, ERROR_PARSER_EXPECTED_EXPRESSION);
     }
 
-    // Parse the right hand side of the expression
-    TRY(right, rule->prefix(p, c));
+    // Parse the left hand side of the expression
+    if (!rule->prefix(result, parser, context)) { return false; }
 
     while (1) {
-        ParseRule *rule = get_rule(p->curtok);
+        ParseRule *rule = get_rule(parser->curtok);
 
         if (precedence > rule->precedence) { break; }
 
-        TRY(left, rule->infix(p, c, right.result));
+        Operand left;
+        if (!rule->infix(&left, *result, parser, context)) { return false; }
 
-        right = left;
+        *result = left;
     }
 
-    return right;
+    return true;
 }
 
 static ParseRule *get_rule(Token token) {
@@ -695,25 +748,24 @@ static ParseRule *get_rule(Token token) {
     return &rules[token];
 }
 
-i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
+i32 parse_buffer(char const *buffer, u64 length, Context *c) {
     assert(buffer != NULL);
     assert(c != NULL);
 
     Parser p = parser_create();
 
     parser_set_view(&p, buffer, length);
-    ParserResult result = nexttok(&p);
-    if (result.has_error) {
-        error_print(&result.error, context_source_path(c), curline(&p));
-        parser_result_destroy(&result);
+    if (!nexttok(&p, c)) {
+        error_print(
+            context_current_error(c), context_source_path(c), curline(&p));
         return EXIT_FAILURE;
     }
 
     while (!finished(&p)) {
-        ParserResult maybe = definition(&p, c);
-        if (maybe.has_error) {
-            error_print(&maybe.error, context_source_path(c), curline(&p));
-            parser_result_destroy(&maybe);
+        Operand result;
+        if (!definition(&result, &p, c)) {
+            error_print(
+                context_current_error(c), context_source_path(c), curline(&p));
             return EXIT_FAILURE;
         }
     }
@@ -721,7 +773,7 @@ i32 parse_buffer(char const *restrict buffer, u64 length, Context *restrict c) {
     return EXIT_SUCCESS;
 }
 
-i32 parse_source(Context *restrict c) {
+i32 parse_source(Context *c) {
     assert(c != NULL);
     StringView path = context_source_path(c);
     FILE *file      = file_open(path.ptr, "r");
