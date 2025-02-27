@@ -166,7 +166,7 @@ stack_allocations_full(x64_StackAllocations *restrict stack_allocations) {
 
 static void
 stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
-    Growth64 g =
+    Growth g =
         array_growth_u64(stack_allocations->capacity, sizeof(x64_Allocation *));
     stack_allocations->buffer =
         reallocate(stack_allocations->buffer, g.alloc_size);
@@ -266,7 +266,7 @@ x64_allocation_buffer_full(x64_AllocationBuffer *restrict allocation_buffer) {
 
 static void
 x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
-    Growth64 g =
+    Growth g =
         array_growth_u64(allocation_buffer->capacity, sizeof(x64_Allocation *));
     allocation_buffer->buffer =
         reallocate(allocation_buffer->buffer, g.alloc_size);

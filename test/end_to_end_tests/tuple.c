@@ -18,7 +18,7 @@
  */
 #include <stdlib.h>
 
-#include "test_resource.h"
+#include "test_exp.h"
 #include "utility/config.h"
 
 int tuple([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {

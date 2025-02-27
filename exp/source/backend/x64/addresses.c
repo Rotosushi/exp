@@ -27,7 +27,7 @@ static bool x64_addresses_full(x64_Addresses *addresses) {
 
 static void x64_addresses_grow(x64_Addresses *addresses) {
     assert(addresses != nullptr);
-    Growth64 g = array_growth_u64(addresses->capacity, sizeof(x64_Address));
+    Growth g = array_growth_u64(addresses->capacity, sizeof(x64_Address));
     addresses->buffer   = reallocate(addresses->buffer, g.alloc_size);
     addresses->capacity = g.new_capacity;
 }

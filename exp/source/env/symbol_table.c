@@ -63,7 +63,7 @@ symbol_table_find(Symbol **restrict elements, u64 capacity, StringView name) {
 }
 
 static void symbol_table_grow(SymbolTable *restrict symbol_table) {
-    Growth64 g = array_growth_u64(symbol_table->capacity, sizeof(Symbol *));
+    Growth g = array_growth_u64(symbol_table->capacity, sizeof(Symbol *));
     Symbol **elements = callocate(g.new_capacity, sizeof(Symbol *));
 
     if (symbol_table->elements != NULL) {

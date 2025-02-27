@@ -46,9 +46,9 @@ static bool formal_argument_list_full(FormalArgumentList *restrict fal) {
 }
 
 static void formal_argument_list_grow(FormalArgumentList *restrict fal) {
-    Growth8 g     = array_growth_u8(fal->capacity, sizeof(FormalArgument));
+    Growth g      = array_growth_u8(fal->capacity, sizeof(FormalArgument));
     fal->list     = reallocate(fal->list, g.alloc_size);
-    fal->capacity = g.new_capacity;
+    fal->capacity = (u8)g.new_capacity;
 }
 
 void formal_argument_list_append(FormalArgumentList *restrict fal,
@@ -98,7 +98,7 @@ static bool local_variables_full(LocalVariables *restrict lv) {
 }
 
 static void local_variables_grow(LocalVariables *restrict lv) {
-    Growth64 g   = array_growth_u64(lv->capacity, sizeof(LocalVariable));
+    Growth g     = array_growth_u64(lv->capacity, sizeof(LocalVariable));
     lv->buffer   = reallocate(lv->buffer, g.alloc_size);
     lv->capacity = g.new_capacity;
 }

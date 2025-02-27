@@ -37,7 +37,7 @@ static bool test_resources_full(TestResources *test_resources) {
 
 static void test_resources_grow(TestResources *test_resources) {
     assert(test_resources != nullptr);
-    Growth64 g = array_growth_u64(test_resources->capacity, sizeof(String));
+    Growth g = array_growth_u64(test_resources->capacity, sizeof(String));
     test_resources->buffer   = reallocate(test_resources->buffer, g.alloc_size);
     test_resources->capacity = g.new_capacity;
 }
