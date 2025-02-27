@@ -91,4 +91,6 @@ void string_insert(String *restrict str, u64 offset, StringView sv);
 
 void string_replace_extension(String *restrict str, StringView ext);
 
+StringView string_extension(String const *restrict str);
+
 #endif // !EXP_UTILITY_STRING_H

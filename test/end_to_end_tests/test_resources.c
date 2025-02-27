@@ -85,6 +85,13 @@ void test_resources_gather(TestResources *test_resources,
         string_append(&full_path, SV("/"));
         string_append(&full_path, string_view_from_cstring(name));
 
+        // skip any files which are not source code (*.exp)
+        StringView extension = string_extension(&full_path);
+        if (!string_view_equality(extension, SV(".exp"))) {
+            string_destroy(&full_path);
+            continue;
+        }
+
         struct stat entry_stat;
         if (stat(string_to_cstring(&full_path), &entry_stat) < 0) {
             file_write(name, stderr);

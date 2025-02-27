@@ -324,6 +324,20 @@ void string_replace_extension(String *restrict str, StringView ext) {
     }
 }
 
+StringView string_extension(String const *restrict str) {
+    assert(str != NULL);
+    u64 length         = str->length;
+    u64 cursor         = length;
+    char const *buffer = string_is_small(str) ? str->buffer : str->ptr;
+
+    // search for the last '.' in the string
+    while ((cursor != 0) && (buffer[cursor] != '.')) {
+        --cursor;
+    }
+
+    return string_view_from_str(buffer + cursor, length - cursor);
+}
+
 // void print_string(String *restrict s, FILE *restrict file) {
 //   file_write(s->buffer, file);
 // }
