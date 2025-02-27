@@ -22,41 +22,42 @@
 #include "utility/config.h"
 
 int pemdas([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-    int result = EXIT_SUCCESS;
+  int result = EXIT_SUCCESS;
 
-    StringView source_path = SV(EXP_TEST_DIR "/pemdas.exp");
+  StringView source_path = SV(EXP_TEST_DIR "/pemdas.exp");
 
-    result |= test_exp(source_path, "fn main() { return 6 + 2 * 3; }", 12);
-    result |= test_exp(source_path, "fn main() { return 2 * 3 + 6; }", 12);
-    result |= test_exp(source_path, "fn main() { return 6 / 2 * 3; }", 9);
-    result |= test_exp(source_path, "fn main() { return 2 * 3 / 6; }", 1);
-    result |= test_exp(source_path, "fn main() { return (6 + 2) * 3; }", 24);
-    result |= test_exp(source_path, "fn main() { return 6 + (2 * 3); }", 12);
+  result |= test_exp(source_path, "fn main() { return 6 + 2 * 3; }", 12);
+  result |= test_exp(source_path, "fn main() { return 2 * 3 + 6; }", 12);
+  result |= test_exp(source_path, "fn main() { return 6 / 2 * 3; }", 9);
+  result |= test_exp(source_path, "fn main() { return 2 * 3 / 6; }", 1);
+  result |= test_exp(source_path, "fn main() { return (6 + 2) * 3; }", 24);
+  result |= test_exp(source_path, "fn main() { return 6 + (2 * 3); }", 12);
 
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return x + y * z; }",
-                       12);
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return y * z + x; }",
-                       12);
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return x / y * z; }",
-                       9);
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return y * z / x; }",
-                       1);
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return (x + y) * z; }",
-                       24);
-    result |= test_exp(source_path,
-                       "fn main() { const x = 6; const y = 2; const z = 3; "
-                       "return x + (y * z); }",
-                       12);
+  result |= test_exp(
+      source_path,
+      "fn main() { const x = 6; const y = 2; const z = 3; return x + y * z; }",
+      12);
+  result |= test_exp(
+      source_path,
+      "fn main() { const x = 6; const y = 2; const z = 3; return y * z + x; }",
+      12);
+  result |= test_exp(
+      source_path,
+      "fn main() { const x = 6; const y = 2; const z = 3; return x / y * z; }",
+      9);
+  result |= test_exp(
+      source_path,
+      "fn main() { const x = 6; const y = 2; const z = 3; return y * z / x; }",
+      1);
+  result |= test_exp(source_path,
+                     "fn main() { const x = 6; const y = 2; const z = 3; "
+                     "return (x + y) * z; }",
+                     24);
+  result |= test_exp(source_path,
+                     "fn main() { const x = 6; const y = 2; const z = 3; "
+                     "return x + (y * z); }",
+                     12);
 
-    return result;
+  return result;
 }
+

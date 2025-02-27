@@ -21,25 +21,25 @@
 #include "imr/type.h"
 #include "utility/string_view.h"
 
-typedef enum SymbolKind {
-    STE_UNDEFINED,
-    STE_FUNCTION,
-} SymbolKind;
+typedef enum SymbolTableElementKind {
+  STE_UNDEFINED,
+  STE_FUNCTION,
+} SymbolTableElementKind;
 
-typedef struct Symbol {
-    StringView name;
-    Type *type;
-    SymbolKind kind;
-    union {
-        u8 empty;
-        FunctionBody function_body;
-    };
-} Symbol;
+typedef struct SymbolTableElement {
+  StringView name;
+  Type *type;
+  SymbolTableElementKind kind;
+  union {
+    u8 empty;
+    FunctionBody function_body;
+  };
+} SymbolTableElement;
 
 typedef struct SymbolTable {
-    u64 count;
-    u64 capacity;
-    Symbol **elements;
+  u64 count;
+  u64 capacity;
+  SymbolTableElement *elements;
 } SymbolTable;
 
 SymbolTable symbol_table_create();
@@ -55,11 +55,12 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  * @param value
  * @return SymbolTableElement *
  */
-Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
+SymbolTableElement *symbol_table_at(SymbolTable *restrict symbol_table,
+                                    StringView name);
 
 typedef struct SymbolTableIterator {
-    Symbol **element;
-    Symbol **end;
+  SymbolTableElement *element;
+  SymbolTableElement *end;
 } SymbolTableIterator;
 
 SymbolTableIterator

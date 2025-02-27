@@ -1,8 +1,0 @@
-
-fn f (a: i64) {
-	return a;
-}
-
-fn main () {
-	return f(4) + f(3) + f(3) + f(2);
-}

@@ -1,6 +1,0 @@
-/* this comment */
-fn main() {
-	/* is inside, /* and nested, /* nested again, */ */ */
-	return 6;
-}
-/* and after the code*/

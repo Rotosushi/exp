@@ -28,12 +28,12 @@
  *
  */
 typedef struct String {
-    u64 length;
-    u64 capacity;
-    union {
-        char *ptr;
-        char buffer[sizeof(char *)];
-    };
+  u64 length;
+  u64 capacity;
+  union {
+    char *ptr;
+    char buffer[sizeof(char *)];
+  };
 } String;
 
 String string_create();
@@ -45,8 +45,6 @@ StringView string_to_view(String const *restrict str);
 char const *string_to_cstring(String const *restrict str);
 
 String string_from_view(StringView sv);
-
-String string_from_cstring(char const *cstring);
 
 String string_from_file(FILE *restrict file);
 

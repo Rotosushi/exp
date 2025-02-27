@@ -1,5 +1,0 @@
-fn main () {
-	const x = 2;
-	const y = 2;
-	return x + y;
-}

@@ -83,7 +83,8 @@ u16 context_labels_insert(Context *context, StringView symbol);
 StringView context_labels_at(Context *context, u16 index);
 
 // symbol table functions
-Symbol *context_global_symbol_table_at(Context *context, StringView name);
+SymbolTableElement *context_global_symbol_table_at(Context *context,
+                                                   StringView name);
 
 SymbolTableIterator context_global_symbol_table_iterator(Context *context);
 

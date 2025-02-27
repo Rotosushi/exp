@@ -653,7 +653,7 @@ static bool identifier(Operand *result, Parser *parser, Context *context) {
         return true;
     }
 
-    Symbol *global = context_global_symbol_table_at(context, name);
+    SymbolTableElement *global = context_global_symbol_table_at(context, name);
     if (string_view_empty(global->name)) {
         return error(parser, context, ERROR_TYPECHECK_UNDEFINED_SYMBOL);
     }

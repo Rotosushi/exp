@@ -1,3 +1,0 @@
-/* this is a */ 
-/* comment split between two blocks */
-fn main() { return 1; }

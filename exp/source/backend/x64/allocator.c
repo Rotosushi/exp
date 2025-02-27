@@ -360,7 +360,7 @@ void x64_allocator_release_gpr(x64_Allocator *restrict allocator,
                                u64 Idx,
                                x64_Bytecode *restrict x64bc) {
     x64_Allocation *active = x64_gprp_allocation_at(&allocator->gprp, gpr);
-    if ((active == NULL) || active->lifetime.last_use < Idx) {
+    if ((active == NULL) || active->lifetime.last_use <= Idx) {
         x64_gprp_release(&allocator->gprp, gpr);
         return;
     }
