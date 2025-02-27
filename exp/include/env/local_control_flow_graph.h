@@ -1,6 +1,4 @@
-// Copyright 2025 Cade Weinberg. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+
 #ifndef EXP_ENV_LOCAL_CONTROL_FLOW_GRAPH_H
 #define EXP_ENV_LOCAL_CONTROL_FLOW_GRAPH_H
 

@@ -1,8 +1,24 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+// #include <assert.h>
+// #include <stddef.h>
+
 #include "imr/block.h"
 #include "env/context.h"
 #include "utility/alloc.h"
@@ -45,8 +61,8 @@ void block_append(Block *bytecode, Instruction I) {
     bytecode->length += 1;
 }
 
-static void print_B(String *buffer, StringView mnemonic, Instruction I,
-                    Context *context) {
+static void
+print_B(String *buffer, StringView mnemonic, Instruction I, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
@@ -54,8 +70,8 @@ static void print_B(String *buffer, StringView mnemonic, Instruction I,
     print_operand(buffer, I.B_kind, I.B_data, context);
 }
 
-static void print_AB(String *buffer, StringView mnemonic, Instruction I,
-                     Context *context) {
+static void
+print_AB(String *buffer, StringView mnemonic, Instruction I, Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     string_append(buffer, mnemonic);
@@ -65,7 +81,9 @@ static void print_AB(String *buffer, StringView mnemonic, Instruction I,
     print_operand(buffer, I.B_kind, I.B_data, context);
 }
 
-static void print_ABC(String *buffer, StringView mnemonic, Instruction I,
+static void print_ABC(String *buffer,
+                      StringView mnemonic,
+                      Instruction I,
                       Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);

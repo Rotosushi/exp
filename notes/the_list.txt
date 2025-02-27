@@ -1,0 +1,18 @@
+
+    -) we currently use separate Opcodes to handle Binary and unary operations. and this works great.
+        however, adding a new Binary or Unary operator causes a refactoring of many differnt places in the codebase,
+        namely Typechecking and Codegen. This will cause those switch statements to become O(N) large where N is 
+        the number of operations. additionally, these operations take up Opcodes, of which we only have 2^7 = 128
+        different ones. while this is more than enough for now, and the immediate future. how are we going to handle 
+        the overloads of these operations? and what about all of the opcodes that must be devoted to control flow, and 
+        any other specialty operations that we want to add to the compiler?
+
+        I think a better approach would be to use the existing Call operation to call a builtin function which then 
+        handles codegen for a given operation. 
+        additionally, such builtins can be used to implement all other builtin functions to the compiler. which as 
+        we can see when looking at mature compilers, comes in handy when adding features to the language that can be 
+        represented with a function call syntax. Operations such as, type-of, size-of, align-of, __builtin_add_overflow, etc...
+
+
+
+

@@ -1,8 +1,4 @@
-/**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
+
 
 #include "targets/x86_64/imr/operand.h"
 #include "env/context.h"
@@ -51,8 +47,10 @@ u8 x86_64_operand_size(x86_64_OperandKind kind, x86_64_OperandData data) {
     }
 }
 
-void print_x86_64_operand(String *buffer, x86_64_OperandKind kind,
-                          x86_64_OperandData data, Context *context) {
+void print_x86_64_operand(String *buffer,
+                          x86_64_OperandKind kind,
+                          x86_64_OperandData data,
+                          Context *context) {
     EXP_ASSERT(buffer != nullptr);
     EXP_ASSERT(context != nullptr);
     switch (kind) {

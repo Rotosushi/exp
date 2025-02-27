@@ -1,13 +1,10 @@
-/**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
+
 
 #include <assert.h>
 
 #include "intrinsics/type_of.h"
 #include "targets/x86_64/codegen/return.h"
+#include "targets/x86_64/instructions/ret.h"
 #include "utility/unreachable.h"
 
 /*
@@ -18,8 +15,10 @@
  *  the return slot is implicit to the function itself.
  */
 
-ExpResult x86_64_codegen_return(String *buffer, Instruction *instruction,
-                                Function *function, Context *context) {
+ExpResult x86_64_codegen_return(String *buffer,
+                                Instruction *instruction,
+                                Function *function,
+                                Context *context) {
     assert(buffer != nullptr);
     assert(instruction != nullptr);
     assert(function != nullptr);

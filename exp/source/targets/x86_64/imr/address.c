@@ -1,8 +1,3 @@
-/**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
 
 #include "targets/x86_64/imr/address.h"
 #include "utility/assert.h"
@@ -17,8 +12,10 @@ x86_64_Address x86_64_address_create(x86_64_GPR base, i64 offset) {
     return address;
 }
 
-x86_64_Address x86_64_address_create_indexed(x86_64_GPR base, x86_64_GPR index,
-                                             u8 scale, i64 offset) {
+x86_64_Address x86_64_address_create_indexed(x86_64_GPR base,
+                                             x86_64_GPR index,
+                                             u8 scale,
+                                             i64 offset) {
     EXP_ASSERT(validate_scale(scale));
     x86_64_Address address = {.base      = base,
                               .index     = index,

@@ -1,8 +1,4 @@
-/**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
+
 
 #include "targets/x86_64/emit.h"
 #include "targets/x86_64/codegen/instruction.h"
@@ -40,8 +36,8 @@ ExpResult emit_x86_64_symbol(String *buffer, Symbol *symbol, Context *context) {
     Function *function = &symbol->function_body;
     Block *block       = &function->block;
     for (u64 index = 0; index < block->length; ++index) {
-        x86_64_codegen_instruction(buffer, block->buffer + index, function,
-                                   context);
+        x86_64_codegen_instruction(
+            buffer, block->buffer + index, function, context);
     }
 
     directive_size_label_relative(buffer, symbol->name);

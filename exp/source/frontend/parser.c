@@ -1,8 +1,25 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+// #include <EXP_ASSERT.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+
 #include "frontend/parser.h"
 #include "env/error.h"
 #include "frontend/lexer.h"
@@ -146,8 +163,8 @@ static ExpectResult expect(Parser *parser, Token token) {
 
 static ParseRule *get_rule(Token token);
 static bool expression(Operand *result, Parser *parser);
-static bool parse_precedence(Operand *result, Precedence precedence,
-                             Parser *parser);
+static bool
+parse_precedence(Operand *result, Precedence precedence, Parser *parser);
 
 static bool parse_type(Type const **result, Parser *parser);
 
@@ -723,8 +740,8 @@ static bool expression(Operand *result, Parser *parser) {
     return parse_precedence(result, PREC_ASSIGNMENT, parser);
 }
 
-static bool parse_precedence(Operand *result, Precedence precedence,
-                             Parser *parser) {
+static bool
+parse_precedence(Operand *result, Precedence precedence, Parser *parser) {
     EXP_ASSERT(result != nullptr);
     EXP_ASSERT(parser != nullptr);
     ParseRule *rule = get_rule(parser->curtok);
@@ -815,8 +832,10 @@ ExpResult parse_buffer(char const *buffer, u64 length, Context *context) {
     if (!nexttok(&parser)) {
         String buffer;
         string_initialize(&buffer);
-        print_error(&buffer, context_current_error(context),
-                    context_source_path(context), curline(&parser));
+        print_error(&buffer,
+                    context_current_error(context),
+                    context_source_path(context),
+                    curline(&parser));
         file_write(string_to_view(&buffer), program_error);
         string_terminate(&buffer);
         return EXP_FAILURE;
@@ -827,8 +846,10 @@ ExpResult parse_buffer(char const *buffer, u64 length, Context *context) {
         if (!definition(&result, &parser)) {
             String buffer;
             string_initialize(&buffer);
-            print_error(&buffer, context_current_error(context),
-                        context_source_path(context), curline(&parser));
+            print_error(&buffer,
+                        context_current_error(context),
+                        context_source_path(context),
+                        curline(&parser));
             file_write(string_to_view(&buffer), program_error);
             string_terminate(&buffer);
             return EXP_FAILURE;

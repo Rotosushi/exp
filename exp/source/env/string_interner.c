@@ -1,8 +1,22 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+// #include <EXP_ASSERT.h>
 #include <math.h>
 
 #include "env/string_interner.h"
@@ -43,7 +57,8 @@ void string_interner_terminate(StringInterner *string_interner) {
 }
 
 static ConstantString **string_interner_find(ConstantString **buffer,
-                                             u32 capacity, u64 length,
+                                             u32 capacity,
+                                             u64 length,
                                              char const *ptr) {
     u32 index = hash_cstring(ptr, length) % capacity;
     while (1) {
@@ -71,9 +86,10 @@ static void string_interner_grow(StringInterner *string_interner) {
             ConstantString **element = string_interner->buffer + i;
             if (*element == nullptr) { continue; }
 
-            ConstantString **target =
-                string_interner_find(elements, g.new_capacity,
-                                     (*element)->length, (*element)->buffer);
+            ConstantString **target = string_interner_find(elements,
+                                                           g.new_capacity,
+                                                           (*element)->length,
+                                                           (*element)->buffer);
             // do a "shallow copy". This is safe because we are in a
             // situation where it is acceptable to "move" the data from
             // the source string to the destination string.
@@ -100,9 +116,10 @@ StringView string_interner_insert(StringInterner *string_interner,
         string_interner_grow(string_interner);
     }
 
-    ConstantString **element =
-        string_interner_find(string_interner->buffer, string_interner->capacity,
-                             view.length, view.ptr);
+    ConstantString **element = string_interner_find(string_interner->buffer,
+                                                    string_interner->capacity,
+                                                    view.length,
+                                                    view.ptr);
     if (*element != nullptr) { return constant_string_to_view(*element); }
 
     string_interner->count++;

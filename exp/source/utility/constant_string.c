@@ -1,8 +1,6 @@
-/**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
+
+// #include <assert.h>
+// #include <string.h>
 
 #include "utility/constant_string.h"
 #include "utility/alloc.h"
@@ -31,6 +29,6 @@ StringView constant_string_to_view(ConstantString *string) {
 bool constant_string_equality(ConstantString *string, StringView view) {
     EXP_ASSERT(string != nullptr);
     if (string->length != view.length) return false;
-    return memory_compare(string->buffer, string->length, view.ptr,
-                          view.length) == 0;
+    return memory_compare(
+               string->buffer, string->length, view.ptr, view.length) == 0;
 }
