@@ -22,26 +22,26 @@
 #include "utility/unreachable.h"
 
 u64 align_of(Type *restrict type) {
-    assert(type != NULL);
+  assert(type != NULL);
 
-    switch (type->kind) {
-    // #NOTE: single byte objects do not
-    // have an alignment specified by gcc or
-    // clang. I believe this is
-    // because we are aligning all other
-    // objects, so when we allocate the byte
-    // we are guaranteed to be at a location counter
-    // that is valid for a single byte.
-    // for other objects, the alignment is often equal
-    // to their size. quads are 8 bytes, and their
-    // alignment is 8. ints are 4 bytes, and their
-    // alignment is 4.
-    // string literals are align 8 as well.
-    case TYPE_KIND_NIL:     return 8;
-    case TYPE_KIND_BOOLEAN: return 8;
-    case TYPE_KIND_I64:     return 8;
-    case TYPE_KIND_TUPLE:   return 8;
+  switch (type->kind) {
+  // #NOTE: single byte objects do not
+  // have an alignment specified by gcc or
+  // clang. I believe this is
+  // because we are aligning all other
+  // objects, so when we allocate the byte
+  // we are guaranteed to be at a location counter
+  // that is valid for a single byte.
+  // for other objects, the alignment is often equal
+  // to their size. quads are 8 bytes, and their
+  // alignment is 8. ints are 4 bytes, and their
+  // alignment is 4.
+  // string literals are align 8 as well.
+  case TYPEKIND_NIL:     return 8;
+  case TYPEKIND_BOOLEAN: return 8;
+  case TYPEKIND_I64:     return 8;
+  case TYPEKIND_TUPLE:   return 8;
 
-    default: EXP_UNREACHABLE();
-    }
+  default: EXP_UNREACHABLE();
+  }
 }

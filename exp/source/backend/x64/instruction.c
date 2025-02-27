@@ -159,7 +159,7 @@ static void x64_emit_operand(x64_Operand operand,
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
         //  can validly appear here.
-        assert(constant->kind == VALUE_KIND_I64);
+        assert(constant->kind == VALUEKIND_I64);
         string_append(buffer, SV("$"));
         string_append_i64(buffer, constant->i64_);
         break;

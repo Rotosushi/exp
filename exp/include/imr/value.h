@@ -22,21 +22,21 @@
 #include "utility/io.h"
 
 typedef enum ValueKind {
-    VALUE_KIND_UNINITIALIZED,
+  VALUEKIND_UNINITIALIZED,
 
-    VALUE_KIND_NIL,
-    VALUE_KIND_BOOLEAN,
-    VALUE_KIND_I64,
+  VALUEKIND_NIL,
+  VALUEKIND_BOOLEAN,
+  VALUEKIND_I64,
 
-    VALUE_KIND_TUPLE,
+  VALUEKIND_TUPLE,
 } ValueKind;
 
 struct Value;
 
 typedef struct Tuple {
-    u64 size;
-    u64 capacity;
-    Operand *elements;
+  u64 size;
+  u64 capacity;
+  Operand *elements;
 } Tuple;
 
 /**
@@ -44,13 +44,13 @@ typedef struct Tuple {
  *
  */
 typedef struct Value {
-    ValueKind kind;
-    union {
-        bool nil;
-        bool boolean;
-        i64 i64_;
-        Tuple tuple;
-    };
+  ValueKind kind;
+  union {
+    bool nil;
+    bool boolean;
+    i64 i64_;
+    Tuple tuple;
+  };
 } Value;
 
 Tuple tuple_create();

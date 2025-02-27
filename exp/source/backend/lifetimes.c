@@ -60,7 +60,7 @@ static void lifetimes_compute_operand(Operand operand,
 
     case OPERAND_KIND_CONSTANT: {
         Value *constant = context_constants_at(context, operand.data.constant);
-        if (constant->kind == VALUE_KIND_TUPLE) {
+        if (constant->kind == VALUEKIND_TUPLE) {
             Tuple *tuple = &constant->tuple;
 
             for (u64 i = 0; i < tuple->size; ++i) {

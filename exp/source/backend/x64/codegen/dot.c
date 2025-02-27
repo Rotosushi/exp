@@ -31,7 +31,7 @@ void x64_codegen_dot(Instruction I,
     LocalVariable *local = x64_context_lookup_ssa(context, I.A.data.ssa);
 
     assert(I.C.kind == OPERAND_KIND_IMMEDIATE);
-    assert(I.C.data.immediate >= 0);
+    assert(I.C.immediate >= 0);
     u16 index = (u16)I.C.data.immediate;
 
     switch (I.B.kind) {
@@ -39,7 +39,7 @@ void x64_codegen_dot(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_Allocation *B = x64_context_allocation_of(context, I.B.data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
-        assert(B->type->kind == TYPE_KIND_TUPLE);
+        assert(B->type->kind == TYPEKIND_TUPLE);
         x64_Address *tuple_address = &B->location.address;
         x64_Address element_address =
             x64_get_element_address(tuple_address, B->type, index);

@@ -46,20 +46,18 @@ void constants_destroy(Constants *restrict constants) {
 }
 
 static bool constants_full(Constants *restrict constants) {
-    assert(constants != NULL);
     return (constants->count + 1) >= constants->capacity;
 }
 
 static void constants_grow(Constants *restrict constants) {
-    assert(constants != NULL);
     Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
     constants->capacity = (u16)g.new_capacity;
 }
 
 Operand constants_append(Constants *restrict constants, Value value) {
+    assert(values != NULL);
 
-    assert(constants != NULL);
     for (u16 i = 0; i < constants->count; ++i) {
         Value *v = constants->buffer + i;
         if (value_equality(v, &value)) {
@@ -70,8 +68,7 @@ Operand constants_append(Constants *restrict constants, Value value) {
 
     if (constants_full(constants)) { constants_grow(constants); }
 
-    u16 index = constants->count;
-    assert(constants != NULL);
+    u16 index                           = constants->count;
     constants->buffer[constants->count] = value;
     constants->count += 1;
 
@@ -79,8 +76,8 @@ Operand constants_append(Constants *restrict constants, Value value) {
 }
 
 Value *constants_at(Constants *restrict constants, u16 index) {
-    assert(constants != NULL);
-    assert(index < constants->count);
+    assert(values != NULL);
+    assert(index < values->count);
     return constants->buffer + index;
 }
 

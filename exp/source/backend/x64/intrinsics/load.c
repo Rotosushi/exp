@@ -31,31 +31,31 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
                                            Value *restrict value,
                                            x64_Context *restrict context) {
     switch (value->kind) {
-    case VALUE_KIND_UNINITIALIZED: break; // don't initialize the uninitialized
+    case VALUEKIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
-    case VALUE_KIND_NIL: {
+    case VALUEKIND_NIL: {
         x64_context_append(
             context,
             x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
         break;
     }
 
-    case VALUE_KIND_BOOLEAN: {
+    case VALUEKIND_BOOLEAN: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
                                    x64_operand_immediate((i64)value->boolean)));
         break;
     }
 
-    case VALUE_KIND_I64: {
+    case VALUEKIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
                                    x64_operand_immediate(value->i64_)));
         break;
     }
 
-    case VALUE_KIND_TUPLE:
-    default:               EXP_UNREACHABLE();
+    case VALUEKIND_TUPLE:
+    default:              EXP_UNREACHABLE();
     }
 }
 
@@ -127,7 +127,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     case OPERAND_KIND_CONSTANT: {
         Value *value = x64_context_value_at(context, src.data.constant);
         Type *type   = type_of_value(value, context->context);
-        assert(value->kind == VALUE_KIND_TUPLE);
+        assert(value->kind == VALUEKIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
         Tuple *tuple = &value->tuple;
@@ -237,7 +237,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     case OPERAND_KIND_CONSTANT: {
         Value *value = x64_context_value_at(context, src.data.constant);
         Type *type   = type_of_value(value, context->context);
-        assert(value->kind == VALUE_KIND_TUPLE);
+        assert(value->kind == VALUEKIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
         Tuple *tuple = &value->tuple;
@@ -338,29 +338,29 @@ void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
     (void)type;
 
     switch (value->kind) {
-    case VALUE_KIND_UNINITIALIZED: break;
+    case VALUEKIND_UNINITIALIZED: break;
 
-    case VALUE_KIND_NIL: {
+    case VALUEKIND_NIL: {
         x64_context_append(
             context, x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
         break;
     }
 
-    case VALUE_KIND_BOOLEAN: {
+    case VALUEKIND_BOOLEAN: {
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(dst),
                                    x64_operand_immediate((i64)value->boolean)));
         break;
     }
 
-    case VALUE_KIND_I64: {
+    case VALUEKIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(dst),
                                    x64_operand_immediate(value->i64_)));
         break;
     }
 
-    case VALUE_KIND_TUPLE: {
+    case VALUEKIND_TUPLE: {
         assert(dst->location.kind == LOCATION_ADDRESS);
         Tuple *tuple            = &value->tuple;
         x64_Address dst_address = dst->location.address;
