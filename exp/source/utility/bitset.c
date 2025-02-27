@@ -25,14 +25,14 @@ Bitset bitset_create() {
     return B;
 }
 
-static u32 bit_at(u8 position) {
+static u64 bit_at(u8 position) {
     assert(position < bitset_length());
-    return 1u << (u32)position;
+    return 1ul << (u64)position;
 }
 
-static u32 state_at(u8 position, bool state) {
+static u64 state_at(u8 position, bool state) {
     assert(position < bitset_length());
-    return (u32)state << (u32)position;
+    return (u64)state << (u64)position;
 }
 
 void bitset_set_bit(Bitset *bitset, u8 position) {
@@ -49,5 +49,5 @@ void bitset_assign_bit(Bitset *bitset, u8 position, bool state) {
 }
 
 bool bitset_check_bit(Bitset *bitset, u8 bit_position) {
-    return (bitset->bits >> (u32)bit_position) & 1;
+    return (bitset->bits >> (u64)bit_position) & 1;
 }

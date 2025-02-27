@@ -29,7 +29,7 @@ void context_initialize(Context *context,
     string_interner_initialize(&context->string_interner);
     type_interner_initialize(&context->type_interner);
     symbol_table_create(&context->symbol_table);
-    labels_initialize(&context->labels);
+    // labels_initialize(&context->labels);
     constants_initialize(&context->constants);
     error_initialize(&context->current_error);
 }
@@ -40,7 +40,7 @@ void context_terminate(Context *context) {
     string_interner_terminate(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->symbol_table));
-    labels_terminate(&(context->labels));
+    // labels_terminate(&(context->labels));
     constants_terminate(&(context->constants));
     error_terminate(&context->current_error);
 }
@@ -127,9 +127,9 @@ Type const *context_boolean_type(Context *context) {
 }
 */
 
-Type const *context_i32_type(Context *context) {
+Type const *context_i64_type(Context *context) {
     assert(context != nullptr);
-    return type_interner_i32_type(&(context->type_interner));
+    return type_interner_i64_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TupleType tuple) {
@@ -151,22 +151,7 @@ Symbol *context_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->symbol_table, name);
 }
 
-u32 context_labels_append(Context *context, StringView label) {
-    assert(context != nullptr);
-    return labels_insert(&context->labels, label);
-}
-
-StringView context_labels_at(Context *context, u32 label) {
-    assert(context != nullptr);
-    return labels_at(&context->labels, label);
-}
-
-Value *context_constants_at(Context *context, u32 constant) {
-    assert(context != nullptr);
-    return constants_at(&context->constants, constant);
-}
-
-u32 context_constants_append_tuple(Context *context, Tuple tuple) {
+Value *context_constants_append_tuple(Context *context, Tuple tuple) {
     assert(context != nullptr);
     return constants_append_tuple(&(context->constants), tuple);
 }

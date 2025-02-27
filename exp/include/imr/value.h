@@ -25,7 +25,7 @@ typedef enum ValueKind {
 
     //  VALUE_KIND_NIL,
     //  VALUE_KIND_BOOLEAN,
-    VALUE_KIND_I32,
+    VALUE_KIND_I64,
 
     VALUE_KIND_TUPLE,
 } ValueKind;
@@ -33,8 +33,8 @@ typedef enum ValueKind {
 struct Value;
 
 typedef struct Tuple {
-    u32 size;
-    u32 capacity;
+    u64 size;
+    u64 capacity;
     Operand *elements;
 } Tuple;
 
@@ -47,7 +47,7 @@ typedef struct Value {
     union {
         //        bool nil;
         //        bool boolean;
-        i32 i32_;
+        i64 i64_;
         Tuple tuple;
     };
 } Value;
@@ -62,7 +62,7 @@ void value_initialize(Value *value);
 void value_terminate(Value *value);
 // void value_initialize_nil(Value *value);
 // void value_initialize_boolean(Value *value, bool bool_);
-void value_initialize_i32(Value *value, i32 i32_);
+void value_initialize_i64(Value *value, i64 i64_);
 void value_initialize_tuple(Value *value, Tuple tuple);
 // void value_assign(Value *target, Value *source);
 bool value_equality(Value *A, Value *B);

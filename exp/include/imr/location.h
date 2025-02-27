@@ -38,8 +38,8 @@ typedef enum LocationKind : u8 {
 } LocationKind;
 
 typedef union LocationData {
-    u32 general_purpose_register;
-    u32 stack_slot;
+    u64 general_purpose_register;
+    u64 stack_slot;
 } LocationData;
 
 typedef struct Location {
@@ -48,7 +48,7 @@ typedef struct Location {
 } Location;
 
 Location location_create();
-Location location_register(u32 gpr);
-Location location_stack_slot(u32 stack_slot);
+Location location_register(u64 register_);
+Location location_stack_slot(u64 stack_slot);
 
 #endif // EXP_IMR_LOCATION_H

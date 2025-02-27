@@ -89,15 +89,14 @@ use these integral types. as all of their data is stored directly within the ins
 if we allow operands to be 64 bits, then we can place pointers into them. and due to the padding added we can expand kinds to two bytes each. or keep them 1 byte each and 
 get 4 bytes of padding. which can be used for other purposes.
 an instruction becomes at least 2 + 2 * 3 + 8 * 3 = 64 bytes
-
-which is 4 words long, so it's 4X size. and with a 64 byte cache line, we can only fit a single instruction per cache line, but there are many cache lines available. 
+which is 4 words long, so with a 64 byte cache line, we can fit a single instruction per cache line, but there are many cache lines available. 
 
 The benefit of being able to use pointers directly within instructions is the removal of 
 'integer handles'. such as the one we use for names appearing in instructions. To access a 
 name we first use the integer stored in the instruction to access an array, which itself stores 
 the pointer to the actual textual data. if we could use a pointer in the instruction, we could 
 just store the pointer to the actual textual data instead. which removes a layer of indirection,
-as well as removing any limit to the number of names available to be used within the compiler. (beyond the 2^48 limit on the capacity of a single symbol table)
+as well as removing any limit to the number of names available to be used within the compiler. (beyond the 2^64 limit on the capacity of a single symbol table)
 This has the same effect, on each kind of operand we use integer handles for.
 which is, values and names.
 

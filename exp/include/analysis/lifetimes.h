@@ -17,8 +17,9 @@
 #ifndef EXP_ANALYSIS_LIFETIMES_H
 #define EXP_ANALYSIS_LIFETIMES_H
 
-#include "imr/function.h"
+#include "imr/function_body.h"
 
-void analyze_lifetimes_of_locals(Function *function, struct Context *context);
+void analyze_lifetimes_of_locals(FunctionBody *function,
+                                 struct Context *context);
 
 #endif // EXP_ANALYSIS_LIFETIMES_H

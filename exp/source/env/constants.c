@@ -32,8 +32,8 @@ void constants_initialize(Constants *constants) {
 
 void constants_terminate(Constants *constants) {
     assert(constants != NULL);
-    for (u32 i = 0; i < constants->count; ++i) {
-        Value *constant = constants->buffer + i;
+    for (u64 i = 0; i < constants->count; ++i) {
+        Value *constant = constants->buffer[i];
         value_terminate(constant);
     }
 
@@ -43,12 +43,6 @@ void constants_terminate(Constants *constants) {
     constants->buffer = NULL;
 }
 
-Value *constants_at(Constants *constants, u32 constant) {
-    assert(constants != nullptr);
-    assert(constant < constants->count);
-    return constants->buffer + constant;
-}
-
 static bool constants_full(Constants *constants) {
     assert(constants != NULL);
     return (constants->count + 1) >= constants->capacity;
@@ -56,31 +50,31 @@ static bool constants_full(Constants *constants) {
 
 static void constants_grow(Constants *constants) {
     assert(constants != NULL);
-    Growth32 g          = array_growth_u32(constants->capacity, sizeof(Value));
+    Growth64 g          = array_growth_u64(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
     constants->capacity = g.new_capacity;
 }
 
-u32 constants_append_tuple(Constants *constants, Tuple tuple) {
+Value *constants_append_tuple(Constants *constants, Tuple tuple) {
     assert(constants != NULL);
 
-    Value value;
-    value_initialize_tuple(&value, tuple);
+    Value *value = callocate(1, sizeof(Value));
+    value_initialize_tuple(value, tuple);
 
-    for (u32 index = 0; index < constants->count; ++index) {
-        Value *cursor = constants->buffer + index;
+    for (u64 index = 0; index < constants->count; ++index) {
+        Value *cursor = constants->buffer[index];
         assert(cursor != nullptr);
 
-        if (value_equality(cursor, &value)) {
-            value_terminate(&value);
-            return index;
+        if (value_equality(cursor, value)) {
+            value_terminate(value);
+            return cursor;
         }
     }
 
     if (constants_full(constants)) { constants_grow(constants); }
 
-    u32 index                = constants->count++;
+    u64 index                = constants->count++;
     constants->buffer[index] = value;
 
-    return index;
+    return constants->buffer[index];
 }

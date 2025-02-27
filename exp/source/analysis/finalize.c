@@ -21,13 +21,13 @@
 
 #include "analysis/allocation.h"
 #include "analysis/finalize.h"
-#include "analysis/infer_types.h"
 #include "analysis/lifetimes.h"
+#include "analysis/typecheck.h"
 
-i32 finalize_function(Function *function, struct Context *context) {
+i32 finalize_function(FunctionBody *function, struct Context *context) {
     assert(function != nullptr);
     assert(context != nullptr);
-    if (infer_types_of_locals(function, context) != EXIT_SUCCESS) {
+    if (typecheck_function(function, context) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     analyze_lifetimes_of_locals(function, context);

@@ -131,10 +131,10 @@ void directive_size(StringView name, u64 size, String *restrict file);
 void directive_size_label_relative(StringView name, String *restrict file);
 
 typedef enum STT_Type {
-    STT_FUNC,
-    STT_OBJECT,
-    STT_TLS,
-    STT_COMMON,
+  STT_FUNC,
+  STT_OBJECT,
+  STT_TLS,
+  STT_COMMON,
 } STT_Type;
 
 void directive_type(StringView name, STT_Type kind, String *restrict file);

@@ -27,7 +27,7 @@ u64 size_of(Type const *type) {
     switch (type->kind) {
     // case TYPE_KIND_NIL:     return 4;
     // case TYPE_KIND_BOOLEAN: return 4;
-    case TYPE_KIND_I32: return 4;
+    case TYPE_KIND_I64: return 8;
 
     case TYPE_KIND_TUPLE: {
         TupleType const *tuple = &type->tuple_type;

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "compiling/bytecode.md",
+                "file": "compiling/IR.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "bytecode"
+              "title": "IR"
             }
           }
         ]
@@ -164,7 +164,6 @@
   },
   "active": "c6fdb2e6d255c008",
   "lastOpenFiles": [
-    "compiling/IR.md",
     "compiling/compiler.md",
     "Untitled.canvas",
     "1687571468497962.jpg",
@@ -172,6 +171,7 @@
     "1687571508545974.jpg",
     "compiling/bytecode.md",
     "compiling/bytecode.md~",
+    "compiling/IR.md",
     "compiling/ssa.md",
     "compiling/analysis/type-system.md",
     "exp.md",

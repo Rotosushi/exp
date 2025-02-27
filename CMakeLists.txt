@@ -41,7 +41,7 @@ set(EXP_FUZZ -fsanitize-coverage=trace-pc)
 
 # TODO: add a Sanitize, Fuzzing, Profiling build types
 if (CMAKE_BUILD_TYPE STREQUAL "Sanitize")
-  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} -g ${EXP_SANITIZERS})
+  set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_SANITIZERS})
   set(EXP_LINK_OPTIONS ${EXP_SANITIZERS})
 elseif (CMAKE_BUILD_TYPE STREQUAL "Profile")
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS} ${EXP_PROFILE})

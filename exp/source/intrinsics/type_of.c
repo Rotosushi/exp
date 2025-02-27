@@ -24,30 +24,33 @@
 
 Type const *type_of_operand(OperandKind kind,
                             OperandData data,
-                            Function *function,
+                            FunctionBody *function,
                             Context *context) {
     assert(function != nullptr);
     assert(context != nullptr);
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_local_at(function, data.ssa);
-        assert(local != nullptr);
+        Local *local = function_body_local_at(function, data.ssa);
         assert(local->type != nullptr);
         return local->type;
     }
 
-    case OPERAND_KIND_I32: {
-        return context_i32_type(context);
+    case OPERAND_KIND_I64: {
+        return context_i64_type(context);
     }
-
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, data.constant);
-        return type_of_value(constant, function, context);
+        return type_of_value(data.constant, function, context);
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name = context_labels_at(context, data.label);
-        Symbol *global  = context_symbol_table_at(context, name);
+        StringView name = constant_string_to_view(data.label);
+        Local *local    = function_body_local_at_name(function, name);
+        if (local != nullptr) {
+            assert(local->type != nullptr);
+            return local->type;
+        }
+
+        Symbol *global = context_symbol_table_at(context, name);
         assert(global->type != nullptr);
         return global->type;
     }
@@ -56,15 +59,13 @@ Type const *type_of_operand(OperandKind kind,
     }
 }
 
-Type const *type_of_value(Value *value, Function *function, Context *context) {
-    assert(value != nullptr);
-    assert(function != nullptr);
-    assert(context != nullptr);
+Type const *
+type_of_value(Value *value, FunctionBody *function, Context *context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
     // case VALUE_KIND_NIL:           return context_nil_type(context);
     // case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
-    case VALUE_KIND_I32:   return context_i32_type(context);
+    case VALUE_KIND_I64:   return context_i64_type(context);
     case VALUE_KIND_TUPLE: {
         Tuple *tuple = &value->tuple;
         TupleType tuple_type;
@@ -82,16 +83,15 @@ Type const *type_of_value(Value *value, Function *function, Context *context) {
     }
 }
 
-Type const *type_of_function(Function *body, Context *context) {
-    assert(body != nullptr);
-    assert(body->return_type != nullptr);
+Type const *type_of_function(FunctionBody *body, Context *context) {
+    assert(body != NULL);
+    assert(body->return_type != NULL);
 
     TupleType argument_types;
     tuple_type_initialize(&argument_types);
     for (u64 i = 0; i < body->arguments.size; ++i) {
-        Local *formal_argument = body->arguments.list[i];
-        assert(formal_argument != nullptr);
-        Type const *argument_type = formal_argument->type;
+        FormalArgument *formal_argument = &body->arguments.list[i];
+        Type const *argument_type       = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 

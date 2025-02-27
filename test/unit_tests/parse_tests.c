@@ -17,23 +17,22 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdlib.h>
+#include <string.h>
 
 #include "frontend/parser.h"
-#include "utility/io.h"
 
-bool test_parse(StringView body) {
+bool test_parse(char const *body) {
     Context context;
     context_initialize(
         &context, bitset_create(), string_view_create(), string_view_create());
 
-    bool failure =
-        (parse_buffer(body.ptr, body.length, &context) == EXIT_FAILURE);
+    bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 
     context_terminate(&context);
 
     if (failure) {
-        file_write(body.ptr, stderr);
-        file_write(" failed to parse.", stderr);
+        fputs(body, stderr);
+        fputs(" failed to parse.", stderr);
     }
 
     return failure;
@@ -42,11 +41,11 @@ bool test_parse(StringView body) {
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     bool failure = 0;
 
-    failure |= test_parse(SV("fn f() { return 0; }"));
-    failure |= test_parse(SV("fn f() { return 3 + 3; }"));
-    failure |= test_parse(SV("fn f() { return 3 - 5 * 9; }"));
+    failure |= test_parse("fn f() { return 0; }");
+    failure |= test_parse("fn f() { return 3 + 3; }");
+    failure |= test_parse("fn f() { return 3 - 5 * 9; }");
     failure |=
-        test_parse(SV("fn f() { return 12; }\n fn g() { return f() + 12; }"));
+        test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
 
     if (failure) {
         return EXIT_FAILURE;

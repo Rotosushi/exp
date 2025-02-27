@@ -17,8 +17,8 @@
 #ifndef EXP_ANALYSIS_ALLOCATION_H
 #define EXP_ANALYSIS_ALLOCATION_H
 
-#include "imr/function.h"
+#include "imr/function_body.h"
 
-void allocate_locals(Function *function, struct Context *context);
+void allocate_locals(FunctionBody *function, struct Context *context);
 
 #endif // EXP_ANALYSIS_ALLOCATION_H

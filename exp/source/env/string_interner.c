@@ -42,11 +42,12 @@ void string_interner_terminate(StringInterner *string_interner) {
         return;
     }
 
-    for (u32 i = 0; i < string_interner->capacity; ++i) {
+    for (u64 i = 0; i < string_interner->capacity; ++i) {
         ConstantString **element = string_interner->buffer + i;
-        if (*element == nullptr) { continue; }
-        constant_string_deallocate(*element);
-        *element = nullptr;
+        if (*element != nullptr) {
+            constant_string_deallocate(*element);
+            *element = nullptr;
+        }
     }
 
     string_interner->capacity = 0;
@@ -56,10 +57,10 @@ void string_interner_terminate(StringInterner *string_interner) {
 }
 
 static ConstantString **string_interner_find(ConstantString **buffer,
-                                             u32 capacity,
+                                             u64 capacity,
                                              u64 length,
                                              char const *ptr) {
-    u32 index = hash_cstring(ptr, length) % capacity;
+    u64 index = hash_cstring(ptr, length) % capacity;
     while (1) {
         ConstantString **element = buffer + index;
         if ((*element == nullptr) ||
@@ -73,8 +74,8 @@ static ConstantString **string_interner_find(ConstantString **buffer,
 }
 
 static void string_interner_grow(StringInterner *string_interner) {
-    Growth32 g =
-        array_growth_u32(string_interner->capacity, sizeof(ConstantString *));
+    Growth64 g =
+        array_growth_u64(string_interner->capacity, sizeof(ConstantString *));
     ConstantString **elements =
         callocate(g.new_capacity, sizeof(ConstantString *));
 

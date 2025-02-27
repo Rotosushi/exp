@@ -21,35 +21,26 @@
 #include "utility/bitset.h"
 
 typedef struct Locals {
-    u32 count;
-    u32 capacity;
-    Local *buffer;
+    u64 count;
+    u64 capacity;
+    Local **buffer;
 } Locals;
 
 typedef struct LocalAllocator {
     Bitset registers;
-    u32 stack_slots;
+    u64 stack_slots;
     Locals locals;
 } LocalAllocator;
 
 void local_allocator_initialize(LocalAllocator *allocator);
 void local_allocator_terminate(LocalAllocator *allocator);
 
-u32 local_allocator_declare_ssa(LocalAllocator *allocator);
-Local *local_allocator_at(LocalAllocator *allocator, u32 ssa);
-// Local *local_allocator_at_name(LocalAllocator *allocator, StringView name);
-/*
-void local_allocator_allocate_result(LocalAllocator *allocator, Local *local);
-void local_allocator_allocate_formal_argument(LocalAllocator *allocator,
-                                              Local *local,
-                                              u8 argument_index);
-void local_allocator_allocate_actual_argument(LocalAllocator *allocator,
-                                              Local *local,
-                                              u8 argument_index,
-                                              u32 block_index);
-*/
+u64 local_allocator_declare_ssa(LocalAllocator *allocator);
+Local *local_allocator_at(LocalAllocator *allocator, u64 ssa);
+Local *local_allocator_at_name(LocalAllocator *allocator, StringView name);
+
 void local_allocator_allocate_local(LocalAllocator *allocator,
                                     Local *local,
-                                    u32 block_index);
+                                    u64 block_index);
 
 #endif // EXP_IMR_ALLOCATOR_H

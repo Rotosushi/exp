@@ -55,7 +55,7 @@ void tuple_assign(Tuple *A, Tuple *B) {
 bool tuple_equal(Tuple *A, Tuple *B) {
     if (A->size != B->size) { return 0; }
 
-    for (u32 i = 0; i < A->size; ++i) {
+    for (u64 i = 0; i < A->size; ++i) {
         if (!operand_equality(A->elements[i], B->elements[i])) { return 0; }
     }
 
@@ -67,7 +67,7 @@ static bool tuple_full(Tuple *tuple) {
 }
 
 static void tuple_grow(Tuple *tuple) {
-    Growth32 g = array_growth_u32(tuple->capacity, sizeof(*tuple->elements));
+    Growth64 g = array_growth_u64(tuple->capacity, sizeof(*tuple->elements));
     tuple->elements = reallocate(tuple->elements, g.alloc_size);
     tuple->capacity = g.new_capacity;
 }
@@ -112,10 +112,10 @@ void value_initialize_boolean(Value *value, bool bool_) {
 }
 */
 
-void value_initialize_i32(Value *value, i32 i32_) {
+void value_initialize_i64(Value *value, i64 i64_) {
     assert(value != nullptr);
-    value->kind = VALUE_KIND_I32;
-    value->i32_ = i32_;
+    value->kind = VALUE_KIND_I64;
+    value->i64_ = i64_;
 }
 
 void value_initialize_tuple(Value *value, Tuple tuple) {
@@ -151,8 +151,8 @@ bool value_equality(Value *A, Value *B) {
     switch (A->kind) {
     case VALUE_KIND_UNINITIALIZED: return true;
 
-    case VALUE_KIND_I32: {
-        return A->i32_ == B->i32_;
+    case VALUE_KIND_I64: {
+        return A->i64_ == B->i64_;
     }
 
     case VALUE_KIND_TUPLE: {
@@ -165,7 +165,7 @@ bool value_equality(Value *A, Value *B) {
 
 static void print_tuple(String *buffer, Tuple const *tuple, Context *context) {
     string_append(buffer, SV("("));
-    for (u32 i = 0; i < tuple->size; ++i) {
+    for (u64 i = 0; i < tuple->size; ++i) {
         Operand element = tuple->elements[i];
         print_operand(buffer, element.kind, element.data, context);
 
@@ -190,7 +190,7 @@ void print_value(String *buffer, Value const *v, Context *context) {
         }
             */
 
-    case VALUE_KIND_I32:   string_append_i64(buffer, v->i32_); break;
+    case VALUE_KIND_I64:   string_append_i64(buffer, v->i64_); break;
     case VALUE_KIND_TUPLE: print_tuple(buffer, &v->tuple, context); break;
 
     default: EXP_UNREACHABLE();

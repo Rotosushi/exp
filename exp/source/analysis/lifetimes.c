@@ -6,12 +6,12 @@
 #include "utility/unreachable.h"
 
 typedef struct Subject {
-    Function *function;
+    FunctionBody *function;
     Context *context;
 } Subject;
 
 static void
-subject_initialize(Subject *subject, Function *function, Context *context) {
+subject_initialize(Subject *subject, FunctionBody *function, Context *context) {
     assert(subject != nullptr);
     assert(function != nullptr);
     assert(context != nullptr);
@@ -28,12 +28,12 @@ subject_initialize(Subject *subject, Function *function, Context *context) {
 
 static void analyze_usage_of_operand(OperandKind kind,
                                      OperandData data,
-                                     u32 block_index,
+                                     u64 block_index,
                                      Subject *subject) {
     assert(validate_subject(subject));
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_local_at(subject->function, data.ssa);
+        Local *local = function_body_local_at(subject->function, data.ssa);
         assert(local != nullptr);
         if (block_index > local->lifetime.last_use) {
             local_update_last_use(local, block_index);
@@ -42,7 +42,7 @@ static void analyze_usage_of_operand(OperandKind kind,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(subject->context, data.constant);
+        Value *constant = data.constant;
         assert(constant != nullptr);
         if (constant->kind != VALUE_KIND_TUPLE) break;
         Tuple *tuple = &constant->tuple;
@@ -54,8 +54,18 @@ static void analyze_usage_of_operand(OperandKind kind,
         break;
     }
 
+    case OPERAND_KIND_LABEL: {
+        StringView name = constant_string_to_view(data.label);
+        Local *local    = function_body_local_at_name(subject->function, name);
+        if (local == nullptr) break; // can validly be a global name
+        if (block_index > local->lifetime.last_use) {
+            local_update_last_use(local, block_index);
+        }
+        break;
+    }
+
     // #NOTE: a lifetime only makes sense w.r.t. local variables.
-    //  A local can only be present within Operands directly, or
+    //  %ssa and label can only be present within Operands directly, or
     //  within a Tuple. becuase Tuples are composed of Operands.
     //  thus nothing needs to be done for any other kind of Operand.
     default: break;
@@ -63,86 +73,63 @@ static void analyze_usage_of_operand(OperandKind kind,
 }
 
 static void
-analyze_first_use(Instruction *instruction, u32 block_index, Subject *subject) {
+analyze_first_use(Instruction I, u64 block_index, Subject *subject) {
     assert(validate_subject(subject));
-    switch (instruction->A_kind) {
+    switch (I.A_kind) {
     case OPERAND_KIND_SSA: {
-        Local *local =
-            function_local_at(subject->function, instruction->A_data.ssa);
+        Local *local = function_body_local_at(subject->function, I.A_data.ssa);
         assert(local != nullptr);
         local_update_first_use(local, block_index);
         break;
     }
 
-    // #NOTE: the same reasoning applies for A position operands as for other
-    //  operands, in addition, position A is exclusively used for Locals. as we
-    //  do not have global variables.
+    case OPERAND_KIND_LABEL: {
+        StringView name = constant_string_to_view(I.A_data.label);
+        Local *local    = function_body_local_at_name(subject->function, name);
+        assert(local != nullptr);
+        local_update_first_use(local, block_index);
+        break;
+    }
+
+    // #NOTE: the same reasoning applies for A position operands
     default: break;
     }
 }
 
-/*
-[[maybe_unused]] static void analyze_usage_of_A(Instruction *instruction,
-                                                u64 block_index,
-                                                Subject *subject) {
+static void
+analyze_usage_of_B(Instruction I, u64 block_index, Subject *subject) {
     assert(validate_subject(subject));
-    analyze_usage_of_operand(
-        instruction->B_kind, instruction->B_data, block_index, subject);
-}
-*/
-
-static void analyze_usage_of_AB(Instruction *instruction,
-                                u32 block_index,
-                                Subject *subject) {
-    assert(validate_subject(subject));
-    analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->B_kind, instruction->B_data, block_index, subject);
+    analyze_usage_of_operand(I.B_kind, I.B_data, block_index, subject);
 }
 
-static void analyze_usage_of_ABC(Instruction *instruction,
-                                 u32 block_index,
-                                 Subject *subject) {
+static void
+analyze_usage_of_AB(Instruction I, u64 block_index, Subject *subject) {
     assert(validate_subject(subject));
-    analyze_first_use(instruction, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->B_kind, instruction->B_data, block_index, subject);
-    analyze_usage_of_operand(
-        instruction->C_kind, instruction->C_data, block_index, subject);
+    analyze_first_use(I, block_index, subject);
+    analyze_usage_of_operand(I.B_kind, I.B_data, block_index, subject);
 }
 
-static void analyze_usage_of_instruction(Instruction *instruction,
-                                         u32 block_index,
-                                         Subject *subject) {
+static void
+analyze_usage_of_ABC(Instruction I, u64 block_index, Subject *subject) {
     assert(validate_subject(subject));
-    switch (instruction->opcode) {
-    case OPCODE_RETURN:
-        analyze_usage_of_AB(instruction, block_index, subject);
-        break;
-    case OPCODE_CALL:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_NEGATE:
-        analyze_usage_of_AB(instruction, block_index, subject);
-        break;
-    case OPCODE_DOT:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_ADD:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_SUBTRACT:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_MULTIPLY:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_DIVIDE:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
-    case OPCODE_MODULUS:
-        analyze_usage_of_ABC(instruction, block_index, subject);
-        break;
+    analyze_first_use(I, block_index, subject);
+    analyze_usage_of_operand(I.B_kind, I.B_data, block_index, subject);
+    analyze_usage_of_operand(I.C_kind, I.C_data, block_index, subject);
+}
+
+static void
+analyze_usage_of_instruction(Instruction I, u64 block_index, Subject *subject) {
+    assert(validate_subject(subject));
+    switch (I.opcode) {
+    case OPCODE_RETURN:   analyze_usage_of_B(I, block_index, subject); break;
+    case OPCODE_CALL:     analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_NEGATE:   analyze_usage_of_AB(I, block_index, subject); break;
+    case OPCODE_DOT:      analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_ADD:      analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_SUBTRACT: analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_MULTIPLY: analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_DIVIDE:   analyze_usage_of_ABC(I, block_index, subject); break;
+    case OPCODE_MODULUS:  analyze_usage_of_ABC(I, block_index, subject); break;
 
     default: EXP_UNREACHABLE();
     }
@@ -151,12 +138,12 @@ static void analyze_usage_of_instruction(Instruction *instruction,
 static void analyze_usage_of_block(Subject *subject) {
     assert(validate_subject(subject));
     Block *block = &subject->function->block;
-    for (u32 index = 0; index < block->length; ++index) {
-        analyze_usage_of_instruction(block->buffer + index, index, subject);
+    for (u64 index = 0; index < block->length; ++index) {
+        analyze_usage_of_instruction(block->buffer[index], index, subject);
     }
 }
 
-void analyze_lifetimes_of_locals(Function *function, Context *context) {
+void analyze_lifetimes_of_locals(FunctionBody *function, Context *context) {
     Subject subject;
     subject_initialize(&subject, function, context);
     analyze_usage_of_block(&subject);

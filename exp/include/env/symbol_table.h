@@ -17,12 +17,12 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/function.h"
+#include "imr/function_body.h"
 
 typedef struct Symbol {
     StringView name;
     Type const *type;
-    Function function_body;
+    FunctionBody function_body;
 } Symbol;
 
 typedef struct SymbolTable {

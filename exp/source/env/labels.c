@@ -29,9 +29,9 @@ void labels_initialize(Labels *labels) {
 }
 
 void labels_terminate(Labels *labels) {
-    assert(labels != nullptr);
+    assert(labels != NULL);
     deallocate(labels->buffer);
-    labels->buffer   = nullptr;
+    labels->buffer   = NULL;
     labels->count    = 0;
     labels->capacity = 0;
 }
@@ -48,20 +48,23 @@ static void global_labels_grow(Labels *labels) {
     labels->capacity = g.new_capacity;
 }
 
-u32 labels_insert(Labels *labels, StringView label) {
+Operand labels_insert(Labels *labels, StringView label) {
     assert(labels != nullptr);
 
     if (global_labels_full(labels)) { global_labels_grow(labels); }
 
     for (u32 index = 0; index < labels->count; ++index) {
         StringView view = labels->buffer[index];
-        if (string_view_equality(view, label)) { return index; }
+        if (string_view_equality(view, label)) {
+            return operand_label((u16)index);
+        }
     }
 
     u32 index             = labels->count;
     labels->buffer[index] = label;
     labels->count += 1;
-    return index;
+
+    return operand_label(index);
 }
 
 StringView labels_at(Labels *symbols, u32 index) {

@@ -11,7 +11,7 @@ ExpResult finalize_context(Context *context) {
     for (u64 index = 0; index < symbol_table->capacity; ++index) {
         Symbol *symbol = symbol_table->elements[index];
         if (symbol == nullptr) { continue; }
-        Function *function = &symbol->function_body;
+        FunctionBody *function = &symbol->function_body;
         if (finalize_function(function, context) != EXP_SUCCESS) {
             return EXP_FAILURE;
         }
