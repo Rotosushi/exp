@@ -45,7 +45,7 @@ void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               x64_Context *restrict context);
 
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
-                                            u16 index,
+                                            Value *value,
                                             u64 Idx,
                                             x64_Context *restrict context);
 

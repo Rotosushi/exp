@@ -53,8 +53,9 @@ void x64_codegen_dot(Instruction I,
 
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        x64_codegen_load_allocation_from_value(
-            A, I.B_data.constant, block_index, context);
+        Value *value =
+            context_constants_at(context->context, I.B_data.constant);
+        x64_codegen_load_allocation_from_value(A, value, block_index, context);
         break;
     }
 

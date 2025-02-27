@@ -40,6 +40,7 @@ typedef enum x64_GPR : u8 {
     X64_GPR_R13,
     X64_GPR_R14,
     X64_GPR_R15,
+    X64_GPR_NONE = u8_MAX,
 } x64_GPR;
 
 StringView x64_gpr_to_sv(x64_GPR r);
