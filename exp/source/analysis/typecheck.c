@@ -81,7 +81,7 @@ static TResult typecheck_operand(Context *restrict c, Operand operand) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name            = context_global_labels_at(c, operand.index);
+        StringView name            = context_labels_at(c, operand.index);
         SymbolTableElement *global = context_global_symbol_table_at(c, name);
         Type *type                 = global->type;
         if (type == NULL) {

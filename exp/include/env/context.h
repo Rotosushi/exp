@@ -18,7 +18,7 @@
 #define EXP_ENV_CONTEXT_H
 
 #include "env/context_options.h"
-#include "env/global_labels.h"
+#include "env/labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
@@ -30,13 +30,13 @@
  *
  */
 typedef struct Context {
-  ContextOptions options;
-  StringInterner string_interner;
-  TypeInterner type_interner;
-  SymbolTable global_symbol_table;
-  GlobalLabels global_labels;
-  FunctionBody *current_function;
-  Values values;
+    ContextOptions options;
+    StringInterner string_interner;
+    TypeInterner type_interner;
+    SymbolTable global_symbol_table;
+    Labels global_labels;
+    Values values;
+    FunctionBody *current_function;
 } Context;
 
 /**
@@ -72,9 +72,9 @@ Type *context_function_type(Context *restrict context,
                             Type *return_type,
                             TupleType argument_types);
 
-// global labels functions
-u16 context_global_labels_insert(Context *restrict context, StringView symbol);
-StringView context_global_labels_at(Context *restrict context, u16 index);
+// labels functions
+u16 context_labels_insert(Context *restrict context, StringView symbol);
+StringView context_labels_at(Context *restrict context, u16 index);
 
 // symbol table functions
 SymbolTableElement *context_global_symbol_table_at(Context *restrict context,
@@ -112,11 +112,11 @@ void context_emit_return(Context *restrict c, Operand B);
 Operand context_emit_call(Context *restrict c, Operand B, Operand C);
 Operand context_emit_dot(Context *restrict c, Operand B, Operand C);
 Operand context_emit_load(Context *restrict c, Operand B);
-Operand context_emit_neg(Context *restrict c, Operand B);
+Operand context_emit_negate(Context *restrict c, Operand B);
 Operand context_emit_add(Context *restrict c, Operand B, Operand C);
-Operand context_emit_sub(Context *restrict c, Operand B, Operand C);
-Operand context_emit_mul(Context *restrict c, Operand B, Operand C);
-Operand context_emit_div(Context *restrict c, Operand B, Operand C);
-Operand context_emit_mod(Context *restrict c, Operand B, Operand C);
+Operand context_emit_subtract(Context *restrict c, Operand B, Operand C);
+Operand context_emit_multiply(Context *restrict c, Operand B, Operand C);
+Operand context_emit_divide(Context *restrict c, Operand B, Operand C);
+Operand context_emit_modulus(Context *restrict c, Operand B, Operand C);
 
 #endif // !EXP_ENV_CONTEXT_H

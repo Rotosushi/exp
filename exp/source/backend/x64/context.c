@@ -44,7 +44,7 @@ Value *x64_context_value_at(x64_Context *restrict context, u16 index) {
 StringView x64_context_global_labels_at(x64_Context *restrict x64_context,
                                         u16 idx) {
     assert(x64_context != NULL);
-    return context_global_labels_at(x64_context->context, idx);
+    return context_labels_at(x64_context->context, idx);
 }
 
 void x64_context_enter_function(x64_Context *restrict x64_context,

@@ -76,7 +76,7 @@ Type *type_of_operand(Operand operand, Context *restrict context) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView label = context_global_labels_at(context, operand.index);
+        StringView label = context_labels_at(context, operand.index);
         SymbolTableElement *symbol =
             context_global_symbol_table_at(context, label);
         assert(!string_view_empty(symbol->name));

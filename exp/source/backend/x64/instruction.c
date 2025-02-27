@@ -167,7 +167,7 @@ static void x64_emit_operand(x64_Operand operand,
 
     case X64_OPERAND_KIND_LABEL: {
         assert(operand.index <= u16_MAX);
-        StringView name = context_global_labels_at(context, (u16)operand.index);
+        StringView name = context_labels_at(context, (u16)operand.index);
         string_append(buffer, name);
         break;
     }
