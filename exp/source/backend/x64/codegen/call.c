@@ -67,7 +67,7 @@ void x64_codegen_call(Instruction I,
     u8 scalar_argument_count = 0;
 
     if (type_is_scalar(local->type)) {
-        x64_context_allocate_to_gpr(context, local, X64_GPR_RAX, block_index);
+        x64_context_allocate_to_gpr(context, local, X64GPR_RAX, block_index);
     } else {
         x64_Allocation *result =
             x64_context_allocate(context, local, block_index);
@@ -104,7 +104,7 @@ void x64_codegen_call(Instruction I,
     }
 
     i64 actual_arguments_stack_size = 0;
-    x64_Address arg_address         = x64_address_construct(X64_GPR_RSP,
+    x64_Address arg_address         = x64_address_construct(X64GPR_RSP,
                                                     x64_optional_gpr_empty(),
                                                     x64_optional_u8_empty(),
                                                     x64_optional_i64_empty());
@@ -125,7 +125,7 @@ void x64_codegen_call(Instruction I,
 
     x64_context_insert(
         context,
-        x64_sub(x64_operand_gpr(X64_GPR_RSP),
+        x64_sub(x64_operand_gpr(X64GPR_RSP),
                 x64_operand_immediate(actual_arguments_stack_size)),
         current_bytecode_offset);
 
@@ -133,7 +133,7 @@ void x64_codegen_call(Instruction I,
 
     x64_context_append(
         context,
-        x64_add(x64_operand_gpr(X64_GPR_RSP),
+        x64_add(x64_operand_gpr(X64GPR_RSP),
                 x64_operand_immediate(actual_arguments_stack_size)));
 
     operand_array_destroy(&stack_args);

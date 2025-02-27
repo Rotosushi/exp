@@ -112,13 +112,13 @@ static void x64_codegen_function_header(x64_Context *restrict context) {
     if (x64_context_uses_stack(context)) {
         x64_context_prepend(
             context,
-            x64_sub(x64_operand_gpr(X64_GPR_RSP),
+            x64_sub(x64_operand_gpr(X64GPR_RSP),
                     x64_operand_immediate(x64_context_stack_size(context))));
     }
     x64_context_prepend(
         context,
-        x64_mov(x64_operand_gpr(X64_GPR_RBP), x64_operand_gpr(X64_GPR_RSP)));
-    x64_context_prepend(context, x64_push(x64_operand_gpr(X64_GPR_RBP)));
+        x64_mov(x64_operand_gpr(X64GPR_RBP), x64_operand_gpr(X64GPR_RSP)));
+    x64_context_prepend(context, x64_push(x64_operand_gpr(X64GPR_RBP)));
 }
 
 static void x64_codegen_function(x64_Context *restrict context) {
