@@ -30,21 +30,22 @@ x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
     return args;
 }
 
-static void x64_formal_arguments_destroy(x64_FormalArgumentList *args) {
+static void
+x64_formal_arguments_destroy(x64_FormalArgumentList *restrict args) {
     args->size = 0;
     deallocate(args->buffer);
     args->buffer = NULL;
 }
 
-x64_FormalArgument *x64_formal_argument_list_at(x64_FormalArgumentList *args,
-                                                u8 idx) {
+x64_FormalArgument *
+x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
     assert(args != NULL);
     assert(idx < args->size);
     return args->buffer + idx;
 }
 
-x64_FunctionBody x64_function_body_create(FunctionBody *body,
-                                          x64_Context *context) {
+x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
+                                          x64_Context *restrict context) {
     x64_FunctionBody x64_body = {
         .arguments = x64_formal_argument_list_create(body->arguments.size),
         .result    = NULL,
@@ -90,7 +91,7 @@ x64_FunctionBody x64_function_body_create(FunctionBody *body,
     return x64_body;
 }
 
-void x64_function_body_destroy(x64_FunctionBody *body) {
+void x64_function_body_destroy(x64_FunctionBody *restrict body) {
     assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
     x64_bytecode_destroy(&body->bc);

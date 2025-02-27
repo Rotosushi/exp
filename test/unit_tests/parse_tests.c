@@ -21,35 +21,39 @@
 
 #include "frontend/parser.h"
 
+static Context init_context() {
+  CLIOptions options = cli_options_create();
+  Context result     = context_create(&options);
+  return result;
+}
+
 bool test_parse(char const *body) {
-    CLIOptions options = cli_options_create();
-    Context context;
-    context_initialize(&context, &options);
+  Context context = init_context();
 
-    bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
+  bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 
-    context_terminate(&context);
+  context_destroy(&context);
 
-    if (failure) {
-        fputs(body, stderr);
-        fputs(" failed to parse.", stderr);
-    }
+  if (failure) {
+    fputs(body, stderr);
+    fputs(" failed to parse.", stderr);
+  }
 
-    return failure;
+  return failure;
 }
 
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
-    bool failure = 0;
+  bool failure = 0;
 
-    failure |= test_parse("fn f() { return 0; }");
-    failure |= test_parse("fn f() { return 3 + 3; }");
-    failure |= test_parse("fn f() { return 3 - 5 * 9; }");
-    failure |=
-        test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
+  failure |= test_parse("fn f() { return 0; }");
+  failure |= test_parse("fn f() { return 3 + 3; }");
+  failure |= test_parse("fn f() { return 3 - 5 * 9; }");
+  failure |= test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
 
-    if (failure) {
-        return EXIT_FAILURE;
-    } else {
-        return EXIT_SUCCESS;
-    }
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }
+

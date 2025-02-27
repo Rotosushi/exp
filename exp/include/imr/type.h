@@ -28,21 +28,33 @@ typedef enum TypeKind {
     TYPE_KIND_FUNCTION,
 } TypeKind;
 
+typedef struct NilType {
+    char empty; // zero length structs are not valid C
+} NilType;
+
+typedef struct BooleanType {
+    char empty;
+} BooleanType;
+
+typedef struct IntegerType {
+    char empty;
+} IntegerType;
+
 struct Type;
 
 typedef struct TupleType {
-    u64 count;
+    u64 size;
     u64 capacity;
-    struct Type const **types;
+    struct Type **types;
 } TupleType;
 
-void tuple_type_initialize(TupleType *tuple_type);
-void tuple_type_terminate(TupleType *tuple_type);
+TupleType tuple_type_create();
+void tuple_type_destroy(TupleType *restrict tuple_type);
 bool tuple_type_equality(TupleType const *A, TupleType const *B);
-void tuple_type_append(TupleType *tuple_type, struct Type const *type);
+void tuple_type_append(TupleType *restrict tuple_type, struct Type *type);
 
 typedef struct FunctionType {
-    struct Type const *return_type;
+    struct Type *return_type;
     TupleType argument_types;
 } FunctionType;
 
@@ -61,23 +73,38 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B);
 typedef struct Type {
     TypeKind kind;
     union {
-        u8 scalar_type;
+        NilType nil_type;
+        BooleanType boolean_type;
+        IntegerType integer_type;
         TupleType tuple_type;
         FunctionType function_type;
     };
 } Type;
 
-Type *type_nil();
-Type *type_boolean();
-Type *type_i64();
-Type *type_tuple(TupleType tuple_type);
-Type *type_function(Type const *result, TupleType args);
-void type_terminate(Type *type);
+Type type_create_nil();
 
-bool type_equality(Type const *T, Type const *U);
-bool type_is_scalar(Type const *T);
+Type type_create_boolean();
 
-void emit_type(Type const *t, String *buf);
-void print_type(Type const *t, FILE *file);
+Type type_create_integer();
+
+Type type_create_tuple(TupleType tuple_type);
+
+Type type_create_function(Type *result, TupleType args);
+
+void type_destroy(Type *type);
+/**
+ * @brief equality compares types
+ *
+ * @param t1
+ * @param t2
+ * @return bool
+ */
+bool type_equality(Type const *t1, Type const *t2);
+
+bool type_is_scalar(Type const *t);
+
+void emit_type(Type const *restrict t, String *restrict buf);
+
+void print_type(Type const *restrict t, FILE *restrict file);
 
 #endif // !EXP_IMR_TYPE_H

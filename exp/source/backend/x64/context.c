@@ -24,7 +24,7 @@
 x64_Context x64_context_create(Context *context) {
     assert(context != nullptr);
     x64_Context x64_context = {
-        .symbols  = x64_symbol_table_create(context->symbol_table.count),
+        .symbols  = x64_symbol_table_create(context->global_symbol_table.count),
         .context  = context,
         .body     = nullptr,
         .x64_body = nullptr};

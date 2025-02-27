@@ -108,7 +108,7 @@ i32 test_resource(StringView path) {
     i32 test_result         = process(exe_path, test_args);
     if (test_result != exit_code) {
         string_destroy(&exe_string);
-        file_write("\ntest failed: test resource: ", stderr);
+        file_write("\ntest resource: ", stderr);
         file_write(path.ptr, stderr);
         file_write("\nexpected exit code: ", stderr);
         file_write_i64(exit_code, stderr);

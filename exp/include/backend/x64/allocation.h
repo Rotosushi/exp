@@ -25,7 +25,7 @@ typedef struct x64_Allocation {
     u64 ssa;
     Lifetime lifetime;
     x64_Location location;
-    Type const *type;
+    Type *type;
 } x64_Allocation;
 
 x64_Allocation *x64_allocation_allocate();

@@ -22,18 +22,17 @@
 #include "intrinsics/size_of.h"
 #include "utility/unreachable.h"
 
-x64_Address
-x64_get_element_address(x64_Address *src, Type const *type, u64 index) {
+x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
     x64_Address result = *src;
 
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
-        TupleType const *tuple = &type->tuple_type;
-        assert(index < tuple->count);
+        TupleType *tuple = &type->tuple_type;
+        assert(index < tuple->size);
 
         for (u64 i = 0; i < index; ++i) {
-            Type const *element_type = tuple->types[i];
-            u64 element_size         = size_of(element_type);
+            Type *element_type = tuple->types[i];
+            u64 element_size   = size_of(element_type);
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
 

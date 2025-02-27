@@ -23,16 +23,16 @@
 #include "utility/string_view.h"
 
 typedef struct FormalArgument {
-    StringView name;
-    Type const *type;
-    u8 index;
-    u16 ssa;
+  StringView name;
+  Type *type;
+  u8 index;
+  u16 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
-    FormalArgument *list;
-    u8 size;
-    u8 capacity;
+  FormalArgument *list;
+  u8 size;
+  u8 capacity;
 } FormalArgumentList;
 
 void formal_argument_list_append(FormalArgumentList *restrict fal,
@@ -43,15 +43,15 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
                                             StringView name);
 
 typedef struct LocalVariable {
-    StringView name;
-    Type const *type;
-    u16 ssa;
+  StringView name;
+  Type *type;
+  u16 ssa;
 } LocalVariable;
 
 typedef struct LocalVariables {
-    u64 size;
-    u64 capacity;
-    LocalVariable *buffer;
+  u64 size;
+  u64 capacity;
+  LocalVariable *buffer;
 } LocalVariables;
 
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
@@ -60,11 +60,11 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
 
 typedef struct FunctionBody {
-    FormalArgumentList arguments;
-    LocalVariables locals;
-    Type const *return_type;
-    u64 ssa_count;
-    Bytecode bc;
+  FormalArgumentList arguments;
+  LocalVariables locals;
+  Type *return_type;
+  u64 ssa_count;
+  Bytecode bc;
 } FunctionBody;
 
 FunctionBody function_body_create();

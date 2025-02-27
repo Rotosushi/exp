@@ -37,7 +37,7 @@ static OperandArray operand_array_create() {
     return array;
 }
 
-static void operand_array_destroy(OperandArray *array) {
+static void operand_array_destroy(OperandArray *restrict array) {
     assert(array != nullptr);
     deallocate(array->buffer);
     array->size     = 0;
@@ -45,19 +45,20 @@ static void operand_array_destroy(OperandArray *array) {
     array->buffer   = nullptr;
 }
 
-static bool operand_array_full(OperandArray *array) {
+static bool operand_array_full(OperandArray *restrict array) {
     assert(array != nullptr);
     return (array->size + 1) >= array->capacity;
 }
 
-static void operand_array_grow(OperandArray *array) {
+static void operand_array_grow(OperandArray *restrict array) {
     assert(array != nullptr);
     Growth8 g       = array_growth_u8(array->capacity, sizeof(Operand));
     array->buffer   = reallocate(array->buffer, g.alloc_size);
     array->capacity = g.new_capacity;
 }
 
-static void operand_array_append(OperandArray *array, Operand operand) {
+static void operand_array_append(OperandArray *restrict array,
+                                 Operand operand) {
     assert(array != nullptr);
     if (operand_array_full(array)) { operand_array_grow(array); }
     array->buffer[array->size++] = operand;
@@ -102,7 +103,9 @@ x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
     }
 }
 
-void x64_codegen_call(Instruction I, u64 block_index, x64_Context *context) {
+void x64_codegen_call(Instruction I,
+                      u64 block_index,
+                      x64_Context *restrict context) {
     assert(context != nullptr);
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local     = x64_context_lookup_ssa(context, I.A_data.ssa);
@@ -128,8 +131,8 @@ void x64_codegen_call(Instruction I, u64 block_index, x64_Context *context) {
     OperandArray stack_args = operand_array_create();
 
     for (u8 i = 0; i < args->size; ++i) {
-        Operand arg          = args->elements[i];
-        Type const *arg_type = type_of_operand(arg, context->context);
+        Operand arg    = args->elements[i];
+        Type *arg_type = type_of_operand(arg, context->context);
 
         if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
             x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
@@ -150,9 +153,9 @@ void x64_codegen_call(Instruction I, u64 block_index, x64_Context *context) {
         x64_address_create(X64_GPR_RSP, X64_GPR_NONE, 1, 0);
 
     for (u8 i = 0; i < stack_args.size; ++i) {
-        Operand arg          = stack_args.buffer[i];
-        Type const *arg_type = type_of_operand(arg, context->context);
-        u64 arg_size         = size_of(arg_type);
+        Operand arg    = stack_args.buffer[i];
+        Type *arg_type = type_of_operand(arg, context->context);
+        u64 arg_size   = size_of(arg_type);
         assert(arg_size <= i64_MAX);
         i64 offset = (i64)(arg_size);
         stack_space += offset;

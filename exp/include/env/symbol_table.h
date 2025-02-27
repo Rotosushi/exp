@@ -28,7 +28,7 @@ typedef enum SymbolKind {
 
 typedef struct Symbol {
     StringView name;
-    Type const *type;
+    Type *type;
     SymbolKind kind;
     union {
         u8 empty;
@@ -57,13 +57,16 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table);
  */
 Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
 
-typedef struct SymbolList {
-    u64 count;
-    u64 capacity;
-    Symbol **buffer;
-} SymbolList;
+typedef struct SymbolTableIterator {
+    Symbol **element;
+    Symbol **end;
+} SymbolTableIterator;
 
-void symbol_list_initialize(SymbolList *symbol_list, SymbolTable *symbol_table);
-void symbol_list_terminate(SymbolList *symbol_list);
+SymbolTableIterator
+symbol_table_iterator_create(SymbolTable *restrict symbol_table);
+
+void symbol_table_iterator_next(SymbolTableIterator *restrict iter);
+
+bool symbol_table_iterator_done(SymbolTableIterator *restrict iter);
 
 #endif // !EXP_ENV_SYMBOL_TABLE_H

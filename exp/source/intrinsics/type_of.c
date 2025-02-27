@@ -22,18 +22,17 @@
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
-Type const *type_of_value(Value *value, Context *context) {
+Type *type_of_value(Value *restrict value, Context *restrict context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
     case VALUE_KIND_NIL:           return context_nil_type(context);
     case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
     case VALUE_KIND_I64:           return context_i64_type(context);
     case VALUE_KIND_TUPLE:         {
-        Tuple *tuple = &value->tuple;
-        TupleType tuple_type;
-        tuple_type_initialize(&tuple_type);
+        Tuple *tuple         = &value->tuple;
+        TupleType tuple_type = tuple_type_create();
         for (u64 i = 0; i < tuple->size; ++i) {
-            Type const *T = type_of_operand(tuple->elements[i], context);
+            Type *T = type_of_operand(tuple->elements[i], context);
             tuple_type_append(&tuple_type, T);
         }
         return context_tuple_type(context, tuple_type);
@@ -43,22 +42,21 @@ Type const *type_of_value(Value *value, Context *context) {
     }
 }
 
-Type const *type_of_function(FunctionBody *body, Context *context) {
+Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
     assert(body != NULL);
     assert(body->return_type != NULL);
 
-    TupleType argument_types;
-    tuple_type_initialize(&argument_types);
+    TupleType argument_types = tuple_type_create();
     for (u64 i = 0; i < body->arguments.size; ++i) {
         FormalArgument *formal_argument = &body->arguments.list[i];
-        Type const *argument_type       = formal_argument->type;
+        Type *argument_type             = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 
     return context_function_type(context, body->return_type, argument_types);
 }
 
-Type const *type_of_operand(Operand operand, Context *context) {
+Type *type_of_operand(Operand operand, Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(context, operand.data.ssa);
@@ -81,7 +79,7 @@ Type const *type_of_operand(Operand operand, Context *context) {
 
     case OPERAND_KIND_LABEL: {
         StringView label = context_labels_at(context, operand.data.label);
-        Symbol *symbol   = context_symbol_table_at(context, label);
+        Symbol *symbol   = context_global_symbol_table_at(context, label);
         assert(!string_view_empty(symbol->name));
         assert(symbol->type != NULL);
         return symbol->type;

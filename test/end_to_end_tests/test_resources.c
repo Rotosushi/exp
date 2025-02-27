@@ -1,6 +1,5 @@
 
 #include <assert.h>
-#include <ctype.h>
 #include <string.h>
 
 #include "test_resources.h"
@@ -67,8 +66,6 @@ void test_resources_append(TestResources *test_resources,
 #include <sys/types.h>
 #include <unistd.h>
 
-bool validate_test_resource_name(char const *name);
-
 void test_resources_gather(TestResources *test_resources,
                            char const *directory) {
     assert(test_resources != nullptr);
@@ -97,7 +94,6 @@ void test_resources_gather(TestResources *test_resources,
 
         // regular file, treat it as a test resource
         if (S_ISREG(entry_stat.st_mode)) {
-            if (!validate_test_resource_name(name)) { continue; }
             test_resources_append(test_resources, &full_path);
         }
 
@@ -111,31 +107,4 @@ void test_resources_gather(TestResources *test_resources,
     }
 
     if (closedir(resource_directory) < 0) { PANIC_ERRNO("closedir"); }
-}
-
-bool validate_test_resource_name(char const *name) {
-    // check that the name contains the exit code
-    u64 cursor = 0;
-    if (name[cursor] == '.') { ++cursor; }
-
-    while (true) {
-        if (name[cursor] == '.') break;
-        if (name[cursor] == '\0') return false;
-        ++cursor;
-    }
-    ++cursor;
-
-    if (!isdigit(name[cursor])) { return false; }
-    while (isdigit(name[cursor])) {
-        if (name[cursor] == '\0') { return false; }
-        ++cursor;
-    }
-
-    // check that the name ends in .exp
-    if (name[cursor] != '.') { return false; }
-    ++cursor;
-
-    if (strcmp(name + cursor, "exp") != 0) { return false; }
-    cursor += 3;
-    return name[cursor] == '\0';
 }

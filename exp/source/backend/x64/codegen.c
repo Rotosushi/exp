@@ -157,15 +157,15 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
 }
 
 void x64_codegen(Context *context) {
-    x64_Context x64_context = x64_context_create(context);
+    x64_Context x64context   = x64_context_create(context);
+    SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
-    SymbolList symbol_list;
-    context_gather_symbols(x64_context.context, &symbol_list);
-    for (u64 i = 0; i < symbol_list.count; ++i) {
-        x64_codegen_symbol(symbol_list.buffer[i], &x64_context);
+    while (!symbol_table_iterator_done(&iter)) {
+        x64_codegen_symbol((*iter.element), &x64context);
+
+        symbol_table_iterator_next(&iter);
     }
-    symbol_list_terminate(&symbol_list);
 
-    x64_emit(&x64_context);
-    x64_context_destroy(&x64_context);
+    x64_emit(&x64context);
+    x64_context_destroy(&x64context);
 }

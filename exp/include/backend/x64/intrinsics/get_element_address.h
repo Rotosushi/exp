@@ -22,7 +22,6 @@
 #include "backend/x64/location.h"
 #include "imr/type.h"
 
-x64_Address
-x64_get_element_address(x64_Address *src, Type const *type, u64 index);
+x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
