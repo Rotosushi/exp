@@ -80,7 +80,7 @@ void x64_codegen_call(Instruction I,
     }
 
     Value *value = x64_context_value_at(context, I.C.data.constant);
-    assert(value->kind == VALUEKIND_TUPLE);
+    assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *args                 = &value->tuple;
     u64 current_bytecode_offset = x64_context_current_offset(context);
     OperandArray stack_args     = operand_array_create();

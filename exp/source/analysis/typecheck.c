@@ -113,7 +113,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
     try(Bty, typecheck_operand(c, I.B));
 
-    if (Bty->kind != TYPEKIND_FUNCTION) {
+    if (Bty->kind != TYPE_KIND_FUNCTION) {
         String buf = string_create();
         string_append(&buf, SV("Type is not callable ["));
         emit_type(Bty, &buf);
@@ -124,7 +124,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     FunctionType *function_type = &Bty->function_type;
     TupleType *formal_types     = &function_type->argument_types;
     Value *value                = context_constants_at(c, I.C.data.constant);
-    assert(value->kind == VALUEKIND_TUPLE);
+    assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_args = &value->tuple;
 
     if (formal_types->size != actual_args->size) {
@@ -165,7 +165,7 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     LocalVariable *local = context_lookup_ssa(c, I.A.data.ssa);
     try(Bty, typecheck_operand(c, I.B));
 
-    if (Bty->kind != TYPEKIND_TUPLE) {
+    if (Bty->kind != TYPE_KIND_TUPLE) {
         String buf = string_create();
         string_append(&buf, SV("Type is not a tuple ["));
         emit_type(Bty, &buf);

@@ -22,22 +22,22 @@
 #include "utility/unreachable.h"
 
 u64 size_of(Type *restrict type) {
-  assert(type != NULL);
+    assert(type != NULL);
 
-  switch (type->kind) {
-  case TYPEKIND_NIL:     return 8;
-  case TYPEKIND_BOOLEAN: return 8;
-  case TYPEKIND_I64:     return 8;
+    switch (type->kind) {
+    case TYPE_KIND_NIL:     return 8;
+    case TYPE_KIND_BOOLEAN: return 8;
+    case TYPE_KIND_I64:     return 8;
 
-  case TYPEKIND_TUPLE: {
-    TupleType *tuple = &type->tuple_type;
-    u64 acc          = 0;
-    for (u64 i = 0; i < tuple->size; ++i) {
-      acc += size_of(tuple->types[i]);
+    case TYPE_KIND_TUPLE: {
+        TupleType *tuple = &type->tuple_type;
+        u64 acc          = 0;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            acc += size_of(tuple->types[i]);
+        }
+        return acc;
     }
-    return acc;
-  }
 
-  default: EXP_UNREACHABLE();
-  }
+    default: EXP_UNREACHABLE();
+    }
 }
