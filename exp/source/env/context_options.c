@@ -16,14 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-
 #include "env/context_options.h"
 
 void context_options_initialize(ContextOptions *context_options,
                                 CLIOptions *cli_options) {
-    assert(context_options != nullptr);
-    assert(cli_options != nullptr);
     context_options->flags = cli_options->flags;
     string_initialize(&context_options->source);
     string_initialize(&context_options->assembly);
@@ -45,9 +41,7 @@ void context_options_initialize(ContextOptions *context_options,
     }
 }
 
-void context_options_terminate(ContextOptions *options) {
-    assert(options != nullptr);
-    options->flags = bitset_create();
+void context_options_destroy(ContextOptions *options) {
     string_destroy(&options->source);
     string_destroy(&options->assembly);
     string_destroy(&options->object);

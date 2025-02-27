@@ -34,7 +34,7 @@ typedef struct ContextOptions {
 
 void context_options_initialize(ContextOptions *context_options,
                                 CLIOptions *cli_options);
-void context_options_terminate(ContextOptions *options);
+void context_options_destroy(ContextOptions *options);
 
 bool context_options_do_assemble(ContextOptions *options);
 bool context_options_do_link(ContextOptions *options);

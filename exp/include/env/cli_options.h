@@ -32,9 +32,9 @@ typedef struct CLIOptions {
     String output;
 } CLIOptions;
 
-void cli_options_initialize(CLIOptions *cli_options);
-void cli_options_terminate(CLIOptions *cli_options);
+CLIOptions cli_options_create();
+void cli_options_destroy(CLIOptions *restrict cli_options);
 
-void parse_cli_options(CLIOptions *cli_options, i32 argc, char const *argv[]);
+[[nodiscard]] CLIOptions parse_cli_options(i32 argc, char const *argv[]);
 
 #endif // !EXP_UTILITY_CLI_OPTIONS_H

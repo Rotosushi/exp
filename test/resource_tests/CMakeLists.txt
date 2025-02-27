@@ -16,13 +16,13 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set(RESOURCE_TESTS_SOURCES
+set(LIBE2E_SOURCES
   ${EXP_TEST_DIR}/resource_tests/test_resource.c
   ${EXP_TEST_DIR}/resource_tests/test_resources.c
 )
 
-add_library(exp_resource_tests ${RESOURCE_TESTS_SOURCES})
-target_include_directories(exp_resource_tests PUBLIC ${EXP_INCLUDE_DIR})
+add_library(exp_resource_tests ${LIBE2E_SOURCES})
+target_include_directories(exp_resource_tests PUBLIC ${EXP_TEST_E2E_DIR})
 target_compile_options(exp_resource_tests PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_resource_tests PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(exp_resource_tests PUBLIC exp_common)
@@ -30,7 +30,7 @@ target_link_libraries(exp_resource_tests PUBLIC exp_common)
 add_executable(test_all_resources 
   ${EXP_TEST_DIR}/resource_tests/main.c
 )
-target_include_directories(test_all_resources PUBLIC ${EXP_INCLUDE_DIR})
+target_include_directories(test_all_resources PUBLIC ${EXP_TEST_E2E_DIR})
 target_compile_options(test_all_resources PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(test_all_resources PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(test_all_resources PUBLIC exp_resource_tests)
