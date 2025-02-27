@@ -161,7 +161,7 @@ void context_def_local_const(Context *restrict c,
                              Operand value) {
     Operand A = context_emit_load(c, value);
     assert(A.kind == OPERAND_KIND_SSA);
-    function_body_new_local(context_current_function(c), name, A.ssa);
+    function_body_new_local(context_current_function(c), name, A.data.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *restrict c, StringView name) {

@@ -24,17 +24,20 @@
 typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA       = 0x0,
     OPERAND_KIND_CONSTANT  = 0x1,
-    OPERAND_KIND_IMMEDIATE = 0x2,
-    OPERAND_KIND_LABEL     = 0x3,
+    OPERAND_KIND_LABEL     = 0x2,
+    OPERAND_KIND_IMMEDIATE = 0x3,
 } OperandKind;
+
+typedef union OperandPayload {
+    u16 ssa;
+    u16 constant;
+    u16 label;
+    i16 immediate;
+} OperandData;
 
 typedef struct Operand {
     OperandKind kind;
-    union {
-        u16 ssa;
-        u16 index;
-        i16 immediate;
-    };
+    OperandData data;
 } Operand;
 
 struct Context;
