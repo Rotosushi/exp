@@ -28,7 +28,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "5e5442a"
+#define EXP_GIT_REVISION "206b444"
 #define EXP_TEST_DIR "/home/elise/Projects/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/elise/Projects/exp/test/resources"
 #define EXP_BINARY_DIR "/home/elise/Projects/exp/build"
@@ -49,7 +49,7 @@
 #define EXP_HOST_COMPILER_MSVC
 #endif
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-02-27 11:08:31) git revision (5e5442a)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-02-20 20:24:17) git revision (206b444)"
 
 /* #undef EXP_REMOVE_ASSERTS */
 // NOLINTEND
