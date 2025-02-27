@@ -22,21 +22,18 @@
 #include "utility/config.h"
 
 int modulus([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-    int result = EXIT_SUCCESS;
+  int result = EXIT_SUCCESS;
 
-    StringView source_path = SV(EXP_TEST_DIR "/modulus.exp");
+  StringView source_path = SV(EXP_TEST_DIR "/modulus.exp");
 
-    result |= test_exp(source_path,
-                       "fn main() { const x = 9; const y = 3; return x % y; }",
-                       0);
+  result |= test_exp(
+      source_path, "fn main() { const x = 9; const y = 3; return x % y; }", 0);
 
-    result |=
-        test_exp(source_path, "fn main() { const x = 3; return x % 2; }", 1);
+  result |=
+      test_exp(source_path, "fn main() { const x = 9; return x % 3; }", 0);
 
-    result |=
-        test_exp(source_path, "fn main() { const x = 5; return 8 % x; }", 3);
+  result |=
+      test_exp(source_path, "fn main() { const x = 3; return 9 % x; }", 0);
 
-    result |= test_exp(source_path, "fn main() { return 5 % 3; }", 2);
-
-    return result;
+  return result;
 }

@@ -21,24 +21,18 @@
 #include "test_exp.h"
 #include "utility/config.h"
 
-int division([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+int trivial_constant_folding([[maybe_unused]] int argc,
+                             [[maybe_unused]] char **argv) {
   int result = EXIT_SUCCESS;
 
-  StringView source_path = SV(EXP_TEST_DIR "/division.exp");
+  StringView source_path = SV(EXP_TEST_DIR "/trivial_constant_folding.exp");
 
-  result |= test_exp(
-      source_path, "fn main() { const x = 9; const y = 3; return x / y; }", 3);
-
-  result |=
-      test_exp(source_path,
-               "fn main() { const x = 66000; const y = 6000; return x / y; }",
-               11);
-
-  result |=
-      test_exp(source_path, "fn main() { const x = 18; return x / 3; }", 6);
-
-  result |=
-      test_exp(source_path, "fn main() { const x = 3; return 27 / x; }", 9);
+  result |= test_exp(source_path, "fn main() { return 3 + 3; }", 6);
+  result |= test_exp(source_path, "fn main() { return 3 - 3; }", 0);
+  result |= test_exp(source_path, "fn main() { return 3 * 3; }", 9);
+  result |= test_exp(source_path, "fn main() { return 3 / 3; }", 1);
+  result |= test_exp(source_path, "fn main() { return 3 % 3; }", 0);
 
   return result;
 }
+
