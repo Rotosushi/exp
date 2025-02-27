@@ -53,52 +53,52 @@ static void x64_codegen_bytecode(x64_Context *restrict context) {
         Instruction I = bc->buffer[idx];
 
         switch (I.opcode) {
-        case OPCODE_RETURN: {
+        case OPC_RET: {
             x64_codegen_return(I, idx, context);
             break;
         }
 
-        case OPCODE_CALL: {
+        case OPC_CALL: {
             x64_codegen_call(I, idx, context);
             break;
         }
 
-        case OPCODE_DOT: {
+        case OPC_DOT: {
             x64_codegen_dot(I, idx, context);
             break;
         }
 
-        case OPCODE_LOAD: {
+        case OPC_LOAD: {
             x64_codegen_load(I, idx, context);
             break;
         }
 
-        case OPCODE_NEGATE: {
+        case OPC_NEG: {
             x64_codegen_negate(I, idx, context);
             break;
         }
 
-        case OPCODE_ADDITION: {
+        case OPC_ADD: {
             x64_codegen_addition(I, idx, context);
             break;
         }
 
-        case OPCODE_SUBTRACT: {
+        case OPC_SUB: {
             x64_codegen_subtract(I, idx, context);
             break;
         }
 
-        case OPCODE_MULTIPLY: {
+        case OPC_MUL: {
             x64_codegen_multiply(I, idx, context);
             break;
         }
 
-        case OPCODE_DIVIDE: {
+        case OPC_DIV: {
             x64_codegen_divide(I, idx, context);
             break;
         }
 
-        case OPCODE_MODULUS: {
+        case OPC_MOD: {
             x64_codegen_modulus(I, idx, context);
             break;
         }

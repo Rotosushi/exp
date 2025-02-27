@@ -21,67 +21,67 @@
 #include "imr/instruction.h"
 
 static Instruction instruction_B(Opcode opcode, Operand B) {
-    Instruction I = {.opcode = opcode, .format = IFMT_B, .B = B};
-    return I;
+  Instruction I = {.opcode = opcode, .format = IFMT_B, .B = B};
+  return I;
 }
 
 static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
-    Instruction I = {.opcode = opcode, .format = IFMT_AB, .A = A, .B = B};
-    return I;
+  Instruction I = {.opcode = opcode, .format = IFMT_AB, .A = A, .B = B};
+  return I;
 }
 
 static Instruction
 instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
-    Instruction I = {
-        .opcode = opcode, .format = IFMT_ABC, .A = A, .B = B, .C = C};
-    return I;
+  Instruction I = {
+      .opcode = opcode, .format = IFMT_ABC, .A = A, .B = B, .C = C};
+  return I;
 }
 
 Instruction instruction_ret(Operand result) {
-    return instruction_B(OPCODE_RETURN, result);
+  return instruction_B(OPC_RET, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_CALL, dst, label, args);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_CALL, dst, label, args);
 }
 
 Instruction instruction_dot(Operand dst, Operand src, Operand index) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_DOT, dst, src, index);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_DOT, dst, src, index);
 }
 
 Instruction instruction_load(Operand dst, Operand src) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_AB(OPCODE_LOAD, dst, src);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_AB(OPC_LOAD, dst, src);
 }
 
 Instruction instruction_neg(Operand dst, Operand src) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_AB(OPCODE_NEGATE, dst, src);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_AB(OPC_NEG, dst, src);
 }
 
 Instruction instruction_add(Operand dst, Operand left, Operand right) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_ADDITION, dst, left, right);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_ADD, dst, left, right);
 }
 
 Instruction instruction_sub(Operand dst, Operand left, Operand right) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_SUBTRACT, dst, left, right);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_SUB, dst, left, right);
 }
 
 Instruction instruction_mul(Operand dst, Operand left, Operand right) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MULTIPLY, dst, left, right);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_MUL, dst, left, right);
 }
 
 Instruction instruction_div(Operand dst, Operand left, Operand right) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_DIVIDE, dst, left, right);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_DIV, dst, left, right);
 }
 
 Instruction instruction_mod(Operand dst, Operand left, Operand right) {
-    assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MODULUS, dst, left, right);
+  assert(dst.kind == OPERAND_KIND_SSA);
+  return instruction_ABC(OPC_MOD, dst, left, right);
 }
