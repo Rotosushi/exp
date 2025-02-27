@@ -37,10 +37,10 @@ u64 align_of(Type *restrict type) {
     // alignment is 8. ints are 4 bytes, and their
     // alignment is 4.
     // string literals are align 8 as well.
-    // case TYPE_KIND_NIL:     return 4;
-    // case TYPE_KIND_BOOLEAN: return 4;
-    case TYPE_KIND_I64:   return 8;
-    case TYPE_KIND_TUPLE: return 8;
+    case TYPE_KIND_NIL:     return 4;
+    case TYPE_KIND_BOOLEAN: return 4;
+    case TYPE_KIND_I32:     return 4;
+    case TYPE_KIND_TUPLE:   return 4;
 
     default: EXP_UNREACHABLE();
     }

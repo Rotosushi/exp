@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "compiling/IR.md",
+                "file": "exp.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "IR"
+              "title": "exp"
             }
           }
         ]
@@ -164,31 +164,27 @@
   },
   "active": "c6fdb2e6d255c008",
   "lastOpenFiles": [
-    "compiling/compiler.md",
-    "Untitled.canvas",
-    "1687571468497962.jpg",
     "linking/ld.md",
-    "1687571508545974.jpg",
-    "compiling/bytecode.md",
-    "compiling/bytecode.md~",
-    "compiling/IR.md",
-    "compiling/ssa.md",
-    "compiling/analysis/type-system.md",
-    "exp.md",
-    "compiling/parsing/clox.md",
-    "compiling/optimization/optimize.md",
-    "compiling/codegen/codegen.md",
-    "compiling/analysis/typechecking.md",
-    "compiling/parsing/parser.md",
     "executing/Ubuntu.md",
     "executing/system-v.md",
     "executing/elf.md",
     "executing/abi.md",
     "debugging/dwarf.md",
     "debugging/debugging.md",
+    "compiling/IR.md",
+    "compiling/ssa.md",
+    "compiling/compiler.md",
+    "compiling/parsing/parser.md",
+    "compiling/parsing/clox.md",
+    "compiling/optimization/optimize.md",
+    "compiling/codegen/codegen.md",
+    "compiling/analysis/type-system.md",
+    "exp.md",
     "assembling/assembly.md",
+    "compiling/analysis/typechecking.md",
     "compiling/optimization",
     "compiling/analysis",
+    "Untitled.canvas",
     "recursive descent.md",
     "compiling/codegen",
     "compiling",
@@ -198,6 +194,7 @@
     "debugging",
     "assembling",
     "citations",
+    "compiling/parsing",
     "assembling/x86-64.md"
   ]
 }

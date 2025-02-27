@@ -22,9 +22,10 @@
 #include "frontend/parser.h"
 
 bool test_parse(char const *body) {
+    CLIOptions options;
+    cli_options_initialize(&options);
     Context context;
-    context_initialize(
-        &context, bitset_create(), string_view_create(), string_view_create());
+    context_initialize(&context, &options);
 
     bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 

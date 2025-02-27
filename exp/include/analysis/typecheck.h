@@ -14,12 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_ANALYSIS_VALIDATE_H
-#define EXP_ANALYSIS_VALIDATE_H
+#ifndef EXP_ANALYSIS_TYPECHECK_H
+#define EXP_ANALYSIS_TYPECHECK_H
 
-#include "imr/function_body.h"
-#include "utility/result.h"
+#include "env/context.h"
 
-ExpResult typecheck_function(FunctionBody *function, struct Context *context);
+i32 typecheck(Context *context);
 
-#endif // !EXP_ANALYSIS_VALIDATE_H
+#endif // !EXP_ANALYSIS_TYPECHECK_H

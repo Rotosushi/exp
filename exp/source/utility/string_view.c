@@ -18,37 +18,36 @@
  */
 #include <string.h>
 
+#include "utility/panic.h"
 #include "utility/string_view.h"
 
 StringView string_view_create() {
-    StringView sv;
-    sv.length = 0;
-    sv.ptr    = nullptr;
-    return sv;
+  StringView sv;
+  sv.length = 0;
+  sv.ptr    = NULL;
+  return sv;
 }
 
 StringView string_view_from_str(char const *string, u64 length) {
-    StringView sv = {length, string};
-    return sv;
+  StringView sv = {length, string};
+  return sv;
 }
 
 StringView string_view_from_cstring(char const *cstring) {
-    StringView sv = {strlen(cstring), cstring};
-    return sv;
+  StringView sv = {strlen(cstring), cstring};
+  return sv;
 }
 
 bool string_view_equality(StringView sv1, StringView sv2) {
-    if (sv1.ptr == sv2.ptr) { return 1; }
-    if (sv1.length != sv2.length) { return 0; }
-    return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
+  if (sv1.ptr == sv2.ptr) { return 1; }
+  if (sv1.length != sv2.length) { return 0; }
+  return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
 }
 
 bool string_view_empty(StringView sv) { return sv.length == 0; }
 
-/*
 void print_string_view(StringView sv, FILE *restrict file) {
   for (u64 i = 0; i < sv.length; ++i) {
     if (fputc(sv.ptr[i], file) == EOF) { PANIC_ERRNO("fputc failed"); }
   }
 }
-*/

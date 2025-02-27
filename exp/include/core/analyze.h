@@ -20,8 +20,7 @@
 #define EXP_CORE_ANALYZE_H
 
 #include "env/context.h"
-#include "utility/result.h"
 
-ExpResult finalize_context(Context *context);
+i32 analyze(Context *restrict context);
 
-#endif // EXP_CORE_ANALYZE_H
+#endif // !EXP_CORE_ANALYZE_H

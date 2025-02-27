@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_STRING_INTERNER_H
 #define EXP_ENV_STRING_INTERNER_H
 
-#include "utility/constant_string.h"
+#include "utility/string_view.h"
 
 /**
  * @brief holds a set of strings, such that the memory
@@ -29,12 +29,12 @@
 typedef struct StringInterner {
     u64 capacity;
     u64 count;
-    ConstantString **buffer;
+    StringView *buffer;
 } StringInterner;
 
 void string_interner_initialize(StringInterner *string_interner);
 void string_interner_terminate(StringInterner *string_interner);
-ConstantString *string_interner_insert(StringInterner *string_interner,
-                                       StringView sv);
+StringView string_interner_insert(StringInterner *string_interner,
+                                  StringView sv);
 
 #endif // !EXP_ENV_STRING_INTERNER_H

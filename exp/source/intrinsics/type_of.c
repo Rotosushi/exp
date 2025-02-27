@@ -35,15 +35,16 @@ Type const *type_of_operand(OperandKind kind,
         return local->type;
     }
 
-    case OPERAND_KIND_I64: {
-        return context_i64_type(context);
+    case OPERAND_KIND_I32: {
+        return context_i32_type(context);
     }
     case OPERAND_KIND_CONSTANT: {
-        return type_of_value(data.constant, function, context);
+        Value *value = context_constants_at(context, data.constant);
+        return type_of_value(value, function, context);
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name = constant_string_to_view(data.label);
+        StringView name = context_labels_at(context, data.label);
         Local *local    = function_body_local_at_name(function, name);
         if (local != nullptr) {
             assert(local->type != nullptr);
@@ -63,10 +64,10 @@ Type const *
 type_of_value(Value *value, FunctionBody *function, Context *context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
-    // case VALUE_KIND_NIL:           return context_nil_type(context);
-    // case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
-    case VALUE_KIND_I64:   return context_i64_type(context);
-    case VALUE_KIND_TUPLE: {
+    case VALUE_KIND_NIL:           return context_nil_type(context);
+    case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
+    case VALUE_KIND_I32:           return context_i32_type(context);
+    case VALUE_KIND_TUPLE:         {
         Tuple *tuple = &value->tuple;
         TupleType tuple_type;
         tuple_type_initialize(&tuple_type);

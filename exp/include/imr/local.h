@@ -34,7 +34,7 @@ void local_initialize(Local *local);
 void local_update_type(Local *local, Type const *type);
 void local_update_label(Local *local, StringView label);
 void local_update_location(Local *local, Location location);
-void local_update_first_use(Local *local, u64 first_use);
-void local_update_last_use(Local *local, u64 last_use);
+void local_update_first_use(Local *local, u32 first_use);
+void local_update_last_use(Local *local, u32 last_use);
 
 #endif // EXP_IMR_LOCAL_H

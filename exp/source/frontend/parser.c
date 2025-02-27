@@ -24,7 +24,6 @@
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
 #include "imr/operand.h"
-#include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"
 
@@ -160,11 +159,24 @@ static bool parse_type(Type const **result, Parser *parser);
 static bool parse_tuple_type(Type const **result, Parser *parser) {
     assert(result != nullptr);
     assert(parser != nullptr);
+    // an empty tuple type is equivalent to a nil type.
+    switch (expect(parser, TOK_NIL)) {
+    case EXPECT_RESULT_SUCCESS: {
+        *result = context_nil_type(parser->context);
+        return true;
+    }
+
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
+    }
+
     assert(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; } // eat '('
 
     TupleType tuple_type;
     tuple_type_initialize(&tuple_type);
+
     bool found_comma = false;
     do {
         Type const *element = NULL;
@@ -208,14 +220,10 @@ static bool parse_type(Type const **result, Parser *parser) {
     case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser);
 
     // scalar types
-    case TOK_NIL: {
-        TupleType tuple_type;
-        tuple_type_initialize(&tuple_type);
-        *result = context_tuple_type(parser->context, tuple_type);
-        break;
-    }
-
-    case TOK_TYPE_I64: *result = context_i64_type(parser->context); break;
+    case TOK_NIL:       *result = context_nil_type(parser->context); break;
+    case TOK_TYPE_NIL:  *result = context_nil_type(parser->context); break;
+    case TOK_TYPE_BOOL: *result = context_boolean_type(parser->context); break;
+    case TOK_TYPE_I64:  *result = context_i32_type(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);
     }
@@ -232,7 +240,7 @@ static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_COLON)) {
@@ -247,7 +255,7 @@ static bool parse_formal_argument(FormalArgument *arg, Parser *parser) {
     if (!parse_type(&type, parser)) { return false; }
     assert(type != NULL);
 
-    arg->name = constant_string_to_view(name);
+    arg->name = name;
     arg->type = type;
     return true;
 }
@@ -337,7 +345,8 @@ static bool constant(Operand *result, Parser *parser) {
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
+    Operand label   = context_labels_insert(parser->context, name);
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_EQUAL)) {
@@ -358,11 +367,12 @@ static bool constant(Operand *result, Parser *parser) {
     default:                    EXP_UNREACHABLE();
     }
 
-    u64 ssa      = function_body_declare_local(parser->function);
+    u32 ssa      = function_body_declare_local(parser->function);
     Local *local = function_body_local_at(parser->function, ssa);
-    local_update_label(local, constant_string_to_view(name));
-    function_body_append_instruction(
-        parser->function, instruction_load(operand_label(name), *result));
+    local_update_label(local, name);
+
+    function_body_append_instruction(parser->function,
+                                     instruction_load(label, *result));
     return true;
 }
 
@@ -434,11 +444,10 @@ static bool function(Operand *result, Parser *parser) {
         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
+    StringView name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
-    Symbol *symbol =
-        context_symbol_table_at(parser->context, constant_string_to_view(name));
+    Symbol *symbol   = context_symbol_table_at(parser->context, name);
     parser->function = &symbol->function_body;
 
     if (!parse_formal_argument_list(parser)) { return false; }
@@ -457,7 +466,7 @@ static bool function(Operand *result, Parser *parser) {
 
 #ifndef NDEBUG
     file_write("parsed a function: \nfn ", stdout);
-    file_write(name->buffer, stdout);
+    print_string_view(name, stdout);
     String buffer;
     string_initialize(&buffer);
     print_function_body(&buffer, parser->function, parser->context);
@@ -506,7 +515,7 @@ static bool parse_tuple(Tuple *tuple, Parser *parser) {
             case EXPECT_RESULT_SUCCESS:         found_comma = true; break;
             case EXPECT_RESULT_TOKEN_NOT_FOUND: found_comma = false; break;
             case EXPECT_RESULT_FAILURE:         {
-                tuple_terminate(tuple);
+                tuple_destroy(tuple);
                 return false;
             }
             default: EXP_UNREACHABLE();
@@ -532,20 +541,19 @@ static bool parse_tuple(Tuple *tuple, Parser *parser) {
 static bool parens(Operand *result, Parser *parser) {
     assert(result != nullptr);
     assert(parser != nullptr);
-    Tuple tuple;
-    tuple_initialize(&tuple);
+    Tuple tuple = tuple_create();
 
     if (!parse_tuple(&tuple, parser)) { return false; };
 
     if (tuple.size == 0) {
-        *result = operand_constant(
-            context_constants_append_tuple(parser->context, tuple));
+        *result = context_constants_append(parser->context, value_create_nil());
+        tuple_destroy(&tuple);
     } else if (tuple.size == 1) {
         *result = tuple.elements[0];
-        tuple_terminate(&tuple);
+        tuple_destroy(&tuple);
     } else {
-        *result = operand_constant(
-            context_constants_append_tuple(parser->context, tuple));
+        *result = context_constants_append(parser->context,
+                                           value_create_tuple(tuple));
     }
 
     return true;
@@ -640,13 +648,12 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     assert(parser != nullptr);
     assert(parser->context != nullptr);
     assert(parser->function != nullptr);
-    Tuple argument_list;
-    tuple_initialize(&argument_list);
+    Tuple argument_list = tuple_create();
 
     if (!parse_tuple(&argument_list, parser)) { return false; }
 
-    Operand right = operand_constant(
-        context_constants_append_tuple(parser->context, argument_list));
+    Operand right = context_constants_append(parser->context,
+                                             value_create_tuple(argument_list));
 
     *result = operand_ssa(function_body_declare_local(parser->function));
     function_body_append_instruction(parser->function,
@@ -654,7 +661,6 @@ static bool call(Operand *result, Operand left, Parser *parser) {
     return true;
 }
 
-/*
 static bool nil(Operand *result, Parser *parser) {
     assert(result != nullptr);
     assert(parser != nullptr);
@@ -671,8 +677,8 @@ static bool boolean_true(Operand *result, Parser *parser) {
     assert(parser->context != nullptr);
     assert(peek(parser, TOK_TRUE));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(parser->context,
-                                       value_initialize_boolean(true));
+    *result =
+        context_constants_append(parser->context, value_create_boolean(true));
     return true;
 }
 
@@ -683,10 +689,9 @@ static bool boolean_false(Operand *result, Parser *parser) {
     assert(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
     *result =
-        context_constants_append(parser->context, value_initialize_boolean(0));
+        context_constants_append(parser->context, value_create_boolean(0));
     return true;
 }
-*/
 
 static bool integer(Operand *result, Parser *parser) {
     assert(result != nullptr);
@@ -697,7 +702,11 @@ static bool integer(Operand *result, Parser *parser) {
     i64 value     = str_to_i64(sv.ptr, sv.length);
 
     if (!nexttok(parser)) { return false; }
-    *result = operand_i64((i32)value);
+    if (i64_in_range_i32(value)) {
+        *result = operand_i32((i32)value);
+    } else {
+        return error(parser, ERROR_INTEGER_TO_LARGE);
+    }
 
     return true;
 }
@@ -708,8 +717,8 @@ static bool identifier(Operand *result, Parser *parser) {
     assert(parser->context != nullptr);
     assert(parser->function != nullptr);
     assert(peek(parser, TOK_IDENTIFIER));
-    ConstantString *name = context_intern(parser->context, curtxt(parser));
-    *result              = operand_label(name);
+    StringView name = context_intern(parser->context, curtxt(parser));
+    *result         = context_labels_insert(parser->context, name);
     if (!nexttok(parser)) { return false; }
     return true;
 }
@@ -748,54 +757,54 @@ parse_precedence(Operand *result, Precedence precedence, Parser *parser) {
 
 static ParseRule *get_rule(Token token) {
     static ParseRule rules[] = {
-        [TOK_END] = {      NULL,  NULL,   PREC_NONE},
+        [TOK_END] = {         NULL,  NULL,   PREC_NONE},
 
-        [TOK_ERROR_UNEXPECTED_CHAR]        = {      NULL,  NULL,   PREC_NONE},
-        [TOK_ERROR_UNMATCHED_DOUBLE_QUOTE] = {      NULL,  NULL,   PREC_NONE},
+        [TOK_ERROR_UNEXPECTED_CHAR]        = {         NULL,  NULL,   PREC_NONE},
+        [TOK_ERROR_UNMATCHED_DOUBLE_QUOTE] = {         NULL,  NULL,   PREC_NONE},
 
-        [TOK_BEGIN_COMMENT] = {      NULL,  NULL,   PREC_NONE},
-        [TOK_END_COMMENT]   = {      NULL,  NULL,   PREC_NONE},
-        [TOK_BEGIN_PAREN]   = {    parens,  call,   PREC_CALL},
-        [TOK_END_PAREN]     = {      NULL,  NULL,   PREC_NONE},
-        [TOK_BEGIN_BRACE]   = {      NULL,  NULL,   PREC_NONE},
-        [TOK_COMMA]         = {      NULL,  NULL,   PREC_NONE},
-        [TOK_DOT]           = {      NULL, binop,   PREC_CALL},
-        [TOK_SEMICOLON]     = {      NULL,  NULL,   PREC_NONE},
-        [TOK_COLON]         = {      NULL,  NULL,   PREC_NONE},
-        [TOK_RIGHT_ARROW]   = {      NULL,  NULL,   PREC_NONE},
+        [TOK_BEGIN_COMMENT] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_END_COMMENT]   = {         NULL,  NULL,   PREC_NONE},
+        [TOK_BEGIN_PAREN]   = {       parens,  call,   PREC_CALL},
+        [TOK_END_PAREN]     = {         NULL,  NULL,   PREC_NONE},
+        [TOK_BEGIN_BRACE]   = {         NULL,  NULL,   PREC_NONE},
+        [TOK_COMMA]         = {         NULL,  NULL,   PREC_NONE},
+        [TOK_DOT]           = {         NULL, binop,   PREC_CALL},
+        [TOK_SEMICOLON]     = {         NULL,  NULL,   PREC_NONE},
+        [TOK_COLON]         = {         NULL,  NULL,   PREC_NONE},
+        [TOK_RIGHT_ARROW]   = {         NULL,  NULL,   PREC_NONE},
 
-        [TOK_MINUS]         = {      unop, binop,   PREC_TERM},
-        [TOK_PLUS]          = {      NULL, binop,   PREC_TERM},
-        [TOK_SLASH]         = {      NULL, binop, PREC_FACTOR},
-        [TOK_STAR]          = {      NULL, binop, PREC_FACTOR},
-        [TOK_PERCENT]       = {      NULL, binop, PREC_FACTOR},
-        [TOK_BANG]          = {      NULL,  NULL,   PREC_NONE},
-        [TOK_BANG_EQUAL]    = {      NULL,  NULL,   PREC_NONE},
-        [TOK_EQUAL]         = {      NULL,  NULL,   PREC_NONE},
-        [TOK_EQUAL_EQUAL]   = {      NULL,  NULL,   PREC_NONE},
-        [TOK_GREATER]       = {      NULL,  NULL,   PREC_NONE},
-        [TOK_GREATER_EQUAL] = {      NULL,  NULL,   PREC_NONE},
-        [TOK_LESS]          = {      NULL,  NULL,   PREC_NONE},
-        [TOK_LESS_EQUAL]    = {      NULL,  NULL,   PREC_NONE},
-        [TOK_AND]           = {      NULL,  NULL,   PREC_NONE},
-        [TOK_OR]            = {      NULL,  NULL,   PREC_NONE},
-        [TOK_XOR]           = {      NULL,  NULL,   PREC_NONE},
+        [TOK_MINUS]         = {         unop, binop,   PREC_TERM},
+        [TOK_PLUS]          = {         NULL, binop,   PREC_TERM},
+        [TOK_SLASH]         = {         NULL, binop, PREC_FACTOR},
+        [TOK_STAR]          = {         NULL, binop, PREC_FACTOR},
+        [TOK_PERCENT]       = {         NULL, binop, PREC_FACTOR},
+        [TOK_BANG]          = {         NULL,  NULL,   PREC_NONE},
+        [TOK_BANG_EQUAL]    = {         NULL,  NULL,   PREC_NONE},
+        [TOK_EQUAL]         = {         NULL,  NULL,   PREC_NONE},
+        [TOK_EQUAL_EQUAL]   = {         NULL,  NULL,   PREC_NONE},
+        [TOK_GREATER]       = {         NULL,  NULL,   PREC_NONE},
+        [TOK_GREATER_EQUAL] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_LESS]          = {         NULL,  NULL,   PREC_NONE},
+        [TOK_LESS_EQUAL]    = {         NULL,  NULL,   PREC_NONE},
+        [TOK_AND]           = {         NULL,  NULL,   PREC_NONE},
+        [TOK_OR]            = {         NULL,  NULL,   PREC_NONE},
+        [TOK_XOR]           = {         NULL,  NULL,   PREC_NONE},
 
-        [TOK_FN]     = {      NULL,  NULL,   PREC_NONE},
-        [TOK_VAR]    = {      NULL,  NULL,   PREC_NONE},
-        [TOK_CONST]  = {      NULL,  NULL,   PREC_NONE},
-        [TOK_RETURN] = {      NULL,  NULL,   PREC_NONE},
+        [TOK_FN]     = {         NULL,  NULL,   PREC_NONE},
+        [TOK_VAR]    = {         NULL,  NULL,   PREC_NONE},
+        [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
-        [TOK_NIL]            = {      NULL,  call,   PREC_CALL},
-        [TOK_TRUE]           = {      NULL,  NULL,   PREC_NONE},
-        [TOK_FALSE]          = {      NULL,  NULL,   PREC_NONE},
-        [TOK_INTEGER]        = {   integer,  NULL,   PREC_NONE},
-        [TOK_STRING_LITERAL] = {      NULL,  NULL,   PREC_NONE},
-        [TOK_IDENTIFIER]     = {identifier,  NULL,   PREC_NONE},
+        [TOK_NIL]            = {          nil,  call,   PREC_CALL},
+        [TOK_TRUE]           = { boolean_true,  NULL,   PREC_NONE},
+        [TOK_FALSE]          = {boolean_false,  NULL,   PREC_NONE},
+        [TOK_INTEGER]        = {      integer,  NULL,   PREC_NONE},
+        [TOK_STRING_LITERAL] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_IDENTIFIER]     = {   identifier,  NULL,   PREC_NONE},
 
-        [TOK_TYPE_NIL]  = {      NULL,  NULL,   PREC_NONE},
-        [TOK_TYPE_BOOL] = {      NULL,  NULL,   PREC_NONE},
-        [TOK_TYPE_I64]  = {      NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_NIL]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_BOOL] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_I64]  = {         NULL,  NULL,   PREC_NONE},
     };
 
     return &rules[token];
@@ -833,10 +842,8 @@ i32 parse_source(Context *context) {
     assert(context != NULL);
     StringView path = context_source_path(context);
     FILE *file      = file_open(path.ptr, "r");
-    u64 length      = file_length(file);
     String buffer;
-    string_resize(&buffer, length);
-    file_read(string_data(&buffer), length, file);
+    string_from_file(&buffer, file);
     file_close(file);
     i32 result =
         parse_buffer(string_to_cstring(&buffer), buffer.length, context);

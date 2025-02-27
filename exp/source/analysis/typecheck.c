@@ -17,55 +17,47 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <assert.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #include "analysis/typecheck.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
 #include "utility/unreachable.h"
 
-typedef struct subject {
-    FunctionBody *function;
+typedef struct Typechecker {
     Context *context;
-} Subject;
+    FunctionBody *function;
+} Typechecker;
 
-static void
-subject_initialize(Subject *subject, FunctionBody *function, Context *context) {
-    assert(subject != nullptr);
-    assert(function != nullptr);
-    assert(context != nullptr);
-    subject->context  = context;
-    subject->function = function;
+static void typechecker_initialize(Typechecker *typechecker, Context *context) {
+    assert(typechecker != nullptr);
+    typechecker->context  = context;
+    typechecker->function = nullptr;
 }
 
-[[maybe_unused]] static bool validate_subject(Subject *subject) {
-    if (subject == nullptr) { return false; }
-    if (subject->function == nullptr) { return false; }
-    if (subject->context == nullptr) { return false; }
-    return true;
-}
-
-static bool error(Subject *subject, ErrorCode code, String message) {
-    assert(validate_subject(subject));
-    Error *current_error = context_current_error(subject->context);
-    assert(current_error != nullptr);
+static bool error(Typechecker *typechecker, ErrorCode code, String message) {
+    assert(typechecker != nullptr);
+    assert(typechecker->context != nullptr);
+    Error *current_error = context_current_error(typechecker->context);
     error_from_string(current_error, code, message);
     return false;
 }
 
-static bool error_name_undefined(Subject *subject, StringView name) {
-    assert(validate_subject(subject));
+static bool error_name_undefined(Typechecker *typechecker, StringView name) {
+    assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Name: ["));
     string_append(&message, name);
     string_append(&message, SV("]"));
-    return error(subject, ERROR_TYPECHECK_UNDEFINED_SYMBOL, message);
+    return error(typechecker, ERROR_TYPECHECK_UNDEFINED_SYMBOL, message);
 }
 
-static bool error_type_mismatch(Subject *subject,
+static bool error_type_mismatch(Typechecker *typechecker,
                                 Type const *expected,
                                 Type const *actual) {
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Expected type: ["));
@@ -73,24 +65,25 @@ static bool error_type_mismatch(Subject *subject,
     string_append(&message, SV("] Actual type: ["));
     print_type(&message, actual);
     string_append(&message, SV("]"));
-    return error(subject, ERROR_TYPECHECK_TYPE_MISMATCH, message);
+    return error(typechecker, ERROR_TYPECHECK_TYPE_MISMATCH, message);
 }
 
-static bool error_type_not_callable(Subject *subject, Type const *type) {
-    assert(validate_subject(subject));
+static bool error_type_not_callable(Typechecker *typechecker,
+                                    Type const *type) {
+    assert(typechecker != nullptr);
     assert(type != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
     print_type(&message, type);
     string_append(&message, SV("]"));
-    return error(subject, ERROR_TYPECHECK_TYPE_NOT_CALLABLE, message);
+    return error(typechecker, ERROR_TYPECHECK_TYPE_NOT_CALLABLE, message);
 }
 
-static bool error_argument_count_mismatch(Subject *subject,
+static bool error_argument_count_mismatch(Typechecker *typechecker,
                                           TupleType const *formal,
                                           Tuple const *actual) {
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
     assert(formal != nullptr);
     assert(actual != nullptr);
     String message;
@@ -100,37 +93,40 @@ static bool error_argument_count_mismatch(Subject *subject,
     string_append(&message, SV("] arguments. Have ["));
     string_append_u64(&message, actual->size);
     string_append(&message, SV("] arguments."));
-    return error(subject, ERROR_TYPECHECK_TYPE_MISMATCH, message);
+    return error(typechecker, ERROR_TYPECHECK_TYPE_MISMATCH, message);
 }
 
-static bool error_return_type_unknown(Subject *subject) {
-    assert(validate_subject(subject));
+static bool error_return_type_unknown(Typechecker *typechecker) {
+    assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
-    return error(subject, ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN, message);
+    return error(typechecker, ERROR_TYPECHECK_RETURN_TYPE_UNKNOWN, message);
 }
 
-static bool error_type_not_indexable(Subject *subject, Type const *type) {
-    assert(validate_subject(subject));
+static bool error_type_not_indexable(Typechecker *typechecker,
+                                     Type const *type) {
+    assert(typechecker != nullptr);
     assert(type != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Type: ["));
     print_type(&message, type);
     string_append(&message, SV("]"));
-    return error(subject, ERROR_TYPECHECK_TYPE_NOT_INDEXABLE, message);
+    return error(typechecker, ERROR_TYPECHECK_TYPE_NOT_INDEXABLE, message);
 }
 
-static bool error_tuple_index_not_immediate(Subject *subject) {
-    assert(validate_subject(subject));
+static bool error_tuple_index_not_immediate(Typechecker *typechecker) {
+    assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
-    return error(subject, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, message);
+    return error(
+        typechecker, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, message);
 }
 
-static bool
-error_tuple_index_out_of_bounds(Subject *subject, i64 index, u64 bounds) {
-    assert(validate_subject(subject));
+static bool error_tuple_index_out_of_bounds(Typechecker *typechecker,
+                                            i32 index,
+                                            u32 bounds) {
+    assert(typechecker != nullptr);
     String message;
     string_initialize(&message);
     string_append(&message, SV("Index: ["));
@@ -138,22 +134,24 @@ error_tuple_index_out_of_bounds(Subject *subject, i64 index, u64 bounds) {
     string_append(&message, SV("] Bounds: [0.."));
     string_append_u64(&message, bounds);
     string_append(&message, SV("]"));
-    return error(subject, ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, message);
+    return error(
+        typechecker, ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, message);
 }
 
-// static bool
-// typecheck_symbol(Type const **result, Symbol *symbol, Context *context);
+static bool
+typecheck_symbol(Type const **result, Symbol *symbol, Typechecker *typechecker);
 
 static bool typecheck_operand(Type const **result,
                               OperandKind kind,
                               OperandData data,
-                              Subject *subject) {
+                              Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
+    assert(typechecker->context != nullptr);
+    assert(typechecker->function != nullptr);
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = function_body_local_at(subject->function, data.ssa);
-        assert(local != nullptr);
+        Local *local = function_body_local_at(typechecker->function, data.ssa);
         // #NOTE: if we try and type a usage of an ssa local, and there is
         //  no annotated type present yet, that means we forgot to set the
         //  type annotation when we typed the declaration of the ssa local.
@@ -165,37 +163,37 @@ static bool typecheck_operand(Type const **result,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        Value *value =
+            context_constants_at(typechecker->context, data.constant);
         *result =
-            type_of_value(data.constant, subject->function, subject->context);
+            type_of_value(value, typechecker->function, typechecker->context);
         return true;
     }
 
-    case OPERAND_KIND_I64: {
-        *result = context_i64_type(subject->context);
+    case OPERAND_KIND_I32: {
+        *result = context_i32_type(typechecker->context);
         return true;
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name = constant_string_to_view(data.label);
-        Local *local    = function_body_local_at_name(subject->function, name);
+        StringView name = context_labels_at(typechecker->context, data.label);
+
+        Local *local = function_body_local_at_name(typechecker->function, name);
         if (local != nullptr) {
             if (local->type == nullptr) {
-                return error_name_undefined(subject, name);
+                return error_name_undefined(typechecker, name);
             }
             *result = local->type;
             return true;
         }
 
-        Symbol *global   = context_symbol_table_at(subject->context, name);
+        Symbol *global   = context_symbol_table_at(typechecker->context, name);
         Type const *type = global->type;
         // #TODO: this will loop infinitely iff we encounter mutually recursive
         //  function calls, whose types are not annotated.
-        // if (type == nullptr) {
-        //    if (!typecheck_symbol(&type, global, subject->context)) {
-        //        return false;
-        //    }
-        //}
-        assert(type != nullptr);
+        if (type == nullptr) {
+            if (!typecheck_symbol(&type, global, typechecker)) { return false; }
+        }
 
         *result = type;
         return true;
@@ -205,16 +203,16 @@ static bool typecheck_operand(Type const **result,
     }
 }
 
-static Local *local_from_operand_A(Instruction I, Subject *subject) {
-    assert(validate_subject(subject));
+static Local *local_from_operand_A(Instruction I, Typechecker *typechecker) {
     switch (I.A_kind) {
     case OPERAND_KIND_SSA: {
-        return function_body_local_at(subject->function, I.A_data.ssa);
+        return function_body_local_at(typechecker->function, I.A_data.ssa);
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name = constant_string_to_view(I.A_data.label);
-        return function_body_local_at_name(subject->function, name);
+        StringView name =
+            context_labels_at(typechecker->context, I.A_data.label);
+        return function_body_local_at_name(typechecker->function, name);
     }
 
     default: EXP_UNREACHABLE();
@@ -222,15 +220,14 @@ static Local *local_from_operand_A(Instruction I, Subject *subject) {
 }
 
 static bool
-typecheck_load(Type const **result, Instruction I, Subject *subject) {
+typecheck_load(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
 
-    Local *local = local_from_operand_A(I, subject);
-    assert(local != nullptr);
+    Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
@@ -241,54 +238,57 @@ typecheck_load(Type const **result, Instruction I, Subject *subject) {
 }
 
 static bool
-typecheck_return(Type const **result, Instruction I, Subject *subject) {
+typecheck_return(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
+    assert(typechecker->function != nullptr);
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
 
-    Type const *return_type = subject->function->return_type;
+    Type const *return_type = typechecker->function->return_type;
     if (return_type == nullptr) {
-        subject->function->return_type = B_type;
+        typechecker->function->return_type = B_type;
     } else if (!type_equality(B_type, return_type)) {
-        return error_type_mismatch(subject, return_type, B_type);
+        return error_type_mismatch(typechecker, return_type, B_type);
     }
-    assert(subject->function->return_type != nullptr);
+    assert(typechecker->function->return_type != nullptr);
 
     *result = B_type;
     return true;
 }
 
 static bool
-typecheck_call(Type const **result, Instruction I, Subject *subject) {
+typecheck_call(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Local *local = local_from_operand_A(I, subject);
-    assert(local != nullptr);
+    assert(typechecker != nullptr);
+    assert(typechecker->context != nullptr);
+    assert(typechecker->function != nullptr);
+    Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
     if (B_type->kind != TYPE_KIND_FUNCTION) {
-        return error_type_not_callable(subject, B_type);
+        return error_type_not_callable(typechecker, B_type);
     }
 
     FunctionType const *function_type = &B_type->function_type;
     TupleType const *formal_arguments = &function_type->argument_types;
 
     assert(I.C_kind == OPERAND_KIND_CONSTANT);
-    Value *value = I.C_data.constant;
+    Value *value =
+        context_constants_at(typechecker->context, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_arguments = &value->tuple;
 
     if (formal_arguments->count != actual_arguments->size) {
         return error_argument_count_mismatch(
-            subject, formal_arguments, actual_arguments);
+            typechecker, formal_arguments, actual_arguments);
     }
 
     for (u8 i = 0; i < actual_arguments->size; ++i) {
@@ -297,13 +297,13 @@ typecheck_call(Type const **result, Instruction I, Subject *subject) {
 
         Type const *actual_type = nullptr;
         if (!typecheck_operand(
-                &actual_type, operand.kind, operand.data, subject)) {
+                &actual_type, operand.kind, operand.data, typechecker)) {
             return false;
         }
         assert(actual_type != nullptr);
 
         if (!type_equality(actual_type, formal_type)) {
-            return error_type_mismatch(subject, formal_type, actual_type);
+            return error_type_mismatch(typechecker, formal_type, actual_type);
         }
     }
 
@@ -313,36 +313,35 @@ typecheck_call(Type const **result, Instruction I, Subject *subject) {
 }
 
 static bool tuple_index_out_of_bounds(i64 index, TupleType const *tuple) {
-    assert(tuple != nullptr);
     return ((index < 0) || ((u64)index >= tuple->count));
 }
 
 static bool
-typecheck_dot(Type const **result, Instruction I, Subject *subject) {
+typecheck_dot(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
 
-    Local *local = local_from_operand_A(I, subject);
-    assert(local != nullptr);
+    Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
     if (B_type->kind != TYPE_KIND_TUPLE) {
-        return error_type_not_indexable(subject, B_type);
+        return error_type_not_indexable(typechecker, B_type);
     }
     TupleType const *tuple = &B_type->tuple_type;
 
-    if (I.C_kind != OPERAND_KIND_I64) {
-        return error_tuple_index_not_immediate(subject);
+    if (I.C_kind != OPERAND_KIND_I32) {
+        return error_tuple_index_not_immediate(typechecker);
     }
-    assert(I.C_kind == OPERAND_KIND_I64);
-    i64 index = I.C_data.i64_;
+    assert(I.C_kind == OPERAND_KIND_I32);
+    i32 index = I.C_data.i32_;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
-        return error_tuple_index_out_of_bounds(subject, index, tuple->count);
+        return error_tuple_index_out_of_bounds(
+            typechecker, index, tuple->count);
     }
 
     local_update_type(local, tuple->types[index]);
@@ -354,23 +353,22 @@ static bool typecheck_unop(Type const **result,
                            Instruction I,
                            Type const *argument_type,
                            Type const *result_type,
-                           Subject *subject) {
+                           Typechecker *typechecker) {
     assert(result != nullptr);
     assert(argument_type != nullptr);
     assert(result_type != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
 
-    Local *local = local_from_operand_A(I, subject);
-    assert(local != nullptr);
+    Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
 
     if (!type_equality(argument_type, B_type)) {
-        return error_type_mismatch(subject, argument_type, B_type);
+        return error_type_mismatch(typechecker, argument_type, B_type);
     }
 
     local_update_type(local, result_type);
@@ -379,11 +377,12 @@ static bool typecheck_unop(Type const **result,
 }
 
 static bool
-typecheck_negate(Type const **result, Instruction I, Subject *subject) {
+typecheck_neg(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_unop(result, I, i64_type, i64_type, subject);
+    assert(typechecker != nullptr);
+    assert(typechecker->context != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_unop(result, I, i32_type, i32_type, typechecker);
 }
 
 static bool typecheck_binop(Type const **result,
@@ -391,34 +390,33 @@ static bool typecheck_binop(Type const **result,
                             Type const *left_type,
                             Type const *right_type,
                             Type const *result_type,
-                            Subject *subject) {
+                            Typechecker *typechecker) {
     assert(result != nullptr);
     assert(left_type != nullptr);
     assert(right_type != nullptr);
     assert(result_type != nullptr);
-    assert(validate_subject(subject));
+    assert(typechecker != nullptr);
 
-    Local *local = local_from_operand_A(I, subject);
-    assert(local != nullptr);
+    Local *local = local_from_operand_A(I, typechecker);
 
     Type const *B_type = nullptr;
-    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, subject)) {
+    if (!typecheck_operand(&B_type, I.B_kind, I.B_data, typechecker)) {
         return false;
     }
     assert(B_type != nullptr);
 
     if (!type_equality(left_type, B_type)) {
-        return error_type_mismatch(subject, left_type, B_type);
+        return error_type_mismatch(typechecker, left_type, B_type);
     }
 
     Type const *C_type = nullptr;
-    if (!typecheck_operand(&C_type, I.C_kind, I.C_data, subject)) {
+    if (!typecheck_operand(&C_type, I.C_kind, I.C_data, typechecker)) {
         return false;
     }
     assert(C_type != nullptr);
 
     if (!type_equality(right_type, C_type)) {
-        return error_type_mismatch(subject, right_type, C_type);
+        return error_type_mismatch(typechecker, right_type, C_type);
     }
 
     local_update_type(local, result_type);
@@ -427,122 +425,170 @@ static bool typecheck_binop(Type const **result,
 }
 
 static bool
-typecheck_add(Type const **result, Instruction I, Subject *subject) {
+typecheck_add(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_binop(result, I, i64_type, i64_type, i64_type, subject);
+    assert(typechecker != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_binop(
+        result, I, i32_type, i32_type, i32_type, typechecker);
+}
+
+static bool typecheck_subtract(Type const **result,
+                               Instruction I,
+                               Typechecker *typechecker) {
+    assert(result != nullptr);
+    assert(typechecker != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_binop(
+        result, I, i32_type, i32_type, i32_type, typechecker);
+}
+
+static bool typecheck_multiply(Type const **result,
+                               Instruction I,
+                               Typechecker *typechecker) {
+    assert(result != nullptr);
+    assert(typechecker != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_binop(
+        result, I, i32_type, i32_type, i32_type, typechecker);
 }
 
 static bool
-typecheck_subtract(Type const **result, Instruction I, Subject *subject) {
+typecheck_divide(Type const **result, Instruction I, Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_binop(result, I, i64_type, i64_type, i64_type, subject);
+    assert(typechecker != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_binop(
+        result, I, i32_type, i32_type, i32_type, typechecker);
 }
 
-static bool
-typecheck_multiply(Type const **result, Instruction I, Subject *subject) {
+static bool typecheck_modulus(Type const **result,
+                              Instruction I,
+                              Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_binop(result, I, i64_type, i64_type, i64_type, subject);
+    assert(typechecker != nullptr);
+    Type const *i32_type = context_i32_type(typechecker->context);
+    return typecheck_binop(
+        result, I, i32_type, i32_type, i32_type, typechecker);
 }
 
-static bool
-typecheck_divide(Type const **result, Instruction I, Subject *subject) {
+static bool typecheck_function(Type const **result,
+                               FunctionBody *function,
+                               Typechecker *typechecker) {
     assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_binop(result, I, i64_type, i64_type, i64_type, subject);
-}
-
-static bool
-typecheck_modulus(Type const **result, Instruction I, Subject *subject) {
-    assert(result != nullptr);
-    assert(validate_subject(subject));
-    Type const *i64_type = context_i64_type(subject->context);
-    return typecheck_binop(result, I, i64_type, i64_type, i64_type, subject);
-}
-
-static bool
-typecheck_instruction(Type const **result, Instruction I, Subject *subject) {
-    assert(result != nullptr);
-    assert(validate_subject(subject));
-    switch (I.opcode) {
-    case OPCODE_RETURN: {
-        if (!typecheck_return(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_CALL: {
-        if (!typecheck_call(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_DOT: {
-        if (!typecheck_dot(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_LOAD: {
-        if (!typecheck_load(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_NEGATE: {
-        if (!typecheck_negate(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_ADD: {
-        if (!typecheck_add(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_SUBTRACT: {
-        if (!typecheck_subtract(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_MULTIPLY: {
-        if (!typecheck_multiply(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_DIVIDE: {
-        if (!typecheck_divide(result, I, subject)) { return false; }
-        break;
-    }
-
-    case OPCODE_MODULUS: {
-        if (!typecheck_modulus(result, I, subject)) { return false; }
-        break;
-    }
-
-    default: EXP_UNREACHABLE();
-    }
-    return true;
-}
-
-ExpResult typecheck_function(FunctionBody *function, Context *context) {
     assert(function != nullptr);
-    assert(context != nullptr);
-    Subject subject;
-    subject_initialize(&subject, function, context);
-    Block *block = &function->block;
-    for (u32 index = 0; index < block->length; ++index) {
+    assert(typechecker != nullptr);
+    typechecker->function = function;
+    Block *bc             = &function->block;
+
+    Instruction *ip = bc->buffer;
+    for (u32 idx = 0; idx < bc->length; ++idx) {
+        Instruction I      = ip[idx];
         Type const *result = nullptr;
-        if (!typecheck_instruction(&result, block->buffer[index], &subject)) {
-            return EXP_FAILURE;
+        switch (I.opcode) {
+        case OPCODE_RETURN: {
+            if (!typecheck_return(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_CALL: {
+            if (!typecheck_call(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_DOT: {
+            if (!typecheck_dot(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_LOAD: {
+            if (!typecheck_load(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_NEGATE: {
+            if (!typecheck_neg(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_ADD: {
+            if (!typecheck_add(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_SUBTRACT: {
+            if (!typecheck_subtract(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_MULTIPLY: {
+            if (!typecheck_multiply(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_DIVIDE: {
+            if (!typecheck_divide(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        case OPCODE_MODULUS: {
+            if (!typecheck_modulus(&result, I, typechecker)) { return false; }
+            break;
+        }
+
+        default: EXP_UNREACHABLE();
         }
         assert(result != nullptr);
     }
 
     if (function->return_type == nullptr) {
-        return error_return_type_unknown(&subject);
+        return error_return_type_unknown(typechecker);
     }
 
-    return EXP_SUCCESS;
+    *result = type_of_function(function, typechecker->context);
+    return true;
+}
+
+static bool typecheck_symbol(Type const **result,
+                             Symbol *symbol,
+                             Typechecker *typechecker) {
+    assert(result != nullptr);
+    assert(symbol != nullptr);
+    assert(typechecker != nullptr);
+
+    if (symbol->type != nullptr) { return true; }
+
+    FunctionBody *body        = &symbol->function_body;
+    Type const *function_type = nullptr;
+    if (!typecheck_function(&function_type, body, typechecker)) {
+        return false;
+    }
+    assert(function_type != nullptr);
+
+    symbol->type = function_type;
+    *result      = function_type;
+    return true;
+}
+
+i32 typecheck(Context *context) {
+    assert(context != nullptr);
+    i32 result = EXIT_SUCCESS;
+    Typechecker typechecker;
+    typechecker_initialize(&typechecker, context);
+
+    SymbolTable *symbol_table = &context->symbol_table;
+    for (u64 i = 0; i < symbol_table->capacity; ++i) {
+        Symbol *symbol = symbol_table->elements[i];
+        if (symbol == nullptr) { continue; }
+        Type const *result_type = nullptr;
+        if (!typecheck_symbol(&result_type, symbol, &typechecker)) {
+            Error *error = context_current_error(context);
+            // #TODO: add source information
+            error_print(error, context_source_path(context), 0);
+            error_terminate(error);
+            result |= EXIT_FAILURE;
+        }
+    }
+
+    return result;
 }

@@ -21,18 +21,18 @@
 #include "core/assemble.h"
 #include "utility/process.h"
 
-ExpResult assemble(Context *context) {
-    StringView asm_path = context_assembly_path(context);
-    StringView obj_path = context_object_path(context);
+i32 assemble(Context *restrict context) {
+  StringView asm_path = context_assembly_path(context);
+  StringView obj_path = context_object_path(context);
 
-    char const *args[] = {
-        "as",
-        asm_path.ptr,
-        "-o",
-        obj_path.ptr,
-        NULL,
-    };
+  char const *args[] = {
+      "as",
+      asm_path.ptr,
+      "-o",
+      obj_path.ptr,
+      NULL,
+  };
 
-    if (process("as", args) != EXIT_SUCCESS) return EXP_FAILURE;
-    return EXP_SUCCESS;
+  return process("as", args);
 }
+

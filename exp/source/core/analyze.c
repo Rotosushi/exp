@@ -16,15 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_ANALYSIS_FINALIZE_H
-#define EXP_ANALYSIS_FINALIZE_H
 
-#include "imr/function_body.h"
+#include "core/analyze.h"
+#include "analysis/typecheck.h"
 
-/**
- * @brief infers the type, lifetime, and location
- * of each local variable within the function.
- */
-i32 finalize_function(FunctionBody *function, struct Context *context);
-
-#endif // !EXP_ANALYSIS_FINALIZE_H
+i32 analyze(Context *restrict context) { return typecheck(context); }

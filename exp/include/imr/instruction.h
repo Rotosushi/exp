@@ -22,7 +22,7 @@
  * @brief the valid opcodes for instructions
  *
  */
-typedef enum Opcode : u16 {
+typedef enum Opcode : u8 {
     /*
      * <...> -> side effect
      * ip    -> the instruction pointer
@@ -94,11 +94,11 @@ typedef enum Opcode : u16 {
 /**
  * @brief represents a single instruction
  *
- * sizeof(Opcode) == 2
- * sizeof(OperandKind) == 2
- * sizeof(OperandData) == 8
- * 2 + 2*3  + 8*3 ->
- * sizeof(Instruction) == 32
+ * sizeof(Opcode) == 1
+ * sizeof(OperandKind) == 1
+ * sizeof(OperandData) == 4
+ * ->
+ * sizeof(Instruction) == 16
  */
 typedef struct Instruction {
     Opcode opcode;

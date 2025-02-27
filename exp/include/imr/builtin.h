@@ -13,15 +13,17 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_RESULT_H
-#define EXP_UTILITY_RESULT_H
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef EXP_IMR_BUILTIN_H
+#define EXP_IMR_BUILTIN_H
 
-#include "utility/int_types.h"
+#include "imr/operand.h"
+// I dont think these will work quite as I want?
+// we need a builtin implementation on each target
+// language, and this ptr only works at compile time.
+typedef bool (*builtin_generic_function_ptr)(Operand *result,
+                                             u64 argument_count,
+                                             Operand *arguments,
+                                             struct Context *context);
 
-typedef enum ExpResult : u32 {
-    EXP_SUCCESS,
-    EXP_FAILURE,
-} ExpResult;
-
-#endif // EXP_UTILITY_RESULT_H
+#endif // EXP_IMR_BUILTIN_H

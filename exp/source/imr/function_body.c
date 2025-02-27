@@ -122,12 +122,12 @@ FormalArgument *function_body_arguments_at(FunctionBody *function, u8 index) {
     return formal_argument_list_at(&function->arguments, index);
 }
 
-u64 function_body_declare_local(FunctionBody *function) {
+u32 function_body_declare_local(FunctionBody *function) {
     assert(function != nullptr);
     return local_allocator_declare_ssa(&function->allocator);
 }
 
-Local *function_body_local_at(FunctionBody *function, u64 ssa) {
+Local *function_body_local_at(FunctionBody *function, u32 ssa) {
     assert(function != nullptr);
     return local_allocator_at(&function->allocator, ssa);
 }
@@ -135,14 +135,6 @@ Local *function_body_local_at(FunctionBody *function, u64 ssa) {
 Local *function_body_local_at_name(FunctionBody *function, StringView name) {
     assert(function != nullptr);
     return local_allocator_at_name(&function->allocator, name);
-}
-
-void function_body_allocate_local(FunctionBody *function,
-                                  Local *local,
-                                  u64 block_index) {
-    assert(function != nullptr);
-    assert(local != nullptr);
-    local_allocator_allocate_local(&function->allocator, local, block_index);
 }
 
 void function_body_append_instruction(FunctionBody *function,

@@ -20,8 +20,10 @@
 #include <stdlib.h>
 
 #include "env/constants.h"
+#include "env/context.h"
 #include "utility/alloc.h"
 #include "utility/array_growth.h"
+#include "utility/panic.h"
 
 void constants_initialize(Constants *constants) {
     assert(constants != nullptr);
@@ -32,9 +34,9 @@ void constants_initialize(Constants *constants) {
 
 void constants_terminate(Constants *constants) {
     assert(constants != NULL);
-    for (u64 i = 0; i < constants->count; ++i) {
-        Value *constant = constants->buffer[i];
-        value_terminate(constant);
+    for (u32 i = 0; i < constants->count; ++i) {
+        Value *constant = constants->buffer + i;
+        value_destroy(constant);
     }
 
     constants->count    = 0;
@@ -50,31 +52,43 @@ static bool constants_full(Constants *constants) {
 
 static void constants_grow(Constants *constants) {
     assert(constants != NULL);
-    Growth64 g          = array_growth_u64(constants->capacity, sizeof(Value));
+    Growth32 g          = array_growth_u32(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
     constants->capacity = g.new_capacity;
 }
 
-Value *constants_append_tuple(Constants *constants, Tuple tuple) {
+Operand constants_append(Constants *constants, Value value) {
     assert(constants != NULL);
-
-    Value *value = callocate(1, sizeof(Value));
-    value_initialize_tuple(value, tuple);
-
-    for (u64 index = 0; index < constants->count; ++index) {
-        Value *cursor = constants->buffer[index];
-        assert(cursor != nullptr);
-
-        if (value_equality(cursor, value)) {
-            value_terminate(value);
-            return cursor;
+    for (u32 index = 0; index < constants->count; ++index) {
+        Value *cursor = constants->buffer + index;
+        if (value_equality(cursor, &value)) {
+            value_destroy(&value);
+            return operand_constant(index);
         }
     }
 
     if (constants_full(constants)) { constants_grow(constants); }
 
-    u64 index                = constants->count++;
+    u32 index                = constants->count;
     constants->buffer[index] = value;
+    constants->count += 1;
 
-    return constants->buffer[index];
+    return operand_constant(index);
 }
+
+Value *constants_at(Constants *constants, u32 index) {
+    assert(constants != NULL);
+    assert(index < constants->count);
+    return constants->buffer + index;
+}
+/*
+void print_constants(Constants const *constants, FILE *file, Context *context) {
+    for (u64 i = 0; i < constants->count; ++i) {
+        file_write_u64(i, file);
+        file_write(": ", file);
+        file_write("[", file);
+        print_value(constants->buffer + i, file, context);
+        file_write("]\n", file);
+    }
+}
+*/

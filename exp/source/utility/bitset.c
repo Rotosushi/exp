@@ -26,12 +26,12 @@ Bitset bitset_create() {
 }
 
 static u64 bit_at(u8 position) {
-    assert(position < bitset_length());
+    assert(position <= 63);
     return 1ul << (u64)position;
 }
 
 static u64 state_at(u8 position, bool state) {
-    assert(position < bitset_length());
+    assert(position <= 63);
     return (u64)state << (u64)position;
 }
 

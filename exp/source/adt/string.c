@@ -41,10 +41,10 @@ static bool string_is_small(String const *string) {
 }
 
 void string_destroy(String *string) {
-    assert(string != nullptr);
+    assert(string != NULL);
     if (!string_is_small(string)) {
         deallocate(string->ptr);
-        string->ptr = nullptr;
+        string->ptr = NULL;
     } else {
         string->buffer[0] = '\0';
     }
@@ -53,22 +53,13 @@ void string_destroy(String *string) {
 }
 
 StringView string_to_view(String const *string) {
-    assert(string != nullptr);
+    assert(string != NULL);
     StringView view = string_view_create();
     view = string_view_from_str(string_to_cstring(string), string->length);
     return view;
 }
 
 char const *string_to_cstring(String const *string) {
-    assert(string != nullptr);
-    if (string_is_small(string)) {
-        return string->buffer;
-    } else {
-        return string->ptr;
-    }
-}
-
-char *string_data(String *string) {
     assert(string != nullptr);
     if (string_is_small(string)) {
         return string->buffer;
@@ -115,7 +106,6 @@ void string_from_cstring(String *string, char const *cstring) {
     string_from_view(string, string_view_from_cstring(cstring));
 }
 
-/*
 void string_from_file(String *string, FILE *file) {
     assert(string != nullptr);
     assert(file != nullptr);
@@ -130,7 +120,6 @@ void string_from_file(String *string, FILE *file) {
 
     string->length = flen;
 }
-*/
 
 bool string_empty(String const *string) {
     assert(string != NULL);

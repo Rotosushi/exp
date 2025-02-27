@@ -29,11 +29,8 @@ typedef struct Bitset {
     u64 bits;
 } Bitset;
 
-#define bitset_length() 64
-
 Bitset bitset_create();
 
-bool bitset_empty(Bitset *bitset);
 void bitset_set_bit(Bitset *bitset, u8 bit_position);
 void bitset_clear_bit(Bitset *bitset, u8 bit_position);
 void bitset_assign_bit(Bitset *bitset, u8 bit_position, bool state);

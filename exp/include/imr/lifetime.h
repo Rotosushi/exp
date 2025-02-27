@@ -20,11 +20,11 @@
 #include "utility/int_types.h"
 
 typedef struct Lifetime {
-    u64 first_use;
-    u64 last_use;
+    u32 first_use;
+    u32 last_use;
 } Lifetime;
 
-Lifetime lifetime_construct(u64 first, u64 last);
+Lifetime lifetime_construct(u32 first, u32 last);
 Lifetime lifetime_create();
 Lifetime lifetime_immortal();
 

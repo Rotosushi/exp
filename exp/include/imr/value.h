@@ -23,9 +23,9 @@
 typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,
 
-    //  VALUE_KIND_NIL,
-    //  VALUE_KIND_BOOLEAN,
-    VALUE_KIND_I64,
+    VALUE_KIND_NIL,
+    VALUE_KIND_BOOLEAN,
+    VALUE_KIND_I32,
 
     VALUE_KIND_TUPLE,
 } ValueKind;
@@ -33,8 +33,8 @@ typedef enum ValueKind {
 struct Value;
 
 typedef struct Tuple {
-    u64 size;
-    u64 capacity;
+    u32 size;
+    u32 capacity;
     Operand *elements;
 } Tuple;
 
@@ -45,27 +45,76 @@ typedef struct Tuple {
 typedef struct Value {
     ValueKind kind;
     union {
-        //        bool nil;
-        //        bool boolean;
-        i64 i64_;
+        bool nil;
+        bool boolean;
+        i32 i32_;
         Tuple tuple;
     };
 } Value;
 
-void tuple_initialize(Tuple *tuple);
-void tuple_terminate(Tuple *tuple);
-// void tuple_assign(Tuple *A, Tuple *B);
+Tuple tuple_create();
+void tuple_destroy(Tuple *tuple);
+void tuple_assign(Tuple *A, Tuple *B);
 bool tuple_equal(Tuple *A, Tuple *B);
 void tuple_append(Tuple *tuple, Operand element);
 
-void value_initialize(Value *value);
-void value_terminate(Value *value);
-// void value_initialize_nil(Value *value);
-// void value_initialize_boolean(Value *value, bool bool_);
-void value_initialize_i64(Value *value, i64 i64_);
-void value_initialize_tuple(Value *value, Tuple tuple);
-// void value_assign(Value *target, Value *source);
-bool value_equality(Value *A, Value *B);
+/**
+ * @brief create an uninitialized value
+ *
+ * @return Value
+ */
+Value value_create();
+
+void value_destroy(Value *value);
+
+/**
+ * @brief create a nil value
+ *
+ * @return Value
+ */
+Value value_create_nil();
+
+/**
+ * @brief create a boolean value
+ *
+ * @param b
+ * @return Value
+ */
+Value value_create_boolean(bool b);
+
+/**
+ * @brief create an Integer value
+ *
+ * @param i
+ * @return Value
+ */
+Value value_create_i32(i32 i);
+
+/**
+ * @brief create a Tuple value
+ *
+ * @param tuple
+ * @return Value
+ */
+Value value_create_tuple(Tuple tuple);
+
+/**
+ * @brief assign dest the value of source
+ *
+ * @param dest
+ * @param source
+ */
+void value_assign(Value *dest, Value *source);
+
+/**
+ * @brief equality compares values
+ *
+ * @param v1
+ * @param v2
+ * @return true
+ * @return false
+ */
+bool value_equality(Value *v1, Value *v2);
 
 struct Context;
 void print_value(String *buffer, Value const *value, struct Context *context);

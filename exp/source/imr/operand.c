@@ -27,24 +27,23 @@ Operand operand_construct(OperandKind kind, OperandData data) {
     return operand_;
 }
 
-Operand operand_ssa(u64 ssa) {
+Operand operand_ssa(u32 ssa) {
     Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
     return operand;
 }
 
-Operand operand_i64(i64 i64_) {
-    Operand operand = {.kind = OPERAND_KIND_I64, .data.i64_ = i64_};
+Operand operand_constant(u32 index) {
+    Operand operand = {.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
     return operand;
 }
 
-Operand operand_constant(Value *constant) {
-    Operand operand = {.kind          = OPERAND_KIND_CONSTANT,
-                       .data.constant = constant};
+Operand operand_i32(i32 immediate) {
+    Operand operand = {.kind = OPERAND_KIND_I32, .data.i32_ = immediate};
     return operand;
 }
 
-Operand operand_label(ConstantString *label) {
-    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = label};
+Operand operand_label(u32 index) {
+    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
     return operand;
 }
 
@@ -54,15 +53,25 @@ bool operand_equality(Operand A, Operand B) {
     switch (A.kind) {
     case OPERAND_KIND_SSA:      return A.data.ssa == B.data.ssa;
     case OPERAND_KIND_CONSTANT: return A.data.constant == B.data.constant;
-    case OPERAND_KIND_I64:      return A.data.i64_ == B.data.i64_;
+    case OPERAND_KIND_I32:      return A.data.i32_ == B.data.i32_;
     case OPERAND_KIND_LABEL:    return A.data.label == B.data.label;
     default:                    EXP_UNREACHABLE();
     }
 }
 
-static void print_operand_ssa(String *buffer, u64 ssa) {
+static void print_operand_ssa(String *buffer, u32 ssa) {
     string_append(buffer, SV("%"));
     string_append_u64(buffer, ssa);
+}
+
+static void print_operand_value(String *buffer, u32 index, Context *context) {
+    Value *value = context_constants_at(context, index);
+    print_value(buffer, value, context);
+}
+
+static void print_operand_label(String *buffer, u32 index, Context *context) {
+    StringView name = context_labels_at(context, index);
+    string_append(buffer, name);
 }
 
 void print_operand(String *buffer,
@@ -72,11 +81,11 @@ void print_operand(String *buffer,
     switch (kind) {
     case OPERAND_KIND_SSA: print_operand_ssa(buffer, data.ssa); break;
     case OPERAND_KIND_CONSTANT:
-        print_value(buffer, data.constant, context);
+        print_operand_value(buffer, data.constant, context);
         break;
-    case OPERAND_KIND_I64: string_append_i64(buffer, data.i64_); break;
+    case OPERAND_KIND_I32: string_append_i64(buffer, data.i32_); break;
     case OPERAND_KIND_LABEL:
-        string_append(buffer, constant_string_to_view(data.label));
+        print_operand_label(buffer, data.label, context);
         break;
 
     default: EXP_UNREACHABLE();
