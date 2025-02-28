@@ -3,6 +3,7 @@
 
 #include "test_exp.h"
 #include "test_resources.h"
+#include "utility/io.h"
 
 i32 main() {
     i32 result = EXIT_SUCCESS;
@@ -11,8 +12,8 @@ i32 main() {
 
     for (u64 index = 0; index < test_resources.count; ++index) {
         String *resource = test_resources.buffer + index;
-        file_write("\ntesting resource: ", stderr);
-        file_write(string_to_cstring(resource), stderr);
+        file_write(SV("\ntesting resource: "), stderr);
+        file_write(string_to_view(resource), stderr);
         result |= test_source(string_to_view(resource));
     }
 

@@ -39,7 +39,7 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     char const *exe_path = string_to_cstring(&exe);
 
     FILE *file = file_open(source_path.ptr, "w");
-    file_write(contents, file);
+    file_write(string_view_from_cstring(contents), file);
     file_close(file);
 
     char const *exp_args[] = {exp_path, source_path.ptr, NULL};
@@ -50,11 +50,11 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
         char const *test_args[] = {exe_path, NULL};
         i32 test_result         = process(exe_path, test_args);
         if (test_result != expected_code) {
-            file_write("expected code: ", stderr);
+            file_write(SV("expected code: "), stderr);
             file_write_i64(expected_code, stderr);
-            file_write(" actual code: ", stderr);
+            file_write(SV(" actual code: "), stderr);
             file_write_i64(test_result, stderr);
-            file_write("\n", stderr);
+            file_write(SV("\n"), stderr);
             result |= EXIT_FAILURE;
         }
 
@@ -111,13 +111,13 @@ i32 test_source(StringView path) {
     i32 test_result         = process(exe_path, test_args);
     if (test_result != exit_code) {
         string_destroy(&exe_string);
-        file_write("\ntest resource: ", stderr);
-        file_write(path.ptr, stderr);
-        file_write("\nexpected exit code: ", stderr);
+        file_write(SV("\ntest resource: "), stderr);
+        file_write(path, stderr);
+        file_write(SV("\nexpected exit code: "), stderr);
         file_write_i64(exit_code, stderr);
-        file_write(" actual exit code: ", stderr);
+        file_write(SV(" actual exit code: "), stderr);
         file_write_i64(test_result, stderr);
-        file_write("\n", stderr);
+        file_write(SV("\n"), stderr);
         return EXIT_FAILURE;
     }
 

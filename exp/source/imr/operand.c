@@ -61,7 +61,7 @@ bool operand_equality(Operand A, Operand B) {
 }
 
 static void print_operand_ssa(u32 ssa, FILE *restrict file) {
-    file_write("%", file);
+    file_write(SV("%"), file);
     file_write_u64(ssa, file);
 }
 
@@ -77,9 +77,9 @@ static void print_operand_immediate(i64 immediate, FILE *restrict file) {
 
 static void
 print_operand_label(u32 index, FILE *restrict file, Context *restrict context) {
-    file_write("%", file);
+    file_write(SV("%"), file);
     StringView name = context_labels_at(context, index);
-    file_write(name.ptr, file);
+    file_write(name, file);
 }
 
 void print_operand(Operand operand,

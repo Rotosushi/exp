@@ -158,13 +158,13 @@ bool value_equality(Value *A, Value *B) {
 static void print_tuple(Tuple const *restrict tuple,
                         FILE *restrict file,
                         Context *restrict context) {
-    file_write("(", file);
+    file_write(SV("("), file);
     for (u64 i = 0; i < tuple->size; ++i) {
         print_operand(tuple->elements[i], file, context);
 
-        if (i < (tuple->size - 1)) { file_write(", ", file); }
+        if (i < (tuple->size - 1)) { file_write(SV(", "), file); }
     }
-    file_write(")", file);
+    file_write(SV(")"), file);
 }
 
 void print_value(Value const *restrict v,
@@ -172,10 +172,11 @@ void print_value(Value const *restrict v,
                  Context *restrict context) {
     switch (v->kind) {
     case VALUE_KIND_UNINITIALIZED:
-    case VALUE_KIND_NIL:           file_write("()", file); break;
+    case VALUE_KIND_NIL:           file_write(SV("()"), file); break;
 
     case VALUE_KIND_BOOLEAN: {
-        (v->boolean) ? file_write("true", file) : file_write("false", file);
+        (v->boolean) ? file_write(SV("true"), file)
+                     : file_write(SV("false"), file);
         break;
     }
 

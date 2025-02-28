@@ -22,6 +22,7 @@
 #include "imr/type.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
+#include "utility/io.h"
 #include "utility/unreachable.h"
 
 TupleType tuple_type_create() {
@@ -194,6 +195,6 @@ void emit_type(Type const *restrict T, String *restrict buf) {
 void print_type(Type const *restrict T, FILE *restrict file) {
     String buf = string_create();
     emit_type(T, &buf);
-    print_string_view(string_to_view(&buf), file);
+    file_write(string_to_view(&buf), file);
     string_destroy(&buf);
 }

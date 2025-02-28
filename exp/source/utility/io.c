@@ -42,21 +42,23 @@ void file_remove(char const *restrict path) {
     if (remove(path)) { PANIC_ERRNO("remove failed"); }
 }
 
-void file_write(const char *restrict buffer, FILE *restrict stream) {
-    i32 code = fputs(buffer, stream);
-    if ((code == EOF) && (ferror(stream))) { PANIC_ERRNO("fputs failed"); }
+void file_write(StringView view, FILE *restrict stream) {
+    fwrite(view.ptr, sizeof(*view.ptr), view.length, stream);
+    if (ferror(stream)) { PANIC_ERRNO("fputs failed"); }
 }
 
 void file_write_i64(i64 value, FILE *restrict stream) {
-    char buf[i64_safe_strlen(value) + 1] = {};
+    u64 buflen           = i64_safe_strlen(value);
+    char buf[buflen + 1] = {};
     if (i64_to_str(value, buf) == NULL) { PANIC("i64_to_str failed"); }
-    file_write(buf, stream);
+    file_write(string_view_from_str(buf, buflen), stream);
 }
 
 void file_write_u64(u64 value, FILE *restrict stream) {
+    u64 buflen                           = u64_safe_strlen(value);
     char buf[u64_safe_strlen(value) + 1] = {};
     if (u64_to_str(value, buf) == NULL) { PANIC("u64_to_str failed"); }
-    file_write(buf, stream);
+    file_write(string_view_from_str(buf, buflen), stream);
 }
 
 u64 file_read(char *buffer, u64 length, FILE *restrict stream) {

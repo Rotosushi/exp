@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #include <assert.h>
+#include <stddef.h>
 
 #include "env/labels.h"
 #include "utility/allocation.h"

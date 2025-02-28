@@ -14,12 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @file io.h
+ * @brief wrappers for c stdlib file io functions
+ * which PANIC on failure.
+ */
+
 #ifndef EXP_UTILITY_IO_H
 #define EXP_UTILITY_IO_H
 
 #include <stdio.h>
 
 #include "utility/int_types.h"
+#include "utility/string_view.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes);
 
@@ -38,7 +46,7 @@ void file_remove(char const *restrict path);
  * @param stream the stream to write to
  * @return u64 the number of chars written
  */
-void file_write(const char *restrict buffer, FILE *restrict stream);
+void file_write(StringView view, FILE *restrict stream);
 
 void file_write_i64(i64 value, FILE *restrict stream);
 

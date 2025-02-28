@@ -101,6 +101,6 @@ void error_print(Error *restrict error, StringView file, u64 line) {
     string_append_string(&msg, &error->message);
     string_append(&msg, SV(ANSI_COLOR_RESET));
     string_append(&msg, SV("]"));
-    log_message(LOG_ERROR, file.ptr, line, string_to_cstring(&msg), stderr);
+    log_message(LOG_ERROR, file.ptr, line, string_to_view(&msg), stderr);
     string_destroy(&msg);
 }

@@ -25,18 +25,19 @@
 #include "utility/io.h"
 #include "utility/log.h"
 
-#define LOG_FATAL_MSG     ANSI_COLOR_RED "fatal" ANSI_COLOR_RESET
-#define LOG_ERROR_MSG     ANSI_COLOR_RED "error" ANSI_COLOR_RESET
-#define LOG_WARNING_MSG   ANSI_COLOR_YELLOW "warning" ANSI_COLOR_RESET
-#define LOG_STATUS_MSG    ANSI_COLOR_BLUE "status" ANSI_COLOR_RESET
-#define BAD_LOG_LEVEL_MSG ANSI_COLOR_RED "unknown log level" ANSI_COLOR_RESET
+#define LOG_FATAL_MSG   SV(ANSI_COLOR_RED "fatal" ANSI_COLOR_RESET)
+#define LOG_ERROR_MSG   SV(ANSI_COLOR_RED "error" ANSI_COLOR_RESET)
+#define LOG_WARNING_MSG SV(ANSI_COLOR_YELLOW "warning" ANSI_COLOR_RESET)
+#define LOG_STATUS_MSG  SV(ANSI_COLOR_BLUE "status" ANSI_COLOR_RESET)
+#define BAD_LOG_LEVEL_MSG                                                      \
+    SV(ANSI_COLOR_RED "unknown log level" ANSI_COLOR_RESET)
 
 void log_message(LogLevel level,
                  const char *restrict file,
                  u64 line,
-                 const char *restrict message,
+                 StringView message,
                  FILE *restrict stream) {
-    file_write("[", stream);
+    file_write(SV("["), stream);
 
     switch (level) {
     case LOG_FATAL:   file_write(LOG_FATAL_MSG, stream); break;
@@ -47,15 +48,15 @@ void log_message(LogLevel level,
     }
 
     if (file != NULL) {
-        file_write(" @ ", stream);
-        file_write(file, stream);
-        file_write(":", stream);
+        file_write(SV(" @ "), stream);
+        file_write(string_view_from_cstring(file), stream);
+        file_write(SV(":"), stream);
         file_write_u64(line, stream);
     }
 
-    file_write("] ", stream);
+    file_write(SV("] "), stream);
     file_write(message, stream);
-    file_write("\n", stream);
+    file_write(SV("\n"), stream);
 }
 
 #undef LOG_FATAL_MSG

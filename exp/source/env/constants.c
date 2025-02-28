@@ -88,9 +88,9 @@ void print_constants(Constants const *restrict constants,
                      Context *restrict context) {
     for (u16 i = 0; i < constants->count; ++i) {
         file_write_u64(i, file);
-        file_write(": ", file);
-        file_write("[", file);
+        file_write(SV(": "), file);
+        file_write(SV("["), file);
         print_value(constants->buffer + i, file, context);
-        file_write("]\n", file);
+        file_write(SV("]\n"), file);
     }
 }

@@ -59,97 +59,97 @@ void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
     bytecode->length += 1;
 }
 
-static void print_B(char const *restrict inst,
+static void print_B(StringView mnemonic,
                     Instruction I,
                     FILE *restrict file,
                     Context *restrict context) {
-    file_write(inst, file);
-    file_write(" ", file);
+    file_write(mnemonic, file);
+    file_write(SV(" "), file);
     print_operand(operand(I.B_kind, I.B_data), file, context);
 }
 
-static void print_AB(char const *restrict inst,
+static void print_AB(StringView mnemonic,
                      Instruction I,
                      FILE *restrict file,
                      Context *restrict context) {
-    file_write(inst, file);
-    file_write(" ", file);
+    file_write(mnemonic, file);
+    file_write(SV(" "), file);
     print_operand(operand(I.A_kind, I.A_data), file, context);
-    file_write(", ", file);
+    file_write(SV(", "), file);
     print_operand(operand(I.B_kind, I.B_data), file, context);
 }
 
-static void print_ABC(char const *restrict inst,
+static void print_ABC(StringView mnemonic,
                       Instruction I,
                       FILE *restrict file,
                       Context *restrict context) {
-    file_write(inst, file);
-    file_write(" ", file);
+    file_write(mnemonic, file);
+    file_write(SV(" "), file);
     print_operand(operand(I.A_kind, I.A_data), file, context);
-    file_write(", ", file);
+    file_write(SV(", "), file);
     print_operand(operand(I.B_kind, I.B_data), file, context);
-    file_write(", ", file);
+    file_write(SV(", "), file);
     print_operand(operand(I.C_kind, I.C_data), file, context);
 }
 
 // "ret <B>"
 static void
 print_ret(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_B("ret", I, file, context);
+    print_B(SV("ret"), I, file, context);
 }
 
 // "call SSA[<A>], GlobalSymbols[GlobalLabels[B]](Calls[C])"
 static void
 print_call(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("call", I, file, context);
+    print_ABC(SV("call"), I, file, context);
 }
 
 // "dot SSA[<A>], <B>, <C>"
 static void
 print_dot(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("dot", I, file, context);
+    print_ABC(SV("dot"), I, file, context);
 }
 
 // "load SSA[<A>], <B>"
 static void
 print_load(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_AB("load", I, file, context);
+    print_AB(SV("load"), I, file, context);
 }
 
 // "neg SSA[<A>], <B>"
 static void
 print_neg(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_AB("neg", I, file, context);
+    print_AB(SV("neg"), I, file, context);
 }
 
 // "add SSA[<A>], <B>, <C>"
 static void
 print_add(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("add", I, file, context);
+    print_ABC(SV("add"), I, file, context);
 }
 
 // "sub SSA[<A>], <B>, <C>"
 static void
 print_sub(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("sub", I, file, context);
+    print_ABC(SV("sub"), I, file, context);
 }
 
 // "mul SSA[<A>], <B>, <C>"
 static void
 print_mul(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("mul", I, file, context);
+    print_ABC(SV("mul"), I, file, context);
 }
 
 // "div SSA[<A>], <B>, <C>"
 static void
 print_div(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("div", I, file, context);
+    print_ABC(SV("div"), I, file, context);
 }
 
 // "mod SSA[<A>], <B>, <C>"
 static void
 print_mod(Instruction I, FILE *restrict file, Context *restrict context) {
-    print_ABC("mod", I, file, context);
+    print_ABC(SV("mod"), I, file, context);
 }
 
 static void print_instruction(Instruction I,
@@ -176,10 +176,10 @@ void print_bytecode(Bytecode const *restrict bc,
                     Context *restrict context) {
     // walk the entire buffer and print each instruction
     for (u64 i = 0; i < bc->length; ++i) {
-        file_write("  ", file);
+        file_write(SV("  "), file);
         file_write_u64(i, file);
-        file_write(": ", file);
+        file_write(SV(": "), file);
         print_instruction(bc->buffer[i], file, context);
-        file_write("\n", file);
+        file_write(SV("\n"), file);
     }
 }

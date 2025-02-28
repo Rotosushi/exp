@@ -20,12 +20,13 @@
 #include <stdio.h>
 
 #include "utility/int_types.h"
+#include "utility/string_view.h"
 
 typedef enum LogLevel {
-  LOG_FATAL,
-  LOG_ERROR,
-  LOG_WARNING,
-  LOG_STATUS
+    LOG_FATAL,
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_STATUS
 } LogLevel;
 
 /**
@@ -43,7 +44,7 @@ typedef enum LogLevel {
 void log_message(LogLevel level,
                  const char *restrict file,
                  u64 line,
-                 const char *restrict message,
+                 StringView message,
                  FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

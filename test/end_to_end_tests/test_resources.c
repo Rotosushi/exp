@@ -6,6 +6,7 @@
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/config.h"
+#include "utility/io.h"
 #include "utility/panic.h"
 
 void test_resources_gather(TestResources *test_resources,
@@ -87,8 +88,8 @@ void test_resources_gather(TestResources *test_resources,
 
         struct stat entry_stat;
         if (stat(string_to_cstring(&full_path), &entry_stat) < 0) {
-            file_write(name, stderr);
-            file_write("\n", stderr);
+            file_write(string_view_from_cstring(name), stderr);
+            file_write(SV("\n"), stderr);
             PANIC_ERRNO("stat");
         }
 

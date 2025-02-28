@@ -19,11 +19,10 @@
 #include <stdbool.h>
 
 #include "utility/int_types.h"
-#include "utility/io.h"
 
 typedef struct StringView {
-  u64 length;
-  char const *ptr;
+    u64 length;
+    char const *ptr;
 } StringView;
 
 StringView string_view_create();
@@ -31,8 +30,6 @@ StringView string_view_from_str(char const *string, u64 length);
 StringView string_view_from_cstring(char const *cstring);
 bool string_view_equality(StringView sv1, StringView sv2);
 bool string_view_empty(StringView sv);
-
-void print_string_view(StringView sv, FILE *restrict file);
 
 #define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
 

@@ -188,21 +188,21 @@ Operand function_body_new_ssa(FunctionBody *restrict function) {
 }
 
 static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
-    file_write(arg->name.ptr, file);
-    file_write(": ", file);
+    file_write(arg->name, file);
+    file_write(SV(": "), file);
     print_type(arg->type, file);
 }
 
 void print_function_body(FunctionBody const *restrict f,
                          FILE *restrict file,
                          Context *restrict context) {
-    file_write("(", file);
+    file_write(SV("("), file);
     FormalArgumentList const *args = &f->arguments;
     for (u8 i = 0; i < args->size; ++i) {
         print_formal_argument(args->list + i, file);
 
-        if (i < (u8)(args->size - 1)) { file_write(", ", file); }
+        if (i < (u8)(args->size - 1)) { file_write(SV(", "), file); }
     }
-    file_write(")\n", file);
+    file_write(SV(")\n"), file);
     print_bytecode(&f->bc, file, context);
 }
