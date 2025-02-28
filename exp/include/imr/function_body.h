@@ -23,16 +23,16 @@
 #include "utility/string_view.h"
 
 typedef struct FormalArgument {
-  StringView name;
-  Type *type;
-  u8 index;
-  u16 ssa;
+    StringView name;
+    Type *type;
+    u8 index;
+    u32 ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
-  FormalArgument *list;
-  u8 size;
-  u8 capacity;
+    FormalArgument *list;
+    u8 size;
+    u8 capacity;
 } FormalArgumentList;
 
 void formal_argument_list_append(FormalArgumentList *restrict fal,
@@ -43,28 +43,28 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
                                             StringView name);
 
 typedef struct LocalVariable {
-  StringView name;
-  Type *type;
-  u16 ssa;
+    StringView name;
+    Type *type;
+    u32 ssa;
 } LocalVariable;
 
 typedef struct LocalVariables {
-  u64 size;
-  u64 capacity;
-  LocalVariable *buffer;
+    u64 size;
+    u64 capacity;
+    LocalVariable *buffer;
 } LocalVariables;
 
 void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
 LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
-LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u16 ssa);
+LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u32 ssa);
 
 typedef struct FunctionBody {
-  FormalArgumentList arguments;
-  LocalVariables locals;
-  Type *return_type;
-  u64 ssa_count;
-  Bytecode bc;
+    FormalArgumentList arguments;
+    LocalVariables locals;
+    Type *return_type;
+    u32 ssa_count;
+    Bytecode bc;
 } FunctionBody;
 
 FunctionBody function_body_create();
@@ -74,7 +74,7 @@ void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument arg);
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u16 ssa);
+                             u32 ssa);
 Operand function_body_new_ssa(FunctionBody *restrict function);
 
 struct Context;

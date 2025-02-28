@@ -43,7 +43,7 @@ x64_Symbol *x64_context_symbol(x64_Context *x64_context, StringView name) {
     return x64_symbol_table_at(&x64_context->symbols, name);
 }
 
-u16 x64_context_addresses_append(x64_Context *x64_context,
+u32 x64_context_addresses_append(x64_Context *x64_context,
                                  x64_Address address) {
     assert(x64_context != nullptr);
     u64 index = x64_addresses_append(&x64_context->addresses, address);
@@ -51,17 +51,17 @@ u16 x64_context_addresses_append(x64_Context *x64_context,
     return (u16)index;
 }
 
-x64_Address *x64_context_addresses_at(x64_Context *x64_context, u16 index) {
+x64_Address *x64_context_addresses_at(x64_Context *x64_context, u32 index) {
     assert(x64_context != nullptr);
     return x64_addresses_at(&x64_context->addresses, index);
 }
 
-Value *x64_context_value_at(x64_Context *context, u16 index) {
+Value *x64_context_value_at(x64_Context *context, u32 index) {
     assert(context != nullptr);
     return context_constants_at(context->context, index);
 }
 
-StringView x64_context_global_labels_at(x64_Context *x64_context, u16 idx) {
+StringView x64_context_global_labels_at(x64_Context *x64_context, u32 idx) {
     assert(x64_context != nullptr);
     return context_labels_at(x64_context->context, idx);
 }
@@ -139,7 +139,7 @@ void x64_context_append(x64_Context *x64_context, x64_Instruction I) {
     x64_bytecode_append(current_x64_bc(x64_context), I);
 }
 
-LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u16 ssa) {
+LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u32 ssa) {
     assert(x64_context != nullptr);
     return local_variables_lookup_ssa(current_locals(x64_context), ssa);
 }
@@ -154,7 +154,7 @@ i64 x64_context_stack_size(x64_Context *x64_context) {
     return x64_allocator_total_stack_size(current_allocator(x64_context));
 }
 
-x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u16 ssa) {
+x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u32 ssa) {
     assert(x64_context != nullptr);
     return x64_allocator_allocation_of(current_allocator(x64_context), ssa);
 }

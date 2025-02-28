@@ -181,7 +181,7 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     }
 
     assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
-    i16 index = I.C_data.immediate;
+    i64 index = I.C_data.immediate;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
         String buf = string_create();

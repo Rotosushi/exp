@@ -27,24 +27,24 @@ Operand operand(OperandKind kind, OperandData data) {
     return operand_;
 }
 
-Operand operand_ssa(u16 ssa) {
+Operand operand_ssa(u32 ssa) {
     Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
     return operand;
 }
 
-Operand operand_constant(u16 index) {
+Operand operand_constant(u32 index) {
     Operand operand = {.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
     return operand;
 }
 
-Operand operand_immediate(i16 immediate) {
-    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
-                       .data.immediate = immediate};
+Operand operand_label(u32 index) {
+    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
     return operand;
 }
 
-Operand operand_label(u16 index) {
-    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
+Operand operand_immediate(i64 immediate) {
+    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
+                       .data.immediate = immediate};
     return operand;
 }
 
@@ -60,23 +60,23 @@ bool operand_equality(Operand A, Operand B) {
     }
 }
 
-static void print_operand_ssa(u16 ssa, FILE *restrict file) {
+static void print_operand_ssa(u32 ssa, FILE *restrict file) {
     file_write("%", file);
     file_write_u64(ssa, file);
 }
 
 static void
-print_operand_value(u16 index, FILE *restrict file, Context *restrict context) {
+print_operand_value(u32 index, FILE *restrict file, Context *restrict context) {
     Value *value = context_constants_at(context, index);
     print_value(value, file, context);
 }
 
-static void print_operand_immediate(i16 immediate, FILE *restrict file) {
+static void print_operand_immediate(i64 immediate, FILE *restrict file) {
     file_write_i64(immediate, file);
 }
 
 static void
-print_operand_label(u16 index, FILE *restrict file, Context *restrict context) {
+print_operand_label(u32 index, FILE *restrict file, Context *restrict context) {
     file_write("%", file);
     StringView name = context_labels_at(context, index);
     file_write(name.ptr, file);

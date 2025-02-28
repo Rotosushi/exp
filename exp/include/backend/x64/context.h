@@ -36,15 +36,15 @@ void x64_context_destroy(x64_Context *x64_context);
 // x64 symbol table functions
 x64_Symbol *x64_context_symbol(x64_Context *x64_context, StringView name);
 
-u16 x64_context_addresses_append(x64_Context *x64_context, x64_Address address);
-x64_Address *x64_context_addresses_at(x64_Context *x64_context, u16 index);
+u32 x64_context_addresses_append(x64_Context *x64_context, x64_Address address);
+x64_Address *x64_context_addresses_at(x64_Context *x64_context, u32 index);
 
 // context functions
 // context constants functions
-Value *x64_context_value_at(x64_Context *context, u16 index);
+Value *x64_context_value_at(x64_Context *context, u32 index);
 
 // context global symbol table functions
-StringView x64_context_global_labels_at(x64_Context *x64_context, u16 index);
+StringView x64_context_global_labels_at(x64_Context *x64_context, u32 index);
 
 // context x64 function functions
 void x64_context_enter_function(x64_Context *x64_context, StringView name);
@@ -70,12 +70,12 @@ void x64_context_insert(x64_Context *x64_context,
 void x64_context_prepend(x64_Context *x64_context, x64_Instruction I);
 void x64_context_append(x64_Context *x64_context, x64_Instruction I);
 
-LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u16 ssa);
+LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u32 ssa);
 
 bool x64_context_uses_stack(x64_Context *x64_context);
 i64 x64_context_stack_size(x64_Context *x64_context);
 
-x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u16 ssa);
+x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u32 ssa);
 
 void x64_context_release_gpr(x64_Context *x64_context, x64_GPR gpr, u64 Idx);
 

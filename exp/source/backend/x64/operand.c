@@ -49,17 +49,17 @@ x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
     return x64_operand_location(alloc->location);
 }
 
-x64_Operand x64_operand_constant(u16 index) {
+x64_Operand x64_operand_constant(u32 index) {
     x64_Operand opr = {.kind = X64_OPERAND_KIND_CONSTANT, .constant = index};
     return opr;
 }
 
-x64_Operand x64_operand_immediate(i16 value) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_IMMEDIATE, .immediate = value};
+x64_Operand x64_operand_label(u32 index) {
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_LABEL, .label = index};
     return opr;
 }
 
-x64_Operand x64_operand_label(u16 index) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_LABEL, .label = index};
+x64_Operand x64_operand_immediate(i64 value) {
+    x64_Operand opr = {.kind = X64_OPERAND_KIND_IMMEDIATE, .immediate = value};
     return opr;
 }

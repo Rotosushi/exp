@@ -111,7 +111,7 @@ void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
 }
 
 static void local_variables_name_ssa(LocalVariables *restrict lv,
-                                     u16 ssa,
+                                     u32 ssa,
                                      StringView name) {
     for (u64 i = 0; i < lv->size; ++i) {
         LocalVariable *var = lv->buffer + i;
@@ -132,7 +132,7 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
 }
 
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
-                                          u16 ssa) {
+                                          u32 ssa) {
     for (u64 i = 0; i < lv->size; ++i) {
         LocalVariable *var = lv->buffer + i;
         if (var->ssa == ssa) { return var; }
@@ -161,7 +161,7 @@ void function_body_new_argument(FunctionBody *restrict function,
                                 FormalArgument argument) {
     assert(function != NULL);
 
-    u16 ssa = (u16)(function->ssa_count++);
+    u32 ssa = function->ssa_count++;
     assert(function->ssa_count <= u16_MAX);
     LocalVariable local_arg = {
         .name = argument.name, .type = argument.type, .ssa = ssa};
@@ -173,14 +173,14 @@ void function_body_new_argument(FunctionBody *restrict function,
 
 void function_body_new_local(FunctionBody *restrict function,
                              StringView name,
-                             u16 ssa) {
+                             u32 ssa) {
     assert(function != NULL);
     local_variables_name_ssa(&function->locals, ssa, name);
 }
 
 Operand function_body_new_ssa(FunctionBody *restrict function) {
     assert(function != NULL);
-    u16 ssa = (u16)(function->ssa_count++);
+    u32 ssa = function->ssa_count++;
     assert(function->ssa_count <= u16_MAX);
     LocalVariable local = {.name = SV(""), .type = NULL, .ssa = ssa};
     local_variables_append(&function->locals, local);

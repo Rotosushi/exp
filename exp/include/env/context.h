@@ -79,8 +79,8 @@ Type *context_function_type(Context *context,
                             TupleType argument_types);
 
 // labels functions
-u16 context_labels_insert(Context *context, StringView symbol);
-StringView context_labels_at(Context *context, u16 index);
+u32 context_labels_insert(Context *context, StringView symbol);
+StringView context_labels_at(Context *context, u32 index);
 
 // symbol table functions
 Symbol *context_global_symbol_table_at(Context *context, StringView name);
@@ -98,7 +98,7 @@ Bytecode *context_active_bytecode(Context *c);
 void context_def_local_const(Context *c, StringView name, Operand value);
 
 LocalVariable *context_lookup_local(Context *c, StringView name);
-LocalVariable *context_lookup_ssa(Context *c, u16 ssa);
+LocalVariable *context_lookup_ssa(Context *c, u32 ssa);
 
 FormalArgument *context_lookup_argument(Context *c, StringView name);
 FormalArgument *context_argument_at(Context *c, u8 index);
@@ -107,7 +107,7 @@ void context_leave_function(Context *c);
 
 // Values functions
 Operand context_constants_append(Context *context, Value value);
-Value *context_constants_at(Context *context, u16 index);
+Value *context_constants_at(Context *context, u32 index);
 
 // Bytecode functions
 void context_emit_return(Context *c, Operand B);

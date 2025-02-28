@@ -123,12 +123,12 @@ Type *context_function_type(Context *context,
         &context->type_interner, return_type, argument_types);
 }
 
-u16 context_labels_insert(Context *context, StringView symbol) {
+u32 context_labels_insert(Context *context, StringView symbol) {
     assert(context != nullptr);
     return labels_insert(&context->global_labels, symbol);
 }
 
-StringView context_labels_at(Context *context, u16 index) {
+StringView context_labels_at(Context *context, u32 index) {
     assert(context != nullptr);
     return labels_at(&context->global_labels, index);
 }
@@ -176,7 +176,7 @@ LocalVariable *context_lookup_local(Context *c, StringView name) {
     return local_variables_lookup(&(context_current_function(c)->locals), name);
 }
 
-LocalVariable *context_lookup_ssa(Context *c, u16 ssa) {
+LocalVariable *context_lookup_ssa(Context *c, u32 ssa) {
     return local_variables_lookup_ssa(&(context_current_function(c)->locals),
                                       ssa);
 }
@@ -201,7 +201,7 @@ Operand context_constants_append(Context *context, Value value) {
     return constants_append(&(context->constants), value);
 }
 
-Value *context_constants_at(Context *context, u16 index) {
+Value *context_constants_at(Context *context, u32 index) {
     assert(context != nullptr);
     return constants_at(&(context->constants), index);
 }
