@@ -74,7 +74,7 @@ static bool graph_full(Graph *restrict graph) {
 }
 
 static void graph_grow(Graph *restrict graph) {
-    Growth g        = array_growth_u64(graph->capacity, sizeof(Edge *));
+    Growth_u64 g    = array_growth_u64(graph->capacity, sizeof(Edge *));
     graph->list     = reallocate(graph->list, g.alloc_size);
     graph->capacity = g.new_capacity;
 }
@@ -123,7 +123,7 @@ static bool vertex_list_full(VertexList *restrict vl) {
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
-    Growth g     = array_growth_u64(vl->capacity, sizeof(u64));
+    Growth_u64 g = array_growth_u64(vl->capacity, sizeof(u64));
     vl->list     = reallocate(vl->list, g.alloc_size);
     vl->capacity = g.new_capacity;
 }

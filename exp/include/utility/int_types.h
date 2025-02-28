@@ -45,9 +45,42 @@ typedef uint64_t u64;
 #define u32_MAX UINT32_MAX
 #define u64_MAX UINT64_MAX
 
-bool i64_in_range_i16(i64 value);
 bool i64_in_range_i8(i64 value);
+bool i64_in_range_i16(i64 value);
+bool i64_in_range_i32(i64 value);
 
 bool i64_in_range_u8(i64 value);
+bool i64_in_range_u16(i64 value);
+bool i64_in_range_u32(i64 value);
+bool i64_in_range_u64(i64 value);
+
+bool u64_in_range_i8(u64 value);
+bool u64_in_range_i16(u64 value);
+bool u64_in_range_i32(u64 value);
+bool u64_in_range_i64(u64 value);
+
+bool u64_in_range_u8(u64 value);
+bool u64_in_range_u16(u64 value);
+bool u64_in_range_u32(u64 value);
+
+i8 min_i8(i8 x, i8 y);
+i16 min_i16(i16 x, i16 y);
+i32 min_i32(i32 x, i32 y);
+i64 min_i64(i64 x, i64 y);
+
+u8 min_u8(u8 x, u8 y);
+u16 min_u16(u16 x, u16 y);
+u32 min_u32(u32 x, u32 y);
+u64 min_u64(u64 x, u64 y);
+
+i8 max_i8(i8 x, i8 y);
+i16 max_i16(i16 x, i16 y);
+i32 max_i32(i32 x, i32 y);
+i64 max_i64(i64 x, i64 y);
+
+u8 max_u8(u8 x, u8 y);
+u16 max_u16(u16 x, u16 y);
+u32 max_u32(u32 x, u32 y);
+u64 max_u64(u64 x, u64 y);
 
 #endif // !EXP_UTILITY_INT_TYPES_H

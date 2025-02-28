@@ -17,7 +17,6 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "utility/array_growth.h"
-#include "utility/minmax.h"
 #include "utility/panic.h"
 
 /**
@@ -25,6 +24,8 @@
  *
  * @note With a growth factor of 2, there is
  * amortized constant time append to arrays.
+ *
+ *
  *
  */
 #define ARRAY_GROWTH_FACTOR 2ul
@@ -36,13 +37,13 @@
  */
 #define ARRAY_MIN_CAPACITY 2ul
 
-Growth array_growth_u64(u64 current_capacity, u64 element_size) {
-    current_capacity = ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+Growth_u64 array_growth_u64(u64 current_capacity, u64 element_size) {
+    current_capacity = max_u64(current_capacity, ARRAY_MIN_CAPACITY);
     if (current_capacity == u64_MAX) {
         PANIC("cannot allocate more than u64_MAX elements");
     }
 
-    Growth g;
+    Growth_u64 g;
     if (__builtin_mul_overflow(
             current_capacity, ARRAY_GROWTH_FACTOR, &g.new_capacity)) {
         g.new_capacity = u64_MAX;
@@ -54,13 +55,13 @@ Growth array_growth_u64(u64 current_capacity, u64 element_size) {
     return g;
 }
 
-Growth array_growth_u32(u32 current_capacity, u64 element_size) {
-    current_capacity = (u32)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+Growth_u32 array_growth_u32(u32 current_capacity, u64 element_size) {
+    current_capacity = max_u32(current_capacity, ARRAY_MIN_CAPACITY);
     if (current_capacity == u32_MAX) {
         PANIC("cannot allocate more than u32_MAX elements");
     }
 
-    Growth g;
+    Growth_u32 g;
     g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
     if (g.new_capacity > u32_MAX) { g.new_capacity = u32_MAX; }
 
@@ -70,13 +71,13 @@ Growth array_growth_u32(u32 current_capacity, u64 element_size) {
     return g;
 }
 
-Growth array_growth_u16(u16 current_capacity, u64 element_size) {
-    current_capacity = (u16)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+Growth_u16 array_growth_u16(u16 current_capacity, u64 element_size) {
+    current_capacity = max_u16(current_capacity, ARRAY_MIN_CAPACITY);
     if (current_capacity == u16_MAX) {
         PANIC("cannot allocate more than u16_MAX elements");
     }
 
-    Growth g;
+    Growth_u16 g;
     g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
     if (g.new_capacity > u16_MAX) { g.new_capacity = u16_MAX; }
 
@@ -86,13 +87,13 @@ Growth array_growth_u16(u16 current_capacity, u64 element_size) {
     return g;
 }
 
-Growth array_growth_u8(u8 current_capacity, u64 element_size) {
-    current_capacity = (u8)ulmax(current_capacity, ARRAY_MIN_CAPACITY);
+Growth_u8 array_growth_u8(u8 current_capacity, u64 element_size) {
+    current_capacity = max_u8(current_capacity, ARRAY_MIN_CAPACITY);
     if (current_capacity == u8_MAX) {
         PANIC("cannot allocate more than u8_MAX elements");
     }
 
-    Growth g;
+    Growth_u8 g;
     g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
     if (g.new_capacity > u8_MAX) { g.new_capacity = u8_MAX; }
 

@@ -43,8 +43,8 @@ typedef struct IntegerType {
 struct Type;
 
 typedef struct TupleType {
-    u64 size;
-    u64 capacity;
+    u32 size;
+    u32 capacity;
     struct Type **types;
 } TupleType;
 
@@ -82,25 +82,13 @@ typedef struct Type {
 } Type;
 
 Type type_create_nil();
-
 Type type_create_boolean();
-
 Type type_create_integer();
-
 Type type_create_tuple(TupleType tuple_type);
-
 Type type_create_function(Type *result, TupleType args);
-
 void type_destroy(Type *type);
-/**
- * @brief equality compares types
- *
- * @param t1
- * @param t2
- * @return bool
- */
-bool type_equality(Type const *t1, Type const *t2);
 
+bool type_equality(Type const *t1, Type const *t2);
 bool type_is_scalar(Type const *t);
 
 void emit_type(Type const *restrict t, String *restrict buf);

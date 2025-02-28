@@ -38,9 +38,9 @@ static bool global_labels_full(Labels *restrict symbols) {
 }
 
 static void global_labels_grow(Labels *restrict symbols) {
-    Growth g          = array_growth_u32(symbols->capacity, sizeof(StringView));
+    Growth_u32 g      = array_growth_u32(symbols->capacity, sizeof(StringView));
     symbols->buffer   = reallocate(symbols->buffer, g.alloc_size);
-    symbols->capacity = (u32)g.new_capacity;
+    symbols->capacity = g.new_capacity;
 }
 
 u32 labels_insert(Labels *restrict symbols, StringView symbol) {
@@ -48,10 +48,9 @@ u32 labels_insert(Labels *restrict symbols, StringView symbol) {
 
     if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
-    for (u64 i = 0; i < symbols->count; ++i) {
-        assert(i < u16_MAX);
+    for (u32 i = 0; i < symbols->count; ++i) {
         StringView s = symbols->buffer[i];
-        if (string_view_equality(s, symbol)) { return (u16)i; }
+        if (string_view_equality(s, symbol)) { return i; }
     }
 
     u32 index              = symbols->count;

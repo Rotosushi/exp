@@ -60,7 +60,7 @@ static bool tuple_full(Tuple *restrict tuple) {
 }
 
 static void tuple_grow(Tuple *restrict tuple) {
-    Growth g = array_growth_u64(tuple->capacity, sizeof(*tuple->elements));
+    Growth_u64 g = array_growth_u64(tuple->capacity, sizeof(*tuple->elements));
     tuple->elements = reallocate(tuple->elements, g.alloc_size);
     tuple->capacity = g.new_capacity;
 }

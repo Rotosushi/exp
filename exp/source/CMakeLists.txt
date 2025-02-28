@@ -7,7 +7,6 @@ set(EXP_UTILITY_SOURCE_FILES
   ${EXP_SOURCE_DIR}/utility/int_types.c
   ${EXP_SOURCE_DIR}/utility/io.c
   ${EXP_SOURCE_DIR}/utility/log.c
-  ${EXP_SOURCE_DIR}/utility/minmax.c
   ${EXP_SOURCE_DIR}/utility/nearest_power.c
   ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
   ${EXP_SOURCE_DIR}/utility/panic.c

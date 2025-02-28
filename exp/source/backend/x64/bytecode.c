@@ -40,7 +40,7 @@ static bool x64_bytecode_full(x64_Bytecode *restrict bc) {
 }
 
 static void x64_bytecode_grow(x64_Bytecode *restrict bc) {
-    Growth g     = array_growth_u64(bc->capacity, sizeof(x64_Instruction));
+    Growth_u64 g = array_growth_u64(bc->capacity, sizeof(x64_Instruction));
     bc->buffer   = reallocate(bc->buffer, g.alloc_size);
     bc->capacity = g.new_capacity;
 }

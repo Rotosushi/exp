@@ -62,7 +62,7 @@ static bool tuple_type_full(TupleType *restrict tuple_type) {
 }
 
 static void tuple_type_grow(TupleType *restrict tuple_type) {
-    Growth g          = array_growth_u64(tuple_type->capacity, sizeof(Type *));
+    Growth_u32 g      = array_growth_u32(tuple_type->capacity, sizeof(Type *));
     tuple_type->types = reallocate(tuple_type->types, g.alloc_size);
     tuple_type->capacity = g.new_capacity;
 }

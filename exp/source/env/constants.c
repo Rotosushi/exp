@@ -52,15 +52,14 @@ static bool constants_full(Constants *restrict constants) {
 
 static void constants_grow(Constants *restrict constants) {
     assert(constants != NULL);
-    Growth g            = array_growth_u32(constants->capacity, sizeof(Value));
+    Growth_u32 g        = array_growth_u32(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-    constants->capacity = (u32)g.new_capacity;
+    constants->capacity = g.new_capacity;
 }
 
 Operand constants_append(Constants *restrict constants, Value value) {
-
     assert(constants != NULL);
-    for (u16 i = 0; i < constants->count; ++i) {
+    for (u32 i = 0; i < constants->count; ++i) {
         Value *v = constants->buffer + i;
         if (value_equality(v, &value)) {
             value_destroy(&value);

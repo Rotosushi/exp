@@ -24,7 +24,6 @@
 #include "intrinsics/type_of.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
-#include "utility/panic.h"
 
 typedef struct OperandArray {
     u8 size;
@@ -49,9 +48,9 @@ static bool operand_array_full(OperandArray *restrict array) {
 }
 
 static void operand_array_grow(OperandArray *restrict array) {
-    Growth g        = array_growth_u8(array->capacity, sizeof(Operand));
+    Growth_u8 g     = array_growth_u8(array->capacity, sizeof(Operand));
     array->buffer   = reallocate(array->buffer, g.alloc_size);
-    array->capacity = (u8)g.new_capacity;
+    array->capacity = g.new_capacity;
 }
 
 static void operand_array_append(OperandArray *restrict array,

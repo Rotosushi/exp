@@ -24,7 +24,6 @@
 #include "adt/string.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
-#include "utility/minmax.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
 
@@ -71,7 +70,7 @@ void string_assign(String *restrict str, StringView sv) {
         PANIC("cannot allocate more than u64_MAX.");
     }
     str->length   = sv.length;
-    str->capacity = ulmax(sv.length + 1, str->capacity);
+    str->capacity = max_u64(sv.length + 1, str->capacity);
 
     if (str->length < sizeof(char *)) {
         memcpy(str->buffer, sv.ptr, str->length);
@@ -148,7 +147,7 @@ void string_append(String *restrict str, StringView sv) {
     if (sv.length == 0) { return; }
 
     if ((str->length + sv.length) >= str->capacity) {
-        Growth g =
+        Growth_u64 g =
             array_growth_u64(str->capacity + sv.length, sizeof(*str->ptr));
         string_resize(str, g.new_capacity);
     }

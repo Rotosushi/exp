@@ -22,10 +22,25 @@
  * @brief the new capacity of the array, and it's allocation size
  *
  */
-typedef struct Growth {
-  u64 new_capacity;
-  u64 alloc_size;
-} Growth;
+typedef struct Growth_u64 {
+    u64 new_capacity;
+    u64 alloc_size;
+} Growth_u64;
+
+typedef struct Growth_u32 {
+    u32 new_capacity;
+    u64 alloc_size;
+} Growth_u32;
+
+typedef struct Growth_u16 {
+    u16 new_capacity;
+    u64 alloc_size;
+} Growth_u16;
+
+typedef struct Growth_u8 {
+    u8 new_capacity;
+    u64 alloc_size;
+} Growth_u8;
 
 /**
  * @brief grow current_capacity by ARRAY_GROWTH_FACTOR
@@ -34,12 +49,12 @@ typedef struct Growth {
  * @param element_size
  * @return Growth
  */
-Growth array_growth_u64(u64 current_capacity, u64 element_size);
+Growth_u64 array_growth_u64(u64 current_capacity, u64 element_size);
 
-Growth array_growth_u32(u32 current_capacity, u64 element_size);
+Growth_u32 array_growth_u32(u32 current_capacity, u64 element_size);
 
-Growth array_growth_u16(u16 current_capacity, u64 element_size);
+Growth_u16 array_growth_u16(u16 current_capacity, u64 element_size);
 
-Growth array_growth_u8(u8 current_capacity, u64 element_size);
+Growth_u8 array_growth_u8(u8 current_capacity, u64 element_size);
 
 #endif // !EXP_UTILITY_ARRAY_GROWTH_H

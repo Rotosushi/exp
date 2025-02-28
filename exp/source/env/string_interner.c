@@ -100,8 +100,8 @@ static SimpleString *string_interner_find(SimpleString *restrict strings,
 }
 
 static void string_interner_grow(StringInterner *restrict string_interner) {
-    Growth g = array_growth_u64(string_interner->capacity,
-                                sizeof(*string_interner->buffer));
+    Growth_u64 g = array_growth_u64(string_interner->capacity,
+                                    sizeof(*string_interner->buffer));
     SimpleString *elements =
         callocate(g.new_capacity, sizeof(*string_interner->buffer));
 
