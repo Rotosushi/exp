@@ -20,7 +20,6 @@
 #include <stddef.h>
 
 #include "backend/x64/instruction.h"
-#include "backend/x64/location.h"
 #include "backend/x64/registers.h"
 #include "utility/unreachable.h"
 

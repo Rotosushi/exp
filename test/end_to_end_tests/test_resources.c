@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "test_resources.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/config.h"
 #include "utility/panic.h"
@@ -85,13 +85,6 @@ void test_resources_gather(TestResources *test_resources,
         string_append(&full_path, SV("/"));
         string_append(&full_path, string_view_from_cstring(name));
 
-        // skip any files which are not source code (*.exp)
-        StringView extension = string_extension(&full_path);
-        if (!string_view_equality(extension, SV(".exp"))) {
-            string_destroy(&full_path);
-            continue;
-        }
-
         struct stat entry_stat;
         if (stat(string_to_cstring(&full_path), &entry_stat) < 0) {
             file_write(name, stderr);
@@ -101,6 +94,12 @@ void test_resources_gather(TestResources *test_resources,
 
         // regular file, treat it as a test resource
         if (S_ISREG(entry_stat.st_mode)) {
+            // skip any files which are not source code (*.exp)
+            StringView extension = string_extension(&full_path);
+            if (!string_view_equality(extension, SV(".exp"))) {
+                string_destroy(&full_path);
+                continue;
+            }
             test_resources_append(test_resources, &full_path);
         }
 

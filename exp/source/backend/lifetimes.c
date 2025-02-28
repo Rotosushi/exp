@@ -20,7 +20,7 @@
 #include <stddef.h>
 
 #include "backend/lifetimes.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/unreachable.h"
 
 Lifetime lifetime_immortal() {

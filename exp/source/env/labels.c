@@ -17,7 +17,7 @@
 #include <assert.h>
 
 #include "env/labels.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 
 Labels labels_create() {

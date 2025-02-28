@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include "env/symbol_table.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/hash.h"
 

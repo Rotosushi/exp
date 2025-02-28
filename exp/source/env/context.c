@@ -17,7 +17,6 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <assert.h>
-#include <stdlib.h>
 
 #include "env/context.h"
 

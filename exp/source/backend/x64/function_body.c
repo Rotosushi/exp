@@ -21,7 +21,7 @@
 #include "backend/x64/context.h"
 #include "backend/x64/function_body.h"
 #include "intrinsics/size_of.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/panic.h"
 
 x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {

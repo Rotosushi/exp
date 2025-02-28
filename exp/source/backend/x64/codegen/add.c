@@ -21,6 +21,11 @@
 #include "backend/x64/codegen/add.h"
 #include "utility/unreachable.h"
 
+// #TODO: I think I discovered a bug in the codegen for all arithemtic
+// operations. We need to make sure that the result of the operation is
+// never the memory location of a local variable. Since that would modify
+// the value of the local variable.
+
 static void x64_codegen_add_ssa(Instruction I,
                                 u64 block_index,
                                 LocalVariable *local,

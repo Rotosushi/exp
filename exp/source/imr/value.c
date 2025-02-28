@@ -20,7 +20,7 @@
 
 #include "env/context.h"
 #include "imr/value.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/unreachable.h"
 

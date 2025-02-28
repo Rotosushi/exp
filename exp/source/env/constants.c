@@ -21,7 +21,7 @@
 
 #include "env/constants.h"
 #include "env/context.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 
 Constants constants_create() {

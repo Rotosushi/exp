@@ -21,7 +21,7 @@
 
 #include "env/context.h"
 #include "imr/bytecode.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/io.h"
 #include "utility/unreachable.h"

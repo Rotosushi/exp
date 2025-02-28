@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "backend/x64/addresses.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 
 void x64_addresses_initialize(x64_Addresses *addresses) {

@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #include "env/type_interner.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 
 static FunctionTypes function_types_create() {

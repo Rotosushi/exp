@@ -55,11 +55,16 @@ void x64_codegen_dot(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         Value *value =
             context_constants_at(context->context, I.B_data.constant);
-        x64_codegen_load_allocation_from_value(A, value, block_index, context);
+        assert(value->kind == VALUE_KIND_TUPLE);
+        Tuple *tuple = &value->tuple;
+        assert(index < tuple->size);
+        Operand operand = tuple->elements[index];
+        x64_codegen_load_allocation_from_operand(
+            A, operand, block_index, context);
         break;
     }
 
-    // we will never store tuples as immediates
+    // we cannot store tuples as immediates
     case OPERAND_KIND_IMMEDIATE:
     // we don't support globals which are not functions yet
     case OPERAND_KIND_LABEL:

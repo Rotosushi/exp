@@ -25,8 +25,8 @@ u64 size_of(Type *restrict type) {
     assert(type != NULL);
 
     switch (type->kind) {
-    case TYPE_KIND_NIL:     return 8;
-    case TYPE_KIND_BOOLEAN: return 8;
+    case TYPE_KIND_NIL:     return 1;
+    case TYPE_KIND_BOOLEAN: return 1;
     case TYPE_KIND_I64:     return 8;
 
     case TYPE_KIND_TUPLE: {

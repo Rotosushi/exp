@@ -22,7 +22,7 @@
 
 #include "env/context.h"
 #include "imr/function_body.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 
 FormalArgumentList formal_argument_list_create() {

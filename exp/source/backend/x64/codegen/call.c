@@ -22,7 +22,7 @@
 #include "backend/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/panic.h"
 

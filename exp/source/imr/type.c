@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #include "imr/type.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/unreachable.h"
 

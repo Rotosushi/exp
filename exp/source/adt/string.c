@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "adt/string.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/minmax.h"
 #include "utility/numeric_conversions.h"
