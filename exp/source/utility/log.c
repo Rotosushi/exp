@@ -21,40 +21,41 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utility/ansi_colors.h"
 #include "utility/io.h"
 #include "utility/log.h"
 
-#define LOG_FATAL_MSG     "fatal"
-#define LOG_ERROR_MSG     "error"
-#define LOG_WARNING_MSG   "warning"
-#define LOG_STATUS_MSG    "status"
-#define BAD_LOG_LEVEL_MSG "unknown log level"
+#define LOG_FATAL_MSG     ANSI_COLOR_RED "fatal" ANSI_COLOR_RESET
+#define LOG_ERROR_MSG     ANSI_COLOR_RED "error" ANSI_COLOR_RESET
+#define LOG_WARNING_MSG   ANSI_COLOR_YELLOW "warning" ANSI_COLOR_RESET
+#define LOG_STATUS_MSG    ANSI_COLOR_BLUE "status" ANSI_COLOR_RESET
+#define BAD_LOG_LEVEL_MSG ANSI_COLOR_RED "unknown log level" ANSI_COLOR_RESET
 
 void log_message(LogLevel level,
                  const char *restrict file,
                  u64 line,
                  const char *restrict message,
                  FILE *restrict stream) {
-  file_write("[", stream);
+    file_write("[", stream);
 
-  switch (level) {
-  case LOG_FATAL:   file_write(LOG_FATAL_MSG, stream); break;
-  case LOG_ERROR:   file_write(LOG_ERROR_MSG, stream); break;
-  case LOG_WARNING: file_write(LOG_WARNING_MSG, stream); break;
-  case LOG_STATUS:  file_write(LOG_STATUS_MSG, stream); break;
-  default:          file_write(BAD_LOG_LEVEL_MSG, stream); abort();
-  }
+    switch (level) {
+    case LOG_FATAL:   file_write(LOG_FATAL_MSG, stream); break;
+    case LOG_ERROR:   file_write(LOG_ERROR_MSG, stream); break;
+    case LOG_WARNING: file_write(LOG_WARNING_MSG, stream); break;
+    case LOG_STATUS:  file_write(LOG_STATUS_MSG, stream); break;
+    default:          file_write(BAD_LOG_LEVEL_MSG, stream); abort();
+    }
 
-  if (file != NULL) {
-    file_write(" @ ", stream);
-    file_write(file, stream);
-    file_write(":", stream);
-    file_write_u64(line, stream);
-  }
+    if (file != NULL) {
+        file_write(" @ ", stream);
+        file_write(file, stream);
+        file_write(":", stream);
+        file_write_u64(line, stream);
+    }
 
-  file_write("] ", stream);
-  file_write(message, stream);
-  file_write("\n", stream);
+    file_write("] ", stream);
+    file_write(message, stream);
+    file_write("\n", stream);
 }
 
 #undef LOG_FATAL_MSG

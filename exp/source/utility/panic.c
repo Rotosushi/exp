@@ -16,34 +16,63 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "utility/ansi_colors.h"
 #include "utility/debug.h"
 #include "utility/log.h"
 #include "utility/panic.h"
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
-
-  log_message(LOG_FATAL, file, (u64)line, msg.ptr, stderr);
-  EXP_BREAK();
-  exit(EXIT_FAILURE);
+    assert(file != NULL);
+    u64 redlen = sizeof(ANSI_COLOR_RED) - 1;
+    u64 rstlen = sizeof(ANSI_COLOR_RESET) - 1;
+    u64 msglen = msg.length + redlen + rstlen;
+    char msgbuf[msglen + 1];
+    u64 offset = 0;
+    memcpy(msgbuf + offset, ANSI_COLOR_RED, redlen);
+    offset += redlen;
+    memcpy(msgbuf + offset, msg.ptr, msg.length);
+    offset += msg.length;
+    memcpy(msgbuf + offset, ANSI_COLOR_RESET, rstlen);
+    msgbuf[msglen] = '\0';
+    log_message(LOG_FATAL, file, (u64)line, msgbuf, stderr);
+    EXP_BREAK();
+    exit(EXIT_FAILURE);
 }
 
 [[noreturn]] void panic_errno(StringView msg, const char *file, i32 line) {
+    assert(file != NULL);
+    static char const text[] = " :: ";
+    char const *errmsg       = strerror(errno);
+    u64 redlen               = sizeof(ANSI_COLOR_RED) - 1;
+    u64 rstlen               = sizeof(ANSI_COLOR_RED) - 1;
+    u64 errmsglen            = strlen(errmsg);
+    u64 textlen              = sizeof(text) - 1;
+    u64 buflen =
+        redlen + msg.length + rstlen + textlen + redlen + errmsglen + rstlen;
+    u64 offset = 0;
+    char msgbuf[buflen + 1];
+    memcpy(msgbuf + offset, ANSI_COLOR_RED, redlen);
+    offset += redlen;
+    memcpy(msgbuf + offset, msg.ptr, msg.length);
+    offset += msg.length;
+    memcpy(msgbuf + offset, ANSI_COLOR_RESET, rstlen);
+    offset += rstlen;
+    memcpy(msgbuf + offset, text, textlen);
+    offset += textlen;
+    memcpy(msgbuf + offset, ANSI_COLOR_RED, redlen);
+    offset += redlen;
+    memcpy(msgbuf + offset, errmsg, errmsglen);
+    offset += errmsglen;
+    memcpy(msgbuf + offset, ANSI_COLOR_RESET, rstlen);
+    offset += rstlen;
+    msgbuf[buflen] = '\0';
 
-  static char const *text = " errno: ";
-  char const *errmsg      = strerror(errno);
-  u64 msglen = msg.length, errmsglen = strlen(errmsg), textlen = strlen(text),
-      buflen = msglen + errmsglen + textlen;
-  char buf[buflen + 1];
-  memcpy(buf, msg.ptr, msglen);
-  memcpy(buf + msglen, text, textlen);
-  memcpy(buf + msglen + textlen, errmsg, errmsglen);
-  buf[buflen] = '\0';
-
-  log_message(LOG_FATAL, file, (u64)line, buf, stderr);
-  EXP_BREAK();
-  exit(EXIT_FAILURE);
+    log_message(LOG_FATAL, file, (u64)line, msgbuf, stderr);
+    EXP_BREAK();
+    exit(EXIT_FAILURE);
 }
