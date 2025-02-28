@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,60 +14,84 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @file env/string_interner.c
- */
+#include <assert.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "env/string_interner.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
-#include "utility/assert.h"
 #include "utility/hash.h"
+
+static void simple_string_destroy(SimpleString *restrict string) {
+    deallocate(string->ptr);
+    string->ptr    = NULL;
+    string->length = 0;
+}
+
+static void simple_string_assign(SimpleString *restrict string,
+                                 StringView view) {
+    simple_string_destroy(string);
+
+    string->length = view.length;
+    string->ptr    = callocate(string->length + 1, sizeof(*string->ptr));
+    memcpy(string->ptr, view.ptr, string->length);
+}
+
+static StringView simple_string_to_view(SimpleString *restrict string) {
+    StringView view = {.length = string->length, .ptr = string->ptr};
+    return view;
+}
+
+static bool simple_string_empty(SimpleString *restrict string) {
+    return (string->length == 0) || (string->ptr == NULL);
+}
+
+static bool simple_string_eq(SimpleString *restrict string, StringView view) {
+    if (string->length != view.length) { return 0; }
+
+    return (memcmp(string->ptr, view.ptr, string->length) == 0);
+}
 
 #define STRING_INTERNER_MAX_LOAD 0.75
 
-void string_interner_initialize(StringInterner *string_interner) {
-    EXP_ASSERT(string_interner != nullptr);
-    string_interner->count    = 0;
-    string_interner->capacity = 0;
-    string_interner->buffer   = nullptr;
+StringInterner string_interner_create() {
+    StringInterner string_interner;
+    string_interner.count    = 0;
+    string_interner.capacity = 0;
+    string_interner.buffer   = NULL;
+    return string_interner;
 }
 
-void string_interner_terminate(StringInterner *string_interner) {
-    EXP_ASSERT(string_interner != nullptr);
+void string_interner_destroy(StringInterner *restrict string_interner) {
+    assert(string_interner != NULL);
 
-    if (string_interner->buffer == nullptr) {
+    if (string_interner->buffer == NULL) {
         string_interner->capacity = 0;
         string_interner->count    = 0;
         return;
     }
 
-    for (u32 i = 0; i < string_interner->capacity; ++i) {
-        ConstantString **element = string_interner->buffer + i;
-        if (*element == nullptr) { continue; }
-        constant_string_deallocate(*element);
-        *element = nullptr;
+    for (u64 i = 0; i < string_interner->capacity; ++i) {
+        simple_string_destroy(string_interner->buffer + i);
     }
 
     string_interner->capacity = 0;
     string_interner->count    = 0;
     deallocate(string_interner->buffer);
-    string_interner->buffer = nullptr;
+    string_interner->buffer = NULL;
 }
 
-static ConstantString **string_interner_find(ConstantString **buffer,
-                                             u32 capacity, u64 length,
-                                             char const *ptr) {
-    u32 index = hash_cstring(ptr, length) % capacity;
+static SimpleString *string_interner_find(SimpleString *restrict strings,
+                                          u64 capacity,
+                                          StringView sv) {
+    u64 index = hash_cstring(sv.ptr, sv.length) % capacity;
     while (1) {
-        ConstantString **element = buffer + index;
-        if ((*element == nullptr) ||
-            (constant_string_equality(*element,
-                                      string_view_from_str(ptr, length)))) {
+        SimpleString *element = &(strings[index]);
+        if ((simple_string_empty(element)) || (simple_string_eq(element, sv))) {
             return element;
         }
 
@@ -75,26 +99,25 @@ static ConstantString **string_interner_find(ConstantString **buffer,
     }
 }
 
-static void string_interner_grow(StringInterner *string_interner) {
-    Growth32 g =
-        array_growth_u32(string_interner->capacity, sizeof(ConstantString *));
-    ConstantString **elements =
-        callocate(g.new_capacity, sizeof(ConstantString *));
+static void string_interner_grow(StringInterner *restrict string_interner) {
+    Growth g = array_growth_u64(string_interner->capacity,
+                                sizeof(*string_interner->buffer));
+    SimpleString *elements =
+        callocate(g.new_capacity, sizeof(*string_interner->buffer));
 
     // if the buffer isn't empty, we need to reinsert
     // all existing elements into the new buffer.
-    if (string_interner->buffer != nullptr) {
+    if (string_interner->buffer != NULL) {
         for (u64 i = 0; i < string_interner->capacity; ++i) {
-            ConstantString **element = string_interner->buffer + i;
-            if (*element == nullptr) { continue; }
+            SimpleString *element = &(string_interner->buffer[i]);
+            if (simple_string_empty(element)) { continue; }
 
-            ConstantString **target =
-                string_interner_find(elements, g.new_capacity,
-                                     (*element)->length, (*element)->buffer);
+            SimpleString *dest = string_interner_find(
+                elements, g.new_capacity, simple_string_to_view(element));
             // do a "shallow copy". This is safe because we are in a
             // situation where it is acceptable to "move" the data from
             // the source string to the destination string.
-            *target = *element;
+            *dest = *element;
         }
 
         deallocate(string_interner->buffer);
@@ -104,25 +127,26 @@ static void string_interner_grow(StringInterner *string_interner) {
     string_interner->buffer   = elements;
 }
 
-static bool string_interner_full(StringInterner *string_interner) {
+static bool string_interner_full(StringInterner *restrict string_interner) {
     u64 load_limit = (u64)floor((double)string_interner->capacity *
                                 STRING_INTERNER_MAX_LOAD);
     return (string_interner->count + 1) >= load_limit;
 }
 
-StringView string_interner_insert(StringInterner *string_interner,
-                                  StringView view) {
-    EXP_ASSERT(string_interner != nullptr);
+StringView string_interner_insert(StringInterner *restrict string_interner,
+                                  StringView sv) {
+    assert(string_interner != NULL);
     if (string_interner_full(string_interner)) {
         string_interner_grow(string_interner);
     }
 
-    ConstantString **element =
-        string_interner_find(string_interner->buffer, string_interner->capacity,
-                             view.length, view.ptr);
-    if (*element != nullptr) { return constant_string_to_view(*element); }
+    SimpleString *element = string_interner_find(
+        string_interner->buffer, string_interner->capacity, sv);
+    if (!simple_string_empty(element)) {
+        return simple_string_to_view(element);
+    }
 
     string_interner->count++;
-    *element = constant_string_allocate(view);
-    return constant_string_to_view(*element);
+    simple_string_assign(element, sv);
+    return simple_string_to_view(element);
 }

@@ -1,8 +1,0 @@
-fn f(a: i64, b: i64, c: i64, d: i64) {
-	return ((a, b), (c, d));
-}
-
-fn main () {
-	const x = f(5, 2, 4, 11);
-	return x.0.1;
-}

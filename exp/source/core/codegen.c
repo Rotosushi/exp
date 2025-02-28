@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,17 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/**
- * @file core/codegen.c
- */
-
 #include "core/codegen.h"
-#include "targets/ir/emit.h"
-#include "utility/assert.h"
+#include "backend/x64/codegen.h"
 
-void codegen(Context *context) {
-    EXP_ASSERT(context != nullptr);
-
-    if (context_emit_ir_assembly(context)) { emit_ir_assembly(context); }
-}
+void codegen(Context *restrict context) { x64_codegen(context); }

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,71 +14,40 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file utility/int_types.h
- */
-
 #ifndef EXP_UTILITY_INT_TYPES_H
 #define EXP_UTILITY_INT_TYPES_H
+#include <stdint.h>
 
-#include "utility/config.h"
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
 
-#ifndef EXP_HOST_SYSTEM_LINUX
-    #error "unsupported host OS"
-#endif
+#define i8_MAX INT8_MAX
+#define i8_MIN INT8_MIN
 
-#ifndef EXP_HOST_CPU_X86_64
-    #error "unsupported host CPU"
-#endif
+#define i16_MAX INT16_MAX
+#define i16_MIN INT16_MIN
 
-// x86_64 linux uses the LP64 data model, which means
-// char  = 8 bits
-// short = 16 bits
-// int   = 32 bits
-// long  = 64 bits
+#define i32_MAX INT32_MAX
+#define i32_MIN INT32_MIN
 
-typedef signed char i8;
-typedef signed short i16;
-typedef signed int i32;
-typedef signed long i64;
+#define i64_MAX INT64_MAX
+#define i64_MIN INT64_MIN
 
-#define i8_MAX  (127)
-#define i8_MIN  (-128)
-#define i16_MAX (32'767)
-#define i16_MIN (-32'768)
-#define i32_MAX (2'147'483'647)
-#define i32_MIN (-2'147'483'648)
-// 9223372036854775808
-#define i64_MAX (9'223'372'036'854'775'807L)
-#define i64_MIN (-1 + (9'223'372'036'854'775'807L))
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef unsigned long u64;
+#define u8_MAX  UINT8_MAX
+#define u16_MAX UINT16_MAX
+#define u32_MAX UINT32_MAX
+#define u64_MAX UINT64_MAX
 
-#define u8_MAX  (255)
-#define u16_MAX (65'535)
-#define u32_MAX (4'294'967'295)
-#define u64_MAX (18'446'744'073'709'551'615UL)
-
-bool i64_in_range_i32(i64 value);
 bool i64_in_range_i16(i64 value);
 bool i64_in_range_i8(i64 value);
 
 bool i64_in_range_u8(i64 value);
-bool i64_in_range_u16(i64 value);
-bool i64_in_range_u32(i64 value);
-bool i64_in_range_u64(i64 value);
-
-bool u64_in_range_i64(u64 value);
-bool u64_in_range_i32(u64 value);
-bool u64_in_range_i16(u64 value);
-bool u64_in_range_i8(u64 value);
-
-bool u64_in_range_u8(u64 value);
-bool u64_in_range_u16(u64 value);
-bool u64_in_range_u32(u64 value);
 
 #endif // !EXP_UTILITY_INT_TYPES_H

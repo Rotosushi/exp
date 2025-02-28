@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,26 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file env/global_symbols.h
- */
-
 #ifndef EXP_ENV_GLOBAL_SYMBOLS_H
 #define EXP_ENV_GLOBAL_SYMBOLS_H
-
 #include "utility/string_view.h"
 
 typedef struct GlobalLabels {
-    u32 count;
-    u32 capacity;
+    u16 count;
+    u16 capacity;
     StringView *buffer;
 } Labels;
 
-void labels_initialize(Labels *labels);
-void labels_terminate(Labels *labels);
+Labels labels_create();
+void labels_destroy(Labels *restrict symbols);
 
-u32 labels_insert(Labels *labels, StringView label);
-StringView labels_at(Labels *labels, u32 index);
+u16 labels_insert(Labels *restrict symbols, StringView symbol);
+StringView labels_at(Labels *restrict symbols, u16 index);
 
 #endif // !EXP_ENV_GLOBAL_SYMBOLS_H

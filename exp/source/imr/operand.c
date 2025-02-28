@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,109 +16,89 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stddef.h>
 
-/**
- * @file imr/operand.c
- */
-
+#include "env/context.h"
 #include "imr/operand.h"
-#include "utility/assert.h"
 #include "utility/unreachable.h"
 
-Operand operand_construct(OperandKind kind, OperandData data) {
+Operand operand(OperandKind kind, OperandData data) {
     Operand operand_ = {.kind = kind, .data = data};
     return operand_;
 }
 
-Operand operand_uninitialized() {
-    return operand_construct(OPERAND_UNINITIALIZED, (OperandData){});
+Operand operand_ssa(u16 ssa) {
+    Operand operand = {.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
+    return operand;
 }
 
-Operand operand_register(u8 register_) {
-    return operand_construct(OPERAND_REGISTER,
-                             (OperandData){.register_ = register_});
+Operand operand_constant(u16 index) {
+    Operand operand = {.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
+    return operand;
 }
 
-Operand operand_stack(u16 stack) {
-    return operand_construct(OPERAND_STACK, (OperandData){.stack = stack});
+Operand operand_immediate(i16 immediate) {
+    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
+                       .data.immediate = immediate};
+    return operand;
 }
 
-Operand operand_scalar(Scalar scalar) {
-    switch (scalar.kind) {
-    case SCALAR_NIL:
-        return operand_construct(OPERAND_SCALAR_NIL,
-                                 (OperandData){.nil = false});
-    case SCALAR_BOOL:
-        return operand_construct(OPERAND_SCALAR_BOOL,
-                                 (OperandData){.bool_ = scalar.data.bool_});
-    case SCALAR_U8:
-        return operand_construct(OPERAND_SCALAR_U8,
-                                 (OperandData){.u8_ = scalar.data.u8_});
-    case SCALAR_U16:
-        return operand_construct(OPERAND_SCALAR_U16,
-                                 (OperandData){.u16_ = scalar.data.u16_});
-    case SCALAR_U32:
-        return operand_construct(OPERAND_SCALAR_U32,
-                                 (OperandData){.u32_ = scalar.data.u32_});
-    case SCALAR_U64:
-        return operand_construct(OPERAND_SCALAR_U64,
-                                 (OperandData){.u64_ = scalar.data.u64_});
-    case SCALAR_I8:
-        return operand_construct(OPERAND_SCALAR_I8,
-                                 (OperandData){.i8_ = scalar.data.i8_});
-    case SCALAR_I16:
-        return operand_construct(OPERAND_SCALAR_I16,
-                                 (OperandData){.i16_ = scalar.data.i16_});
-    case SCALAR_I32:
-        return operand_construct(OPERAND_SCALAR_I32,
-                                 (OperandData){.i32_ = scalar.data.i32_});
-    case SCALAR_I64:
-        return operand_construct(OPERAND_SCALAR_I64,
-                                 (OperandData){.i64_ = scalar.data.i64_});
-    default: EXP_UNREACHABLE();
-    }
-}
-
-Scalar operand_as_scalar(Operand operand) {
-    EXP_ASSERT(operand.kind >= OPERAND_SCALAR_NIL);
-    EXP_ASSERT(operand.kind <= OPERAND_SCALAR_I64);
-    switch (operand.kind) {
-    case OPERAND_SCALAR_NIL:  return scalar_nil();
-    case OPERAND_SCALAR_BOOL: return scalar_bool(operand.data.bool_);
-    case OPERAND_SCALAR_U8:   return scalar_u8(operand.data.u8_);
-    case OPERAND_SCALAR_U16:  return scalar_u16(operand.data.u16_);
-    case OPERAND_SCALAR_U32:  return scalar_u32(operand.data.u32_);
-    case OPERAND_SCALAR_U64:  return scalar_u64(operand.data.u64_);
-    case OPERAND_SCALAR_I8:   return scalar_i8(operand.data.i8_);
-    case OPERAND_SCALAR_I16:  return scalar_i16(operand.data.i16_);
-    case OPERAND_SCALAR_I32:  return scalar_i32(operand.data.i32_);
-    case OPERAND_SCALAR_I64:  return scalar_i64(operand.data.i64_);
-    default:                  EXP_UNREACHABLE();
-    }
+Operand operand_label(u16 index) {
+    Operand operand = {.kind = OPERAND_KIND_LABEL, .data.label = index};
+    return operand;
 }
 
 bool operand_equality(Operand A, Operand B) {
     if (A.kind != B.kind) { return false; }
 
     switch (A.kind) {
-    case OPERAND_REGISTER: return A.data.register_ == B.data.register_;
-    case OPERAND_STACK:    return A.data.stack == B.data.stack;
-    default:               EXP_UNREACHABLE();
+    case OPERAND_KIND_SSA:       return A.data.ssa == B.data.ssa;
+    case OPERAND_KIND_CONSTANT:  return A.data.constant == B.data.constant;
+    case OPERAND_KIND_IMMEDIATE: return A.data.immediate == B.data.immediate;
+    case OPERAND_KIND_LABEL:     return A.data.label == B.data.label;
+    default:                     EXP_UNREACHABLE();
     }
 }
 
-void print_operand(String *buffer, Operand operand) {
+static void print_operand_ssa(u16 ssa, FILE *restrict file) {
+    file_write("%", file);
+    file_write_u64(ssa, file);
+}
+
+static void
+print_operand_value(u16 index, FILE *restrict file, Context *restrict context) {
+    Value *value = context_constants_at(context, index);
+    print_value(value, file, context);
+}
+
+static void print_operand_immediate(i16 immediate, FILE *restrict file) {
+    file_write_i64(immediate, file);
+}
+
+static void
+print_operand_label(u16 index, FILE *restrict file, Context *restrict context) {
+    file_write("%", file);
+    StringView name = context_labels_at(context, index);
+    file_write(name.ptr, file);
+}
+
+void print_operand(Operand operand,
+                   FILE *restrict file,
+                   Context *restrict context) {
     switch (operand.kind) {
-    case OPERAND_REGISTER:
-        u8 register_ = operand.data.register_;
-        string_append(buffer, SV("r"));
-        string_append_u64(buffer, register_);
+    case OPERAND_KIND_SSA: print_operand_ssa(operand.data.ssa, file); break;
+    case OPERAND_KIND_CONSTANT:
+        print_operand_value(operand.data.constant, file, context);
         break;
-    case OPERAND_STACK:
-        u16 stack = operand.data.stack;
-        string_append(buffer, SV("s"));
-        string_append_u64(buffer, stack);
+    case OPERAND_KIND_IMMEDIATE:
+        print_operand_immediate(operand.data.immediate, file);
         break;
+    case OPERAND_KIND_LABEL:
+        print_operand_label(operand.data.label, file, context);
+        break;
+        // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);
+        // break;
+
     default: EXP_UNREACHABLE();
     }
 }

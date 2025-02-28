@@ -16,46 +16,44 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @file unit_tests/parse_tests.c
- */
-
 #include <stdlib.h>
+#include <string.h>
 
 #include "frontend/parser.h"
-#include "utility/io.h"
 
-bool test_parse(StringView body) {
-    Context context;
-    context_initialize(&context, bitset_create(), string_view_create(),
-                       string_view_create());
+static Context init_context() {
+  CLIOptions options = cli_options_create();
+  Context result     = context_create(&options);
+  return result;
+}
 
-    bool failure =
-        (parse_buffer(body.ptr, body.length, &context) == EXIT_FAILURE);
+bool test_parse(char const *body) {
+  Context context = init_context();
 
-    context_terminate(&context);
+  bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
 
-    if (failure) {
-        file_write(body, program_error);
-        file_write(SV(" failed to parse."), program_error);
-    }
+  context_destroy(&context);
 
-    return failure;
+  if (failure) {
+    fputs(body, stderr);
+    fputs(" failed to parse.", stderr);
+  }
+
+  return failure;
 }
 
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
-    bool failure = 0;
+  bool failure = 0;
 
-    failure |= test_parse(SV("fn f() { return 0; }"));
-    failure |= test_parse(SV("fn f() { return 3 + 3; }"));
-    failure |= test_parse(SV("fn f() { return 3 - 5 * 9; }"));
-    failure |=
-        test_parse(SV("fn f() { return 12; }\n fn g() { return f() + 12; }"));
+  failure |= test_parse("fn f() { return 0; }");
+  failure |= test_parse("fn f() { return 3 + 3; }");
+  failure |= test_parse("fn f() { return 3 - 5 * 9; }");
+  failure |= test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
 
-    if (failure) {
-        return EXIT_FAILURE;
-    } else {
-        return EXIT_SUCCESS;
-    }
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }
+

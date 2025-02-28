@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,37 +14,25 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @file intrinsics/size_of.c
- */
-
 #include <assert.h>
 
 #include "intrinsics/size_of.h"
 #include "utility/unreachable.h"
 
-u64 size_of(Type const *type) {
+u64 size_of(Type *restrict type) {
     assert(type != NULL);
 
     switch (type->kind) {
-    case TYPE_NIL:  return 1;
-    case TYPE_BOOL: return 1;
-    case TYPE_I8:   return 1;
-    case TYPE_I16:  return 2;
-    case TYPE_I32:  return 4;
-    case TYPE_I64:  return 8;
-    case TYPE_U8:   return 1;
-    case TYPE_U16:  return 2;
-    case TYPE_U32:  return 4;
-    case TYPE_U64:  return 8;
+    case TYPE_KIND_NIL:     return 1;
+    case TYPE_KIND_BOOLEAN: return 1;
+    case TYPE_KIND_I64:     return 8;
 
-    case TYPE_TUPLE: {
-        TupleType const *tuple = &type->tuple_type;
-        u64 acc                = 0;
-        for (u64 i = 0; i < tuple->count; ++i) {
+    case TYPE_KIND_TUPLE: {
+        TupleType *tuple = &type->tuple_type;
+        u64 acc          = 0;
+        for (u64 i = 0; i < tuple->size; ++i) {
             acc += size_of(tuple->types[i]);
         }
         return acc;

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,49 +13,48 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file imr/type.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_TYPE_H
 #define EXP_IMR_TYPE_H
+#include <stdbool.h>
 
-#include "imr/scalar.h"
-#include "utility/string.h"
+#include "adt/string.h"
 
 typedef enum TypeKind {
-    TYPE_NIL,
-    TYPE_BOOL,
-    TYPE_I8,
-    TYPE_I16,
-    TYPE_I32,
-    TYPE_I64,
-    TYPE_U8,
-    TYPE_U16,
-    TYPE_U32,
-    TYPE_U64,
-    TYPE_TUPLE,
-    TYPE_FUNCTION,
+    TYPE_KIND_NIL,
+    TYPE_KIND_BOOLEAN,
+    TYPE_KIND_I64,
+    TYPE_KIND_TUPLE,
+    TYPE_KIND_FUNCTION,
 } TypeKind;
+
+typedef struct NilType {
+    char empty; // zero length structs are not valid C
+} NilType;
+
+typedef struct BooleanType {
+    char empty;
+} BooleanType;
+
+typedef struct IntegerType {
+    char empty;
+} IntegerType;
 
 struct Type;
 
 typedef struct TupleType {
-    u32 count;
-    u32 capacity;
-    struct Type const **types;
+    u64 size;
+    u64 capacity;
+    struct Type **types;
 } TupleType;
 
-void tuple_type_initialize(TupleType *tuple_type);
-void tuple_type_terminate(TupleType *tuple_type);
+TupleType tuple_type_create();
+void tuple_type_destroy(TupleType *restrict tuple_type);
 bool tuple_type_equality(TupleType const *A, TupleType const *B);
-void tuple_type_append(TupleType *tuple_type, struct Type const *type);
-struct Type const *tuple_type_at(TupleType const *tuple_type, Scalar index);
+void tuple_type_append(TupleType *restrict tuple_type, struct Type *type);
 
 typedef struct FunctionType {
-    struct Type const *return_type;
+    struct Type *return_type;
     TupleType argument_types;
 } FunctionType;
 
@@ -74,55 +73,38 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B);
 typedef struct Type {
     TypeKind kind;
     union {
+        NilType nil_type;
+        BooleanType boolean_type;
+        IntegerType integer_type;
         TupleType tuple_type;
         FunctionType function_type;
     };
 } Type;
 
-Type *type_nil();
-Type *type_bool();
-Type *type_i8();
-Type *type_i16();
-Type *type_i32();
-Type *type_i64();
-Type *type_u8();
-Type *type_u16();
-Type *type_u32();
-Type *type_u64();
-Type *type_tuple(TupleType tuple_type);
-Type *type_function(Type const *result, TupleType args);
-void type_terminate(Type *type);
+Type type_create_nil();
 
-bool type_equal(Type const *T, Type const *U);
+Type type_create_boolean();
+
+Type type_create_integer();
+
+Type type_create_tuple(TupleType tuple_type);
+
+Type type_create_function(Type *result, TupleType args);
+
+void type_destroy(Type *type);
 /**
- * @brief returns true if the type is a scalar type and false otherwise.
+ * @brief equality compares types
  *
- * @note Scalar is shorthand for a type that fits in an abstract register.
- * (it just so happens to coincide with the size of a physical register on a 64
- * bit system)
+ * @param t1
+ * @param t2
+ * @return bool
  */
-bool type_is_scalar(Type const *T);
+bool type_equality(Type const *t1, Type const *t2);
 
-/**
- * @brief returns true if the type is valid in arithmetic expressions and false
- * otherwise
- *
- * @note +, -, *, /, %
- */
-bool type_is_arithmetic(Type const *T);
+bool type_is_scalar(Type const *t);
 
-/**
- * @brief returns true if the type is a signed arithmetic type and false
- * otherwise.
- */
-bool type_is_signed(Type const *T);
+void emit_type(Type const *restrict t, String *restrict buf);
 
-/**
- * @brief returns true if the type is valid as an index into
- * a tuple and false otherwise.
- */
-bool type_is_index(Type const *T);
-
-void print_type(String *buffer, Type const *t);
+void print_type(Type const *restrict t, FILE *restrict file);
 
 #endif // !EXP_IMR_TYPE_H

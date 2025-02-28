@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,19 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file core/codegen.h
- */
-
 #ifndef EXP_CODEGEN_CODEGEN_H
 #define EXP_CODEGEN_CODEGEN_H
 #include "env/context.h"
 
-/**
- * @brief Converts the IR in the given context into x86_64 assembly.
- * writes the assembly to the file specified by context_assembly_path(context).
- */
 void codegen(Context *restrict context);
 
 #endif // !EXP_CODEGEN_CODEGEN_H

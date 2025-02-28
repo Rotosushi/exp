@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,21 +13,13 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file utility/hash.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_HASH_H
 #define EXP_UTILITY_HASH_H
 #include "utility/int_types.h"
 
 /**
  * @brief computes the hash of the given string.
- *
- * @note the algorithm is non-crypotgraphic, and based on djb2 hash
- *
  *
  * @param string
  * @return u64

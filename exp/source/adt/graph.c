@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,16 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/**
- * @file adt/graph.c
- */
-
 #include <assert.h>
 #include <stdlib.h>
 
 #include "adt/graph.h"
-#include "utility/alloc.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/panic.h"
 
@@ -79,7 +74,7 @@ static bool graph_full(Graph *restrict graph) {
 }
 
 static void graph_grow(Graph *restrict graph) {
-    Growth64 g      = array_growth_u64(graph->capacity, sizeof(Edge *));
+    Growth g        = array_growth_u64(graph->capacity, sizeof(Edge *));
     graph->list     = reallocate(graph->list, g.alloc_size);
     graph->capacity = g.new_capacity;
 }
@@ -128,7 +123,7 @@ static bool vertex_list_full(VertexList *restrict vl) {
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
-    Growth64 g   = array_growth_u64(vl->capacity, sizeof(u64));
+    Growth g     = array_growth_u64(vl->capacity, sizeof(u64));
     vl->list     = reallocate(vl->list, g.alloc_size);
     vl->capacity = g.new_capacity;
 }

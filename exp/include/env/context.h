@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,43 +13,32 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file env/context.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_CONTEXT_H
 #define EXP_ENV_CONTEXT_H
 
-// #include "env/constants.h"
-// #include "env/labels.h"
+#include "env/constants.h"
 #include "env/context_options.h"
 #include "env/error.h"
-#include "env/registers.h"
-#include "env/stack.h"
+#include "env/labels.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "imr/frames.h"
-#include "imr/locals.h"
+#include "imr/function_body.h"
 
 /**
- * @brief A context holds the common information needed
- * by the compiler for interpretation and the first
- * stage of code generation.
+ * @brief A context models a Translation Unit.
  *
  */
 typedef struct Context {
     ContextOptions options;
-    Error current_error;
     StringInterner string_interner;
     TypeInterner type_interner;
-    SymbolTable symbol_table;
-    Locals locals;
-    Frames frames;
-    Stack stack;
-    Registers registers;
+    SymbolTable global_symbol_table;
+    Labels global_labels;
+    Constants constants;
+    Error current_error;
+    FunctionBody *current_function;
 } Context;
 
 /**
@@ -60,22 +49,15 @@ typedef struct Context {
  * @param options
  * @return Context
  */
-void context_initialize(Context *context, Bitset flags, StringView source,
-                        StringView output);
-void context_terminate(Context *context);
+Context context_create(CLIOptions *options);
+void context_destroy(Context *context);
 
 // context options functions
-bool context_emit_ir_assembly(Context *context);
-bool context_emit_x86_64_assembly(Context *context);
-
-bool context_create_elf_object(Context *context);
-bool context_create_elf_executable(Context *context);
-
-bool context_cleanup_x86_64_assembly(Context *context);
-bool context_cleanup_elf_object(Context *context);
+bool context_do_assemble(Context *context);
+bool context_do_link(Context *context);
+bool context_do_cleanup(Context *context);
 
 StringView context_source_path(Context *context);
-StringView context_ir_path(Context *context);
 StringView context_assembly_path(Context *context);
 StringView context_object_path(Context *context);
 StringView context_output_path(Context *context);
@@ -88,46 +70,55 @@ bool context_has_error(Context *context);
 StringView context_intern(Context *context, StringView sv);
 
 // type interner functions
-Type const *context_nil_type(Context *context);
-Type const *context_bool_type(Context *context);
-Type const *context_i8_type(Context *context);
-Type const *context_i16_type(Context *context);
-Type const *context_i32_type(Context *context);
-Type const *context_i64_type(Context *context);
-Type const *context_u8_type(Context *context);
-Type const *context_u16_type(Context *context);
-Type const *context_u32_type(Context *context);
-Type const *context_u64_type(Context *context);
-Type const *context_tuple_type(Context *context, TupleType tuple);
-Type const *context_function_type(Context *context, Type const *return_type,
-                                  TupleType argument_types);
+Type *context_nil_type(Context *context);
+Type *context_boolean_type(Context *context);
+Type *context_i64_type(Context *context);
+Type *context_tuple_type(Context *context, TupleType tuple);
+Type *context_function_type(Context *context,
+                            Type *return_type,
+                            TupleType argument_types);
+
+// labels functions
+u16 context_labels_insert(Context *context, StringView symbol);
+StringView context_labels_at(Context *context, u16 index);
 
 // symbol table functions
-Symbol *context_symbol_table_at(Context *context, StringView name);
+Symbol *context_global_symbol_table_at(Context *context, StringView name);
 
-// locals functions
-void context_locals_push(Context *context, Local local);
-void context_locals_pop_n(Context *context, u32 n);
-Local *context_locals_lookup(Context *context, StringView label);
+SymbolTableIterator context_global_symbol_table_iterator(Context *context);
 
-// frames functions
-Frame *context_frames_top(Context *context);
-Frame *context_frames_push(Context *context, Function *function, u32 base);
-void context_frames_pop(Context *context);
+// function functions
+FunctionBody *context_enter_function(Context *c, StringView name);
+FunctionBody *context_current_function(Context *c);
+Bytecode *context_active_bytecode(Context *c);
 
-// stack functions
-u32 context_stack_length(Context *context);
-Value *context_stack_top(Context *context);
-Value *context_stack_peek(Context *context, u32 n);
-u32 context_stack_push(Context *context, Value value);
-Value context_stack_pop(Context *context);
-void context_stack_pop_n(Context *context, u32 n);
+// CallPair context_new_call(Context * c);
+// ActualArgumentList *context_call_at(Context * c, u64 idx);
 
-// registers functions
-bool context_registers_next_available(Context *context, u8 *register_);
+void context_def_local_const(Context *c, StringView name, Operand value);
 
-void context_registers_set(Context *context, u8 register_, Scalar value);
-Scalar context_registers_get(Context *context, u8 register_);
-Scalar context_registers_unset(Context *context, u8 register_);
+LocalVariable *context_lookup_local(Context *c, StringView name);
+LocalVariable *context_lookup_ssa(Context *c, u16 ssa);
+
+FormalArgument *context_lookup_argument(Context *c, StringView name);
+FormalArgument *context_argument_at(Context *c, u8 index);
+
+void context_leave_function(Context *c);
+
+// Values functions
+Operand context_constants_append(Context *context, Value value);
+Value *context_constants_at(Context *context, u16 index);
+
+// Bytecode functions
+void context_emit_return(Context *c, Operand B);
+Operand context_emit_call(Context *c, Operand B, Operand C);
+Operand context_emit_dot(Context *c, Operand B, Operand C);
+Operand context_emit_load(Context *c, Operand B);
+Operand context_emit_negate(Context *c, Operand B);
+Operand context_emit_add(Context *c, Operand B, Operand C);
+Operand context_emit_subtract(Context *c, Operand B, Operand C);
+Operand context_emit_multiply(Context *c, Operand B, Operand C);
+Operand context_emit_divide(Context *c, Operand B, Operand C);
+Operand context_emit_modulus(Context *c, Operand B, Operand C);
 
 #endif // !EXP_ENV_CONTEXT_H

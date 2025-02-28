@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,22 +14,24 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file intrinsics/type_of.h
- */
-
 #ifndef EXP_INTRINSICS_TYPE_OF_H
 #define EXP_INTRINSICS_TYPE_OF_H
 
 #include "env/context.h"
-#include "imr/function.h"
 #include "imr/type.h"
 #include "imr/value.h"
 
-Type const *type_of_scalar(Scalar scalar, Context *context);
-Type const *type_of_operand(Operand operand, Context *context);
-Type const *type_of_value(Value *value, Context *context);
-Type const *type_of_function(Function *body, Context *context);
+/**
+ * @brief return the type of the given value
+ *
+ * @param value
+ * @param context
+ * @return Type*
+ */
+Type *type_of_value(Value *restrict value, Context *restrict context);
+
+Type *type_of_function(FunctionBody *restrict body, Context *restrict context);
+
+Type *type_of_operand(Operand operand, Context *restrict context);
 
 #endif // !EXP_INTRINSICS_TYPE_OF_H

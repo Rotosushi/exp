@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,30 +13,30 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file imr/value.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_VALUE_H
 #define EXP_IMR_VALUE_H
 #include <stdbool.h>
 
-#include "imr/scalar.h"
+#include "imr/operand.h"
+#include "utility/io.h"
 
 typedef enum ValueKind {
-    VALUE_UNINITIALIZED,
-    VALUE_SCALAR,
-    VALUE_TUPLE,
+    VALUE_KIND_UNINITIALIZED,
+
+    VALUE_KIND_NIL,
+    VALUE_KIND_BOOLEAN,
+    VALUE_KIND_I64,
+
+    VALUE_KIND_TUPLE,
 } ValueKind;
 
 struct Value;
 
 typedef struct Tuple {
-    u32 length;
-    u32 capacity;
-    struct Value *elements;
+    u64 size;
+    u64 capacity;
+    Operand *elements;
 } Tuple;
 
 /**
@@ -46,24 +46,80 @@ typedef struct Tuple {
 typedef struct Value {
     ValueKind kind;
     union {
-        Scalar scalar;
+        bool nil;
+        bool boolean;
+        i64 i64_;
         Tuple tuple;
     };
 } Value;
 
-void tuple_initialize(Tuple *tuple);
-void tuple_terminate(Tuple *tuple);
-// void tuple_assign(Tuple *A, Tuple *B);
+Tuple tuple_create();
+void tuple_destroy(Tuple *restrict tuple);
+void tuple_assign(Tuple *restrict A, Tuple *restrict B);
 bool tuple_equal(Tuple *A, Tuple *B);
-void tuple_append(Tuple *tuple, Value element);
+void tuple_append(Tuple *restrict tuple, Operand element);
 
-void value_initialize(Value *value);
-void value_terminate(Value *value);
-void value_initialize_scalar(Value *value, Scalar scalar);
-void value_initialize_tuple(Value *value, Tuple tuple);
-// void value_assign(Value *target, Value *source);
-bool value_equal(Value *A, Value *B);
+/**
+ * @brief create an uninitialized value
+ *
+ * @return Value
+ */
+Value value_create();
 
-void print_value(String *buffer, Value const *value);
+void value_destroy(Value *restrict value);
+
+/**
+ * @brief create a nil value
+ *
+ * @return Value
+ */
+Value value_create_nil();
+
+/**
+ * @brief create a boolean value
+ *
+ * @param b
+ * @return Value
+ */
+Value value_create_boolean(bool b);
+
+/**
+ * @brief create an Integer value
+ *
+ * @param i
+ * @return Value
+ */
+Value value_create_i64(i64 i);
+
+/**
+ * @brief create a Tuple value
+ *
+ * @param tuple
+ * @return Value
+ */
+Value value_create_tuple(Tuple tuple);
+
+/**
+ * @brief assign dest the value of source
+ *
+ * @param dest
+ * @param source
+ */
+void value_assign(Value *dest, Value *source);
+
+/**
+ * @brief equality compares values
+ *
+ * @param v1
+ * @param v2
+ * @return true
+ * @return false
+ */
+bool value_equality(Value *v1, Value *v2);
+
+struct Context;
+void print_value(Value const *restrict v,
+                 FILE *restrict file,
+                 struct Context *restrict context);
 
 #endif // !EXP_IMR_VALUE_H

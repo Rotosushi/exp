@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,84 +14,49 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file env/context_options.c
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "env/context_options.h"
-#include "utility/assert.h"
 
-void context_options_initialize(ContextOptions *context_options, Bitset flags,
-                                StringView source, StringView output) {
-    EXP_ASSERT(context_options != nullptr);
+#define CHK_BIT(U, b) (((U) >> b) & 1)
 
-    context_options->flags = flags;
+ContextOptions context_options_create(CLIOptions *restrict cli_options) {
+  ContextOptions options = {.flags = cli_options->flags};
 
-    string_initialize(&context_options->source);
-    string_initialize(&context_options->ir_assembly);
-    string_initialize(&context_options->assembly);
-    string_initialize(&context_options->object);
-    string_initialize(&context_options->output);
+  if (!string_empty(&cli_options->source)) {
+    string_assign_string(&options.source, &cli_options->source);
 
-    if (!string_view_empty(source)) {
-        string_assign(&context_options->source, source);
+    string_assign_string(&options.assembly, &cli_options->source);
+    string_replace_extension(&options.assembly, SV(".s"));
 
-        string_assign(&context_options->ir_assembly, source);
-        string_replace_extension(&context_options->ir_assembly, SV(".expir"));
+    string_assign_string(&options.object, &cli_options->source);
+    string_replace_extension(&options.object, SV(".o"));
+  }
 
-        string_assign(&context_options->assembly, source);
-        string_replace_extension(&context_options->assembly, SV(".s"));
+  if (!string_empty(&cli_options->output)) {
+    string_assign_string(&options.output, &cli_options->output);
+  }
 
-        string_assign(&context_options->object, source);
-        string_replace_extension(&context_options->object, SV(".o"));
-    }
-
-    if (!string_view_empty(output)) {
-        string_assign(&context_options->output, output);
-        string_replace_extension(&context_options->output, SV(""));
-    }
+  return options;
 }
 
-void context_options_terminate(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    options->flags = bitset_create();
-    string_terminate(&options->source);
-    string_terminate(&options->assembly);
-    string_terminate(&options->object);
-    string_terminate(&options->output);
+void context_options_destroy(ContextOptions *restrict options) {
+  string_destroy(&options->source);
+  string_destroy(&options->assembly);
+  string_destroy(&options->object);
+  string_destroy(&options->output);
 }
 
-bool context_options_emit_ir_assembly(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags, CONTEXT_OPTION_EMIT_IR_ASSEMBLY);
+bool context_options_do_assemble(ContextOptions *restrict options) {
+  return CHK_BIT(options->flags, CLI_DO_ASSEMBLE);
 }
 
-bool context_options_emit_x86_64_assembly(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags,
-                            CONTEXT_OPTION_EMIT_X86_64_ASSEMBLY);
+bool context_options_do_link(ContextOptions *restrict options) {
+  return CHK_BIT(options->flags, CLI_DO_LINK);
 }
 
-bool context_options_create_elf_object(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags, CONTEXT_OPTION_CREATE_ELF_OBJECT);
+bool context_options_do_cleanup(ContextOptions *restrict options) {
+  return CHK_BIT(options->flags, CLI_DO_CLEANUP);
 }
 
-bool context_options_create_elf_executable(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags,
-                            CONTEXT_OPTION_CREATE_ELF_EXECUTABLE);
-}
-
-bool context_options_cleanup_target_assembly(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags,
-                            CONTEXT_OPTION_CLEANUP_TARGET_ASSEMBLY);
-}
-
-bool context_options_cleanup_elf_object(ContextOptions *options) {
-    EXP_ASSERT(options != nullptr);
-    return bitset_check_bit(&options->flags, CONTEXT_OPTION_CLEANUP_ELF_OBJECT);
-}
+#undef CHK_BIT

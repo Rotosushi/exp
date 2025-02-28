@@ -4,9 +4,7 @@
 [Ss]cratch/
 [Tt]esting/
 
-test/**/*.expir
 test/**/*.s
-test/**/*.o
 
 *.swp
 *.idx

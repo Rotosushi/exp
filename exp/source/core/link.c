@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,29 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/**
- * @file core/link.c
- */
 #include <stdlib.h>
 
 #include "core/link.h"
 #include "utility/config.h"
 #include "utility/process.h"
 
-ExpResult link(Context *context) {
+i32 link(Context *restrict context) {
     StringView obj_path = context_object_path(context);
     StringView out_path = context_output_path(context);
 
-    // #TODO: place our runtime libraries into one of ld's standard search
+    // #TODO: place our target libraries into one of ld's standard search
     //  locations on install.
     // #TODO: figure out CPACK to create .deb files for installing/uninstalling
     //  exp from a host system. or creating SNAPs to do the same.
     char const *args[] = {
-        "ld",     "-o",      out_path.ptr, ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
-        "-lexps", "-lexprt", obj_path.ptr, nullptr,
+        "ld",
+        "-o",
+        out_path.ptr,
+        ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
+        "-lexp_runtime_start",
+        "-lexp_runtime",
+        obj_path.ptr,
+        NULL,
     };
 
-    if (process("ld", args) != EXIT_SUCCESS) return EXP_FAILURE;
-    else return EXP_SUCCESS;
+    return process("ld", args);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,12 +13,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file frontend/lexer.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_FRONTEND_LEXER_H
 #define EXP_FRONTEND_LEXER_H
 
@@ -28,12 +23,12 @@
 #include "utility/string_view.h"
 
 typedef struct Lexer {
-    const char *buffer;
-    const char *token;
-    const char *cursor;
-    u64 line;
-    u64 column;
-    u64 length;
+  const char *buffer;
+  const char *token;
+  const char *cursor;
+  u64 line;
+  u64 column;
+  u64 length;
 } Lexer;
 
 /**

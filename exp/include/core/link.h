@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,17 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file core/link.h
- */
-
 #ifndef EXP_CORE_LINK_H
 #define EXP_CORE_LINK_H
-
 #include "env/context.h"
-#include "utility/result.h"
 
-ExpResult link(Context *context);
+i32 link(Context *restrict context);
 
 #endif // !EXP_CORE_LINK_H

@@ -1,82 +1,38 @@
 /**
- * Copyright 2025 Cade Weinberg. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Copyright (C) 2024 Cade Weinberg
+ *
+ * This file is part of exp.
+ *
+ * exp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * exp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 #include <assert.h>
 
-#include "imr/operand.h"
-#include "imr/scalar.h"
 #include "intrinsics/type_of.h"
-#include "utility/assert.h"
 #include "utility/panic.h"
 #include "utility/unreachable.h"
 
-Type const *type_of_scalar(Scalar scalar, Context *context) {
-    assert(context != nullptr);
-    switch (scalar.kind) {
-    case SCALAR_NIL:  return context_nil_type(context);
-    case SCALAR_BOOL: return context_bool_type(context);
-    case SCALAR_I8:   return context_i8_type(context);
-    case SCALAR_I16:  return context_i16_type(context);
-    case SCALAR_I32:  return context_i32_type(context);
-    case SCALAR_I64:  return context_i64_type(context);
-    case SCALAR_U8:   return context_u8_type(context);
-    case SCALAR_U16:  return context_u16_type(context);
-    case SCALAR_U32:  return context_u32_type(context);
-    case SCALAR_U64:  return context_u64_type(context);
-    default:          EXP_UNREACHABLE();
-    }
-}
-
-Type const *type_of_operand(Operand operand, Context *context) {
-    assert(context != nullptr);
-    switch (operand.kind) {
-    case OPERAND_REGISTER: {
-        Scalar scalar = context_registers_get(context, operand.data.register_);
-        return type_of_scalar(scalar, context);
-    }
-
-    case OPERAND_STACK: {
-        Frame *frame = context_frames_top(context);
-        EXP_ASSERT(frame != nullptr);
-
-        u32 stack_index = operand.data.stack + frame->base;
-        EXP_ASSERT(stack_index < (frame->base + frame->length));
-
-        Value *value = context_stack_peek(context, stack_index);
-        return type_of_value(value, context);
-    }
-
-    case OPERAND_SCALAR_NIL:  return context_nil_type(context);
-    case OPERAND_SCALAR_BOOL: return context_bool_type(context);
-    case OPERAND_SCALAR_I8:   return context_i8_type(context);
-    case OPERAND_SCALAR_I16:  return context_i16_type(context);
-    case OPERAND_SCALAR_I32:  return context_i32_type(context);
-    case OPERAND_SCALAR_I64:  return context_i64_type(context);
-    case OPERAND_SCALAR_U8:   return context_u8_type(context);
-    case OPERAND_SCALAR_U16:  return context_u16_type(context);
-    case OPERAND_SCALAR_U32:  return context_u32_type(context);
-    case OPERAND_SCALAR_U64:  return context_u64_type(context);
-
-    default: EXP_UNREACHABLE();
-    }
-}
-
-Type const *type_of_value(Value *value, Context *context) {
-    assert(value != nullptr);
-    assert(context != nullptr);
+Type *type_of_value(Value *restrict value, Context *restrict context) {
     switch (value->kind) {
-    case VALUE_UNINITIALIZED: PANIC("uninitialized Value");
-    case VALUE_SCALAR:        return type_of_scalar(value->scalar, context);
-    case VALUE_TUPLE:         {
-        Tuple *tuple = &value->tuple;
-        TupleType tuple_type;
-        tuple_type_initialize(&tuple_type);
-        for (u64 i = 0; i < tuple->length; ++i) {
-            Value *element = tuple->elements + i;
-            Type const *T  = type_of_value(element, context);
+    case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
+    case VALUE_KIND_NIL:           return context_nil_type(context);
+    case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
+    case VALUE_KIND_I64:           return context_i64_type(context);
+    case VALUE_KIND_TUPLE:         {
+        Tuple *tuple         = &value->tuple;
+        TupleType tuple_type = tuple_type_create();
+        for (u64 i = 0; i < tuple->size; ++i) {
+            Type *T = type_of_operand(tuple->elements[i], context);
             tuple_type_append(&tuple_type, T);
         }
         return context_tuple_type(context, tuple_type);
@@ -86,17 +42,50 @@ Type const *type_of_value(Value *value, Context *context) {
     }
 }
 
-Type const *type_of_function(Function *body, Context *context) {
-    assert(body != nullptr);
-    assert(body->return_type != nullptr);
+Type *type_of_function(FunctionBody *restrict body, Context *restrict context) {
+    assert(body != NULL);
+    assert(body->return_type != NULL);
 
-    TupleType argument_types;
-    tuple_type_initialize(&argument_types);
-    for (u64 index = 0; index < body->arguments.length; ++index) {
-        FormalArgument formal_argument = body->arguments.buffer[index];
-        Type const *argument_type      = formal_argument.type;
+    TupleType argument_types = tuple_type_create();
+    for (u64 i = 0; i < body->arguments.size; ++i) {
+        FormalArgument *formal_argument = &body->arguments.list[i];
+        Type *argument_type             = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 
     return context_function_type(context, body->return_type, argument_types);
+}
+
+Type *type_of_operand(Operand operand, Context *restrict context) {
+    switch (operand.kind) {
+    case OPERAND_KIND_SSA: {
+        LocalVariable *local = context_lookup_ssa(context, operand.data.ssa);
+        return local->type;
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        Value *constant = context_constants_at(context, operand.data.constant);
+        return type_of_value(constant, context);
+        break;
+    }
+
+    case OPERAND_KIND_IMMEDIATE: {
+        // #TODO: we can theoretically fit a u8 and a i8 in an
+        //  immediate as well. so maybe let's do that?
+        return context_i64_type(context);
+        break;
+    }
+
+    case OPERAND_KIND_LABEL: {
+        StringView label = context_labels_at(context, operand.data.label);
+        Symbol *symbol   = context_global_symbol_table_at(context, label);
+        assert(!string_view_empty(symbol->name));
+        assert(symbol->type != NULL);
+        return symbol->type;
+        break;
+    }
+
+    default: EXP_UNREACHABLE();
+    }
 }

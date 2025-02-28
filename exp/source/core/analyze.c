@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -17,25 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/**
- * @file core/analyze.c
- */
-
 #include "core/analyze.h"
-#include "analysis/analyze.h"
-#include "utility/assert.h"
+#include "analysis/typecheck.h"
 
-ExpResult analyze_context(Context *context) {
-    EXP_ASSERT(context != nullptr);
-
-    SymbolTable *symbol_table = &context->symbol_table;
-    for (u64 index = 0; index < symbol_table->capacity; ++index) {
-        Symbol *symbol = symbol_table->elements[index];
-        if (symbol == nullptr) { continue; }
-        Function *function = &symbol->function_body;
-        if (analyze_function(function, context) != EXP_SUCCESS) {
-            return EXP_FAILURE;
-        }
-    }
-    return EXP_SUCCESS;
-}
+i32 analyze(Context *restrict context) { return typecheck(context); }

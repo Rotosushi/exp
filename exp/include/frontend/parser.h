@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,17 +13,11 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file frontend/parser.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_FRONTEND_PARSER_H
 #define EXP_FRONTEND_PARSER_H
 
 #include "env/context.h"
-#include "utility/result.h"
 
 /*
   definition = "fn" identifier formal-args "->" type body
@@ -53,6 +47,16 @@
           | "()"
 */
 
-ExpResult parse_expression(StringView source, Context *context);
+/**
+ * @brief Parse the buffer
+ *
+ * @param buffer the buffer to parse
+ * @param length the length of the buffer
+ * @param context the context to parse within
+ * @return i32 EXIT_FAILURE or EXIT_SUCCESS
+ */
+i32 parse_buffer(char const *buffer, u64 length, Context *context);
+
+i32 parse_source(Context *context);
 
 #endif // !EXP_FRONTEND_PARSER_H

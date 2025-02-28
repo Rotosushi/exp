@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,21 +13,16 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file utility/unreachable.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_UNREACHABLE_H
 #define EXP_UTILITY_UNREACHABLE_H
 
 #ifndef NDEBUG
-    #include "utility/panic.h"
-    #define EXP_UNREACHABLE() PANIC("unreachable")
+#include "utility/panic.h"
+#define EXP_UNREACHABLE() PANIC("unreachable")
 #else
-    #include <stddef.h>
-    #define EXP_UNREACHABLE() unreachable()
+#include <stddef.h>
+#define EXP_UNREACHABLE() unreachable()
 #endif // NDEBUG
 
 #endif // !EXP_UTILITY_UNREACHABLE_H

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,12 +13,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file utility/numbers_to_string.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
 
@@ -57,9 +52,6 @@ char *i64_to_str(i64 value, char *restrict buffer);
 
 char *u64_to_str(u64 value, char *restrict buffer);
 
-// @todo these functions should return success/failure
-// and allow the caller to handle the error, instead of
-// asserting.
 i64 str_to_i64(char const *restrict buffer, u64 length);
 
 u64 str_to_u64(char const *restrict buffer, u64 length);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,16 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/**
- * @file imr/instruction.c
- */
+#include <assert.h>
 
 #include "imr/instruction.h"
-#include "utility/assert.h"
 
-[[maybe_unused]] static Instruction instruction_A(Opcode opcode, Operand A) {
-    Instruction I = {.opcode = opcode, .A_kind = A.kind, .A_data = A.data};
+static Instruction instruction_B(Opcode opcode, Operand B) {
+    Instruction I = {.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
     return I;
 }
 
@@ -38,8 +34,8 @@ static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
     return I;
 }
 
-static Instruction instruction_ABC(Opcode opcode, Operand A, Operand B,
-                                   Operand C) {
+static Instruction
+instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
     Instruction I = {.opcode = opcode,
                      .A_kind = A.kind,
                      .A_data = A.data,
@@ -51,41 +47,50 @@ static Instruction instruction_ABC(Opcode opcode, Operand A, Operand B,
 }
 
 Instruction instruction_return(Operand result) {
-    return instruction_A(OPCODE_RET, result);
+    return instruction_B(OPCODE_RETURN, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
+    assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_CALL, dst, label, args);
 }
 
 Instruction instruction_dot(Operand dst, Operand src, Operand index) {
+    assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_DOT, dst, src, index);
 }
 
 Instruction instruction_load(Operand dst, Operand src) {
+    assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_AB(OPCODE_LOAD, dst, src);
 }
 
-Instruction instruction_neg(Operand dst, Operand src) {
-    return instruction_AB(OPCODE_NEG, dst, src);
+Instruction instruction_negate(Operand dst, Operand src) {
+    assert(dst.kind == OPERAND_KIND_SSA);
+    return instruction_AB(OPCODE_NEGATE, dst, src);
 }
 
 Instruction instruction_add(Operand dst, Operand left, Operand right) {
+    assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_ABC(OPCODE_ADD, dst, left, right);
 }
 
-Instruction instruction_sub(Operand dst, Operand left, Operand right) {
-    return instruction_ABC(OPCODE_SUB, dst, left, right);
+Instruction instruction_subtract(Operand dst, Operand left, Operand right) {
+    assert(dst.kind == OPERAND_KIND_SSA);
+    return instruction_ABC(OPCODE_SUBTRACT, dst, left, right);
 }
 
-Instruction instruction_mul(Operand dst, Operand left, Operand right) {
-    return instruction_ABC(OPCODE_MUL, dst, left, right);
+Instruction instruction_multiply(Operand dst, Operand left, Operand right) {
+    assert(dst.kind == OPERAND_KIND_SSA);
+    return instruction_ABC(OPCODE_MULTIPLY, dst, left, right);
 }
 
-Instruction instruction_div(Operand dst, Operand left, Operand right) {
-    return instruction_ABC(OPCODE_DIV, dst, left, right);
+Instruction instruction_divide(Operand dst, Operand left, Operand right) {
+    assert(dst.kind == OPERAND_KIND_SSA);
+    return instruction_ABC(OPCODE_DIVIDE, dst, left, right);
 }
 
-Instruction instruction_mod(Operand dst, Operand left, Operand right) {
-    return instruction_ABC(OPCODE_MOD, dst, left, right);
+Instruction instruction_modulus(Operand dst, Operand left, Operand right) {
+    assert(dst.kind == OPERAND_KIND_SSA);
+    return instruction_ABC(OPCODE_MODULUS, dst, left, right);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,12 +13,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file intrinsics/size_of.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_INTRINSICS_SIZEOF_H
 #define EXP_INTRINSICS_SIZEOF_H
 #include <stddef.h>
@@ -31,6 +26,6 @@
  * @param type
  * @return u64
  */
-u64 size_of(Type const *type);
+u64 size_of(Type *restrict type);
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

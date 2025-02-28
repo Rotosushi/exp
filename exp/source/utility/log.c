@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 cade
  *
  * This file is part of exp.
  *
@@ -14,55 +14,50 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/**
- * @file utility/log.c
- */
-
-#include "utility/log.h"
-#include "utility/assert.h"
 #include "utility/io.h"
-#include "utility/string.h"
-#include "utility/unreachable.h"
+#include "utility/log.h"
 
-#define LOG_FATAL_MSG   SV("fatal")
-#define LOG_ERROR_MSG   SV("error")
-#define LOG_WARNING_MSG SV("warning")
-#define LOG_STATUS_MSG  SV("status")
-// #define BAD_LOG_LEVEL_MSG "unknown log level"
+#define LOG_FATAL_MSG     "fatal"
+#define LOG_ERROR_MSG     "error"
+#define LOG_WARNING_MSG   "warning"
+#define LOG_STATUS_MSG    "status"
+#define BAD_LOG_LEVEL_MSG "unknown log level"
 
-void log_message(LogLevel level, const char *restrict file, u64 line,
-                 StringView message, struct File *stream) {
-    EXP_ASSERT(stream != nullptr);
-    String buffer;
-    string_initialize(&buffer);
-    string_append(&buffer, SV("["));
+void log_message(LogLevel level,
+                 const char *restrict file,
+                 u64 line,
+                 const char *restrict message,
+                 FILE *restrict stream) {
+  file_write("[", stream);
 
-    switch (level) {
-    case LOG_FATAL:   string_append(&buffer, LOG_FATAL_MSG); break;
-    case LOG_ERROR:   string_append(&buffer, LOG_ERROR_MSG); break;
-    case LOG_WARNING: string_append(&buffer, LOG_WARNING_MSG); break;
-    case LOG_STATUS:  string_append(&buffer, LOG_STATUS_MSG); break;
-    default:          EXP_UNREACHABLE();
-    }
+  switch (level) {
+  case LOG_FATAL:   file_write(LOG_FATAL_MSG, stream); break;
+  case LOG_ERROR:   file_write(LOG_ERROR_MSG, stream); break;
+  case LOG_WARNING: file_write(LOG_WARNING_MSG, stream); break;
+  case LOG_STATUS:  file_write(LOG_STATUS_MSG, stream); break;
+  default:          file_write(BAD_LOG_LEVEL_MSG, stream); abort();
+  }
 
-    if (file != nullptr) {
-        string_append(&buffer, SV(" @ "));
-        string_append(&buffer, string_view_from_cstring(file));
-        string_append(&buffer, SV(":"));
-        string_append_u64(&buffer, line);
-    }
+  if (file != NULL) {
+    file_write(" @ ", stream);
+    file_write(file, stream);
+    file_write(":", stream);
+    file_write_u64(line, stream);
+  }
 
-    string_append(&buffer, SV("] "));
-    string_append(&buffer, message);
-    string_append(&buffer, SV("\n"));
-
-    file_write(string_to_view(&buffer), stream);
+  file_write("] ", stream);
+  file_write(message, stream);
+  file_write("\n", stream);
 }
 
 #undef LOG_FATAL_MSG
 #undef LOG_WARNING_MSG
 #undef LOG_STATUS_MSG
-// #undef BAD_LOG_LEVEL_MSG
+#undef BAD_LOG_LEVEL_MSG

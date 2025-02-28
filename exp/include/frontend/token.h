@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,79 +13,64 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file frontend/token.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_FRONTEND_TOKEN_H
 #define EXP_FRONTEND_TOKEN_H
 
 /**
  * @brief the Tokens that the Lexer returns
+ *
  */
 typedef enum Token {
-    TOK_END,
+  TOK_END,
 
-    TOK_ERROR_UNEXPECTED_CHAR,
-    TOK_ERROR_UNMATCHED_DOUBLE_QUOTE,
-    TOK_ERROR_DOUBLE_DOT_IN_REAL,
-    TOK_ERROR_UNKNOWN_LITERAL_TYPE_SPECIFIER,
+  TOK_ERROR_UNEXPECTED_CHAR,
+  TOK_ERROR_UNMATCHED_DOUBLE_QUOTE,
 
-    TOK_BEGIN_COMMENT,
-    TOK_END_COMMENT,
-    TOK_BEGIN_PAREN,
-    TOK_END_PAREN,
-    TOK_BEGIN_BRACE,
-    TOK_END_BRACE,
-    TOK_DOT,
-    TOK_COMMA,
-    TOK_SEMICOLON,
-    TOK_COLON,
-    TOK_RIGHT_ARROW,
+  TOK_BEGIN_COMMENT,
+  TOK_END_COMMENT,
+  TOK_BEGIN_PAREN,
+  TOK_END_PAREN,
+  TOK_BEGIN_BRACE,
+  TOK_END_BRACE,
+  TOK_DOT,
+  TOK_COMMA,
+  TOK_SEMICOLON,
+  TOK_COLON,
+  TOK_RIGHT_ARROW,
 
-    TOK_MINUS,
-    TOK_PLUS,
-    TOK_SLASH,
-    TOK_STAR,
-    TOK_PERCENT,
-    TOK_BANG,
-    TOK_BANG_EQUAL,
-    TOK_EQUAL,
-    TOK_EQUAL_EQUAL,
-    TOK_GREATER,
-    TOK_GREATER_EQUAL,
-    TOK_LESS,
-    TOK_LESS_EQUAL,
-    TOK_AND,
-    TOK_OR,
-    TOK_XOR,
+  TOK_MINUS,
+  TOK_PLUS,
+  TOK_SLASH,
+  TOK_STAR,
+  TOK_PERCENT,
+  TOK_BANG,
+  TOK_BANG_EQUAL,
+  TOK_EQUAL,
+  TOK_EQUAL_EQUAL,
+  TOK_GREATER,
+  TOK_GREATER_EQUAL,
+  TOK_LESS,
+  TOK_LESS_EQUAL,
+  TOK_AND,
+  TOK_OR,
+  TOK_XOR,
 
-    TOK_FN,
-    TOK_VAR,
-    TOK_CONST,
-    TOK_RETURN,
+  TOK_FN,
+  TOK_VAR,
+  TOK_CONST,
+  TOK_RETURN,
 
-    TOK_NIL,
-    TOK_TRUE,
-    TOK_FALSE,
-    TOK_INTEGER,
-    TOK_STRING_LITERAL,
-    TOK_IDENTIFIER,
+  TOK_NIL,
+  TOK_TRUE,
+  TOK_FALSE,
+  TOK_INTEGER,
+  TOK_STRING_LITERAL,
+  TOK_IDENTIFIER,
 
-    TOK_TYPE_NIL,
-    TOK_TYPE_BOOL,
-    TOK_TYPE_I8,
-    TOK_TYPE_I16,
-    TOK_TYPE_I32,
-    TOK_TYPE_I64,
-    TOK_TYPE_U8,
-    TOK_TYPE_U16,
-    TOK_TYPE_U32,
-    TOK_TYPE_U64,
-    TOK_TYPE_F32,
-    TOK_TYPE_F64,
+  TOK_TYPE_NIL,
+  TOK_TYPE_BOOL,
+  TOK_TYPE_I64,
 } Token;
 
 #endif // !EXP_FRONTEND_TOKEN_H

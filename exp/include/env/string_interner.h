@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,33 +13,43 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file string_interner.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_STRING_INTERNER_H
 #define EXP_ENV_STRING_INTERNER_H
 
-#include "utility/constant_string.h"
+#include "utility/string_view.h"
+
+/**
+ * @brief We use simple strings instead of general strings
+ * because the general strings are small string optimized
+ * and that means we cannot safely return a view into the
+ * small string and freely grow the interned strings.
+ * as reallocating the buffer of strings may move the interned
+ * string, invalidating the string view returned by the string
+ * interner.
+ */
+typedef struct SimpleString {
+  u64 length;
+  char *ptr;
+} SimpleString;
 
 /**
  * @brief holds a set of strings, such that the memory
  * allocated for these strings is all managed in one location,
  * this has the additional benefiet of allowing string
  * comparison outside the string interner to require a single
- * ptr comparison
  */
 typedef struct StringInterner {
-    u32 capacity;
-    u32 count;
-    ConstantString **buffer;
+  u64 capacity;
+  u64 count;
+  SimpleString *buffer;
 } StringInterner;
 
-void string_interner_initialize(StringInterner *string_interner);
-void string_interner_terminate(StringInterner *string_interner);
-StringView string_interner_insert(StringInterner *string_interner,
+StringInterner string_interner_create();
+
+void string_interner_destroy(StringInterner *restrict string_interner);
+
+StringView string_interner_insert(StringInterner *restrict string_interner,
                                   StringView sv);
 
 #endif // !EXP_ENV_STRING_INTERNER_H

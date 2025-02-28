@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,28 +13,55 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file env/constants.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_CONSTANTS_H
 #define EXP_IMR_CONSTANTS_H
 #include <stddef.h>
 
 #include "imr/value.h"
+#include "utility/io.h"
 
 typedef struct Constants {
-    u32 count;
-    u32 capacity;
+    u16 count;
+    u16 capacity;
     Value *buffer;
 } Constants;
 
-void constants_initialize(Constants *constants);
-void constants_terminate(Constants *constants);
+/**
+ * @brief create a Values buffer
+ *
+ * @return Values
+ */
+Constants constants_create();
 
-Value *constants_at(Constants *constants, u32 constant);
-u32 constants_append_tuple(Constants *constants, Tuple tuple);
+/**
+ * @brief destroy a Values buffer
+ *
+ * @param values
+ */
+void constants_destroy(Constants *restrict values);
+
+/**
+ * @brief add a new Value to the Values buffer
+ *
+ * @param values
+ * @param value
+ * @return Value*
+ */
+Operand constants_append(Constants *restrict values, Value value);
+
+/**
+ * @brief return the constant at the given index in the buffer
+ *
+ * @param constants
+ * @param index
+ * @return Value*
+ */
+Value *constants_at(Constants *restrict values, u16 index);
+
+struct Context;
+void print_constants(Constants const *restrict values,
+                     FILE *restrict file,
+                     struct Context *restrict context);
 
 #endif // !EXP_IMR_CONSTANTS_H

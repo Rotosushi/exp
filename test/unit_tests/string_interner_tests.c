@@ -16,34 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @file unit_tests/string_interner_tests.c
- */
-
-// #include <stdlib.h>
+#include <stdlib.h>
 
 #include "env/string_interner.h"
-#include "utility/result.h"
 
 i32 string_interner_tests([[maybe_unused]] i32 argc,
                           [[maybe_unused]] char *argv[]) {
-    StringInterner si;
-    string_interner_initialize(&si);
-    bool failure = 0;
+  StringInterner si = string_interner_create();
+  bool failure      = 0;
 
-    StringView sv0 = (string_interner_insert(&si, SV("hello")));
-    StringView sv1 = (string_interner_insert(&si, SV("world")));
-    failure |= string_view_equality(sv0, sv1);
+  StringView sv0 = string_interner_insert(&si, SV("hello"));
+  StringView sv1 = string_interner_insert(&si, SV("world"));
+  failure |= string_view_equality(sv0, sv1);
 
-    StringView sv2 = (string_interner_insert(&si, SV("hello")));
-    failure |= !string_view_equality(sv0, sv2);
-    failure |= string_view_equality(sv1, sv2);
+  StringView sv2 = string_interner_insert(&si, SV("hello"));
+  failure |= !string_view_equality(sv0, sv2);
+  failure |= string_view_equality(sv1, sv2);
 
-    string_interner_terminate(&si);
-    if (failure) {
-        return EXP_FAILURE;
-    } else {
-        return EXP_SUCCESS;
-    }
+  string_interner_destroy(&si);
+  if (failure) {
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }

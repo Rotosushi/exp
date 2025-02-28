@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,21 +13,27 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file env/symbol_table.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/function.h"
+#include "imr/function_body.h"
+#include "imr/type.h"
+#include "utility/string_view.h"
+
+typedef enum SymbolKind {
+    STE_UNDEFINED,
+    STE_FUNCTION,
+} SymbolKind;
 
 typedef struct Symbol {
     StringView name;
-    Type const *type;
-    Function function_body;
+    Type *type;
+    SymbolKind kind;
+    union {
+        u8 empty;
+        FunctionBody function_body;
+    };
 } Symbol;
 
 typedef struct SymbolTable {
@@ -36,8 +42,8 @@ typedef struct SymbolTable {
     Symbol **elements;
 } SymbolTable;
 
-void symbol_table_create(SymbolTable *symbol_table);
-void symbol_table_destroy(SymbolTable *symbol_table);
+SymbolTable symbol_table_create();
+void symbol_table_destroy(SymbolTable *restrict symbol_table);
 
 /**
  * @brief Return the entry associated with the given key in the
@@ -49,6 +55,18 @@ void symbol_table_destroy(SymbolTable *symbol_table);
  * @param value
  * @return SymbolTableElement *
  */
-Symbol *symbol_table_at(SymbolTable *symbol_table, StringView name);
+Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
+
+typedef struct SymbolTableIterator {
+    Symbol **element;
+    Symbol **end;
+} SymbolTableIterator;
+
+SymbolTableIterator
+symbol_table_iterator_create(SymbolTable *restrict symbol_table);
+
+void symbol_table_iterator_next(SymbolTableIterator *restrict iter);
+
+bool symbol_table_iterator_done(SymbolTableIterator *restrict iter);
 
 #endif // !EXP_ENV_SYMBOL_TABLE_H

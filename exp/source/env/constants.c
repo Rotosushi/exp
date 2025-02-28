@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2025 Cade Weinberg
+ * Copyright (C) 2024 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,29 +14,29 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <https://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <assert.h>
+#include <stdlib.h>
 
-/**
- * @file env/constants.c
- */
 #include "env/constants.h"
-#include "utility/alloc.h"
+#include "env/context.h"
+#include "utility/allocation.h"
 #include "utility/array_growth.h"
-#include "utility/assert.h"
 
-void constants_initialize(Constants *constants) {
-    EXP_ASSERT(constants != nullptr);
-    constants->count    = 0;
-    constants->capacity = 0;
-    constants->buffer   = NULL;
+Constants constants_create() {
+    Constants constants;
+    constants.count    = 0;
+    constants.capacity = 0;
+    constants.buffer   = NULL;
+    return constants;
 }
 
-void constants_terminate(Constants *constants) {
-    EXP_ASSERT(constants != NULL);
-    for (u32 i = 0; i < constants->count; ++i) {
+void constants_destroy(Constants *restrict constants) {
+    assert(constants != NULL);
+    for (u64 i = 0; i < constants->count; ++i) {
         Value *constant = constants->buffer + i;
-        value_terminate(constant);
+        value_destroy(constant);
     }
 
     constants->count    = 0;
@@ -45,44 +45,53 @@ void constants_terminate(Constants *constants) {
     constants->buffer = NULL;
 }
 
-Value *constants_at(Constants *constants, u32 constant) {
-    EXP_ASSERT(constants != nullptr);
-    EXP_ASSERT(constant < constants->count);
-    return constants->buffer + constant;
-}
-
-static bool constants_full(Constants *constants) {
-    EXP_ASSERT(constants != NULL);
+static bool constants_full(Constants *restrict constants) {
+    assert(constants != NULL);
     return (constants->count + 1) >= constants->capacity;
 }
 
-static void constants_grow(Constants *constants) {
-    EXP_ASSERT(constants != NULL);
-    Growth32 g          = array_growth_u32(constants->capacity, sizeof(Value));
+static void constants_grow(Constants *restrict constants) {
+    assert(constants != NULL);
+    Growth g            = array_growth_u16(constants->capacity, sizeof(Value));
     constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-    constants->capacity = g.new_capacity;
+    constants->capacity = (u16)g.new_capacity;
 }
 
-u32 constants_append_tuple(Constants *constants, Tuple tuple) {
-    EXP_ASSERT(constants != NULL);
+Operand constants_append(Constants *restrict constants, Value value) {
 
-    Value value;
-    value_initialize_tuple(&value, tuple);
-
-    for (u32 index = 0; index < constants->count; ++index) {
-        Value *cursor = constants->buffer + index;
-        EXP_ASSERT(cursor != nullptr);
-
-        if (value_equal(cursor, &value)) {
-            value_terminate(&value);
-            return index;
+    assert(constants != NULL);
+    for (u16 i = 0; i < constants->count; ++i) {
+        Value *v = constants->buffer + i;
+        if (value_equality(v, &value)) {
+            value_destroy(&value);
+            return operand_constant(i);
         }
     }
 
     if (constants_full(constants)) { constants_grow(constants); }
 
-    u32 index                = constants->count++;
-    constants->buffer[index] = value;
+    u16 index = constants->count;
+    assert(constants != NULL);
+    constants->buffer[constants->count] = value;
+    constants->count += 1;
 
-    return index;
+    return operand_constant(index);
+}
+
+Value *constants_at(Constants *restrict constants, u16 index) {
+    assert(constants != NULL);
+    assert(index < constants->count);
+    return constants->buffer + index;
+}
+
+void print_constants(Constants const *restrict constants,
+                     FILE *restrict file,
+                     Context *restrict context) {
+    for (u16 i = 0; i < constants->count; ++i) {
+        file_write_u64(i, file);
+        file_write(": ", file);
+        file_write("[", file);
+        print_value(constants->buffer + i, file, context);
+        file_write("]\n", file);
+    }
 }

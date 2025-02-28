@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,20 +13,17 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * @file utility/string_view.h
- */
-
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_STRING_VIEW_H
 #define EXP_UTILITY_STRING_VIEW_H
+#include <stdbool.h>
 
 #include "utility/int_types.h"
+#include "utility/io.h"
 
 typedef struct StringView {
-    u64 length;
-    char const *ptr;
+  u64 length;
+  char const *ptr;
 } StringView;
 
 StringView string_view_create();
@@ -34,6 +31,8 @@ StringView string_view_from_str(char const *string, u64 length);
 StringView string_view_from_cstring(char const *cstring);
 bool string_view_equality(StringView sv1, StringView sv2);
 bool string_view_empty(StringView sv);
+
+void print_string_view(StringView sv, FILE *restrict file);
 
 #define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
 
