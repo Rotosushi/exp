@@ -23,6 +23,7 @@
 #include "env/error.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
+#include "frontend/token.h"
 #include "imr/operand.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"
@@ -630,14 +631,23 @@ static bool boolean_false(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool integer(Operand *result, Parser *parser, Context *context) {
+    assert(peek(parser, TOK_INTEGER));
     StringView sv = curtxt(parser);
-    i64 integer   = str_to_i64(sv.ptr, sv.length);
+    u64 integer   = 0;
+
+    if (!str_to_u64(&integer, sv.ptr, sv.length)) {
+        return error(
+            parser, context, ERROR_PARSER_INTEGER_LITERAL_OUT_OF_RANGE);
+    }
 
     if (!nexttok(parser, context)) { return false; }
-    if (i64_in_range_i16(integer)) {
-        *result = operand_immediate((i16)integer);
+    if (u64_in_range_i64(integer)) {
+        *result = operand_immediate((i64)integer);
     } else {
-        *result = context_constants_append(context, value_create_i64(integer));
+        return error(
+            parser, context, ERROR_PARSER_INTEGER_LITERAL_OUT_OF_RANGE);
+        *result =
+            context_constants_append(context, value_create_i64((i64)integer));
     }
 
     return true;

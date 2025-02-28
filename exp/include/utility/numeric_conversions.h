@@ -52,8 +52,8 @@ char *i64_to_str(i64 value, char *restrict buffer);
 
 char *u64_to_str(u64 value, char *restrict buffer);
 
-i64 str_to_i64(char const *restrict buffer, u64 length);
+bool str_to_i64(i64 *result, char const *restrict buffer, u64 length);
 
-u64 str_to_u64(char const *restrict buffer, u64 length);
+bool str_to_u64(u64 *result, char const *restrict buffer, u64 length);
 
 #endif // !EXP_UTILITY_NUMBERS_TO_STRING_H

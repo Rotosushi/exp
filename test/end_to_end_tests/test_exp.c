@@ -84,7 +84,10 @@ u8 parse_exit_code(StringView path) {
         ++exit_code_length;
     }
 
-    i64 exit_code = str_to_i64(exit_code_begin, exit_code_length);
+    i64 exit_code = 0;
+    if (!str_to_i64(&exit_code, exit_code_begin, exit_code_length)) {
+        PANIC("exit code out of range");
+    }
     if (!i64_in_range_u8(exit_code)) { PANIC("exit code out of range"); }
 
     return (u8)exit_code;
