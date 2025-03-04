@@ -30,10 +30,13 @@ create_test_sourcelist(Tests exp_unit_tests.c
 )
 
 add_executable (exp_unit_tests ${Tests})
-target_include_directories(exp_unit_tests PUBLIC ${EXP_INCLUDE_DIR})
+target_include_directories(exp_unit_tests PUBLIC 
+  ${EXP_INCLUDE_DIR}
+  ${EXP_TEST_DIR}/libexp_test
+)
 target_compile_options(exp_unit_tests PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_unit_tests PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_unit_tests PUBLIC exp_common m)
+target_link_libraries(exp_unit_tests PUBLIC exp_common exp_test m)
 
 
 set (TestsToRun ${Tests})

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "front/parser.h"
+#include "test_resources.h"
 
 static Context init_context() {
     CLIOptions options = cli_options_create();
@@ -27,33 +28,39 @@ static Context init_context() {
     return result;
 }
 
-bool test_parse(char const *body) {
+i32 test_parse(StringView contents) {
     Context context = init_context();
 
-    bool failure = (parse_buffer(body, strlen(body), &context) == EXIT_FAILURE);
+    i32 result = parse_buffer(contents.ptr, contents.length, &context);
 
     context_destroy(&context);
 
-    if (failure) {
-        fputs(body, stderr);
-        fputs(" failed to parse.", stderr);
+    if (result != EXIT_SUCCESS) {
+        file_write(SV(" failed to parse:\n"), stderr);
+        file_write(contents, stderr);
+        file_write(SV("\n"), stderr);
     }
 
-    return failure;
+    return result;
 }
 
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
-    bool failure = 0;
+    i32 result = 0;
+    TestResources test_resources;
+    test_resources_initialize(&test_resources);
 
-    failure |= test_parse("fn f() { return 0; }");
-    failure |= test_parse("fn f() { return 3 + 3; }");
-    failure |= test_parse("fn f() { return 3 - 5 * 9; }");
-    failure |=
-        test_parse("fn f() { return 12; }\n fn g() { return f() + 12; }");
+    for (u64 index = 0; index < test_resources.count; ++index) {
+        String *resource = test_resources.buffer + index;
+        file_write(SV("\ntesting resource: "), stderr);
+        file_write(string_to_view(resource), stderr);
 
-    if (failure) {
-        return EXIT_FAILURE;
-    } else {
-        return EXIT_SUCCESS;
+        FILE *file      = file_open(string_to_cstring(resource), "r");
+        String contents = string_from_file(file);
+        file_close(file);
+        result += test_parse(string_to_view(&contents));
+        string_destroy(&contents);
     }
+
+    test_resources_terminate(&test_resources);
+    return (result == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
