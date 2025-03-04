@@ -17,8 +17,8 @@
 #ifndef EXP_ENV_ERROR_H
 #define EXP_ENV_ERROR_H
 
-#include "adt/string.h"
 #include "utility/log.h"
+#include "utility/string.h"
 
 typedef enum ErrorCode : u8 {
     ERROR_NONE,

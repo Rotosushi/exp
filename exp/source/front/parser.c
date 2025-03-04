@@ -21,9 +21,9 @@
 #include <stdlib.h>
 
 #include "env/error.h"
-#include "frontend/lexer.h"
-#include "frontend/parser.h"
-#include "frontend/token.h"
+#include "front/lexer.h"
+#include "front/parser.h"
+#include "front/token.h"
 #include "imr/operand.h"
 #include "utility/numeric_conversions.h"
 #include "utility/unreachable.h"

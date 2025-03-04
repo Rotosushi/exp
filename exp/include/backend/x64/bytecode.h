@@ -17,13 +17,13 @@
 #ifndef EXP_BACKEND_X64_BYTECODE_H
 #define EXP_BACKEND_X64_BYTECODE_H
 
-#include "adt/string.h"
 #include "backend/x64/instruction.h"
+#include "utility/string.h"
 
 typedef struct x64_Bytecode {
-  u64 length;
-  u64 capacity;
-  x64_Instruction *buffer;
+    u64 length;
+    u64 capacity;
+    x64_Instruction *buffer;
 } x64_Bytecode;
 
 x64_Bytecode x64_bytecode_create();

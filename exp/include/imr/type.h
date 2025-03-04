@@ -18,7 +18,7 @@
 #define EXP_IMR_TYPE_H
 #include <stdbool.h>
 
-#include "adt/string.h"
+#include "utility/string.h"
 
 typedef enum TypeKind {
     TYPE_KIND_NIL,

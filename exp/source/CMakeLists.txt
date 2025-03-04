@@ -1,31 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(EXP_UTILITY_SOURCE_FILES
-  ${EXP_SOURCE_DIR}/utility/allocation.c
-  ${EXP_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_SOURCE_DIR}/utility/hash.c
-  ${EXP_SOURCE_DIR}/utility/int_types.c
-  ${EXP_SOURCE_DIR}/utility/io.c
-  ${EXP_SOURCE_DIR}/utility/log.c
-  ${EXP_SOURCE_DIR}/utility/nearest_power.c
-  ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
-  ${EXP_SOURCE_DIR}/utility/panic.c
-  ${EXP_SOURCE_DIR}/utility/process.c
-  ${EXP_SOURCE_DIR}/utility/string_view.c
-)
-
-add_library(exp_utility
-  ${EXP_UTILITY_SOURCE_FILES}
-)
-target_include_directories(exp_utility PUBLIC ${EXP_INCLUDE_DIR})
-target_compile_options(exp_utility PUBLIC ${EXP_COMPILE_OPTIONS})
-target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
-
-
 
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
-  ${EXP_SOURCE_DIR}/adt/string.c
 
   ${EXP_SOURCE_DIR}/analysis/typecheck.c
   
@@ -78,8 +55,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/type_interner.c
   ${EXP_SOURCE_DIR}/env/constants.c
 
-  ${EXP_SOURCE_DIR}/frontend/lexer.c
-  ${EXP_SOURCE_DIR}/frontend/parser.c
+  ${EXP_SOURCE_DIR}/front/lexer.c
+  ${EXP_SOURCE_DIR}/front/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function_body.c

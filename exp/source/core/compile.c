@@ -25,41 +25,41 @@
 #include "core/link.h"
 #include "env/cli_options.h"
 #include "env/context.h"
-#include "frontend/parser.h"
+#include "front/parser.h"
 
 static i32 compile_context(Context *restrict c) {
-  if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
+    if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-  if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
+    if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-  codegen(c);
+    codegen(c);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 i32 compile(i32 argc, char const *argv[]) {
-  CLIOptions cli_options = parse_cli_options(argc, argv);
-  Context context        = context_create(&cli_options);
+    CLIOptions cli_options = parse_cli_options(argc, argv);
+    Context context        = context_create(&cli_options);
 
-  i32 result = compile_context(&context);
+    i32 result = compile_context(&context);
 
-  if ((result != EXIT_FAILURE) && context_do_assemble(&context)) {
-    result |= assemble(&context);
-  }
+    if ((result != EXIT_FAILURE) && context_do_assemble(&context)) {
+        result |= assemble(&context);
+    }
 
-  if ((result != EXIT_FAILURE) && context_do_link(&context)) {
-    result |= link(&context);
-  }
+    if ((result != EXIT_FAILURE) && context_do_link(&context)) {
+        result |= link(&context);
+    }
 
-  if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
-    StringView asm_path = context_assembly_path(&context);
-    file_remove(asm_path.ptr);
+    if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
+        StringView asm_path = context_assembly_path(&context);
+        file_remove(asm_path.ptr);
 
-    StringView obj_path = context_object_path(&context);
-    file_remove(obj_path.ptr);
-  }
+        StringView obj_path = context_object_path(&context);
+        file_remove(obj_path.ptr);
+    }
 
-  context_destroy(&context);
-  cli_options_destroy(&cli_options);
-  return result;
+    context_destroy(&context);
+    cli_options_destroy(&cli_options);
+    return result;
 }

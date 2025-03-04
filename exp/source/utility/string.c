@@ -21,12 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "adt/string.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
 #include "utility/io.h"
 #include "utility/numeric_conversions.h"
 #include "utility/panic.h"
+#include "utility/string.h"
 
 String string_create() {
     String str;

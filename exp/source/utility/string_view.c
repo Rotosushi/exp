@@ -18,7 +18,6 @@
  */
 #include <string.h>
 
-#include "utility/panic.h"
 #include "utility/string_view.h"
 
 StringView string_view_create() {

@@ -3,7 +3,7 @@
 #ifndef EXP_TEST_END_TO_END_TEST_RESOURCES_H
 #define EXP_TEST_END_TO_END_TEST_RESOURCES_H
 
-#include "adt/string.h"
+#include "utility/string.h"
 
 typedef struct TestResources {
     u64 count;

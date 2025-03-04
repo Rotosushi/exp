@@ -1,6 +1,5 @@
 
 #include <assert.h>
-#include <string.h>
 
 #include "test_resources.h"
 #include "utility/allocation.h"
@@ -57,10 +56,7 @@ void test_resources_append(TestResources *test_resources,
     string_assign(string, string_to_view(resource));
 }
 
-#ifndef EXP_HOST_SYSTEM_LINUX
-#error "unsupported host system"
-#endif
-
+#if defined(EXP_HOST_SYSTEM_LINUX)
 #include <dirent.h>
 #include <limits.h>
 #include <sys/stat.h>
@@ -115,3 +111,9 @@ void test_resources_gather(TestResources *test_resources,
 
     if (closedir(resource_directory) < 0) { PANIC_ERRNO("closedir"); }
 }
+
+#elif defined(EXP_HOST_SYSTEM_WINDOWS)
+#error "TODO"
+#else
+#error "unsupported host system"
+#endif

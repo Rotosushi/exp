@@ -17,9 +17,9 @@
 #ifndef EXP_BACKEND_X64_INSTRUCTION_H
 #define EXP_BACKEND_X64_INSTRUCTION_H
 
-#include "adt/string.h"
 #include "backend/x64/operand.h"
 #include "env/context.h"
+#include "utility/string.h"
 
 /*
   We want to model the x64 instructions we generate

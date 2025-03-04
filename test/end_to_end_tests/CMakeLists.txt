@@ -16,26 +16,18 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set(LIBE2E_SOURCES
-  ${EXP_TEST_DIR}/end_to_end_tests/test_exp.c
-  ${EXP_TEST_DIR}/end_to_end_tests/test_resources.c
-)
-
-add_library(exp_e2e ${LIBE2E_SOURCES})
-target_include_directories(exp_e2e PUBLIC ${EXP_TEST_E2E_DIR})
-target_compile_options(exp_e2e PUBLIC ${EXP_COMPILE_OPTIONS})
-target_link_options(exp_e2e PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_e2e PUBLIC exp_common)
-
 add_executable(test_all_resources 
   ${EXP_TEST_DIR}/end_to_end_tests/main.c
 )
-target_include_directories(test_all_resources PUBLIC ${EXP_TEST_E2E_DIR})
+target_include_directories(test_all_resources PUBLIC
+  ${EXP_INCLUDE_DIR}
+  ${EXP_TEST_DIR}/libexp_test
+)
 target_compile_options(test_all_resources PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(test_all_resources PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(test_all_resources PUBLIC exp_e2e)
+target_link_libraries(test_all_resources PUBLIC exp_test)
 
-add_test(NAME "test all resources" COMMAND test_all_resources)
+add_test(NAME "test: compile all resources and check return value of emitted program" COMMAND test_all_resources)
 
 #create_test_sourcelist(Tests exp_e2e_tests.c
 #  addition.c

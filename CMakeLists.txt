@@ -28,10 +28,11 @@ project(EXP LANGUAGES C ASM VERSION 0.2.0 DESCRIPTION "A hobby programming langu
 
 set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
 set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
+set(EXP_LIBEXP_UTILITY_DIR "${PROJECT_SOURCE_DIR}/libexp_utility")
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(EXP_TEST_RESOURCES_DIR "${EXP_TEST_DIR}/resources")
 set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
-set(EXP_LIBEXP_RUNTIME_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
+set(EXP_LIBEXP_RUNTIME_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
 set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
 set(EXP_WARNINGS -Wall -Wdeprecated -Wextra -Wpedantic -Wconversion -Werror)
@@ -80,8 +81,10 @@ configure_file(
 message(STATUS "C compiler ${CMAKE_C_COMPILER}")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 
+add_subdirectory(${EXP_LIBEXP_UTILITY_DIR})
+add_subdirectory(${EXP_LIBEXP_RUNTIME_DIR})
 add_subdirectory(${EXP_SOURCE_DIR})
-add_subdirectory(${EXP_LIBEXP_RUNTIME_SOURCE_DIR})
+
 
 include(CTest)
 add_subdirectory(${EXP_TEST_DIR})

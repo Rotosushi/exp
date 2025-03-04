@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Cade Weinberg
+# Copyright (C) 2025 Cade Weinberg
 # 
 # This file is part of exp.
 # 
@@ -16,22 +16,17 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set(EXP_LIBSTART_SOURCES
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_start.s
+set(LIBEXP_TEST_SOURCES
+  ${EXP_TEST_DIR}/libexp_test/test_exp.c
+  ${EXP_TEST_DIR}/libexp_test/test_resources.c
 )
 
-add_library(exp_runtime_start
-  ${EXP_LIBSTART_SOURCES}
+add_library(exp_test ${LIBEXP_TEST_SOURCES})
+target_include_directories(exp_test PRIVATE 
+${EXP_INCLUDE_DIR}
+${EXP_TEST_DIR}/libexp_test
 )
-
-set(EXP_LIBEXP_RUNTIME_SOURCES
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_syscalls.s
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_byte.s
-)
-
-add_library(exp_runtime
-  ${EXP_LIBEXP_RUNTIME_SOURCES}
-)
-
-
+target_compile_options(exp_test PRIVATE ${EXP_COMPILE_OPTIONS})
+target_link_options(exp_test PRIVATE ${EXP_LINK_OPTIONS})
+target_link_libraries(exp_test PRIVATE exp_utility)
 
