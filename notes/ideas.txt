@@ -1,4 +1,38 @@
 
+/-----------------------------------------------------------------------------
+
+After modifying the parser unit_tests to parse all of the resources in the 
+test resources file I noticed that the difference between the runtimes of 
+the parser unit tests and the compile all test resources and test the 
+exit code of the emitted program is really large. 
+
+parser unit tests: ~3ms
+test all resources: ~345ms
+
+(in a release build)
+
+The relative change is 
+((345 - 3) / 3) * 100 = 11,400
+
+which means it takes 11,400% more time to complete.
+
+now, test all resources does a lot more work. first it has to compile the 
+program (which is inclusive of running the parser unit tests),
+then run the assembler, then the linker. My thinking is that most 
+of the added time must be coming from the fact that we fork/exec the compiler,
+the assembler, the linker, and the final executable. 
+
+the main way to mitigate this would be to embed an assembler and a linker into 
+the compiler. Then we only have to pay the cost of interfacing with the filesystem.
+which can be further reduced by pooling those resources.
+
+There are a few projects which could be used for this, without requireing something 
+bespoke. 
+
+(zydis)[https://github.com/zyantific/zydis]
+
+(mold)[https://github.com/rui314/mold]
+
 
 /-----------------------------------------------------------------------------
 

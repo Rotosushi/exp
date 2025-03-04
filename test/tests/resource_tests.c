@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
+ * Copyright (C) 2025 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,27 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include <stdlib.h>
 
 #include "test_exp.h"
-#include "utility/config.h"
+#include "test_resources.h"
+#include "utility/io.h"
 
-int modulus([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-    int result = EXIT_SUCCESS;
+i32 resource_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
+    i32 result = EXIT_SUCCESS;
+    TestResources test_resources;
+    test_resources_initialize(&test_resources);
 
-    StringView source_path = SV(EXP_TEST_DIR "/modulus.exp");
+    for (u64 index = 0; index < test_resources.count; ++index) {
+        String *resource = test_resources.buffer + index;
+        file_write(SV("\ntesting resource: "), stderr);
+        file_write(string_to_view(resource), stderr);
+        result |= test_source(string_to_view(resource));
+    }
 
-    result |= test_exp(source_path,
-                       "fn main() { const x = 9; const y = 3; return x % y; }",
-                       0);
-
-    result |=
-        test_exp(source_path, "fn main() { const x = 3; return x % 2; }", 1);
-
-    result |=
-        test_exp(source_path, "fn main() { const x = 5; return 8 % x; }", 3);
-
-    result |= test_exp(source_path, "fn main() { return 5 % 3; }", 2);
-
+    test_resources_terminate(&test_resources);
     return result;
 }
