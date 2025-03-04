@@ -28,10 +28,15 @@ project(EXP LANGUAGES C ASM VERSION 0.2.0 DESCRIPTION "A hobby programming langu
 
 set(EXP_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/exp/include")
 set(EXP_SOURCE_DIR "${PROJECT_SOURCE_DIR}/exp/source")
+
 set(EXP_LIBEXP_UTILITY_DIR "${PROJECT_SOURCE_DIR}/libexp_utility")
+set(EXP_LIBEXP_UTILITY_SOURCE_DIR "${EXP_LIBEXP_UTILITY_DIR}/source")
+set(EXP_LIBEXP_UTILITY_INCLUDE_DIR "${EXP_LIBEXP_UTILITY_DIR}/include")
+
 set(EXP_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 set(EXP_TEST_RESOURCES_DIR "${EXP_TEST_DIR}/resources")
 set(EXP_BINARY_DIR "${PROJECT_BINARY_DIR}")
+
 set(EXP_LIBEXP_RUNTIME_DIR "${PROJECT_SOURCE_DIR}/libexp_runtime")
 set(EXP_LIBEXP_RUNTIME_BINARY_DIR "${EXP_BINARY_DIR}/libexp_runtime")
 
@@ -49,34 +54,6 @@ else()
   set(EXP_COMPILE_OPTIONS ${EXP_WARNINGS})
   set(EXP_LINK_OPTIONS)
 endif()
-
-execute_process(
-  COMMAND git rev-parse --short HEAD 
-  OUTPUT_VARIABLE EXP_GIT_REVISION
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-string(TIMESTAMP EXP_BUILD_TIME "%Y-%m-%d %H:%M:%S")
-
-set(EXP_VERSION_STRING "")
-string(APPEND EXP_VERSION_STRING 
-"exp version ("
-${EXP_VERSION_MAJOR}
-"."
-${EXP_VERSION_MINOR}
-"."
-${EXP_VERSION_PATCH}
-") built at ("
-${EXP_BUILD_TIME}
-") git revision ("
-${EXP_GIT_REVISION}
-")"
-)
-
-configure_file(
-  ${EXP_INCLUDE_DIR}/utility/config.h.in 
-  ${EXP_INCLUDE_DIR}/utility/config.h
-)
 
 message(STATUS "C compiler ${CMAKE_C_COMPILER}")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")

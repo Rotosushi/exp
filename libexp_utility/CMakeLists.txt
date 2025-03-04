@@ -16,25 +16,55 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
+execute_process(
+  COMMAND git rev-parse --short HEAD 
+  OUTPUT_VARIABLE EXP_GIT_REVISION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+string(TIMESTAMP EXP_BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+set(EXP_VERSION_STRING "")
+string(APPEND EXP_VERSION_STRING 
+"exp version ("
+${EXP_VERSION_MAJOR}
+"."
+${EXP_VERSION_MINOR}
+"."
+${EXP_VERSION_PATCH}
+") built at ("
+${EXP_BUILD_TIME}
+") git revision ("
+${EXP_GIT_REVISION}
+")"
+)
+
+configure_file(
+  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}/utility/config.h.in 
+  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}/utility/config.h
+)
+
 set(EXP_UTILITY_SOURCE_FILES
-  ${EXP_SOURCE_DIR}/utility/allocation.c
-  ${EXP_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_SOURCE_DIR}/utility/hash.c
-  ${EXP_SOURCE_DIR}/utility/int_types.c
-  ${EXP_SOURCE_DIR}/utility/io.c
-  ${EXP_SOURCE_DIR}/utility/log.c
-  ${EXP_SOURCE_DIR}/utility/nearest_power.c
-  ${EXP_SOURCE_DIR}/utility/numeric_conversions.c
-  ${EXP_SOURCE_DIR}/utility/panic.c
-  ${EXP_SOURCE_DIR}/utility/process.c
-  ${EXP_SOURCE_DIR}/utility/string_view.c
-  ${EXP_SOURCE_DIR}/utility/string.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/allocation.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/array_growth.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/hash.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/int_types.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/io.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/log.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/nearest_power.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/numeric_conversions.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/panic.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/process.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/string_view.c
+  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/string.c
 )
 
 add_library(exp_utility
   ${EXP_UTILITY_SOURCE_FILES}
 )
-target_include_directories(exp_utility PUBLIC ${EXP_INCLUDE_DIR})
+target_include_directories(exp_utility PUBLIC 
+${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
+)
 target_compile_options(exp_utility PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
 

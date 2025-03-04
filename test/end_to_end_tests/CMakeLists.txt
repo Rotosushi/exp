@@ -20,6 +20,7 @@ add_executable(test_all_resources
   ${EXP_TEST_DIR}/end_to_end_tests/main.c
 )
 target_include_directories(test_all_resources PUBLIC
+  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
   ${EXP_INCLUDE_DIR}
   ${EXP_TEST_DIR}/libexp_test
 )

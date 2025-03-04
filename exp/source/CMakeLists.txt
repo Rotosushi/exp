@@ -73,7 +73,10 @@ set(SOURCE_FILES
 add_library(exp_common
   ${SOURCE_FILES}
 )
-target_include_directories(exp_common PUBLIC ${EXP_INCLUDE_DIR})
+target_include_directories(exp_common PUBLIC 
+  ${EXP_INCLUDE_DIR}
+  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
+)
 target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(exp_common PUBLIC exp_utility)
