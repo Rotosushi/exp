@@ -16,7 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
-#include "codegen/x64/codegen.h"
+#ifndef EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
+#define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
-void codegen(Context *restrict context) { x64_codegen(context); }
+#include "codegen/x64/location.h"
+#include "imr/type.h"
+
+x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index);
+
+#endif // !EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
