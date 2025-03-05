@@ -55,8 +55,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/type_interner.c
   ${EXP_SOURCE_DIR}/env/constants.c
 
-  ${EXP_SOURCE_DIR}/front/lexer.c
-  ${EXP_SOURCE_DIR}/front/parser.c
+  ${EXP_SOURCE_DIR}/scanning/lexer.c
+  ${EXP_SOURCE_DIR}/scanning/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function_body.c

@@ -25,7 +25,7 @@
 #include "core/link.h"
 #include "env/cli_options.h"
 #include "env/context.h"
-#include "front/parser.h"
+#include "scanning/parser.h"
 
 static i32 compile_context(Context *restrict c) {
     if (parse_source(c) == EXIT_FAILURE) { return EXIT_FAILURE; }

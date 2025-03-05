@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "front/lexer.h"
+#include "scanning/lexer.h"
 
 // return true on failure
 static bool test_lexer_scans_token(const char *buffer, Token token) {

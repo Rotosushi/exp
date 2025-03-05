@@ -20,7 +20,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "front/lexer.h"
+#include "scanning/lexer.h"
 
 Lexer lexer_create() {
     Lexer lexer;

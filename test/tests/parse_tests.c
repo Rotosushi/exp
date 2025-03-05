@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "front/parser.h"
+#include "scanning/parser.h"
 #include "test_resources.h"
 
 static Context init_context() {
