@@ -16,7 +16,7 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_ENV_GLOBAL_SYMBOLS_H
 #define EXP_ENV_GLOBAL_SYMBOLS_H
-#include "utility/string_view.h"
+#include "support/string_view.h"
 
 typedef struct GlobalLabels {
     u32 count;

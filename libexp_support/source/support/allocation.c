@@ -18,8 +18,8 @@
  */
 #include <stdlib.h>
 
-#include "utility/allocation.h"
-#include "utility/panic.h"
+#include "support/allocation.h"
+#include "support/panic.h"
 
 void *allocate(u64 size) {
     void *result = malloc(size);

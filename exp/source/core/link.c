@@ -19,8 +19,8 @@
 #include <stdlib.h>
 
 #include "core/link.h"
-#include "utility/config.h"
-#include "utility/process.h"
+#include "support/config.h"
+#include "support/process.h"
 
 i32 link(Context *restrict context) {
     StringView obj_path = context_object_path(context);

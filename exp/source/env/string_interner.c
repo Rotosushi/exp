@@ -22,9 +22,9 @@
 #include <string.h>
 
 #include "env/string_interner.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/hash.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/hash.h"
 
 static void simple_string_destroy(SimpleString *restrict string) {
     deallocate(string->ptr);

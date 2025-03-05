@@ -22,8 +22,8 @@
 #include "codegen/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
 
 typedef struct OperandArray {
     u8 size;

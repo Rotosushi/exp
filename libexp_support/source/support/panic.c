@@ -21,10 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/ansi_colors.h"
-#include "utility/debug.h"
-#include "utility/log.h"
-#include "utility/panic.h"
+#include "support/ansi_colors.h"
+#include "support/debug.h"
+#include "support/log.h"
+#include "support/panic.h"
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
     assert(file != NULL);

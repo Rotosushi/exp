@@ -19,8 +19,8 @@
 #include <assert.h>
 
 #include "intrinsics/type_of.h"
-#include "utility/panic.h"
-#include "utility/unreachable.h"
+#include "support/panic.h"
+#include "support/unreachable.h"
 
 Type *type_of_value(Value *restrict value, Context *restrict context) {
     switch (value->kind) {

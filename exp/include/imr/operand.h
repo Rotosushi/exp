@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "utility/int_types.h"
+#include "support/int_types.h"
 
 typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA       = 0x0,

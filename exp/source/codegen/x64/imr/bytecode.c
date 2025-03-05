@@ -19,8 +19,8 @@
 #include <assert.h>
 
 #include "codegen/x64/imr/bytecode.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
 
 x64_Bytecode x64_bytecode_create() {
     x64_Bytecode bc = {.length = 0, .capacity = 0, .buffer = NULL};

@@ -22,7 +22,7 @@
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/get_element_address.h"
 #include "codegen/x64/intrinsics/load.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 void x64_codegen_dot(Instruction I,
                      u64 block_index,

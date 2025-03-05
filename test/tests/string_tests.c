@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "utility/string.h"
+#include "support/string.h"
 
 // returns true on failure
 bool test_string_assign(StringView sv) {

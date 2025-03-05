@@ -20,7 +20,7 @@
 #include <stddef.h>
 
 #include "scanning/token.h"
-#include "utility/string_view.h"
+#include "support/string_view.h"
 
 typedef struct Lexer {
     const char *buffer;

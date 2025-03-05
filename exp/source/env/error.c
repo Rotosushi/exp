@@ -17,8 +17,8 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "env/error.h"
-#include "utility/ansi_colors.h"
-#include "utility/unreachable.h"
+#include "support/ansi_colors.h"
+#include "support/unreachable.h"
 
 StringView error_code_to_view(ErrorCode code) {
     switch (code) {

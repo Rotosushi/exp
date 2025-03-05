@@ -16,21 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "utility/hash.h"
+#include <string.h>
 
-// non-crypto hash algorithm based on djb2
-// https://stackoverflow.com/questions/7666509/hash-function-for-string
-// specifically this answer https://stackoverflow.com/a/69812981
-u64 hash_cstring(char const *restrict string, u64 length) {
-  // generated randomly using: https://asecuritysite.com/encryption/nprimes?y=64
-  // no testing has been done to check if this prime is "good"
-#define LARGE_PRIME 11931085111904720063ul
+#include "support/string_view.h"
 
-  u64 hash = 5381;
-  for (u64 i = 0; i < length; ++i)
-    hash = (LARGE_PRIME * hash) + (u8)(string[i]);
-  return hash;
-
-#undef LARGE_PRIME
+StringView string_view_create() {
+    StringView sv;
+    sv.length = 0;
+    sv.ptr    = NULL;
+    return sv;
 }
 
+StringView string_view_from_str(char const *string, u64 length) {
+    StringView sv = {length, string};
+    return sv;
+}
+
+StringView string_view_from_cstring(char const *cstring) {
+    StringView sv = {strlen(cstring), cstring};
+    return sv;
+}
+
+bool string_view_equality(StringView sv1, StringView sv2) {
+    if (sv1.ptr == sv2.ptr) { return 1; }
+    if (sv1.length != sv2.length) { return 0; }
+    return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
+}
+
+bool string_view_empty(StringView sv) { return sv.length == 0; }

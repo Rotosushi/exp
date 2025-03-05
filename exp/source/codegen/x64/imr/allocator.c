@@ -20,10 +20,10 @@
 
 #include "codegen/x64/imr/allocator.h"
 #include "intrinsics/size_of.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/panic.h"
-#include "utility/unreachable.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/panic.h"
+#include "support/unreachable.h"
 
 static x64_GPRP x64_gprp_create() {
     x64_GPRP gprp = {.bitset = 0,

@@ -17,7 +17,7 @@
 #ifndef EXP_UTILITY_CLI_OPTIONS_H
 #define EXP_UTILITY_CLI_OPTIONS_H
 
-#include "utility/string.h"
+#include "support/string.h"
 
 typedef enum CLIFlags {
     CLI_DO_ASSEMBLE,

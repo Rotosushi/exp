@@ -20,8 +20,8 @@
 #include <stddef.h>
 
 #include "codegen/lifetimes.h"
-#include "utility/allocation.h"
-#include "utility/unreachable.h"
+#include "support/allocation.h"
+#include "support/unreachable.h"
 
 Lifetime lifetime_immortal() {
     Lifetime lifetime = {.first_use = 0, .last_use = u64_MAX};

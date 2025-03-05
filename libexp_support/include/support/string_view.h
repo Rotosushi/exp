@@ -14,19 +14,23 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_PROCESS_H
-#define EXP_UTILITY_PROCESS_H
-#include "utility/int_types.h"
+#ifndef EXP_UTILITY_STRING_VIEW_H
+#define EXP_UTILITY_STRING_VIEW_H
+#include <stdbool.h>
 
-/**
- * @brief fork/execvp the given file, passing args
- *
- * @warning args must have a NULL at the end
- *
- * @param file
- * @param args
- * @return i32
- */
-i32 process(char const *file, char const *args[]);
+#include "support/int_types.h"
 
-#endif // !EXP_UTILITY_PROCESS_H
+typedef struct StringView {
+    u64 length;
+    char const *ptr;
+} StringView;
+
+StringView string_view_create();
+StringView string_view_from_str(char const *string, u64 length);
+StringView string_view_from_cstring(char const *cstring);
+bool string_view_equality(StringView sv1, StringView sv2);
+bool string_view_empty(StringView sv);
+
+#define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
+
+#endif // !EXP_UTILITY_STRING_VIEW_H

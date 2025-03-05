@@ -21,10 +21,10 @@
 
 #include "env/context.h"
 #include "imr/bytecode.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/io.h"
-#include "utility/unreachable.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/io.h"
+#include "support/unreachable.h"
 
 Bytecode bytecode_create() {
     Bytecode bc;

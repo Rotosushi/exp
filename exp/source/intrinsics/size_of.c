@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/size_of.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 u64 size_of(Type *restrict type) {
     assert(type != NULL);

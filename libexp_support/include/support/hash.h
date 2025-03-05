@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2024 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,22 +13,17 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef EXP_UTILITY_HASH_H
+#define EXP_UTILITY_HASH_H
+#include "support/int_types.h"
 
 /**
- * @file ansi_colors.h
- * @brief ANSI color codes for terminal output
+ * @brief computes the hash of the given string.
+ *
+ * @param string
+ * @return u64
  */
+u64 hash_cstring(char const *restrict string, u64 length);
 
-#ifndef EXP_UTILITY_ANSI_COLORS_H
-#define EXP_UTILITY_ANSI_COLORS_H
-
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
-
-#endif // !EXP_UTILITY_ANSI_COLORS_H
+#endif // !EXP_UTILITY_HASH_H

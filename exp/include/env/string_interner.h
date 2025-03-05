@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_STRING_INTERNER_H
 #define EXP_ENV_STRING_INTERNER_H
 
-#include "utility/string_view.h"
+#include "support/string_view.h"
 
 /**
  * @brief We use simple strings instead of general strings
@@ -29,8 +29,8 @@
  * interner.
  */
 typedef struct SimpleString {
-  u64 length;
-  char *ptr;
+    u64 length;
+    char *ptr;
 } SimpleString;
 
 /**
@@ -40,9 +40,9 @@ typedef struct SimpleString {
  * comparison outside the string interner to require a single
  */
 typedef struct StringInterner {
-  u64 capacity;
-  u64 count;
-  SimpleString *buffer;
+    u64 capacity;
+    u64 count;
+    SimpleString *buffer;
 } StringInterner;
 
 StringInterner string_interner_create();

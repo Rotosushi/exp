@@ -14,16 +14,18 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_HASH_H
-#define EXP_UTILITY_HASH_H
-#include "utility/int_types.h"
+#ifndef EXP_UTILITY_NEAREST_POWER_H
+#define EXP_UTILITY_NEAREST_POWER_H
+
+#include "support/int_types.h"
 
 /**
- * @brief computes the hash of the given string.
+ * @brief return the nearest power of 2 that
+ * is greater than or equal to <value>
  *
- * @param string
+ * @param value
  * @return u64
  */
-u64 hash_cstring(char const *restrict string, u64 length);
+u64 nearest_power_of_two(u64 value);
 
-#endif // !EXP_UTILITY_HASH_H
+#endif // !EXP_UTILITY_NEAREST_POWER_H

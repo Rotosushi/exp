@@ -23,8 +23,8 @@
 #include "codegen/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
-#include "utility/panic.h"
-#include "utility/unreachable.h"
+#include "support/panic.h"
+#include "support/unreachable.h"
 
 static void
 x64_codegen_load_i64(x64_Address *dst, i64 value, x64_Context *x64_context) {

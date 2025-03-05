@@ -40,23 +40,23 @@ ${EXP_GIT_REVISION}
 )
 
 configure_file(
-  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/utility/config.h.in 
-  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/utility/config.h
+  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/support/config.h.in 
+  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/support/config.h
 )
 
 set(EXP_SUPPORT_SOURCE_FILES
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/allocation.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/hash.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/int_types.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/io.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/log.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/nearest_power.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/numeric_conversions.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/panic.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/process.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/string_view.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/string.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/allocation.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/array_growth.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/hash.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/int_types.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/io.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/log.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/nearest_power.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/numeric_conversions.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/panic.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/process.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/string_view.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/string.c
 )
 
 add_library(exp_support

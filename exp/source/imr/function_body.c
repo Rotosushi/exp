@@ -22,8 +22,8 @@
 
 #include "env/context.h"
 #include "imr/function_body.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
 
 FormalArgumentList formal_argument_list_create() {
     FormalArgumentList fal;

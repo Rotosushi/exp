@@ -21,8 +21,8 @@
 #include "codegen/x64/instruction/return.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/load.h"
-#include "utility/panic.h"
-#include "utility/unreachable.h"
+#include "support/panic.h"
+#include "support/unreachable.h"
 
 void x64_codegen_return(Instruction I,
                         u64 block_index,

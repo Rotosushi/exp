@@ -19,20 +19,19 @@
 #include <stdlib.h>
 
 #include "core/assemble.h"
-#include "utility/process.h"
+#include "support/process.h"
 
 i32 assemble(Context *restrict context) {
-  StringView asm_path = context_assembly_path(context);
-  StringView obj_path = context_object_path(context);
+    StringView asm_path = context_assembly_path(context);
+    StringView obj_path = context_object_path(context);
 
-  char const *args[] = {
-      "as",
-      asm_path.ptr,
-      "-o",
-      obj_path.ptr,
-      NULL,
-  };
+    char const *args[] = {
+        "as",
+        asm_path.ptr,
+        "-o",
+        obj_path.ptr,
+        NULL,
+    };
 
-  return process("as", args);
+    return process("as", args);
 }
-

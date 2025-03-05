@@ -19,8 +19,8 @@
 #include <assert.h>
 
 #include "codegen/x64/env/symbols.h"
-#include "utility/allocation.h"
-#include "utility/unreachable.h"
+#include "support/allocation.h"
+#include "support/unreachable.h"
 
 void x64_symbol_destroy(x64_Symbol *restrict symbol) {
     x64_function_body_destroy(&symbol->body);

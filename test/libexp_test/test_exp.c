@@ -20,13 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "support/config.h"
+#include "support/io.h"
+#include "support/numeric_conversions.h"
+#include "support/panic.h"
+#include "support/process.h"
+#include "support/string.h"
 #include "test_exp.h"
-#include "utility/config.h"
-#include "utility/io.h"
-#include "utility/numeric_conversions.h"
-#include "utility/panic.h"
-#include "utility/process.h"
-#include "utility/string.h"
 
 static char const *exp_path = EXP_BINARY_DIR "/exp/source/exp";
 

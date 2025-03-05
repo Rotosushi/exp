@@ -19,9 +19,9 @@
 
 #include <stdlib.h>
 
+#include "support/io.h"
 #include "test_exp.h"
 #include "test_resources.h"
-#include "utility/io.h"
 
 i32 resource_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     i32 result = EXIT_SUCCESS;

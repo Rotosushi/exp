@@ -21,9 +21,9 @@
 #include <string.h>
 
 #include "env/cli_options.h"
-#include "utility/config.h"
-#include "utility/io.h"
-#include "utility/log.h"
+#include "support/config.h"
+#include "support/io.h"
+#include "support/log.h"
 
 #define SET_BIT(B, r) ((B) |= (u64)(1 << r))
 #define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))

@@ -20,9 +20,9 @@
 #include <stdlib.h>
 
 #include "adt/graph.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/panic.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {
     Edge *edge   = allocate(sizeof(Edge));

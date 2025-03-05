@@ -18,8 +18,8 @@
 #include <stddef.h>
 
 #include "env/labels.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
 
 Labels labels_create() {
     Labels symbols = {.count = 0, .capacity = 0, .buffer = NULL};

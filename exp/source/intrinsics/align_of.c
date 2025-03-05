@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "intrinsics/align_of.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 u64 align_of(Type *restrict type) {
     assert(type != NULL);

@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "codegen/x64/instruction/negate.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 void x64_codegen_negate(Instruction I,
                         u64 block_index,

@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/ansi_colors.h"
-#include "utility/io.h"
-#include "utility/log.h"
+#include "support/ansi_colors.h"
+#include "support/io.h"
+#include "support/log.h"
 
 #define LOG_FATAL_MSG   SV(ANSI_COLOR_RED "fatal" ANSI_COLOR_RESET)
 #define LOG_ERROR_MSG   SV(ANSI_COLOR_RED "error" ANSI_COLOR_RESET)

@@ -21,8 +21,8 @@
 #include "codegen/x64/env/context.h"
 #include "codegen/x64/imr/function_body.h"
 #include "intrinsics/size_of.h"
-#include "utility/allocation.h"
-#include "utility/panic.h"
+#include "support/allocation.h"
+#include "support/panic.h"
 
 x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
     x64_FormalArgumentList args = {

@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 
-#include "utility/int_types.h"
-#include "utility/string_view.h"
+#include "support/int_types.h"
+#include "support/string_view.h"
 
 typedef enum LogLevel {
     LOG_FATAL,

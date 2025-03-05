@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #include "codegen/x64/imr/registers.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 StringView x64_gpr_to_sv(x64_GPR r) {
     switch (r) {

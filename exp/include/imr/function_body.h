@@ -19,8 +19,8 @@
 
 #include "imr/bytecode.h"
 #include "imr/type.h"
-#include "utility/io.h"
-#include "utility/string_view.h"
+#include "support/io.h"
+#include "support/string_view.h"
 
 typedef struct FormalArgument {
     StringView name;

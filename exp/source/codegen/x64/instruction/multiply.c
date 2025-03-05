@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "codegen/x64/instruction/multiply.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 static void x64_codegen_multiply_ssa(Instruction I,
                                      u64 block_index,

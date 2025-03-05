@@ -20,7 +20,7 @@
 
 #include "codegen/x64/instruction/load.h"
 #include "codegen/x64/intrinsics/load.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 void x64_codegen_load(Instruction I,
                       u64 block_index,

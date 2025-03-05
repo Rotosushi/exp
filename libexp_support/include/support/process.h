@@ -14,15 +14,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_UNREACHABLE_H
-#define EXP_UTILITY_UNREACHABLE_H
+#ifndef EXP_UTILITY_PROCESS_H
+#define EXP_UTILITY_PROCESS_H
+#include "support/int_types.h"
 
-#ifndef NDEBUG
-#include "utility/panic.h"
-#define EXP_UNREACHABLE() PANIC("unreachable")
-#else
-#include <stddef.h>
-#define EXP_UNREACHABLE() unreachable()
-#endif // NDEBUG
+/**
+ * @brief fork/execvp the given file, passing args
+ *
+ * @warning args must have a NULL at the end
+ *
+ * @param file
+ * @param args
+ * @return i32
+ */
+i32 process(char const *file, char const *args[]);
 
-#endif // !EXP_UTILITY_UNREACHABLE_H
+#endif // !EXP_UTILITY_PROCESS_H

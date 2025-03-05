@@ -26,8 +26,8 @@
 
 #include <stdio.h>
 
-#include "utility/int_types.h"
-#include "utility/string_view.h"
+#include "support/int_types.h"
+#include "support/string_view.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes);
 

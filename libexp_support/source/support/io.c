@@ -20,10 +20,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utility/config.h"
-#include "utility/io.h"
-#include "utility/numeric_conversions.h"
-#include "utility/panic.h"
+#include "support/config.h"
+#include "support/io.h"
+#include "support/numeric_conversions.h"
+#include "support/panic.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes) {
     assert(path != NULL);

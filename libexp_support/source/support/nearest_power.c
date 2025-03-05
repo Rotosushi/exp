@@ -16,31 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string.h>
+#include <stdint.h>
 
-#include "utility/string_view.h"
+#include "support/nearest_power.h"
 
-StringView string_view_create() {
-    StringView sv;
-    sv.length = 0;
-    sv.ptr    = NULL;
-    return sv;
+u64 nearest_power_of_two(u64 value) {
+    u64 accumulator = 8, scale_factor = 2;
+    while (1) {
+        if (accumulator >= value) { return accumulator; }
+        // if scaling by an additional power of two would overflow
+        // a u64, clamp the result at SIZE_MAX - 1.
+        if (__builtin_mul_overflow(accumulator, scale_factor, &accumulator)) {
+            return SIZE_MAX - 1;
+        }
+    }
 }
-
-StringView string_view_from_str(char const *string, u64 length) {
-    StringView sv = {length, string};
-    return sv;
-}
-
-StringView string_view_from_cstring(char const *cstring) {
-    StringView sv = {strlen(cstring), cstring};
-    return sv;
-}
-
-bool string_view_equality(StringView sv1, StringView sv2) {
-    if (sv1.ptr == sv2.ptr) { return 1; }
-    if (sv1.length != sv2.length) { return 0; }
-    return (memcmp(sv1.ptr, sv2.ptr, sv1.length) == 0);
-}
-
-bool string_view_empty(StringView sv) { return sv.length == 0; }

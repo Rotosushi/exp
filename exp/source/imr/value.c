@@ -20,9 +20,9 @@
 
 #include "env/context.h"
 #include "imr/value.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/unreachable.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/unreachable.h"
 
 Tuple tuple_create() {
     Tuple tuple = {.capacity = 0, .size = 0, .elements = NULL};

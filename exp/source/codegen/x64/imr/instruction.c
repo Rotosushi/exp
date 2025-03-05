@@ -21,7 +21,7 @@
 
 #include "codegen/x64/imr/instruction.h"
 #include "codegen/x64/imr/registers.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 static x64_Instruction x64_instruction(x64_Opcode opcode) {
     x64_Instruction I = {.opcode = opcode};

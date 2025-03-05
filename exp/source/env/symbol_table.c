@@ -19,9 +19,9 @@
 #include <stdlib.h>
 
 #include "env/symbol_table.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/hash.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/hash.h"
 
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 

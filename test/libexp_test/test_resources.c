@@ -1,12 +1,12 @@
 
 #include <assert.h>
 
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/config.h"
+#include "support/io.h"
+#include "support/panic.h"
 #include "test_resources.h"
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/config.h"
-#include "utility/io.h"
-#include "utility/panic.h"
 
 void test_resources_gather(TestResources *test_resources,
                            char const *directory);

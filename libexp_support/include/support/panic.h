@@ -14,18 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_NEAREST_POWER_H
-#define EXP_UTILITY_NEAREST_POWER_H
+#ifndef EXP_UTILITY_PANIC_H
+#define EXP_UTILITY_PANIC_H
 
-#include "utility/int_types.h"
+#include "support/string_view.h"
 
-/**
- * @brief return the nearest power of 2 that
- * is greater than or equal to <value>
- *
- * @param value
- * @return u64
- */
-u64 nearest_power_of_two(u64 value);
+[[noreturn]] void panic(StringView msg, const char *file, i32 line);
+[[noreturn]] void panic_errno(StringView msg, const char *file, i32 line);
 
-#endif // !EXP_UTILITY_NEAREST_POWER_H
+#define PANIC(msg)       panic(SV(msg), __FILE__, __LINE__)
+#define PANIC_ERRNO(msg) panic_errno(SV(msg), __FILE__, __LINE__)
+
+#endif // !EXP_UTILITY_PANIC_H

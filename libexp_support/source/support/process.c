@@ -17,9 +17,9 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "utility/process.h"
-#include "utility/config.h"
-#include "utility/panic.h"
+#include "support/process.h"
+#include "support/config.h"
+#include "support/panic.h"
 
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/types.h>
@@ -27,28 +27,28 @@
 #include <unistd.h>
 
 i32 process(char const *cmd, char const *args[]) {
-  pid_t pid = fork();
-  if (pid < 0) {
-    PANIC_ERRNO("fork failed");
-  } else if (pid == 0) {
-    // child process
-    execvp(cmd, (char *const *)args);
+    pid_t pid = fork();
+    if (pid < 0) {
+        PANIC_ERRNO("fork failed");
+    } else if (pid == 0) {
+        // child process
+        execvp(cmd, (char *const *)args);
 
-    PANIC_ERRNO("execvp failed");
-  } else {
-    // parent process
-    siginfo_t status = {};
-    if (waitid(P_PID, (id_t)pid, &status, WEXITED | WSTOPPED) == -1) {
-      PANIC_ERRNO("waitid failed");
-    }
-
-    if (status.si_code == CLD_EXITED) {
-      i32 result = status.si_status;
-      return result;
+        PANIC_ERRNO("execvp failed");
     } else {
-      PANIC("child possibly killed by signal.");
+        // parent process
+        siginfo_t status = {};
+        if (waitid(P_PID, (id_t)pid, &status, WEXITED | WSTOPPED) == -1) {
+            PANIC_ERRNO("waitid failed");
+        }
+
+        if (status.si_code == CLD_EXITED) {
+            i32 result = status.si_status;
+            return result;
+        } else {
+            PANIC("child possibly killed by signal.");
+        }
     }
-  }
 }
 
 #else

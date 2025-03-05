@@ -20,7 +20,7 @@
 
 #include "codegen/x64/imr/allocation.h"
 #include "codegen/x64/imr/location.h"
-#include "utility/allocation.h"
+#include "support/allocation.h"
 
 x64_Allocation *x64_allocation_allocate() {
     x64_Allocation *allocation = callocate(1, sizeof(x64_Allocation));

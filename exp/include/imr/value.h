@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include "imr/operand.h"
-#include "utility/io.h"
+#include "support/io.h"
 
 typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,

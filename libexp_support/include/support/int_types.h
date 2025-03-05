@@ -14,36 +14,45 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_INT_TYPES_H
-#define EXP_UTILITY_INT_TYPES_H
-#include <stdint.h>
 
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+#ifndef EXP_SUPPORT_INT_TYPES_H
+#define EXP_SUPPORT_INT_TYPES_H
 
-#define i8_MAX INT8_MAX
-#define i8_MIN INT8_MIN
+#include "support/config.h"
 
-#define i16_MAX INT16_MAX
-#define i16_MIN INT16_MIN
+// x86_64 linux uses the LP64 data model
+#if defined(EXP_HOST_SYSTEM_LINUX) && defined(EXP_HOST_CPU_x64)
 
-#define i32_MAX INT32_MAX
-#define i32_MIN INT32_MIN
+typedef signed char i8;
+typedef signed short i16;
+typedef signed int i32;
+typedef signed long i64;
 
-#define i64_MAX INT64_MAX
-#define i64_MIN INT64_MIN
+#define i8_MAX (i8)(127)
+#define i8_MIN (i8)(-128)
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+#define i16_MAX (i16)(32767)
+#define i16_MIN (i16)(-32768)
 
-#define u8_MAX  UINT8_MAX
-#define u16_MAX UINT16_MAX
-#define u32_MAX UINT32_MAX
-#define u64_MAX UINT64_MAX
+#define i32_MAX (i32)(2147483647)
+#define i32_MIN (i32)(-2147483648)
+
+#define i64_MAX (i64)(9223372036854775807LL)
+#define i64_MIN (i64)(-9223372036854775807LL - 1)
+
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef unsigned long u64;
+
+#define u8_MAX  (u8)(0xFF)
+#define u16_MAX (u8)(0xFFFF)
+#define u32_MAX (u8)(0xFFFFFFFF)
+#define u64_MAX (u8)(0xFFFFFFFFFFFFFFFF)
+
+#else
+#error "unsupported host system or cpu"
+#endif
 
 bool i64_in_range_i8(i64 value);
 bool i64_in_range_i16(i64 value);
@@ -83,4 +92,4 @@ u16 max_u16(u16 x, u16 y);
 u32 max_u32(u32 x, u32 y);
 u64 max_u64(u64 x, u64 y);
 
-#endif // !EXP_UTILITY_INT_TYPES_H
+#endif // !EXP_SUPPORT_INT_TYPES_H

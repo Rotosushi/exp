@@ -4,9 +4,9 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "utility/allocation.h"
-#include "utility/array_growth.h"
-#include "utility/int_types.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
+#include "support/int_types.h"
 
 #define EXP_DYNAMIC_ARRAY_DECLARATION(                                         \
     DynamicArrayName, DynamicArrayType, DynamicArrayElementType)               \

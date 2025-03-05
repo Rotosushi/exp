@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "utility/array_growth.h"
-#include "utility/panic.h"
+#include "support/array_growth.h"
+#include "support/panic.h"
 
 /**
  * @brief The growth factor of array_growth

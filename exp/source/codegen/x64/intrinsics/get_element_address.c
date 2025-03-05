@@ -20,7 +20,7 @@
 
 #include "codegen/x64/intrinsics/get_element_address.h"
 #include "intrinsics/size_of.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index) {
     x64_Address result = *src;

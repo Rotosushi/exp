@@ -25,8 +25,8 @@
 #include "scanning/lexer.h"
 #include "scanning/parser.h"
 #include "scanning/token.h"
-#include "utility/numeric_conversions.h"
-#include "utility/unreachable.h"
+#include "support/numeric_conversions.h"
+#include "support/unreachable.h"
 
 typedef struct Parser {
     Lexer lexer;

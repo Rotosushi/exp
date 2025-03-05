@@ -14,10 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_ALLOC_H
-#define EXP_UTILITY_ALLOC_H
+#ifndef EXP_SUPPORT_MALLOC_H
+#define EXP_SUPPORT_MALLOC_H
 
-#include "utility/int_types.h"
+#include "support/int_types.h"
 
 /**
  * @brief wraps a call to malloc, PANIC on failure
@@ -52,4 +52,4 @@ void *reallocate(void *ptr, u64 size);
  */
 void deallocate(void *ptr);
 
-#endif // !EXP_UTILITY_ALLOC_H
+#endif // !EXP_SUPPORT_MALLOC_H

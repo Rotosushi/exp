@@ -14,9 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+
 #ifndef EXP_UTILITY_ARRAY_GROWTH_H
 #define EXP_UTILITY_ARRAY_GROWTH_H
-#include "utility/int_types.h"
+
+#include "support/int_types.h"
 
 /**
  * @brief the new capacity of the array, and it's allocation size

@@ -17,7 +17,7 @@
 #ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
 
-#include "utility/int_types.h"
+#include "support/int_types.h"
 
 // TODO:
 //    u64 f32_safe_strlen(float value);

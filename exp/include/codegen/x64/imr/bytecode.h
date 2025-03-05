@@ -18,7 +18,7 @@
 #define EXP_BACKEND_X64_BYTECODE_H
 
 #include "codegen/x64/imr/instruction.h"
-#include "utility/string.h"
+#include "support/string.h"
 
 typedef struct x64_Bytecode {
     u64 length;

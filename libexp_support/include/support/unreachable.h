@@ -14,23 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_STRING_VIEW_H
-#define EXP_UTILITY_STRING_VIEW_H
-#include <stdbool.h>
+#ifndef EXP_UTILITY_UNREACHABLE_H
+#define EXP_UTILITY_UNREACHABLE_H
 
-#include "utility/int_types.h"
+#ifndef NDEBUG
+#include "support/panic.h"
+#define EXP_UNREACHABLE() PANIC("unreachable")
+#else
+#include <stddef.h>
+#define EXP_UNREACHABLE() unreachable()
+#endif // NDEBUG
 
-typedef struct StringView {
-    u64 length;
-    char const *ptr;
-} StringView;
-
-StringView string_view_create();
-StringView string_view_from_str(char const *string, u64 length);
-StringView string_view_from_cstring(char const *cstring);
-bool string_view_equality(StringView sv1, StringView sv2);
-bool string_view_empty(StringView sv);
-
-#define SV(s) ((StringView){.length = sizeof(s) - 1, .ptr = (s)})
-
-#endif // !EXP_UTILITY_STRING_VIEW_H
+#endif // !EXP_UTILITY_UNREACHABLE_H

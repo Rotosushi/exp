@@ -19,7 +19,7 @@
 
 #include "imr/function_body.h"
 #include "imr/type.h"
-#include "utility/string_view.h"
+#include "support/string_view.h"
 
 typedef enum SymbolKind {
     STE_UNDEFINED,

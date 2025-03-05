@@ -19,7 +19,7 @@
 
 #include "codegen/x64/imr/operand.h"
 #include "env/context.h"
-#include "utility/string.h"
+#include "support/string.h"
 
 /*
   We want to model the x64 instructions we generate

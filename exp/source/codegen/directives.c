@@ -18,7 +18,7 @@
  */
 
 #include "codegen/directives.h"
-#include "utility/unreachable.h"
+#include "support/unreachable.h"
 
 void directive_file(StringView path, String *restrict str) {
     string_append(str, SV("\t.file \""));
