@@ -23,7 +23,6 @@
 
 typedef struct x64_Context {
     x64_SymbolTable symbols;
-    //    x64_Addresses addresses;
     Context *context;
     FunctionBody *body;
     x64_FunctionBody *x64_body;
@@ -35,10 +34,6 @@ void x64_context_destroy(x64_Context *x64_context);
 
 // x64 symbol table functions
 x64_Symbol *x64_context_symbol(x64_Context *x64_context, StringView name);
-
-// u32 x64_context_addresses_append(x64_Context *x64_context, x64_Address
-// address); x64_Address *x64_context_addresses_at(x64_Context *x64_context, u32
-// index);
 
 // context functions
 // context constants functions

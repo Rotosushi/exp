@@ -4,6 +4,8 @@
 [Ss]cratch/
 [Tt]esting/
 
+docs/.obsidian
+
 test/**/*.s
 
 *.swp

@@ -59,6 +59,13 @@ LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
                                       StringView name);
 LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u32 ssa);
 
+/*
+ * #TODO: The body of a function is currently a single block of instructions.
+ * This will need to be changed to a list of blocks, with the addition of
+ * instructions to jump between blocks. This will allow for structured control
+ * flow.
+ */
+
 typedef struct FunctionBody {
     FormalArgumentList arguments;
     LocalVariables locals;

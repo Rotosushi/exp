@@ -28,13 +28,11 @@ x64_Context x64_context_create(Context *context) {
         .context  = context,
         .body     = nullptr,
         .x64_body = nullptr};
-    // x64_addresses_initialize(&x64_context.addresses);
     return x64_context;
 }
 
 void x64_context_destroy(x64_Context *x64_context) {
     assert(x64_context != nullptr);
-    // x64_addresses_terminate(&x64_context->addresses);
     x64_symbol_table_destroy(&x64_context->symbols);
 }
 
@@ -42,21 +40,6 @@ x64_Symbol *x64_context_symbol(x64_Context *x64_context, StringView name) {
     assert(x64_context != nullptr);
     return x64_symbol_table_at(&x64_context->symbols, name);
 }
-
-/*
-u32 x64_context_addresses_append(x64_Context *x64_context,
-                                 x64_Address address) {
-    assert(x64_context != nullptr);
-    u64 index = x64_addresses_append(&x64_context->addresses, address);
-    assert(index <= u16_MAX);
-    return (u16)index;
-}
-
-x64_Address *x64_context_addresses_at(x64_Context *x64_context, u32 index) {
-    assert(x64_context != nullptr);
-    return x64_addresses_at(&x64_context->addresses, index);
-}
-*/
 
 Value *x64_context_value_at(x64_Context *context, u32 index) {
     assert(context != nullptr);
