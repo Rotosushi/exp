@@ -20,18 +20,18 @@
 #include <stddef.h>
 
 #include "codegen/x64/codegen.h"
-#include "codegen/x64/codegen/add.h"
-#include "codegen/x64/codegen/call.h"
-#include "codegen/x64/codegen/divide.h"
-#include "codegen/x64/codegen/dot.h"
-#include "codegen/x64/codegen/load.h"
-#include "codegen/x64/codegen/modulus.h"
-#include "codegen/x64/codegen/multiply.h"
-#include "codegen/x64/codegen/negate.h"
-#include "codegen/x64/codegen/return.h"
-#include "codegen/x64/codegen/subtract.h"
 #include "codegen/x64/context.h"
 #include "codegen/x64/emit.h"
+#include "codegen/x64/instruction/add.h"
+#include "codegen/x64/instruction/call.h"
+#include "codegen/x64/instruction/divide.h"
+#include "codegen/x64/instruction/dot.h"
+#include "codegen/x64/instruction/load.h"
+#include "codegen/x64/instruction/modulus.h"
+#include "codegen/x64/instruction/multiply.h"
+#include "codegen/x64/instruction/negate.h"
+#include "codegen/x64/instruction/return.h"
+#include "codegen/x64/instruction/subtract.h"
 #include "utility/unreachable.h"
 
 /*

@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/return.h"
+#include "codegen/x64/instruction/return.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/load.h"
 #include "utility/panic.h"

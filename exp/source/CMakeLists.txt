@@ -11,16 +11,16 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/copy.c
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/load.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/add.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/call.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/divide.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/dot.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/load.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/modulus.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/multiply.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/negate.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/return.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen/subtract.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/add.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/call.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/divide.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/dot.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/load.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/modulus.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/multiply.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/negate.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/return.c
+  ${EXP_SOURCE_DIR}/codegen/x64/instruction/subtract.c
   ${EXP_SOURCE_DIR}/codegen/x64/address.c
   ${EXP_SOURCE_DIR}/codegen/x64/addresses.c
   ${EXP_SOURCE_DIR}/codegen/x64/allocation.c

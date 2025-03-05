@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/multiply.h"
+#include "codegen/x64/instruction/multiply.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_multiply_ssa(Instruction I,

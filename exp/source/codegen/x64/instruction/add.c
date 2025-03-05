@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/add.h"
+#include "codegen/x64/instruction/add.h"
 #include "utility/unreachable.h"
 
 // #TODO: I think I discovered a bug in the codegen for all arithemtic

@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/subtract.h"
+#include "codegen/x64/instruction/subtract.h"
 #include "utility/unreachable.h"
 
 static void x64_codegen_subtract_ssa(Instruction I,

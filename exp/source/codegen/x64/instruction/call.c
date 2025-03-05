@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/call.h"
+#include "codegen/x64/instruction/call.h"
 #include "codegen/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"

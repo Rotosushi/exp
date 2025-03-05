@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/codegen/dot.h"
+#include "codegen/x64/instruction/dot.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/get_element_address.h"
 #include "codegen/x64/intrinsics/load.h"
