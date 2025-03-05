@@ -40,31 +40,31 @@ ${EXP_GIT_REVISION}
 )
 
 configure_file(
-  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}/utility/config.h.in 
-  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}/utility/config.h
+  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/utility/config.h.in 
+  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}/utility/config.h
 )
 
-set(EXP_UTILITY_SOURCE_FILES
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/allocation.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/array_growth.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/hash.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/int_types.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/io.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/log.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/nearest_power.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/numeric_conversions.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/panic.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/process.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/string_view.c
-  ${EXP_LIBEXP_UTILITY_SOURCE_DIR}/utility/string.c
+set(EXP_SUPPORT_SOURCE_FILES
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/allocation.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/array_growth.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/hash.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/int_types.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/io.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/log.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/nearest_power.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/numeric_conversions.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/panic.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/process.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/string_view.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/utility/string.c
 )
 
-add_library(exp_utility
-  ${EXP_UTILITY_SOURCE_FILES}
+add_library(exp_support
+  ${EXP_SUPPORT_SOURCE_FILES}
 )
-target_include_directories(exp_utility PUBLIC 
-${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
+target_include_directories(exp_support PUBLIC 
+${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}
 )
-target_compile_options(exp_utility PUBLIC ${EXP_COMPILE_OPTIONS})
-target_link_options(exp_utility PUBLIC ${EXP_LINK_OPTIONS})
+target_compile_options(exp_support PUBLIC ${EXP_COMPILE_OPTIONS})
+target_link_options(exp_support PUBLIC ${EXP_LINK_OPTIONS})
 

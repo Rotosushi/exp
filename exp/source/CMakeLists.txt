@@ -71,11 +71,11 @@ add_library(exp_common
 )
 target_include_directories(exp_common PUBLIC 
   ${EXP_INCLUDE_DIR}
-  ${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
+  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}
 )
 target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_common PUBLIC exp_utility)
+target_link_libraries(exp_common PUBLIC exp_support)
 
 add_executable(exp 
   ${EXP_SOURCE_DIR}/main.c

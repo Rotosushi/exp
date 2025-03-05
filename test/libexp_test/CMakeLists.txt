@@ -23,12 +23,12 @@ set(LIBEXP_TEST_SOURCES
 
 add_library(exp_test ${LIBEXP_TEST_SOURCES})
 target_include_directories(exp_test PRIVATE
-${EXP_LIBEXP_UTILITY_INCLUDE_DIR}
+${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}
 ${EXP_INCLUDE_DIR}
 ${EXP_TEST_DIR}/libexp_test
 
 )
 target_compile_options(exp_test PRIVATE ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_test PRIVATE ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_test PRIVATE exp_utility)
+target_link_libraries(exp_test PRIVATE exp_support)
 
