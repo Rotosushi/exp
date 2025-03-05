@@ -61,7 +61,7 @@ void file_write_u64(u64 value, FILE *restrict stream) {
     file_write(string_view_from_str(buf, buflen), stream);
 }
 
-u64 file_read(char *buffer, u64 length, FILE *restrict stream) {
+u64 file_read(char *restrict buffer, u64 length, FILE *restrict stream) {
     u64 count = fread(buffer, sizeof(*buffer), length, stream);
     int error = ferror(stream);
     if (error != 0) { PANIC(strerror(error)); }

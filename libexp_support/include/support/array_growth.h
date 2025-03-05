@@ -18,7 +18,7 @@
 #ifndef EXP_UTILITY_ARRAY_GROWTH_H
 #define EXP_UTILITY_ARRAY_GROWTH_H
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 /**
  * @brief the new capacity of the array, and it's allocation size

@@ -16,7 +16,8 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_GRAPH_H
 #define EXP_UTILITY_GRAPH_H
-#include "support/int_types.h"
+
+#include "support/scalar.h"
 
 typedef struct Edge {
     u64 target;
@@ -27,13 +28,13 @@ typedef struct Graph {
     u64 length;
     u64 capacity;
     Edge **list;
-} Graph;
+} SparseDigraph;
 
-Graph graph_create();
-void graph_destroy(Graph *restrict graph);
+SparseDigraph graph_create();
+void graph_destroy(SparseDigraph *restrict graph);
 
-u64 graph_add_vertex(Graph *restrict graph);
-void graph_add_edge(Graph *restrict graph, u64 source, u64 target);
+u64 graph_add_vertex(SparseDigraph *restrict graph);
+void graph_add_edge(SparseDigraph *restrict graph, u64 source, u64 target);
 
 typedef struct VertexList {
     u64 count;
@@ -51,7 +52,7 @@ void vertex_list_destroy(VertexList *restrict vl);
  * @param vertex
  * @return VertexList
  */
-VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex);
+VertexList graph_vertex_fanout(SparseDigraph *restrict graph, u64 vertex);
 
 /**
  * @brief compute the list of verticies that have an edge
@@ -61,6 +62,6 @@ VertexList graph_vertex_fanout(Graph *restrict graph, u64 vertex);
  * @param vertex
  * @return VertexList
  */
-VertexList graph_vertex_fanin(Graph *restrict graph, u64 vertex);
+VertexList graph_vertex_fanin(SparseDigraph *restrict graph, u64 vertex);
 
 #endif // !EXP_UTILITY_GRAPH_H

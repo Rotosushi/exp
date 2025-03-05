@@ -17,7 +17,7 @@
 #ifndef EXP_UTILITY_NUMBERS_TO_STRING_H
 #define EXP_UTILITY_NUMBERS_TO_STRING_H
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 // TODO:
 //    u64 f32_safe_strlen(float value);
@@ -28,7 +28,8 @@
 // literals, and instead reads integer literals and stores them
 // as floats. effectively the integer literal is just there to
 // specify the bit pattern of the float value. so the above functions
-// are not useful in the backend.
+// are not useful in the backend, instead we want to convert floats
+// bitpatterns into unsigned integers to inform the assembler.
 
 /**
  * @brief return the length of the string which can hold

@@ -14,14 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_TEST_E2E_TEST_EXP_H
-#define EXP_TEST_E2E_TEST_EXP_H
+#ifndef EXP_TEST_LIBEXP_TEST_TEST_EXP_H
+#define EXP_TEST_LIBEXP_TEST_TEST_EXP_H
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 #include "support/string_view.h"
 
 i32 test_exp(StringView source_path, char const *contents, i32 expected_code);
 
 i32 test_source(StringView path);
 
-#endif // !EXP_TEST_E2E_TEST_EXP_H
+#endif // !EXP_TEST_LIBEXP_TEST_TEST_EXP_H

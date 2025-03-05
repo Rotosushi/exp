@@ -48,13 +48,13 @@ set(EXP_SUPPORT_SOURCE_FILES
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/allocation.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/array_growth.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/hash.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/int_types.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/io.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/log.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/nearest_power.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/numeric_conversions.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/panic.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/process.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/scalar.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/string_view.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/string.c
 )

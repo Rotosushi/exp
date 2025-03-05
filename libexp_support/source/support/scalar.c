@@ -1,5 +1,5 @@
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 bool i64_in_range_i8(i64 value) {
     return (value >= i8_MIN) && (value <= i8_MAX);

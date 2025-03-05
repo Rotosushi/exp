@@ -112,11 +112,11 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         string_assign(&(options.source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        log_message(LOG_ERROR,
-                    NULL,
-                    0,
-                    SV("an input file must be specified.\n"),
-                    stderr);
+        exp_log(LOG_ERROR,
+                NULL,
+                0,
+                SV("an input file must be specified.\n"),
+                stderr);
         exit(EXIT_SUCCESS);
     }
 

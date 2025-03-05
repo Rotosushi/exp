@@ -18,7 +18,7 @@
 #define EXP_UTILITY_STRING_VIEW_H
 #include <stdbool.h>
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 typedef struct StringView {
     u64 length;

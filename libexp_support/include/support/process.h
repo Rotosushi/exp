@@ -16,7 +16,8 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_PROCESS_H
 #define EXP_UTILITY_PROCESS_H
-#include "support/int_types.h"
+
+#include "support/scalar.h"
 
 /**
  * @brief fork/execvp the given file, passing args

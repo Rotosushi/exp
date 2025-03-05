@@ -17,7 +17,7 @@
 #ifndef EXP_UTILITY_NEAREST_POWER_H
 #define EXP_UTILITY_NEAREST_POWER_H
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 /**
  * @brief return the nearest power of 2 that

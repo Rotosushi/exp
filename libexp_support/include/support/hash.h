@@ -16,7 +16,7 @@
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXP_UTILITY_HASH_H
 #define EXP_UTILITY_HASH_H
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 /**
  * @brief computes the hash of the given string.

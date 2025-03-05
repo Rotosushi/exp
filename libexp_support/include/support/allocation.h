@@ -17,7 +17,7 @@
 #ifndef EXP_SUPPORT_MALLOC_H
 #define EXP_SUPPORT_MALLOC_H
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 
 /**
  * @brief wraps a call to malloc, PANIC on failure

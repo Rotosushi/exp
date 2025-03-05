@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 
-#include "support/int_types.h"
+#include "support/scalar.h"
 #include "support/string_view.h"
 
 typedef enum LogLevel {
@@ -41,10 +41,10 @@ typedef enum LogLevel {
  * @param message the message to print
  * @param stream the stream to write to
  */
-void log_message(LogLevel level,
-                 const char *restrict file,
-                 u64 line,
-                 StringView message,
-                 FILE *restrict stream);
+void exp_log(LogLevel level,
+             const char *restrict file,
+             u64 line,
+             StringView message,
+             FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

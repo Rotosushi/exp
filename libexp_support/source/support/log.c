@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "support/ansi_colors.h"
+#include "support/assert.h"
 #include "support/io.h"
 #include "support/log.h"
 
@@ -32,11 +33,13 @@
 #define BAD_LOG_LEVEL_MSG                                                      \
     SV(ANSI_COLOR_RED "unknown log level" ANSI_COLOR_RESET)
 
-void log_message(LogLevel level,
-                 const char *restrict file,
-                 u64 line,
-                 StringView message,
-                 FILE *restrict stream) {
+void exp_log(LogLevel level,
+             const char *restrict file,
+             u64 line,
+             StringView message,
+             FILE *restrict stream) {
+    exp_assert(file != NULL);
+    exp_assert(stream != NULL);
     file_write(SV("["), stream);
 
     switch (level) {

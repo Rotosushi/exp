@@ -20,6 +20,7 @@
 #include "codegen/x64/emit.h"
 #include "codegen/directives.h"
 #include "support/config.h"
+#include "support/panic.h"
 
 static void x64_emit_symbol(x64_Symbol *restrict sym,
                             String *restrict buffer,
@@ -61,7 +62,8 @@ void x64_emit(x64_Context *restrict x64context) {
     x64_emit_file_epilouge(&buffer);
 
     StringView path = context_assembly_path(x64context->context);
-    FILE *file      = file_open(path.ptr, "w");
+
+    FILE *file = file_open(path.ptr, "w");
     file_write(string_to_view(&buffer), file);
     file_close(file);
 
