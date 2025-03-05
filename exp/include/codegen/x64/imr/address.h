@@ -2,7 +2,7 @@
 #ifndef EXP_BACKEND_X64_ADDRESS_H
 #define EXP_BACKEND_X64_ADDRESS_H
 
-#include "codegen/x64/registers.h"
+#include "codegen/x64/imr/registers.h"
 
 typedef struct x64_Address {
     x64_GPR base;

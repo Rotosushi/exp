@@ -18,8 +18,8 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/context.h"
-#include "codegen/x64/function_body.h"
+#include "codegen/x64/env/context.h"
+#include "codegen/x64/imr/function_body.h"
 #include "intrinsics/size_of.h"
 #include "utility/allocation.h"
 #include "utility/panic.h"

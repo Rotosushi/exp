@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X64_OPERAND_H
 #define EXP_BACKEND_X64_OPERAND_H
 
-#include "codegen/x64/allocation.h"
+#include "codegen/x64/imr/allocation.h"
 
 typedef enum x64_OperandKind : u8 {
     X64_OPERAND_KIND_GPR,

@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/allocator.h"
+#include "codegen/x64/imr/allocator.h"
 #include "intrinsics/size_of.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"

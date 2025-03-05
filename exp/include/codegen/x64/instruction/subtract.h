@@ -19,7 +19,7 @@
 #ifndef EXP_BACKEND_X64_CODEGEN_SUB_H
 #define EXP_BACKEND_X64_CODEGEN_SUB_H
 
-#include "codegen/x64/context.h"
+#include "codegen/x64/env/context.h"
 
 void x64_codegen_subtract(Instruction I,
                           u64 Idx,

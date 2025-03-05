@@ -19,7 +19,7 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 #define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
-#include "codegen/x64/location.h"
+#include "codegen/x64/imr/location.h"
 #include "imr/type.h"
 
 x64_Address x64_get_element_address(x64_Address *src, Type *type, u64 index);

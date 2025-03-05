@@ -8,6 +8,10 @@ set(SOURCE_FILES
   
   ${EXP_SOURCE_DIR}/codegen/directives.c
   ${EXP_SOURCE_DIR}/codegen/lifetimes.c
+  ${EXP_SOURCE_DIR}/codegen/x64/codegen.c
+  ${EXP_SOURCE_DIR}/codegen/x64/emit.c
+  ${EXP_SOURCE_DIR}/codegen/x64/env/context.c
+  ${EXP_SOURCE_DIR}/codegen/x64/env/symbols.c
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/copy.c
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/load.c
@@ -21,20 +25,15 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x64/instruction/negate.c
   ${EXP_SOURCE_DIR}/codegen/x64/instruction/return.c
   ${EXP_SOURCE_DIR}/codegen/x64/instruction/subtract.c
-  ${EXP_SOURCE_DIR}/codegen/x64/address.c
-  ${EXP_SOURCE_DIR}/codegen/x64/addresses.c
-  ${EXP_SOURCE_DIR}/codegen/x64/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x64/allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x64/bytecode.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen.c
-  ${EXP_SOURCE_DIR}/codegen/x64/context.c
-  ${EXP_SOURCE_DIR}/codegen/x64/emit.c
-  ${EXP_SOURCE_DIR}/codegen/x64/function_body.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction.c
-  ${EXP_SOURCE_DIR}/codegen/x64/location.c
-  ${EXP_SOURCE_DIR}/codegen/x64/operand.c
-  ${EXP_SOURCE_DIR}/codegen/x64/registers.c
-  ${EXP_SOURCE_DIR}/codegen/x64/symbols.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/address.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/allocation.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/function_body.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/instruction.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/location.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/operand.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/registers.c
 
   ${EXP_SOURCE_DIR}/core/analyze.c
   ${EXP_SOURCE_DIR}/core/assemble.c

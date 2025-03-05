@@ -20,7 +20,7 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_LOAD_H
 #define EXP_BACKEND_X64_INTRINSICS_LOAD_H
 
-#include "codegen/x64/context.h"
+#include "codegen/x64/env/context.h"
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            Operand src,

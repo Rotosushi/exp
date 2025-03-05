@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X64_BYTECODE_H
 #define EXP_BACKEND_X64_BYTECODE_H
 
-#include "codegen/x64/instruction.h"
+#include "codegen/x64/imr/instruction.h"
 #include "utility/string.h"
 
 typedef struct x64_Bytecode {

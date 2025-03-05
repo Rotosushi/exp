@@ -1,7 +1,7 @@
 
 #include <assert.h>
 
-#include "codegen/x64/address.h"
+#include "codegen/x64/imr/address.h"
 
 [[maybe_unused]] static bool validate_scale(u8 scale) {
     return (scale == 1) || (scale == 2) || (scale == 4) || (scale == 8);

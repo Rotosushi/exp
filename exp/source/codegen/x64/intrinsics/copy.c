@@ -18,8 +18,8 @@
  */
 #include <assert.h>
 
+#include "codegen/x64/imr/location.h"
 #include "codegen/x64/intrinsics/copy.h"
-#include "codegen/x64/location.h"
 #include "imr/type.h"
 #include "intrinsics/size_of.h"
 

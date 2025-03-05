@@ -19,8 +19,8 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "codegen/x64/instruction.h"
-#include "codegen/x64/registers.h"
+#include "codegen/x64/imr/instruction.h"
+#include "codegen/x64/imr/registers.h"
 #include "utility/unreachable.h"
 
 static x64_Instruction x64_instruction(x64_Opcode opcode) {

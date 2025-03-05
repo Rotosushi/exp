@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "codegen/x64/location.h"
+#include "codegen/x64/imr/location.h"
 #include "utility/unreachable.h"
 
 x64_Location x64_location_gpr(x64_GPR gpr) {

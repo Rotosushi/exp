@@ -18,7 +18,7 @@
 #define EXP_BACKEND_X64_ALLOCATION_H
 
 #include "codegen/lifetimes.h"
-#include "codegen/x64/location.h"
+#include "codegen/x64/imr/location.h"
 #include "imr/type.h"
 
 typedef struct x64_Allocation {

@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X64_EMIT_H
 #define EXP_BACKEND_X64_EMIT_H
 
-#include "codegen/x64/context.h"
+#include "codegen/x64/env/context.h"
 
 void x64_emit(x64_Context *restrict x64context);
 

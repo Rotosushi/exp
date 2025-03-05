@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/bytecode.h"
+#include "codegen/x64/imr/bytecode.h"
 #include "utility/allocation.h"
 #include "utility/array_growth.h"
 

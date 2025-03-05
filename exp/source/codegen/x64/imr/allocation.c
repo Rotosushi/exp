@@ -18,8 +18,8 @@
  */
 #include <stddef.h>
 
-#include "codegen/x64/allocation.h"
-#include "codegen/x64/location.h"
+#include "codegen/x64/imr/allocation.h"
+#include "codegen/x64/imr/location.h"
 #include "utility/allocation.h"
 
 x64_Allocation *x64_allocation_allocate() {

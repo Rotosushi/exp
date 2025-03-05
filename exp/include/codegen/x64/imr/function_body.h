@@ -17,8 +17,8 @@
 #ifndef EXP_BACKEND_X64_FUNCTION_BODY_H
 #define EXP_BACKEND_X64_FUNCTION_BODY_H
 
-#include "codegen/x64/allocator.h"
-#include "codegen/x64/bytecode.h"
+#include "codegen/x64/imr/allocator.h"
+#include "codegen/x64/imr/bytecode.h"
 #include "imr/function_body.h"
 
 typedef struct x64_FormalArgument {

@@ -20,8 +20,8 @@
 #include <stddef.h>
 
 #include "codegen/x64/codegen.h"
-#include "codegen/x64/context.h"
 #include "codegen/x64/emit.h"
+#include "codegen/x64/env/context.h"
 #include "codegen/x64/instruction/add.h"
 #include "codegen/x64/instruction/call.h"
 #include "codegen/x64/instruction/divide.h"

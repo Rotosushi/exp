@@ -17,9 +17,9 @@
 #ifndef EXP_BACKEND_X64_ALLOCATOR_H
 #define EXP_BACKEND_X64_ALLOCATOR_H
 
-#include "codegen/x64/allocation.h"
-#include "codegen/x64/bytecode.h"
-#include "codegen/x64/registers.h"
+#include "codegen/x64/imr/allocation.h"
+#include "codegen/x64/imr/bytecode.h"
+#include "codegen/x64/imr/registers.h"
 
 /**
  * @brief General Purpose Register Pool

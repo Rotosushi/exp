@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/symbols.h"
+#include "codegen/x64/env/symbols.h"
 #include "utility/allocation.h"
 #include "utility/unreachable.h"
 

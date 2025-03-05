@@ -19,7 +19,7 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_H
 #define EXP_BACKEND_X64_INTRINSICS_H
 
-#include "codegen/x64/context.h"
+#include "codegen/x64/env/context.h"
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,

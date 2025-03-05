@@ -18,7 +18,7 @@
  */
 #include <stddef.h>
 
-#include "codegen/x64/operand.h"
+#include "codegen/x64/imr/operand.h"
 #include "utility/unreachable.h"
 
 x64_Operand x64_operand_gpr(x64_GPR gpr) {
