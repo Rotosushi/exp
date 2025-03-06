@@ -16,10 +16,9 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
-#include <stdbool.h>
-#include <stdio.h>
 
 #include "support/scalar.h"
+#include "support/string.h"
 
 typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA       = 0x0,
@@ -48,8 +47,8 @@ Operand operand_constant(u32 index);
 Operand operand_label(u32 index);
 Operand operand_immediate(i64 immediate);
 bool operand_equality(Operand A, Operand B);
-void print_operand(Operand operand,
-                   FILE *restrict file,
+void print_operand(String *restrict string,
+                   Operand operand,
                    struct Context *restrict context);
 
 #endif // EXP_IMR_OPERAND_H

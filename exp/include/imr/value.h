@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include "imr/operand.h"
-#include "support/io.h"
+#include "support/string.h"
 
 typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,
@@ -118,8 +118,8 @@ void value_assign(Value *dest, Value *source);
 bool value_equality(Value *v1, Value *v2);
 
 struct Context;
-void print_value(Value const *restrict v,
-                 FILE *restrict file,
+void print_value(String *restrict string,
+                 Value const *restrict v,
                  struct Context *restrict context);
 
 #endif // !EXP_IMR_VALUE_H

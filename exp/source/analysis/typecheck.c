@@ -116,7 +116,7 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     if (Bty->kind != TYPE_KIND_FUNCTION) {
         String buf = string_create();
         string_append(&buf, SV("Type is not callable ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -144,9 +144,9 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
         if (!type_equality(actual_type, formal_type)) {
             String buf = string_create();
             string_append(&buf, SV("Expected ["));
-            emit_type(formal_type, &buf);
+            print_type(&buf, formal_type);
             string_append(&buf, SV("] Actual ["));
-            emit_type(actual_type, &buf);
+            print_type(&buf, actual_type);
             string_append(&buf, SV("]"));
             return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
         }
@@ -168,7 +168,7 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     if (Bty->kind != TYPE_KIND_TUPLE) {
         String buf = string_create();
         string_append(&buf, SV("Type is not a tuple ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -205,7 +205,7 @@ static TResult typecheck_neg(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -225,7 +225,7 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -233,7 +233,7 @@ static TResult typecheck_add(Context *restrict c, Instruction I) {
     if (!type_equality(Bty, Cty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
+        print_type(&buf, Cty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -253,7 +253,7 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -261,7 +261,7 @@ static TResult typecheck_sub(Context *restrict c, Instruction I) {
     if (!type_equality(Bty, Cty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
+        print_type(&buf, Cty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -281,7 +281,7 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -289,7 +289,7 @@ static TResult typecheck_mul(Context *restrict c, Instruction I) {
     if (!type_equality(Bty, Cty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
+        print_type(&buf, Cty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -309,7 +309,7 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -317,7 +317,7 @@ static TResult typecheck_div(Context *restrict c, Instruction I) {
     if (!type_equality(Bty, Cty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
+        print_type(&buf, Cty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -337,7 +337,7 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
     if (!type_equality(i64ty, Bty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Bty, &buf);
+        print_type(&buf, Bty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -345,7 +345,7 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
     if (!type_equality(Bty, Cty)) {
         String buf = string_create();
         string_append(&buf, SV("Expected [i64] Actual ["));
-        emit_type(Cty, &buf);
+        print_type(&buf, Cty);
         string_append(&buf, SV("]"));
         return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
     }
@@ -369,9 +369,9 @@ static TResult typecheck_function(Context *restrict c) {
             if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
                 String buf = string_create();
                 string_append(&buf, SV("Previous return statement had type ["));
-                emit_type(return_type, &buf);
+                print_type(&buf, return_type);
                 string_append(&buf, SV("] this return statement has type ["));
-                emit_type(Bty, &buf);
+                print_type(&buf, Bty);
                 string_append(&buf, SV("]"));
                 return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
             }
@@ -470,9 +470,9 @@ static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
             (!type_equality(Rty, body->return_type))) {
             String buf = string_create();
             string_append(&buf, SV("Function was annotated with type ["));
-            emit_type(body->return_type, &buf);
+            print_type(&buf, body->return_type);
             string_append(&buf, SV("] actual returned type ["));
-            emit_type(Rty, &buf);
+            print_type(&buf, Rty);
             string_append(&buf, SV("]"));
             return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
         }

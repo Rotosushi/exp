@@ -27,9 +27,9 @@
  * underlying implementation? Chunk? Instructions? Block?
  */
 typedef struct Bytecode {
-  u64 length;
-  u64 capacity;
-  Instruction *buffer;
+    u64 length;
+    u64 capacity;
+    Instruction *buffer;
 } Bytecode;
 
 Bytecode bytecode_create();
@@ -38,8 +38,7 @@ void bytecode_destroy(Bytecode *restrict bytecode);
 void bytecode_append(Bytecode *restrict bytecode, Instruction I);
 
 struct Context;
-
-void print_bytecode(Bytecode const *restrict bc,
-                    FILE *restrict file,
+void print_bytecode(String *restrict string,
+                    Bytecode const *restrict bc,
                     struct Context *restrict context);
 #endif // !EXP_IMR_BYTECODE_H

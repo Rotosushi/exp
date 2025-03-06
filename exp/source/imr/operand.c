@@ -60,44 +60,44 @@ bool operand_equality(Operand A, Operand B) {
     }
 }
 
-static void print_operand_ssa(u32 ssa, FILE *restrict file) {
-    file_write(SV("%"), file);
-    file_write_u64(ssa, file);
+static void print_operand_ssa(String *restrict string, u32 ssa) {
+    string_append(string, SV("%"));
+    string_append_u64(string, ssa);
 }
 
-static void
-print_operand_value(u32 index, FILE *restrict file, Context *restrict context) {
+static void print_operand_value(String *restrict string,
+                                u32 index,
+                                Context *restrict context) {
     Value *value = context_constants_at(context, index);
-    print_value(value, file, context);
+    print_value(string, value, context);
 }
 
-static void print_operand_immediate(i64 immediate, FILE *restrict file) {
-    file_write_i64(immediate, file);
+static void print_operand_immediate(String *restrict string, i64 immediate) {
+    string_append_i64(string, immediate);
 }
 
-static void
-print_operand_label(u32 index, FILE *restrict file, Context *restrict context) {
-    file_write(SV("%"), file);
+static void print_operand_label(String *restrict string,
+                                u32 index,
+                                Context *restrict context) {
+    string_append(string, SV("%"));
     StringView name = context_labels_at(context, index);
-    file_write(name, file);
+    string_append(string, name);
 }
 
-void print_operand(Operand operand,
-                   FILE *restrict file,
+void print_operand(String *restrict string,
+                   Operand operand,
                    Context *restrict context) {
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: print_operand_ssa(operand.data.ssa, file); break;
+    case OPERAND_KIND_SSA: print_operand_ssa(string, operand.data.ssa); break;
     case OPERAND_KIND_CONSTANT:
-        print_operand_value(operand.data.constant, file, context);
+        print_operand_value(string, operand.data.constant, context);
         break;
     case OPERAND_KIND_IMMEDIATE:
-        print_operand_immediate(operand.data.immediate, file);
+        print_operand_immediate(string, operand.data.immediate);
         break;
     case OPERAND_KIND_LABEL:
-        print_operand_label(operand.data.label, file, context);
+        print_operand_label(string, operand.data.label, context);
         break;
-        // case OPRFMT_CALL:  print_operand_call(operand.index, file, context);
-        // break;
 
     default: EXP_UNREACHABLE();
     }

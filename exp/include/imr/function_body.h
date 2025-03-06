@@ -19,7 +19,6 @@
 
 #include "imr/bytecode.h"
 #include "imr/type.h"
-#include "support/io.h"
 #include "support/string_view.h"
 
 typedef struct FormalArgument {
@@ -85,8 +84,8 @@ void function_body_new_local(FunctionBody *restrict function,
 Operand function_body_new_ssa(FunctionBody *restrict function);
 
 struct Context;
-void print_function_body(FunctionBody const *restrict f,
-                         FILE *restrict file,
+void print_function_body(String *restrict string,
+                         FunctionBody const *restrict function,
                          struct Context *restrict context);
 
 #endif // !EXP_IMR_FUNCTION_H

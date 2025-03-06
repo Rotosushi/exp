@@ -187,22 +187,23 @@ Operand function_body_new_ssa(FunctionBody *restrict function) {
     return operand_ssa(local.ssa);
 }
 
-static void print_formal_argument(FormalArgument *arg, FILE *restrict file) {
-    file_write(arg->name, file);
-    file_write(SV(": "), file);
-    print_type(arg->type, file);
+static void print_formal_argument(String *restrict string,
+                                  FormalArgument *arg) {
+    string_append(string, arg->name);
+    string_append(string, SV(": "));
+    print_type(string, arg->type);
 }
 
-void print_function_body(FunctionBody const *restrict f,
-                         FILE *restrict file,
+void print_function_body(String *restrict string,
+                         FunctionBody const *restrict f,
                          Context *restrict context) {
-    file_write(SV("("), file);
+    string_append(string, SV("("));
     FormalArgumentList const *args = &f->arguments;
     for (u8 i = 0; i < args->size; ++i) {
-        print_formal_argument(args->list + i, file);
+        print_formal_argument(string, args->list + i);
 
-        if (i < (u8)(args->size - 1)) { file_write(SV(", "), file); }
+        if (i < (u8)(args->size - 1)) { string_append(string, SV(", ")); }
     }
-    file_write(SV(")\n"), file);
-    print_bytecode(&f->bc, file, context);
+    string_append(string, SV(")\n"));
+    print_bytecode(string, &f->bc, context);
 }

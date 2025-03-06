@@ -83,14 +83,14 @@ Value *constants_at(Constants *restrict constants, u32 index) {
     return constants->buffer + index;
 }
 
-void print_constants(Constants const *restrict constants,
-                     FILE *restrict file,
+void print_constants(String *restrict string,
+                     Constants const *restrict constants,
                      Context *restrict context) {
     for (u16 i = 0; i < constants->count; ++i) {
-        file_write_u64(i, file);
-        file_write(SV(": "), file);
-        file_write(SV("["), file);
-        print_value(constants->buffer + i, file, context);
-        file_write(SV("]\n"), file);
+        string_append_u64(string, i);
+        string_append(string, SV(": "));
+        string_append(string, SV("["));
+        print_value(string, constants->buffer + i, context);
+        string_append(string, SV("]\n"));
     }
 }

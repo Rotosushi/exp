@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "scanning/parser.h"
+#include "support/io.h"
 #include "test_resources.h"
 
 static Context init_context() {

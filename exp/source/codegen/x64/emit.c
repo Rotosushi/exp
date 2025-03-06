@@ -20,7 +20,7 @@
 #include "codegen/x64/emit.h"
 #include "codegen/directives.h"
 #include "support/config.h"
-#include "support/panic.h"
+#include "support/io.h"
 
 static void x64_emit_symbol(x64_Symbol *restrict sym,
                             String *restrict buffer,

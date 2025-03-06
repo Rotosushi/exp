@@ -91,8 +91,6 @@ void type_destroy(Type *type);
 bool type_equality(Type const *t1, Type const *t2);
 bool type_is_scalar(Type const *t);
 
-void emit_type(Type const *restrict t, String *restrict buf);
-
-void print_type(Type const *restrict t, FILE *restrict file);
+void print_type(String *restrict string, Type const *restrict type);
 
 #endif // !EXP_IMR_TYPE_H

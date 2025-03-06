@@ -97,4 +97,9 @@ Instruction instruction_multiply(Operand dst, Operand left, Operand right);
 Instruction instruction_divide(Operand dst, Operand left, Operand right);
 Instruction instruction_modulus(Operand dst, Operand left, Operand right);
 
+struct Context;
+void print_instruction(String *restrict string,
+                       Instruction instruction,
+                       struct Context *restrict context);
+
 #endif // !EXP_IMR_INSTRUCTION_H
