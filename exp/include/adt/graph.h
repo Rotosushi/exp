@@ -24,17 +24,20 @@ typedef struct Edge {
     struct Edge *next;
 } Edge;
 
-typedef struct Graph {
+typedef struct SparseDigraph {
     u64 length;
     u64 capacity;
     Edge **list;
 } SparseDigraph;
 
-SparseDigraph graph_create();
-void graph_destroy(SparseDigraph *restrict graph);
+SparseDigraph sparse_digraph_create();
+void sparse_digraph_initialize(SparseDigraph *restrict graph);
+void sparse_digraph_destroy(SparseDigraph *restrict graph);
 
-u64 graph_add_vertex(SparseDigraph *restrict graph);
-void graph_add_edge(SparseDigraph *restrict graph, u64 source, u64 target);
+u64 sparse_digraph_add_vertex(SparseDigraph *restrict graph);
+void sparse_digraph_add_edge(SparseDigraph *restrict graph,
+                             u64 source,
+                             u64 target);
 
 typedef struct VertexList {
     u64 count;
@@ -52,7 +55,8 @@ void vertex_list_destroy(VertexList *restrict vl);
  * @param vertex
  * @return VertexList
  */
-VertexList graph_vertex_fanout(SparseDigraph *restrict graph, u64 vertex);
+VertexList sparse_digraph_vertex_fanout(SparseDigraph *restrict graph,
+                                        u64 vertex);
 
 /**
  * @brief compute the list of verticies that have an edge
@@ -62,6 +66,7 @@ VertexList graph_vertex_fanout(SparseDigraph *restrict graph, u64 vertex);
  * @param vertex
  * @return VertexList
  */
-VertexList graph_vertex_fanin(SparseDigraph *restrict graph, u64 vertex);
+VertexList sparse_digraph_vertex_fanin(SparseDigraph *restrict graph,
+                                       u64 vertex);
 
 #endif // !EXP_UTILITY_GRAPH_H

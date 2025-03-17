@@ -74,7 +74,8 @@ i32 test_single_option_required_argument(i32 argc,
 
     i32 result = (parsed.option == expected->short_name) ? 0 : 1;
     result +=
-        (strncmp(parsed.argument, expected_argument, expected_argument_length))
+        (memcmp(parsed.argument, expected_argument, expected_argument_length) ==
+         0)
             ? 0
             : 1;
     return result;
