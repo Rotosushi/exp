@@ -26,7 +26,7 @@ the main way to mitigate this would be to embed an assembler and a linker into
 the compiler. Then we only have to pay the cost of interfacing with the filesystem.
 which can be further reduced by pooling those resources.
 
-There are a few projects which could be used for this, without requireing something 
+There are a few projects which could be used for this, without requiring something 
 bespoke. 
 
 (zydis)[https://github.com/zyantific/zydis]

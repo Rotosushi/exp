@@ -47,6 +47,7 @@ configure_file(
 set(EXP_SUPPORT_SOURCE_FILES
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/allocation.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/array_growth.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/cli_option_parser.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/hash.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/io.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/log.c

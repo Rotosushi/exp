@@ -62,8 +62,10 @@ Growth_u32 array_growth_u32(u32 current_capacity, u64 element_size) {
     }
 
     Growth_u32 g;
-    g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
-    if (g.new_capacity > u32_MAX) { g.new_capacity = u32_MAX; }
+    if (__builtin_mul_overflow(
+            current_capacity, ARRAY_GROWTH_FACTOR, &g.new_capacity)) {
+        g.new_capacity = u32_MAX;
+    }
 
     if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
         PANIC("cannot allocate more than u64_MAX");
@@ -78,8 +80,10 @@ Growth_u16 array_growth_u16(u16 current_capacity, u64 element_size) {
     }
 
     Growth_u16 g;
-    g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
-    if (g.new_capacity > u16_MAX) { g.new_capacity = u16_MAX; }
+    if (__builtin_mul_overflow(
+            current_capacity, ARRAY_GROWTH_FACTOR, &g.new_capacity)) {
+        g.new_capacity = u16_MAX;
+    }
 
     if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
         PANIC("cannot allocate more than u64_MAX");
@@ -94,8 +98,10 @@ Growth_u8 array_growth_u8(u8 current_capacity, u64 element_size) {
     }
 
     Growth_u8 g;
-    g.new_capacity = current_capacity * ARRAY_GROWTH_FACTOR;
-    if (g.new_capacity > u8_MAX) { g.new_capacity = u8_MAX; }
+    if (__builtin_mul_overflow(
+            current_capacity, ARRAY_GROWTH_FACTOR, &g.new_capacity)) {
+        g.new_capacity = u8_MAX;
+    }
 
     if (__builtin_mul_overflow(g.new_capacity, element_size, &g.alloc_size)) {
         PANIC("cannot allocate more than u64_MAX");

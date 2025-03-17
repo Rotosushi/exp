@@ -30,8 +30,9 @@ i32 resource_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
 
     for (u64 index = 0; index < test_resources.count; ++index) {
         String *resource = test_resources.buffer + index;
-        file_write(SV("\ntesting resource: "), stderr);
+        file_write(SV("testing resource: "), stderr);
         file_write(string_to_view(resource), stderr);
+        file_write(SV("\n"), stderr);
         result |= test_source(string_to_view(resource));
     }
 

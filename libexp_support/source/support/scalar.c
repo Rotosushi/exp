@@ -67,9 +67,12 @@ u32 max_u32(u32 x, u32 y) { return (x > y) ? x : y; }
 
 u64 max_u64(u64 x, u64 y) { return (x > y) ? x : y; }
 
-i8 abs_i8(i8 value) { return (value < 0) ? -value : value; }
+// #NOTE: when compiling under GCC "-value" undergoes integer promotion
+// to int. Then when we return into a smaller type, this generates a warning.
+// Ideally I would not cast, but it is necessary to suppress the warning.
+i8 abs_i8(i8 value) { return (value < 0) ? (i8)(-value) : value; }
 
-i16 abs_i16(i16 value) { return (value < 0) ? -value : value; }
+i16 abs_i16(i16 value) { return (value < 0) ? (i8)(-value) : value; }
 
 i32 abs_i32(i32 value) { return (value < 0) ? -value : value; }
 

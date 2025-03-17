@@ -29,21 +29,6 @@
 #define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
-static void print_version(FILE *file) {
-    file_write(SV(EXP_VERSION_STRING), file);
-    file_write(SV("\n"), file);
-}
-
-static void print_help(FILE *file) {
-    file_write(SV("exp [options] <source-file>\n\n"), file);
-    file_write(SV("\t-h print help.\n"), file);
-    file_write(SV("\t-v print version.\n"), file);
-    file_write(SV("\t-o <filename> set output filename.\n"), file);
-    file_write(SV("\t-c emit an object file.\n"), file);
-    file_write(SV("\t-s emit an assembly file.\n"), file);
-    file_write(SV("\n"), file);
-}
-
 CLIOptions cli_options_create() {
     CLIOptions cli_options = {.flags = 0};
     SET_BIT(cli_options.flags, CLI_DO_ASSEMBLE);
@@ -60,6 +45,21 @@ void cli_options_destroy(CLIOptions *restrict cli_options) {
 
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <getopt.h>
+
+static void print_version(FILE *file) {
+    file_write(SV(EXP_VERSION_STRING), file);
+    file_write(SV("\n"), file);
+}
+
+static void print_help(FILE *file) {
+    file_write(SV("exp [options] <source-file>\n\n"), file);
+    file_write(SV("\t-h print help.\n"), file);
+    file_write(SV("\t-v print version.\n"), file);
+    file_write(SV("\t-o <filename> set output filename.\n"), file);
+    file_write(SV("\t-c emit an object file.\n"), file);
+    file_write(SV("\t-s emit an assembly file.\n"), file);
+    file_write(SV("\n"), file);
+}
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     CLIOptions options               = cli_options_create();
@@ -99,10 +99,14 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         }
 
         default: {
-            char buf[2] = {(char)option, '\0'};
-            file_write(SV("unknown option ["), stderr);
-            file_write(string_view_from_str(buf, sizeof(buf) - 1), stderr);
-            file_write(SV("]\n"), stderr);
+            char buf[2]            = {(char)option, '\0'};
+            StringView option_view = string_view_from_str(buf, 1);
+            String string          = string_create();
+            string_append(&string, SV("unknown option ["));
+            string_append(&string, option_view);
+            string_append(&string, SV("]\n"));
+            exp_log(LOG_ERROR, NULL, 0, string_to_view(&string), stderr);
+            string_destroy(&string);
             break;
         }
         }
