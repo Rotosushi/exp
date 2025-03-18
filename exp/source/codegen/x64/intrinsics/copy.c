@@ -19,15 +19,20 @@
 #include <assert.h>
 
 #include "codegen/x64/imr/location.h"
+#include "codegen/x64/imr/registers.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "imr/type.h"
 #include "intrinsics/size_of.h"
+#include "support/assert.h"
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
+                                    u64 size,
                                     u64 Idx,
                                     x64_Context *restrict context) {
-    x64_GPR gpr = x64_context_aquire_any_gpr(context, Idx);
+    exp_assert(x86_64_gpr_valid_size(size));
+    u8 gpr_index   = x64_context_aquire_any_gpr(context, Idx);
+    x86_64_GPR gpr = x86_64_gpr_with_size(gpr_index, size);
 
     x64_context_append(
         context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(*src)));
@@ -52,8 +57,11 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
         u64 element_size   = size_of(element_type);
 
         if (type_is_scalar(element_type)) {
-            x64_codegen_copy_scalar_memory(
-                &dst_element_address, &src_element_address, Idx, context);
+            x64_codegen_copy_scalar_memory(&dst_element_address,
+                                           &src_element_address,
+                                           element_size,
+                                           Idx,
+                                           context);
         } else {
             x64_codegen_copy_composite_memory(&dst_element_address,
                                               &src_element_address,
@@ -75,7 +83,8 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
                              u64 Idx,
                              x64_Context *restrict context) {
     if (type_is_scalar(type)) {
-        x64_codegen_copy_scalar_memory(dst, src, Idx, context);
+        u64 size = size_of(type);
+        x64_codegen_copy_scalar_memory(dst, src, size, Idx, context);
     } else {
         x64_codegen_copy_composite_memory(dst, src, type, Idx, context);
     }
@@ -105,8 +114,9 @@ static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
         x64_context_append(
             context, x64_mov(x64_operand_alloc(dst), x64_operand_alloc(src)));
     } else {
+        u64 size = size_of(dst->type);
         x64_codegen_copy_scalar_memory(
-            &dst->location.address, &src->location.address, Idx, context);
+            &dst->location.address, &src->location.address, size, Idx, context);
     }
 }
 

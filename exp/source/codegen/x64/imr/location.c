@@ -22,23 +22,29 @@
 #include "codegen/x64/imr/location.h"
 #include "support/unreachable.h"
 
-x64_Location x64_location_gpr(x64_GPR gpr) {
+x64_Location x64_location_gpr(x86_64_GPR gpr) {
     x64_Location location = {.kind = LOCATION_GPR, .gpr = gpr};
     return location;
 }
 
-x64_Location x64_location_address(x64_GPR base,
-                                  x64_GPR optional_index,
-                                  u8 optional_scale,
-                                  i64 optional_offset) {
-    x64_Location location = {
-        .kind    = LOCATION_ADDRESS,
-        .address = {.base   = base,
-                    .index  = optional_index,
-                    .scale  = optional_scale,
-                    .offset = optional_offset}
+x64_Location x64_location_address(x86_64_GPR base, i64 offset) {
+    return (x64_Location){
+        .kind = LOCATION_ADDRESS, .address = {.base = base, .offset = offset}
     };
-    return location;
+}
+
+x64_Location x64_location_address_indexed(x86_64_GPR base,
+                                          x86_64_GPR index,
+                                          u8 scale,
+                                          i64 offset) {
+    return (x64_Location){
+        .kind    = LOCATION_ADDRESS,
+        .address = {.base      = base,
+                    .index     = index,
+                    .scale     = scale,
+                    .has_index = true,
+                    .offset    = offset}
+    };
 }
 
 bool x64_location_eq(x64_Location A, x64_Location B) {

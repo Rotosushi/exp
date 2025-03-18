@@ -28,7 +28,7 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            u64 Idx,
                                            x64_Context *restrict context);
 
-void x64_codegen_load_gpr_from_operand(x64_GPR dst,
+void x64_codegen_load_gpr_from_operand(x86_64_GPR dst,
                                        Operand src,
                                        u64 Idx,
                                        x64_Context *restrict context);

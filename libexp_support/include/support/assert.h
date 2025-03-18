@@ -30,6 +30,7 @@
  * @brief Asserts that the condition is true.
  *
  * @note if EXP_REMOVE_ASSERTS is defined, this macro will expand to nothing.
+ * This assert will occur regardless of if NDEBUG is defined.
  *
  */
 
@@ -50,7 +51,7 @@
 #if defined NDEBUG || defined EXP_REMOVE_ASSERTS
 #define exp_assert_debug(cond) ((void)0)
 #else
-#define exp_assert_debug(cond) ASSERT(cond)
+#define exp_assert_debug(cond) exp_assert(cond)
 #endif // !NDEBUG
 
 /**

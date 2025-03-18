@@ -73,9 +73,9 @@ i64 x64_context_stack_size(x64_Context *x64_context);
 
 x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u32 ssa);
 
-void x64_context_release_gpr(x64_Context *x64_context, x64_GPR gpr, u64 Idx);
+void x64_context_release_gpr(x64_Context *x64_context, x86_64_GPR gpr, u64 Idx);
 
-void x64_context_aquire_gpr(x64_Context *x64_context, x64_GPR gpr, u64 Idx);
+void x64_context_aquire_gpr(x64_Context *x64_context, x86_64_GPR gpr, u64 Idx);
 
 x64_Allocation *
 x64_context_allocate(x64_Context *x64_context, LocalVariable *local, u64 Idx);
@@ -85,9 +85,12 @@ x64_Allocation *x64_context_allocate_from_active(x64_Context *x64_context,
                                                  x64_Allocation *active,
                                                  u64 Idx);
 
-x64_Allocation *x64_context_allocate_to_gpr(x64_Context *x64_context,
+x64_Allocation *x64_context_allocate_to_any_gpr(x64_Context *x64_context,
+                                                LocalVariable *local);
+
+x64_Allocation *x64_context_allocate_to_gpr(x64_Context *restrict x64_context,
                                             LocalVariable *local,
-                                            x64_GPR gpr,
+                                            x86_64_GPR gpr,
                                             u64 Idx);
 
 x64_Allocation *x64_context_allocate_to_stack(x64_Context *x64_context,
@@ -101,5 +104,6 @@ x64_Allocation *x64_context_allocate_result(x64_Context *x64_context,
 void x64_context_reallocate_active(x64_Context *x64_context,
                                    x64_Allocation *active);
 
-x64_GPR x64_context_aquire_any_gpr(x64_Context *x64_context, u64 Idx);
+u8 x64_context_aquire_any_gpr(x64_Context *x64_context, u64 Idx);
+
 #endif // !EXP_BACKEND_X64_CONTEXT_H

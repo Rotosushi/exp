@@ -21,7 +21,7 @@
 #include "codegen/x64/imr/operand.h"
 #include "support/unreachable.h"
 
-x64_Operand x64_operand_gpr(x64_GPR gpr) {
+x64_Operand x64_operand_gpr(x86_64_GPR gpr) {
     x64_Operand opr = {.kind = X64_OPERAND_KIND_GPR, .gpr = gpr};
     return opr;
 }

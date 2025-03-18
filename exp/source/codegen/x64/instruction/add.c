@@ -55,9 +55,7 @@ static void x64_codegen_add_ssa(Instruction I,
 
         // since B and C are memory operands we have to move B or C
         // to a reg and then add.
-        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
-        x64_Allocation *A =
-            x64_context_allocate_to_gpr(context, local, gpr, block_index);
+        x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
 
         // we use the huristic of longest lifetime to choose
         // which of B and C to move into A's gpr.

@@ -23,6 +23,7 @@
 #include "codegen/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
+#include "support/assert.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
@@ -74,12 +75,12 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
     }
 }
 
-static void x64_codegen_load_address_from_scalar_operand(
-    x64_Address *restrict dst,
-    Operand src,
-    [[maybe_unused]] Type *restrict type,
-    u64 Idx,
-    x64_Context *restrict context) {
+static void
+x64_codegen_load_address_from_scalar_operand(x64_Address *restrict dst,
+                                             Operand src,
+                                             Type *restrict type,
+                                             u64 Idx,
+                                             x64_Context *restrict context) {
     assert(type_is_scalar(type));
 
     switch (src.kind) {
@@ -92,8 +93,9 @@ static void x64_codegen_load_address_from_scalar_operand(
                 x64_mov(x64_operand_address(*dst),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
+            u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
-                dst, &allocation->location.address, Idx, context);
+                dst, &allocation->location.address, size, Idx, context);
         }
         break;
     }
@@ -189,12 +191,12 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
     }
 }
 
-static void x64_codegen_load_argument_from_scalar_operand(
-    x64_Address *restrict dst,
-    Operand src,
-    [[maybe_unused]] Type *restrict type,
-    u64 Idx,
-    x64_Context *restrict context) {
+static void
+x64_codegen_load_argument_from_scalar_operand(x64_Address *restrict dst,
+                                              Operand src,
+                                              Type *restrict type,
+                                              u64 Idx,
+                                              x64_Context *restrict context) {
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
@@ -205,8 +207,9 @@ static void x64_codegen_load_argument_from_scalar_operand(
                 x64_mov(x64_operand_address(*dst),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
+            u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
-                dst, &allocation->location.address, Idx, context);
+                dst, &allocation->location.address, size, Idx, context);
         }
         break;
     }
@@ -301,7 +304,7 @@ void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
+void x64_codegen_load_gpr_from_operand(x86_64_GPR gpr,
                                        Operand src,
                                        [[maybe_unused]] u64 Idx,
                                        x64_Context *restrict context) {
@@ -309,9 +312,12 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
             x64_context_allocation_of(context, src.data.ssa);
+        u64 size = size_of(allocation->type);
+        exp_assert_debug(x86_64_gpr_valid_size(size));
+        x86_64_GPR sized_gpr = x86_64_gpr_resize(gpr, size);
         x64_context_append(
             context,
-            x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
+            x64_mov(x64_operand_gpr(sized_gpr), x64_operand_alloc(allocation)));
         break;
     }
 

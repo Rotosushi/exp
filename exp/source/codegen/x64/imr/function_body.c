@@ -59,11 +59,11 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
 
     if (type_is_scalar(body->return_type)) {
         x64_body.result = x64_allocator_allocate_result(
-            allocator, x64_location_gpr(X64_GPR_RAX), body->return_type);
+            allocator, x64_location_gpr(X86_64_GPR_RAX), body->return_type);
     } else {
         x64_body.result = x64_allocator_allocate_result(
             allocator,
-            x64_location_address(X64_GPR_RDI, X64_GPR_NONE, 1, 0),
+            x64_location_address(X86_64_GPR_RDI, 0),
             body->return_type);
         scalar_argument_count += 1;
     }
@@ -74,8 +74,10 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
         LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
 
         if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
-            x64_GPR gpr = x64_scalar_argument_gpr(scalar_argument_count++);
-            x64_allocator_allocate_to_gpr(allocator, gpr, 0, local, bc);
+            u64 size = size_of(local->type);
+            x86_64_GPR gpr =
+                x86_64_gpr_scalar_argument(scalar_argument_count++, size);
+            x64_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
         } else {
             u64 argument_size = size_of(arg->type);
             assert(argument_size <= i64_MAX);

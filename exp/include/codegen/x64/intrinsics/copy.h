@@ -23,6 +23,7 @@
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
+                                    u64 size,
                                     u64 Idx,
                                     x64_Context *restrict context);
 

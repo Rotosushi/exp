@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "codegen/x64/instruction/subtract.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 static void x64_codegen_subtract_ssa(Instruction I,
@@ -41,9 +42,7 @@ static void x64_codegen_subtract_ssa(Instruction I,
             return;
         }
 
-        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
-        x64_Allocation *A =
-            x64_context_allocate_to_gpr(context, local, gpr, block_index);
+        x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
 
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
@@ -92,12 +91,12 @@ static void x64_codegen_subtract_immediate(Instruction I,
     case OPERAND_KIND_SSA: {
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
-        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
+        exp_assert_debug(A->location.kind == LOCATION_GPR);
+        x86_64_GPR gpr = A->location.gpr;
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
                                    x64_operand_immediate(I.B_data.immediate)));
-        x64_Allocation *A =
-            x64_context_allocate_to_gpr(context, local, gpr, block_index);
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
@@ -145,12 +144,12 @@ void x64_codegen_subtract_constant(Instruction I,
     case OPERAND_KIND_SSA: {
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
-        x64_GPR gpr = x64_context_aquire_any_gpr(context, block_index);
+        x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
+        exp_assert_debug(A->location.kind == LOCATION_GPR);
+        x86_64_GPR gpr = A->location.gpr;
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
                                    x64_operand_constant(I.B_data.constant)));
-        x64_Allocation *A =
-            x64_context_allocate_to_gpr(context, local, gpr, block_index);
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
