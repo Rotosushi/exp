@@ -1,10 +1,13 @@
 
 #include <assert.h>
+#include <errno.h>
+#include <string.h>
 
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/config.h"
 #include "support/io.h"
+#include "support/log.h"
 #include "support/panic.h"
 #include "test_resources.h"
 
@@ -69,7 +72,19 @@ void test_resources_gather(TestResources *test_resources,
     assert(directory != nullptr);
 
     DIR *resource_directory = opendir(directory);
-    if (resource_directory == nullptr) { PANIC_ERRNO("opendir"); }
+    if (resource_directory == nullptr) {
+        exp_log(LOG_ERROR, NULL, 0, SV("opendir failed"), stderr);
+        exp_log(LOG_STATUS, NULL, 0, SV("directory: "), stderr);
+        exp_log(
+            LOG_STATUS, NULL, 0, string_view_from_cstring(directory), stderr);
+        exp_log(LOG_STATUS, NULL, 0, SV("errno:"), stderr);
+        exp_log(LOG_STATUS,
+                NULL,
+                0,
+                string_view_from_cstring(strerror(errno)),
+                stderr);
+        return;
+    }
 
     // iterate through each entry in the directory
     struct dirent *directory_entry = nullptr;

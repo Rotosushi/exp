@@ -109,8 +109,10 @@ i32 test_source(StringView path) {
 
     char const *test_args[] = {exe_path, nullptr};
     i32 test_result         = process(exe_path, 1, test_args);
+    file_remove(exe_path);
+    string_destroy(&exe_string);
+
     if (test_result != exit_code) {
-        string_destroy(&exe_string);
         file_write(SV("\ntest resource: "), stderr);
         file_write(path, stderr);
         file_write(SV("\nexpected exit code: "), stderr);
@@ -118,10 +120,9 @@ i32 test_source(StringView path) {
         file_write(SV(" actual exit code: "), stderr);
         file_write_i64(test_result, stderr);
         file_write(SV("\n"), stderr);
+
         return EXIT_FAILURE;
     }
 
-    file_remove(exe_path);
-    string_destroy(&exe_string);
     return EXIT_SUCCESS;
 }

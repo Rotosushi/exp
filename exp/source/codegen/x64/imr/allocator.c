@@ -42,13 +42,13 @@ static void x64_gprp_destroy(x64_GPRP *restrict gprp) {
 #define CLR_BIT(B, r) ((B) &= (u16)(~(1 << r)))
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
-static void x64_gprp_aquire(x64_GPRP *restrict gprp, x86_64_GPR r) {
-    SET_BIT(gprp->bitset, x86_64_gpr_index(r));
+static void x64_gprp_aquire(x64_GPRP *restrict gprp, x86_64_GPR gpr) {
+    SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
 }
 
-static void x64_gprp_release(x64_GPRP *restrict gprp, x86_64_GPR r) {
-    CLR_BIT(gprp->bitset, x86_64_gpr_index(r));
-    gprp->buffer[r] = NULL;
+static void x64_gprp_release(x64_GPRP *restrict gprp, x86_64_GPR gpr) {
+    CLR_BIT(gprp->bitset, x86_64_gpr_index(gpr));
+    gprp->buffer[x86_64_gpr_index(gpr)] = NULL;
 }
 
 static bool x64_gprp_any_available(x64_GPRP *restrict gprp,
@@ -70,8 +70,8 @@ x64_gprp_allocate_to_gpr_index(x64_GPRP *restrict gprp,
     exp_assert_debug(x86_64_gpr_valid_size(size));
     x86_64_GPR gpr = x86_64_gpr_with_size(gpr_index, size);
     SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
-    gprp->buffer[gpr]    = allocation;
-    allocation->location = x64_location_gpr(gpr);
+    gprp->buffer[x86_64_gpr_index(gpr)] = allocation;
+    allocation->location                = x64_location_gpr(gpr);
 }
 
 static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
@@ -83,8 +83,8 @@ static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
     exp_assert_debug(size <= x86_64_gpr_size(gpr));
 
     SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
-    gprp->buffer[gpr]    = allocation;
-    allocation->location = x64_location_gpr(gpr);
+    gprp->buffer[x86_64_gpr_index(gpr)] = allocation;
+    allocation->location                = x64_location_gpr(gpr);
 }
 
 /**
@@ -555,7 +555,15 @@ x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
     x64_Allocation *allocation = x64_allocation_buffer_append(
         &allocator->allocations, u64_MAX, nullptr, type);
 
-    allocation->location = location;
+    if (location.kind == LOCATION_GPR) {
+        x64_gprp_allocate_to_gpr(&allocator->gprp, location.gpr, allocation);
+    } else if (location.kind == LOCATION_ADDRESS) {
+        // The stack_allocator of this function does not handle allocating the
+        // result. the caller allocates space for the result.
+        allocation->location = location;
+    } else {
+        PANIC("invalid location kind for result allocation");
+    }
 
     return allocation;
 }

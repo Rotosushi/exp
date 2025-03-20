@@ -273,12 +273,12 @@ x86_64_GPR x86_64_gpr_resize(x86_64_GPR gpr, u64 size) {
 x86_64_GPR x86_64_gpr_scalar_argument(u8 argument_index, u64 size) {
     exp_assert(x86_64_gpr_valid_size(size));
     switch (argument_index) {
-    case 0: return x86_64_gpr_with_size(X86_64_GPR_rDI, size);
-    case 1: return x86_64_gpr_with_size(X86_64_GPR_rSI, size);
-    case 2: return x86_64_gpr_with_size(X86_64_GPR_rDX, size);
-    case 3: return x86_64_gpr_with_size(X86_64_GPR_rCX, size);
-    case 4: return x86_64_gpr_with_size(X86_64_GPR_r8, size);
-    case 5: return x86_64_gpr_with_size(X86_64_GPR_r9, size);
+    case 0: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_rDI), size);
+    case 1: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_rSI), size);
+    case 2: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_rDX), size);
+    case 3: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_rCX), size);
+    case 4: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_r8), size);
+    case 5: return x86_64_gpr_with_size(x86_64_gpr_index(X86_64_GPR_r9), size);
     // the rest of the arguments are passed on the stack.
     default: EXP_UNREACHABLE();
     }
