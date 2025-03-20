@@ -165,7 +165,7 @@ static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
         x64_Allocation *cursor = gprp->buffer[i];
         if (cursor == NULL) { continue; }
 
-        if (cursor->lifetime.last_use <= Idx) { x64_gprp_release(gprp, i); }
+        if (cursor->lifetime.last_use < Idx) { x64_gprp_release(gprp, i); }
     }
 }
 
@@ -555,15 +555,14 @@ x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
     x64_Allocation *allocation = x64_allocation_buffer_append(
         &allocator->allocations, u64_MAX, nullptr, type);
 
-    if (location.kind == LOCATION_GPR) {
-        x64_gprp_allocate_to_gpr(&allocator->gprp, location.gpr, allocation);
-    } else if (location.kind == LOCATION_ADDRESS) {
-        // The stack_allocator of this function does not handle allocating the
-        // result. the caller allocates space for the result.
-        allocation->location = location;
-    } else {
-        PANIC("invalid location kind for result allocation");
-    }
+    // The gpr allocator of this function does not actually want the
+    // location marked as used, so that instructions within the function
+    // can use the return GPR as a temporary, potentially allowing the
+    // return value to be computed in the same GPR as the return value.
+    // This is a bit of a hack, but it works for now.
+    // The stack_allocator of this function does not handle allocating the
+    // result. the caller allocates space for the result.
+    allocation->location = location;
 
     return allocation;
 }
