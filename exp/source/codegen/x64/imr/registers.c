@@ -144,6 +144,7 @@ static x86_64_GPR size_to_gpr(x86_64_GPR base, u64 size) {
 }
 
 x86_64_GPR x86_64_gpr_with_size(u8 gpr_index, u64 size) {
+    exp_assert(gpr_index < 16);
     exp_assert(x86_64_gpr_valid_size(size));
     switch (gpr_index) {
     case 0:  return size_to_gpr(X86_64_GPR_rAX, size);
