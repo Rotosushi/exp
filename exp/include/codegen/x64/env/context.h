@@ -104,6 +104,7 @@ x64_Allocation *x64_context_allocate_result(x64_Context *x64_context,
 void x64_context_reallocate_active(x64_Context *x64_context,
                                    x64_Allocation *active);
 
-u8 x64_context_aquire_any_gpr(x64_Context *x64_context, u64 Idx);
+x86_64_GPR
+x64_context_aquire_any_gpr(x64_Context *x64_context, u64 size, u64 Idx);
 
 #endif // !EXP_BACKEND_X64_CONTEXT_H

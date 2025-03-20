@@ -25,7 +25,7 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-StringView x86_64_gpr_to_sv(x86_64_GPR gpr) {
+StringView x86_64_gpr_mnemonic(x86_64_GPR gpr) {
     switch (gpr) {
     case X86_64_GPR_rAX: EXP_UNREACHABLE();
     case X86_64_GPR_AL:  return SV("al");
@@ -387,11 +387,6 @@ bool x86_64_gpr_is_sized(x86_64_GPR gpr) {
     }
 }
 
-/**
- * @note two registers A and B overlap iff they refer to the same register
- * in the register file. Based on the way we enumerate registers this can
- * be checked by simple arithmetic.
- */
 static bool overlap_(x86_64_GPR A, x86_64_GPR B) {
     return (B >= A) && (B <= (A + 4));
 }

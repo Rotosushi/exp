@@ -29,11 +29,14 @@
  * synonyms for the physical register are all layed out sequentially,
  * with each successive synonym being the next size up of that same register.
  * this allows code to address any sized register while only having to
- * specify the base register. which can be the generic register name
- * needless to say, only modify this file if you are prepared to follow that
- * rule, so existing code continues to work
+ * specify the base register. which can be the generic register name.
+ * All that to say, only modify this file if you are prepared to follow that
+ * rule, so existing code continues to work. or refactor the entirety of
+ * registers.c to use a different system.
+ * which may need to occur regardless, because AH, BH, CH, and DH are not
+ * currently supported.
  */
- typedef enum x86_64_GPR : u8 {
+typedef enum x86_64_GPR : u8 {
     X86_64_GPR_rAX,
     // X86_64_GPR_AH,
     X86_64_GPR_AL,
@@ -135,15 +138,120 @@
     X86_64_GPR_R15,
 } x86_64_GPR;
 
-StringView x86_64_gpr_to_sv(x86_64_GPR r);
-x86_64_GPR x86_64_gpr_with_size(u8 gpr_index, u64 size);
-x86_64_GPR x86_64_gpr_resize(x86_64_GPR gpr, u64 size);
-x86_64_GPR x86_64_gpr_scalar_argument(u8 argument_index, u64 size);
-bool x86_64_gpr_valid_size(u64 size);
-bool x86_64_gpr_is_sized(x86_64_GPR gpr);
-bool x86_64_gpr_overlap(x86_64_GPR A, x86_64_GPR B);
-u8 x86_64_gpr_size(x86_64_GPR gpr);
-u8 x86_64_gpr_index(x86_64_GPR gpr);
+/**
+ * @brief convert a GPR to a string view of it's mnemonic
+ *
+ * @note this returns a static string view, so it should not be modified
+ * and is safe to use as a static string.
+ *
+ * @param gpr the GPR to convert
+ * @return a string view of the mnemonic
+ */
+StringView x86_64_gpr_mnemonic(x86_64_GPR gpr);
 
+/**
+ * @brief given an index to a GPR, and a size, return the GPR
+ * that corresponds to that index and size.
+ *
+ * @note GPR's are indexed starting at 0, so index >= 0 and index <= 15.
+ * 0 -> rAX, 1 -> rBX, 2 -> rCX, 3 -> rDX, 4 -> rSI, 5 -> rDI, 6 -> rBP,
+ * 7 -> rSP, 8 -> r8, 9 -> r9, 10 -> r10, 11 -> r11, 12 -> r12, 13 -> r13,
+ * 14 -> r14, 15 -> r15
+ *
+ * @note GPR's are accessable as 1 byte, 2 byte, 4 byte, and 8 byte,
+ * so size >= 1 and size <= 8.
+ *
+ * @param gpr_index the index of the GPR
+ * @param size the size of the GPR
+ * @return the GPR that corresponds to the index and size
+ */
+x86_64_GPR x86_64_gpr_with_size(u8 gpr_index, u64 size);
+
+/**
+ * @brief resize a GPR to the given size
+ *
+ * @note this will return the same GPR if the GPR is already the correct size
+ *
+ * @param gpr the GPR to resize
+ * @param size the size to resize the GPR to
+ * @return the resized GPR
+ */
+x86_64_GPR x86_64_gpr_resize(x86_64_GPR gpr, u64 size);
+
+/**
+ * @brief Get the correct GPR for a scalar argument at position `argument_index`
+ * with size `size` according to the System V AMD64 ABI.
+ *
+ * @note the first 6 arguments are passed in registers, the rest are passed on
+ * the stack. So this function only handles argument_index < 6.
+ *
+ * @todo This function is better suited for a target specific file, built for
+ * the System V AMD64 ABI. As it is not specific to x86_64.
+ *
+ * @param argument_index the index of the argument
+ * @param size the size of the argument
+ * @return the GPR that corresponds to the argument
+ */
+x86_64_GPR x86_64_gpr_scalar_argument(u8 argument_index, u64 size);
+
+/**
+ * @brief check if a size is a valid size for a GPR
+ *
+ * @note valid sizes are between 1 and 8 inclusive.
+ *
+ * @param size the size to check
+ * @return true if the size is valid, false otherwise
+ */
+bool x86_64_gpr_valid_size(u64 size);
+
+/**
+ * @brief check if a GPR is a sized GPR
+ *
+ * @note the generic GPR enumerations are not considered sized,
+ * they are used as a size agnostic way to refer to a GPR. for instance
+ * X86_64_GPR_rAX is not sized, but X86_64_GPR_RAX is sized.
+ * The rAX, rBX, etc. naming convention is used in the official
+ * Intel and AMD documentation to refer to the 8-bit, 16-bit, 32-bit,
+ * and 64-bit variants of a register as a whole.
+ *
+ * @param gpr the GPR to check
+ * @return true if the GPR is sized, false otherwise
+ */
+bool x86_64_gpr_is_sized(x86_64_GPR gpr);
+
+/**
+ * @brief check if two GPRs refer to the same register.
+ *
+ * @note two registers A and B overlap iff they refer to the same register.
+ * Not necessarily that they are the same enumeration.
+ * GPRs are enumerated in such a way that this can be checked by simple
+ * arithmetic. So it's not much worse than the integer equality.
+ *
+ * @param A the first GPR
+ * @param B the second GPR
+ * @return true if the GPRs overlap, false otherwise
+ */
+bool x86_64_gpr_overlap(x86_64_GPR A, x86_64_GPR B);
+
+/**
+ * @brief get the size of a GPR
+ *
+ * @note the size is only valid for GPRs that are sized.
+ * and it is not valid to pass in the unsized enumerations.
+ *
+ * @param gpr the GPR to get the size of
+ * @return the size of the GPR
+ */
+u8 x86_64_gpr_size(x86_64_GPR gpr);
+
+/**
+ * @brief get the index of a GPR
+ *
+ * @note the index is valid for all GPRs, sized and unsized.
+ *
+ * @param gpr the GPR to get the index of
+ * @return the index of the GPR
+ */
+u8 x86_64_gpr_index(x86_64_GPR gpr);
 
 #endif // !EXP_BACKEND_X64_GPR_H

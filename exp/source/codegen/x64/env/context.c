@@ -218,7 +218,8 @@ void x64_context_reallocate_active(x64_Context *x64_context,
         current_allocator(x64_context), active, current_x64_bc(x64_context));
 }
 
-u8 x64_context_aquire_any_gpr(x64_Context *x64_context, u64 Idx) {
+x86_64_GPR
+x64_context_aquire_any_gpr(x64_Context *x64_context, u64 size, u64 Idx) {
     return x64_allocator_aquire_any_gpr(
-        current_allocator(x64_context), Idx, current_x64_bc(x64_context));
+        current_allocator(x64_context), size, Idx, current_x64_bc(x64_context));
 }

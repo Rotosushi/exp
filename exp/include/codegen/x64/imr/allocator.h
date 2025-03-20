@@ -112,8 +112,9 @@ void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
 u8 x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                      x64_Bytecode *restrict x64bc);
 
-u8 x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
-                                u64 Idx,
-                                x64_Bytecode *restrict x64bc);
+x86_64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
+                                        u64 size,
+                                        u64 Idx,
+                                        x64_Bytecode *restrict x64bc);
 
 #endif // !EXP_BACKEND_X64_ALLOCATOR_H

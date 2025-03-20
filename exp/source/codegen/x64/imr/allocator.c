@@ -492,7 +492,10 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
     // initialize the new allocation
     if ((active->location.kind == LOCATION_ADDRESS) &&
         (new->location.kind == LOCATION_ADDRESS)) {
-        x86_64_GPR gpr = x64_allocator_aquire_any_gpr(allocator, Idx, x64bc);
+        u64 size = size_of(new->type);
+        exp_assert(x86_64_gpr_valid_size(size));
+        x86_64_GPR gpr =
+            x64_allocator_aquire_any_gpr(allocator, size, Idx, x64bc);
         x64_bytecode_append(
             x64bc, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(active)));
         x64_bytecode_append(
@@ -575,20 +578,31 @@ void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
 u8 x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
                                      x64_Bytecode *restrict x64bc) {
     x64_Allocation *oldest = x64_gprp_oldest_allocation(&allocator->gprp);
-    exp_assert(oldest != NULL);
+    if (oldest == NULL) {
+        u8 gpr_index;
+        if (x64_gprp_any_available(&allocator->gprp, &gpr_index)) {
+            return gpr_index;
+        }
+
+        EXP_UNREACHABLE();
+    }
     x86_64_GPR gpr = oldest->location.gpr;
     x64_allocator_spill_allocation(allocator, oldest, x64bc);
     return x86_64_gpr_index(gpr);
 }
 
-u8 x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
-                                u64 Idx,
-                                x64_Bytecode *restrict x64bc) {
+x86_64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
+                                        u64 size,
+                                        u64 Idx,
+                                        x64_Bytecode *restrict x64bc) {
+    exp_assert(x86_64_gpr_valid_size(size));
     x64_allocator_release_expired_lifetimes(allocator, Idx);
 
     u8 gpr = 0;
-    if (x64_gprp_any_available(&allocator->gprp, &gpr)) { return gpr; }
+    if (x64_gprp_any_available(&allocator->gprp, &gpr)) {
+        return x86_64_gpr_with_size(gpr, size);
+    }
 
     gpr = x64_allocator_spill_oldest_active(allocator, x64bc);
-    return gpr;
+    return x86_64_gpr_with_size(gpr, size);
 }

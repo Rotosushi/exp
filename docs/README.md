@@ -1,5 +1,6 @@
+# README
 
-exp is designed as a fairly standard compiler. 
+exp is designed as a fairly standard compiler.
 compilation takes place in a few stages
 
 1. scanning
@@ -8,21 +9,21 @@ compilation takes place in a few stages
 4. assembling
 5. linking
 
-scanning consists of
+[[Scanning]] consists of:
 
 1. [[lexing]]
 2. [[parsing]]
 
-analysis consists of 
+[[Analysis]] consists of:
 
 1. [[typechecking]]
 
-codegen consists of 
+[[Codegen]] consists of:
 
-* [[register allocation]]
-* [[instruction selection]]
+1. [[register allocation]]
+2. [[instruction selection]]
 
-assembling consists of 
+assembling consists of:
 
 * a fork/exec which dispatches the task to [[as]]
 	* generally provided by GNU [[as]] from the GNU [[binutils]]
@@ -40,23 +41,11 @@ language constructs can be supported. However, in return we completely avoid the
 spacetime overhead of the tree like structure of the [[AST]].
 If it is not too restrictive a constraint I am keeping this design decision going forward.
 
-## language 
+## [[Language]]
 
-* The type system of the compiler is a standard static type system.
-	* We don't currently support user defined types, other than functions and tuples.
-	* We don't currently support polymorphism. (Though strictly speaking tuples are a polymorphic type.)
-* we only support local constants, defined with the "const" keyword
-* we only support a single integer type "i64".
-* we only support the five basic arithmetic operations "+ - * / %"
-* we only support two control flow structures: call and return
-* we support functions, with up to 255 arguments and 1 return value
-* we support tuples with up to 2^32 elements
-* we do not support assignment currently, it is planned to be supported
-* we do not support global constants, these are planned. Global Variables are as well though these are only as strictly necessary.
+## [[Codegen]]
 
-## code generation
-
-or less formally, codegen, is handled with the classical substitution technique (also called macro substitution) whereby each bytecode instruction is simply substituted by an equivalent or series of equivalent target language instructions. This is what passes for "Instruction Selection" within the compiler. Given that data must be worked on in registers we must provide "Register Allocation" and for that we use an adaptation of the Linear Scan technique. which can loosely be described as "use the next available register." All local variables are allocated on the heap, including temporaries which are 
+Codegen is handled with a variant of the classical substitution technique (also called macro substitution) whereby each bytecode instruction is simply substituted by an equivalent or series of equivalent target language instructions. This is what passes for "Instruction Selection" within the compiler. Given that data must be worked on in registers we must provide "Register Allocation" and for that we use an adaptation of the Linear Scan technique. which can loosely be described as "use the next available register." All local variables are allocated on the heap, including temporaries which are 
 too large to fit within a single register.
 
 There are a few points I am considering
@@ -66,3 +55,8 @@ There are a few points I am considering
 * It is arduous to define our own code generation. Error prone, Highly delicate and extremely complex, it holds not one but three NP hard problems and they are interdependent. This is both the reason why I am doing this project, and the reason why any serious compiler should depend on LLVM to use the work that others have already done. The best way to learn is by doing, and that is what I intend to do. I have no expectations that the code quality will approach anything as good as what LLVM can do, unless I somehow spend several lifetimes working on just this aspect of the compiler. And doing that for my own bespoke language is actually pointless, when languages like Zig, Rust and Nim exist which fill in the inadequacies of C better than, or equivalent to what I can come up with myself.
 * I am using C simply due to it's ubiquitous support in the Linux ecosystem. It is also a language I am already comfortable with using. Also it forces me into the position of writing much of what I need from scratch, which is the best way to learn. I really like Zig for it's simplicity. I appreciate what Rust is doing as well. I haven't looked at other languages nearly as much as I have studied these two, and neither of those as much as I have C/C++.
 * Why not C++? simply because I wanted to have less support, and thus more that I had to support myself, and thus more that I had to learn. Was this a smart choice? from the perspective of a compiler that other people would be interested in using, I would say no, absolutely not. The thing barely works and has nearly zero features. From the perspective of what I have learned, I would say yes, though mostly in the realm of the code generation aspects, and the finer details of how we lower the IR. Having written multiple compilers using C++ It is far too easy to reach for large expensive abstractions to accomplish a task, whereas in C construction of the large complex abstraction is itself a large complex task, and thus dissuades one from taking that route. 
+
+## [[Targets]]
+
+We only support x86-64 Linux System-V ELF
+
