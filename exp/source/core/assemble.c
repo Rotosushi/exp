@@ -33,5 +33,5 @@ i32 assemble(Context *restrict context) {
         NULL,
     };
 
-    return process("as", args);
+    return process("as", 4, args);
 }

@@ -24,10 +24,10 @@
  *
  * @warning args must have a NULL at the end
  *
- * @param file
+ * @param executable
  * @param args
  * @return i32
  */
-i32 process(char const *file, char const *args[]);
+i32 process(char const *executable, i32 argc, char const *argv[]);
 
 #endif // !EXP_UTILITY_PROCESS_H

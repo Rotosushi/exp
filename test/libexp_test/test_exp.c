@@ -43,12 +43,12 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     file_close(file);
 
     char const *exp_args[] = {exp_path, source_path.ptr, NULL};
-    i32 exp_result         = process(exp_path, exp_args);
+    i32 exp_result         = process(exp_path, 2, exp_args);
     result |= exp_result;
 
     if (result == EXIT_SUCCESS) {
         char const *test_args[] = {exe_path, NULL};
-        i32 test_result         = process(exe_path, test_args);
+        i32 test_result         = process(exe_path, 1, test_args);
         if (test_result != expected_code) {
             file_write(SV("expected code: "), stderr);
             file_write_i64(expected_code, stderr);
@@ -102,13 +102,13 @@ i32 test_source(StringView path) {
     u8 exit_code = parse_exit_code(path);
 
     char const *exp_args[] = {exp_path, path.ptr, nullptr};
-    if (process(exp_path, exp_args) == EXIT_FAILURE) {
+    if (process(exp_path, 2, exp_args) == EXIT_FAILURE) {
         string_destroy(&exe_string);
         return EXIT_FAILURE;
     }
 
     char const *test_args[] = {exe_path, nullptr};
-    i32 test_result         = process(exe_path, test_args);
+    i32 test_result         = process(exe_path, 1, test_args);
     if (test_result != exit_code) {
         string_destroy(&exe_string);
         file_write(SV("\ntest resource: "), stderr);

@@ -41,5 +41,5 @@ i32 link(Context *restrict context) {
         NULL,
     };
 
-    return process("ld", args);
+    return process("ld", 7, args);
 }

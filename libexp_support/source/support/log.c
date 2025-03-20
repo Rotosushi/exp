@@ -38,7 +38,6 @@ void exp_log(LogLevel level,
              u64 line,
              StringView message,
              FILE *restrict stream) {
-    exp_assert(file != NULL);
     exp_assert(stream != NULL);
     file_write(SV("["), stream);
 
