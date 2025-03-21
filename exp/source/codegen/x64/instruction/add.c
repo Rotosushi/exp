@@ -37,6 +37,11 @@ static void x64_codegen_add_ssa(Instruction I,
         // if B or C is in a gpr we use it as the allocation point of A
         // and the destination operand of the x64 add instruction.
         // this is to try and keep the result, A, in a register.
+        // We must be careful to not use a memory operand as the destination
+        // of the x64 add instruction since that would modify the value
+        // of the local variable. And since function arguments are also
+        // constant, and these may be passed in registers, we can overwrite
+        // their value if we are not careful.
         if (B->location.kind == LOCATION_GPR) {
             x64_Allocation *A = x64_context_allocate_from_active(
                 context, local, B, block_index);

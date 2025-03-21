@@ -475,7 +475,6 @@ static bool function(Operand *result, Parser *parser, Context *context) {
     String buffer = string_create();
     string_append(&buffer, SV("parsed function: "));
     string_append(&buffer, name);
-    string_append(&buffer, SV("\n"));
     print_function_body(&buffer, body, context);
     string_append(&buffer, SV("\n"));
     file_write(string_to_view(&buffer), stderr);

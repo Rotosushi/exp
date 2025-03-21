@@ -45,6 +45,27 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
     return lifetiems->buffer + ssa;
 }
 
+static void lifetimes_compute_A(OperandKind A_kind,
+                                OperandData A_data,
+                                u64 block_index,
+                                Lifetimes *lifetimes) {
+    switch (A_kind) {
+    case OPERAND_KIND_SSA: {
+        Lifetime *lifetime = lifetimes_at(lifetimes, A_data.ssa);
+        // #NOTE that since operand A declares and defines any SSA local,
+        // it is always the first use of that SSA local. And since we
+        // only every have one instruction that defines a SSA local, we can
+        // unconditionally set the first use to the current block index.
+        // This is true if we walk the bytecode forward or backward.
+        lifetime->first_use = block_index;
+        break;
+    }
+
+    // Operand A is always an SSA local, as of right now.
+    default: EXP_UNREACHABLE();
+    }
+}
+
 static void lifetimes_compute_operand(OperandKind kind,
                                       OperandData data,
                                       u64 block_index,
@@ -93,6 +114,7 @@ static void lifetimes_compute_AB(Instruction I,
                                  u64 block_index,
                                  Lifetimes *lifetimes,
                                  Context *context) {
+    lifetimes_compute_A(I.A_kind, I.A_data, block_index, lifetimes);
     lifetimes_compute_operand(
         I.A_kind, I.A_data, block_index, lifetimes, context);
     lifetimes_compute_operand(
@@ -103,6 +125,7 @@ static void lifetimes_compute_ABC(Instruction I,
                                   u64 block_index,
                                   Lifetimes *lifetimes,
                                   Context *context) {
+    lifetimes_compute_A(I.A_kind, I.A_data, block_index, lifetimes);
     lifetimes_compute_operand(
         I.A_kind, I.A_data, block_index, lifetimes, context);
     lifetimes_compute_operand(
