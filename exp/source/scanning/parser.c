@@ -472,12 +472,14 @@ static bool function(Operand *result, Parser *parser, Context *context) {
 
     if (!parse_block(result, parser, context)) { return false; }
 
-#if EXP_DEBUG
-    file_write("parsed a function: \nfn ", stdout);
-    print_string_view(name, stdout);
-    print_function_body(body, stdout, c);
-    file_write("\n", stdout);
-#endif
+    String buffer = string_create();
+    string_append(&buffer, SV("parsed function: "));
+    string_append(&buffer, name);
+    string_append(&buffer, SV("\n"));
+    print_function_body(&buffer, body, context);
+    string_append(&buffer, SV("\n"));
+    file_write(string_to_view(&buffer), stderr);
+    string_destroy(&buffer);
 
     context_leave_function(context);
     return true;

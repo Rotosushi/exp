@@ -23,6 +23,7 @@ typedef enum CLIFlags {
     CLI_DO_ASSEMBLE,
     CLI_DO_LINK,
     CLI_DO_CLEANUP,
+    CLI_TRACE, // #TODO
 } CLIFlags;
 
 typedef struct CLIOptions {

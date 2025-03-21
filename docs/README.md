@@ -60,3 +60,14 @@ There are a few points I am considering
 
 We only support x86-64 Linux System-V ELF
 
+## Curiosities
+
+Why the name "exp"?
+
+in short, because I am writing this program for the "exp"erience.
+But it amuses me that it is also a language full of "exp"ressions.
+and I can use it to "exp"lore the design space of programming languages.
+I don't consider myself an "exp"ert, but working on this project might 
+just "exp"idite the process. Putting this project out there for anyone to 
+see and critique does make me feel "exp"osed.
+

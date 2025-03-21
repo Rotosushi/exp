@@ -51,6 +51,11 @@ static void x64_gprp_release(x64_GPRP *restrict gprp, x86_64_GPR gpr) {
     gprp->buffer[x86_64_gpr_index(gpr)] = NULL;
 }
 
+static void x64_gprp_release_index(x64_GPRP *restrict gprp, u8 gpr_index) {
+    CLR_BIT(gprp->bitset, gpr_index);
+    gprp->buffer[gpr_index] = NULL;
+}
+
 static bool x64_gprp_any_available(x64_GPRP *restrict gprp,
                                    u8 *restrict gpr_index) {
     for (u8 i = 0; i < 16; ++i) {
@@ -165,7 +170,9 @@ static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
         x64_Allocation *cursor = gprp->buffer[i];
         if (cursor == NULL) { continue; }
 
-        if (cursor->lifetime.last_use < Idx) { x64_gprp_release(gprp, i); }
+        if (cursor->lifetime.last_use < Idx) {
+            x64_gprp_release_index(gprp, i);
+        }
     }
 }
 

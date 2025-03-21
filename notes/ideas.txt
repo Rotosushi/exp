@@ -3,10 +3,10 @@
 
 After modifying the parser unit_tests to parse all of the resources in the 
 test resources file I noticed that the difference between the runtimes of 
-the parser unit tests and the compile all test resources and test the 
-exit code of the emitted program is really large. 
+the "parser all resources test" and the "compile all test resources and test the 
+exit code of the emitted programs" is really large. 
 
-parser unit tests: ~3ms
+parse all resources: ~3ms
 test all resources: ~345ms
 
 (in a release build)
@@ -17,21 +17,47 @@ The relative change is
 which means it takes 11,400% more time to complete.
 
 now, test all resources does a lot more work. first it has to compile the 
-program (which is inclusive of running the parser unit tests),
+program (which is inclusive of parsing the resource),
 then run the assembler, then the linker. My thinking is that most 
-of the added time must be coming from the fact that we fork/exec the compiler,
-the assembler, the linker, and the final executable. 
+of the added time is coming from the fact that we fork/exec the compiler,
+the assembler, the linker, and the final executable. Which is 4 OS context switches,
+plus the runtimes of each of those programs. 
 
 the main way to mitigate this would be to embed an assembler and a linker into 
 the compiler. Then we only have to pay the cost of interfacing with the filesystem.
-which can be further reduced by pooling those resources.
+which can be further reduced by pooling those resources, or never generating intermediate 
+files at all. However the usage of intermediate files allows for compilation and assembly 
+to occur in parallel as we compile a large project composed of many source files. Which 
+seems like a potential speed-up over forcing single threaded compilation, even when considering 
+paying the cost of a fork/exec.
+
+it feels worth mentioning that projects like LLVM do embed an x86 assembler directly into the compiler.
+(#TODO remember the source that I heard this from.) Precisely because it represents a major speedup.
+(Think about it, with an embedded assembler,
+ instead of x86 IR -> x86 ASM -> x86 OBJ -> x86 EXE/LIB,
+ you can go x86 IR -> x86 OBJ -> x86 EXE/LIB.
+ with an embedded linker as well,
+ you can go x86 IR -> x86 EXE/LIB.
+ though with the caveat that you have to use Thread instead of Process Parellism, 
+ meaning the runtime size of your program must include the full size of the emitted 
+ EXE/LIB. If you have a buffer per intermediate OBJ, can you modify them in-place?
+ )
 
 There are a few projects which could be used for this, without requiring something 
 bespoke. 
 
-(zydis)[https://github.com/zyantific/zydis]
 
-(mold)[https://github.com/rui314/mold]
+(zydis)[https://github.com/zyantific/zydis]:
+a fully featured x86-64 (and x86-32) assembler/dissassembler, in C, with no other deps. very nice!
+the only information it does not include per-instruction is the CPU specific timing, and resource 
+utilization, so it cannot be used as-is to do cost-analysis or resource-utilization-analysis.
+
+(mold)[https://github.com/rui314/mold]:
+a fully featured ELF linker, in C++. which is very fast. C++ is easier to integrate than most other languages 
+however, it would still a challenge.
+
+I am not convinced that this issue is large enough to warrant work, given the pressing nature of all of 
+the other deficiencies in the compiler. However it still feels worth mentioning.
 
 
 /-----------------------------------------------------------------------------
@@ -59,12 +85,12 @@ are talking about.
 
 /-------------------------------------------------------------------------------
 
-
+What if:
 when you return multiple types out of a function with an implied return type, those
-multiple types are placed into a sum type. Thus the function is primed to be pattern
+multiple types are placed into a product type. Thus the function is primed to be pattern
 matched over.
 
-This is seemingly a good idea.we use sum types wherever we have multiple kinds of types
+This is seemingly a good idea. we use product types wherever we have multiple kinds of types
 to be returned. The only thing about C is that you explicitly create a tag, and use an
 union type, and explicitly call out that you are switching over the tag. and you
 have to roll the if statements or further switches inside the case to further
@@ -104,19 +130,29 @@ implicit enums also allow for multiple return, as a product type. (xor)
 
 you know "or" doesn't have a well known type, but semantically I
 would imagine it as a tuple where each member was implicitly an optional type.
-"the type is zero or more of these alternatives, at the same moment in time"
+"the type is zero or more of these alternatives, at any given moment in time"
 bitmask types work like this. an "or" type could have the same layout as a tuple, 
-plus a comptime length bitmask of "presence" of any given member. so like, the size 
+plus a comptime length bitmask of "presence" of any given member. so for a single element,
+its equivalent to the option<T> type present in many languages. It can be stored using the size 
 of the equivalent struct plus a byte, but since it's the compiler, that byte, or bytes,
-can be placed in, or split acrost, any padding of the struct.
+can be placed in, or split across, any padding of the struct.
 
-functions have the C type: <void * (*)(void *)> as far as I understand it,
-thats what the type * -> * is/means, semantically.
-or maybe more accurately in C++ <T (*)(U)>
-it's just that the C compiler lets you implicitly pass a tuple of arguments, instead of 
-always forcing you to wrap them all into a type, unlike with it's return type, where it 
-must be a single type. thus you have to use structs to return multiple out of a function.
-and C++ inherits this syntax.
+functions in the most general sense have the type * -> *, which is roughly equivalent to 
+the C type: <void * (*)(void *)> as far as I understand it.
+thats what the type * -> * is/means, semantically. (or maybe more accurately in C++ <T (*)(U)>)
+it's just that the C compiler lets you implicitly pass a tuple of arguments instead of 
+always forcing you to wrap them all into a type. and return a scalar value out via a register 
+instead of by pointer. Composite types too large to fit within a register are passed out via 
+a hidden reference, (which is what i am referring to with the "void *" return type above)
+However the return type is not symmetric with the "tuple" of arguments, as it must be a single
+type. thus you have to use structs to return multiple values out of a function.
+and C++ inherits this syntax. It is convienent to return out a tuple, which allows for something 
+that looks and feels sytactically like multiple return values, however under the hood can 
+be handled exactly the same as returning a uniquely named structure type.
+
+This is where the implicit enum type comes from, we can simply generalize this idea further, and 
+allow for something that looks like returning multiple Types out of the function, but in reality 
+acts just like an uniquely named enum type. (product type, union type, whatever you want to call it).
 
 
 /--------------------------------------------------------------------------------
