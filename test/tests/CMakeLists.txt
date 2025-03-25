@@ -17,6 +17,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set (TestsToRun 
+exp_byte_tests.c
 cli_options_tests.c
 cli_option_parser_tests.c
 constants_tests.c
@@ -37,10 +38,11 @@ add_executable (exp_tests ${Tests})
 target_include_directories(exp_tests PUBLIC 
   ${EXP_INCLUDE_DIR}
   ${EXP_TEST_DIR}/libexp_test
+  ${EXP_LIBEXP_RUNTIME_DIR}/include
 )
 target_compile_options(exp_tests PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_tests PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_tests PUBLIC exp_common exp_test m)
+target_link_libraries(exp_tests PUBLIC exp_common exp_test exp_runtime m)
 
 foreach (test ${TestsToRun})
   get_filename_component (TestName ${test} NAME_WE)

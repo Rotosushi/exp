@@ -9,11 +9,11 @@
 _exp_byte_copy:
   // if count == 0: return
   testq %rdx, %rdx
-  jz done
+  jz byte_done
   // the rep prefix implicitly uses %rcx as the count register
   movq  %rdx, %rcx
   rep movsb
-done:
+byte_done:
   ret
 .size _exp_byte_copy, .-_exp_byte_copy
 
@@ -22,7 +22,7 @@ done:
 _exp_byte_copy_word:
   // if count == 0: return
   testq %rdx, %rdx
-  jz done
+  jz word_done
 
   movq  %rdx, %rcx
   shrq  $3, %rcx
@@ -31,7 +31,7 @@ _exp_byte_copy_word:
   movq  %rdx, %rcx
   andq  $7, %rcx
   rep movsb
-done:
+word_done:
   ret
 .size _exp_byte_copy_word, .-_exp_byte_copy_word
 
