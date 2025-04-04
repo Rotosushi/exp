@@ -71,6 +71,13 @@ StringView context_intern(Context *context, StringView sv);
 // type interner functions
 Type *context_nil_type(Context *context);
 Type *context_boolean_type(Context *context);
+Type *context_u8_type(Context *context);
+Type *context_u16_type(Context *context);
+Type *context_u32_type(Context *context);
+Type *context_u64_type(Context *context);
+Type *context_i8_type(Context *context);
+Type *context_i16_type(Context *context);
+Type *context_i32_type(Context *context);
 Type *context_i64_type(Context *context);
 Type *context_tuple_type(Context *context, TupleType tuple);
 Type *context_function_type(Context  *context,

@@ -26,6 +26,13 @@ typedef enum ValueKind {
 
     VALUE_KIND_NIL,
     VALUE_KIND_BOOLEAN,
+    VALUE_KIND_U8,
+    VALUE_KIND_U16,
+    VALUE_KIND_U32,
+    VALUE_KIND_U64,
+    VALUE_KIND_I8,
+    VALUE_KIND_I16,
+    VALUE_KIND_I32,
     VALUE_KIND_I64,
 
     VALUE_KIND_TUPLE,
@@ -34,8 +41,8 @@ typedef enum ValueKind {
 struct Value;
 
 typedef struct Tuple {
-    u64 size;
-    u64 capacity;
+    u64      size;
+    u64      capacity;
     Operand *elements;
 } Tuple;
 
@@ -46,18 +53,25 @@ typedef struct Tuple {
 typedef struct Value {
     ValueKind kind;
     union {
-        bool nil;
-        bool boolean;
-        i64 i64_;
+        bool  nil;
+        bool  boolean;
+        u8    u8_;
+        u16   u16_;
+        u32   u32_;
+        u64   u64_;
+        i8    i8_;
+        i16   i16_;
+        i32   i32_;
+        i64   i64_;
         Tuple tuple;
     };
 } Value;
 
 Tuple tuple_create();
-void tuple_destroy(Tuple *restrict tuple);
-void tuple_assign(Tuple *restrict A, Tuple *restrict B);
-bool tuple_equal(Tuple *A, Tuple *B);
-void tuple_append(Tuple *restrict tuple, Operand element);
+void  tuple_destroy(Tuple *restrict tuple);
+void  tuple_assign(Tuple *restrict A, Tuple *restrict B);
+bool  tuple_equal(Tuple *A, Tuple *B);
+void  tuple_append(Tuple *restrict tuple, Operand element);
 
 /**
  * @brief create an uninitialized value
@@ -84,7 +98,63 @@ Value value_create_nil();
 Value value_create_boolean(bool b);
 
 /**
- * @brief create an Integer value
+ * @brief create an Unsigned 8 bit value
+ *
+ * @param u
+ * @return Value
+ */
+Value value_create_u8(u8 u);
+
+/**
+ * @brief create an Unsigned 16 bit value
+ *
+ * @param u
+ * @return Value
+ */
+Value value_create_u16(u16 u);
+
+/**
+ * @brief create an Unsigned 32 bit value
+ *
+ * @param u
+ * @return Value
+ */
+Value value_create_u32(u32 u);
+
+/**
+ * @brief create an Unsigned 64 bit value
+ *
+ * @param u
+ * @return Value
+ */
+Value value_create_u64(u64 u);
+
+/**
+ * @brief create a Signed 8 bit value
+ *
+ * @param i
+ * @return Value
+ */
+Value value_create_i8(i8 i);
+
+/**
+ * @brief create a Signed 16 bit value
+ *
+ * @param i
+ * @return Value
+ */
+Value value_create_i16(i16 i);
+
+/**
+ * @brief create a Signed 32 bit value
+ *
+ * @param i
+ * @return Value
+ */
+Value value_create_i32(i32 i);
+
+/**
+ * @brief create an Signed 64 bit value
  *
  * @param i
  * @return Value
@@ -116,6 +186,9 @@ void value_assign(Value *dest, Value *source);
  * @return false
  */
 bool value_equality(Value *v1, Value *v2);
+
+bool value_is_index(Value const *v);
+u64  value_as_index(Value const *v);
 
 struct Context;
 void print_value(String *restrict string,

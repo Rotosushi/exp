@@ -87,31 +87,50 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B) {
 }
 
 Type type_create_nil() {
-    Type type = {.kind = TYPE_KIND_NIL, .scalar_type = 0};
-    return type;
+    return (Type){.kind = TYPE_KIND_NIL, .scalar_type = 0};
 }
 
 Type type_create_boolean() {
-    Type type = {.kind = TYPE_KIND_BOOLEAN, .scalar_type = 0};
-    return type;
+    return (Type){.kind = TYPE_KIND_BOOLEAN, .scalar_type = 0};
+}
+
+Type type_create_u8() { return (Type){.kind = TYPE_KIND_U8, .scalar_type = 0}; }
+
+Type type_create_u16() {
+    return (Type){.kind = TYPE_KIND_U16, .scalar_type = 0};
+}
+
+Type type_create_u32() {
+    return (Type){.kind = TYPE_KIND_U32, .scalar_type = 0};
+}
+
+Type type_create_u64() {
+    return (Type){.kind = TYPE_KIND_U64, .scalar_type = 0};
+}
+
+Type type_create_i8() { return (Type){.kind = TYPE_KIND_I8, .scalar_type = 0}; }
+
+Type type_create_i16() {
+    return (Type){.kind = TYPE_KIND_I16, .scalar_type = 0};
+}
+
+Type type_create_i32() {
+    return (Type){.kind = TYPE_KIND_I32, .scalar_type = 0};
 }
 
 Type type_create_i64() {
-    Type type = {.kind = TYPE_KIND_I64, .scalar_type = 0};
-    return type;
+    return (Type){.kind = TYPE_KIND_I64, .scalar_type = 0};
 }
 
-Type type_create_tuple(TupleType tuple_type) {
-    Type type = {.kind = TYPE_KIND_TUPLE, .tuple_type = tuple_type};
-    return type;
+Type type_create_tuple(TupleType tuple) {
+    return (Type){.kind = TYPE_KIND_TUPLE, .tuple_type = tuple};
 }
 
 Type type_create_function(Type *result, TupleType args) {
-    Type type = {
+    return (Type){
         .kind          = TYPE_KIND_FUNCTION,
         .function_type = (FunctionType){result, args}
     };
-    return type;
 }
 
 void type_destroy(Type *type) {
@@ -149,13 +168,41 @@ bool type_is_scalar(Type const *T) {
     switch (T->kind) {
     case TYPE_KIND_NIL:
     case TYPE_KIND_BOOLEAN:
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64:
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
     case TYPE_KIND_I64:     return true;
 
     // a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
-    // and a tuple type of length 0 or 1 is never created.
     case TYPE_KIND_TUPLE:
     default:              return false;
+    }
+}
+
+bool type_is_index(Type const *T) {
+    switch (T->kind) {
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64:
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64: return true;
+
+    default: return false;
+    }
+}
+
+bool type_is_callable(Type const *T) {
+    switch (T->kind) {
+    case TYPE_KIND_FUNCTION: return true;
+    default:                 return false;
     }
 }
 

@@ -22,10 +22,10 @@
 #include "support/string_view.h"
 
 typedef struct FormalArgument {
-    StringView name;
-    Type      *type;
-    u8         index;
-    u32        ssa;
+    StringView  name;
+    Type const *type;
+    u8          index;
+    u32         ssa;
 } FormalArgument;
 
 typedef struct FormalArgumentList {
@@ -42,9 +42,9 @@ FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
                                             StringView name);
 
 typedef struct LocalVariable {
-    StringView name;
-    Type      *type;
-    u32        ssa;
+    StringView  name;
+    Type const *type;
+    u32         ssa;
 } LocalVariable;
 
 typedef struct LocalVariables {

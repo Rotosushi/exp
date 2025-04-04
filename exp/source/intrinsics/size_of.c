@@ -27,11 +27,18 @@ u64 size_of(Type *restrict type) {
     switch (type->kind) {
     case TYPE_KIND_NIL:     return 1;
     case TYPE_KIND_BOOLEAN: return 1;
+    case TYPE_KIND_U8:      return 1;
+    case TYPE_KIND_U16:     return 2;
+    case TYPE_KIND_U32:     return 4;
+    case TYPE_KIND_U64:     return 8;
+    case TYPE_KIND_I8:      return 1;
+    case TYPE_KIND_I16:     return 2;
+    case TYPE_KIND_I32:     return 4;
     case TYPE_KIND_I64:     return 8;
 
     case TYPE_KIND_TUPLE: {
         TupleType *tuple = &type->tuple_type;
-        u64 acc          = 0;
+        u64        acc   = 0;
         for (u64 i = 0; i < tuple->size; ++i) {
             acc += size_of(tuple->types[i]);
         }

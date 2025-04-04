@@ -105,6 +105,41 @@ Type *context_boolean_type(Context *context) {
     return type_interner_boolean_type(&(context->type_interner));
 }
 
+Type *context_u8_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u8_type(&(context->type_interner));
+}
+
+Type *context_u16_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u16_type(&(context->type_interner));
+}
+
+Type *context_u32_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u32_type(&(context->type_interner));
+}
+
+Type *context_u64_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u64_type(&(context->type_interner));
+}
+
+Type *context_i8_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i8_type(&(context->type_interner));
+}
+
+Type *context_i16_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i16_type(&(context->type_interner));
+}
+
+Type *context_i32_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i32_type(&(context->type_interner));
+}
+
 Type *context_i64_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i64_type(&(context->type_interner));

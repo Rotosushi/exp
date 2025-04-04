@@ -18,6 +18,7 @@
  */
 #include "env/error.h"
 #include "support/ansi_colors.h"
+#include "support/log.h"
 #include "support/unreachable.h"
 
 StringView error_code_to_view(ErrorCode code) {
@@ -89,6 +90,11 @@ void error_destroy(Error *restrict error) {
 void error_assign(Error *restrict error, ErrorCode code, StringView sv) {
     error->code = code;
     string_assign(&error->message, sv);
+}
+
+void error_assign_string(Error *restrict error, ErrorCode code, String str) {
+    error->code    = code;
+    error->message = str;
 }
 
 void error_print(Error *restrict error, StringView file, u64 line) {

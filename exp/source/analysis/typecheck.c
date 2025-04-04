@@ -21,150 +21,198 @@
 #include <stdlib.h>
 
 #include "analysis/typecheck.h"
+#include "env/context.h"
 #include "env/error.h"
+#include "imr/type.h"
 #include "intrinsics/type_of.h"
 #include "support/unreachable.h"
 
-typedef struct TResult {
-    bool has_error;
-    union {
-        Error error;
-        Type *type;
-    };
-} TResult;
-
-static void tresult_destroy(TResult *restrict tr) {
-    if (tr->has_error) { error_destroy(&tr->error); }
+static bool success(Type const **result, Type const *type) {
+    *result = type;
+    return true;
 }
 
-static TResult error(ErrorCode code, String msg) {
-    TResult result = {.has_error = 1, .error = error_from_string(code, msg)};
-    return result;
+static bool
+failure(Context *restrict context, ErrorCode code, StringView message) {
+    error_assign(context_current_error(context), code, message);
+    return false;
 }
 
-static TResult success(Type *type) {
-    TResult result = {.has_error = 0, .type = type};
-    return result;
+static bool
+failure_string(Context *restrict context, ErrorCode code, String message) {
+    error_assign_string(context_current_error(context), code, message);
+    return false;
 }
 
-#define try(decl, call)                                                        \
-    Type *decl = NULL;                                                         \
-    {                                                                          \
-        TResult result = call;                                                 \
-        if (result.has_error) { return result; }                               \
-        decl = result.type;                                                    \
-    }                                                                          \
-    assert(decl != NULL)
+static bool failure_type_is_not_callable(Context *restrict context,
+                                         Type const *type) {
+    String buf = string_create();
+    string_append(&buf, SV("Type is not callable ["));
+    print_type(&buf, type);
+    string_append(&buf, SV("]"));
+    return failure_string(context, ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+}
 
-static TResult typecheck_global(Context *restrict c, Symbol *restrict element);
+static bool failure_mismatch_argument_count(Context *restrict context,
+                                            u64 expected,
+                                            u64 actual) {
+    String buf = string_create();
+    string_append(&buf, SV("Expected "));
+    string_append_u64(&buf, expected);
+    string_append(&buf, SV(" arguments, have "));
+    string_append_u64(&buf, actual);
+    return failure_string(context, ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+}
 
-static TResult
-typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
+static bool failure_mismatch_type(Context *restrict context,
+                                  Type const *expected,
+                                  Type const *actual) {
+    String buf = string_create();
+    string_append(&buf, SV("Expected ["));
+    print_type(&buf, expected);
+    string_append(&buf, SV("] Actual ["));
+    print_type(&buf, actual);
+    string_append(&buf, SV("]"));
+    return failure_string(context, ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+}
+
+static bool typecheck_global(Type const **result,
+                             Context *restrict context,
+                             Symbol *restrict element);
+
+static bool typecheck_operand(Type const **result,
+                              Context *restrict context,
+                              OperandKind kind,
+                              OperandData data) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        LocalVariable *local = context_lookup_ssa(c, data.ssa);
-        Type          *type  = local->type;
+        LocalVariable *local = context_lookup_ssa(context, data.ssa);
+        Type const    *type  = local->type;
         if (type == NULL) {
-            return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL,
-                         string_from_view(SV("")));
+            return failure(context, ERROR_TYPECHECK_UNDEFINED_SYMBOL, SV(""));
         }
 
-        return success(type);
+        return success(result, type);
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = context_constants_at(c, data.constant);
-        return success(type_of_value(value, c));
+        Value *value = context_constants_at(context, data.constant);
+        return success(result, type_of_value(value, context));
+    }
+
+    case OPERAND_KIND_U8: {
+        return success(result, context_u8_type(context));
+    }
+
+    case OPERAND_KIND_U16: {
+        return success(result, context_u16_type(context));
+    }
+
+    case OPERAND_KIND_U32: {
+        return success(result, context_u32_type(context));
+    }
+
+    case OPERAND_KIND_U64: {
+        return success(result, context_u64_type(context));
+    }
+
+    case OPERAND_KIND_I8: {
+        return success(result, context_i8_type(context));
+    }
+
+    case OPERAND_KIND_I16: {
+        return success(result, context_i16_type(context));
+    }
+
+    case OPERAND_KIND_I32: {
+        return success(result, context_i32_type(context));
     }
 
     case OPERAND_KIND_I64: {
-        return success(context_i64_type(c));
+        return success(result, context_i64_type(context));
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name   = context_labels_at(c, data.label);
-        Symbol    *global = context_global_symbol_table_at(c, name);
-        Type      *type   = global->type;
+        StringView  name   = context_labels_at(context, data.label);
+        Symbol     *global = context_global_symbol_table_at(context, name);
+        Type const *type   = global->type;
         if (type == NULL) {
-            try(Gty, typecheck_global(c, global));
-            type = Gty;
+            if (!typecheck_global(&type, context, global)) { return false; }
         }
 
-        return success(type);
+        return success(result, type);
     }
 
     default: EXP_UNREACHABLE();
     }
 }
 
-static TResult typecheck_load(Context *restrict c, Instruction I) {
+static bool
+typecheck_load(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-    local->type = Bty;
-    return success(Bty);
+    LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
+    if (!typecheck_operand(&local->type, context, I.B_kind, I.B_data)) {
+        return false;
+    }
+    return success(result, local->type);
 }
 
-static TResult typecheck_ret(Context *restrict c, Instruction I) {
-    return typecheck_operand(c, I.B_kind, I.B_data);
+static bool
+typecheck_ret(Type const **result, Context *restrict context, Instruction I) {
+    return typecheck_operand(result, context, I.B_kind, I.B_data);
 }
 
-static TResult typecheck_call(Context *restrict c, Instruction I) {
+static bool
+typecheck_call(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
+    LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
+    Type const    *Bty;
+    if (!typecheck_operand(&Bty, context, I.B_kind, I.B_data)) { return false; }
 
-    if (Bty->kind != TYPE_KIND_FUNCTION) {
-        String buf = string_create();
-        string_append(&buf, SV("Type is not callable ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    if (!type_is_callable(Bty)) {
+        return failure_type_is_not_callable(context, Bty);
     }
 
-    FunctionType *function_type = &Bty->function_type;
-    TupleType    *formal_types  = &function_type->argument_types;
-    Value        *value         = context_constants_at(c, I.C_data.constant);
+    FunctionType const *function_type = &Bty->function_type;
+    TupleType const    *formal_types  = &function_type->argument_types;
+    assert(I.C_kind == OPERAND_KIND_CONSTANT);
+    Value *value = context_constants_at(context, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_args = &value->tuple;
 
     if (formal_types->size != actual_args->size) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected "));
-        string_append_u64(&buf, formal_types->size);
-        string_append(&buf, SV(" arguments, have "));
-        string_append_u64(&buf, actual_args->size);
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+        return failure_mismatch_argument_count(
+            context, formal_types->size, actual_args->size);
     }
 
     for (u8 i = 0; i < actual_args->size; ++i) {
-        Type   *formal_type = formal_types->types[i];
-        Operand operand     = actual_args->elements[i];
-        try(actual_type, typecheck_operand(c, operand.kind, operand.data));
+        Type const *formal_type = formal_types->types[i];
+        Operand     operand     = actual_args->elements[i];
+        Type const *actual_type;
+        if (!typecheck_operand(
+                &actual_type, context, operand.kind, operand.data)) {
+            return false;
+        }
 
         if (!type_equality(actual_type, formal_type)) {
-            String buf = string_create();
-            string_append(&buf, SV("Expected ["));
-            print_type(&buf, formal_type);
-            string_append(&buf, SV("] Actual ["));
-            print_type(&buf, actual_type);
-            string_append(&buf, SV("]"));
-            return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+            return failure_mismatch_type(context, formal_type, actual_type);
         }
     }
 
     local->type = function_type->return_type;
-    return success(function_type->return_type);
+    return success(result, function_type->return_type);
 }
 
-static bool tuple_index_out_of_bounds(i64 index, TupleType *tuple) {
-    return ((index < 0) || ((u64)index >= tuple->size));
+static bool tuple_index_out_of_bounds(u64 index, TupleType *tuple) {
+    return index >= tuple->size;
 }
 
-static TResult typecheck_dot(Context *restrict c, Instruction I) {
+static bool
+typecheck_dot(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
+    LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
+    Type const    *Bty;
+    if (!typecheck_operand(&Bty, context, I.B_kind, I.B_data)) { return false; }
 
     if (Bty->kind != TYPE_KIND_TUPLE) {
         String buf = string_create();
@@ -175,19 +223,19 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
     }
 
     TupleType *tuple = &Bty->tuple_type;
+    Operand    C     = operand(I.C_kind, I.C_data);
 
-    if (I.C_kind != OPERAND_KIND_I64) {
+    if (!operand_is_index(C)) {
         return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
                      string_from_view(SV("")));
     }
 
-    assert(I.C_kind == OPERAND_KIND_I64);
-    i64 index = I.C_data.i64_;
+    u64 index = operand_as_index(C);
 
     if (tuple_index_out_of_bounds(index, tuple)) {
         String buf = string_create();
         string_append(&buf, SV("The given index "));
-        string_append_i64(&buf, index);
+        string_append_u64(&buf, index);
         string_append(&buf, SV(" is not in the valid range of 0.."));
         string_append_u64(&buf, tuple->size);
         return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, buf);

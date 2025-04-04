@@ -27,9 +27,9 @@ typedef enum SymbolKind {
 } SymbolKind;
 
 typedef struct Symbol {
-    StringView name;
-    Type      *type;
-    SymbolKind kind;
+    StringView  name;
+    Type const *type;
+    SymbolKind  kind;
     union {
         u8       empty;
         Function function_body;
