@@ -356,9 +356,9 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_function(Context *restrict c) {
-    Type         *return_type = NULL;
-    FunctionBody *body        = context_current_function(c);
-    Bytecode     *bc          = &body->bc;
+    Type     *return_type = NULL;
+    Function *body        = context_current_function(c);
+    Bytecode *bc          = &body->bc;
 
     Instruction *ip = bc->buffer;
     for (u16 idx = 0; idx < bc->length; ++idx) {
@@ -462,7 +462,7 @@ static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
         // the function body. This only breaks when we have mutual recursion,
         // otherwise, when the global is successfully typed.
         // the question is, how do we accomplish this?
-        FunctionBody *body = context_enter_function(c, element->name);
+        Function *body = context_enter_function(c, element->name);
 
         try(Rty, typecheck_function(c));
         context_leave_function(c);

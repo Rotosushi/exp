@@ -19,7 +19,7 @@
 #include <assert.h>
 
 #include "codegen/x64/env/context.h"
-#include "codegen/x64/imr/function_body.h"
+#include "codegen/x64/imr/function.h"
 #include "intrinsics/size_of.h"
 #include "support/allocation.h"
 #include "support/panic.h"
@@ -44,16 +44,16 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
     return args->buffer + idx;
 }
 
-x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
-                                          x64_Context *restrict context) {
-    x64_FunctionBody x64_body = {
+x64_Function x64_function_create(Function *restrict body,
+                                 x64_Context *restrict context) {
+    x64_Function x64_body = {
         .arguments = x64_formal_argument_list_create(body->arguments.size),
         .result    = NULL,
         .bc        = x64_bytecode_create(),
         .allocator = x64_allocator_create(body, context->context)};
-    x64_Allocator *allocator = &x64_body.allocator;
-    x64_Bytecode *bc         = &x64_body.bc;
-    LocalVariables *locals   = &body->locals;
+    x64_Allocator  *allocator = &x64_body.allocator;
+    x64_Bytecode   *bc        = &x64_body.bc;
+    LocalVariables *locals    = &body->locals;
 
     u8 scalar_argument_count = 0;
 
@@ -70,11 +70,11 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
 
     i64 offset = 16;
     for (u8 i = 0; i < body->arguments.size; ++i) {
-        FormalArgument *arg  = body->arguments.list + i;
-        LocalVariable *local = local_variables_lookup_ssa(locals, arg->ssa);
+        FormalArgument *arg   = body->arguments.list + i;
+        LocalVariable  *local = local_variables_lookup_ssa(locals, arg->ssa);
 
         if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
-            u64 size = size_of(local->type);
+            u64        size = size_of(local->type);
             x86_64_GPR gpr =
                 x86_64_gpr_scalar_argument(scalar_argument_count++, size);
             x64_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
@@ -93,7 +93,7 @@ x64_FunctionBody x64_function_body_create(FunctionBody *restrict body,
     return x64_body;
 }
 
-void x64_function_body_destroy(x64_FunctionBody *restrict body) {
+void x64_function_destroy(x64_Function *restrict body) {
     assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
     x64_bytecode_destroy(&body->bc);

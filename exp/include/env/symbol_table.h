@@ -17,7 +17,7 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/function_body.h"
+#include "imr/function.h"
 #include "imr/type.h"
 #include "support/string_view.h"
 
@@ -28,22 +28,22 @@ typedef enum SymbolKind {
 
 typedef struct Symbol {
     StringView name;
-    Type *type;
+    Type      *type;
     SymbolKind kind;
     union {
-        u8 empty;
-        FunctionBody function_body;
+        u8       empty;
+        Function function_body;
     };
 } Symbol;
 
 typedef struct SymbolTable {
-    u64 count;
-    u64 capacity;
+    u64      count;
+    u64      capacity;
     Symbol **elements;
 } SymbolTable;
 
 SymbolTable symbol_table_create();
-void symbol_table_destroy(SymbolTable *restrict symbol_table);
+void        symbol_table_destroy(SymbolTable *restrict symbol_table);
 
 /**
  * @brief Return the entry associated with the given key in the

@@ -29,7 +29,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x64/imr/allocation.c
   ${EXP_SOURCE_DIR}/codegen/x64/imr/allocator.c
   ${EXP_SOURCE_DIR}/codegen/x64/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/function_body.c
+  ${EXP_SOURCE_DIR}/codegen/x64/imr/function.c
   ${EXP_SOURCE_DIR}/codegen/x64/imr/instruction.c
   ${EXP_SOURCE_DIR}/codegen/x64/imr/location.c
   ${EXP_SOURCE_DIR}/codegen/x64/imr/operand.c
@@ -55,7 +55,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/scanning/parser.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/imr/function_body.c
+  ${EXP_SOURCE_DIR}/imr/function.c
   ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/operand.c
   ${EXP_SOURCE_DIR}/imr/type.c

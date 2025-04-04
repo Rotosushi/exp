@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "env/context.h"
-#include "imr/function_body.h"
+#include "imr/function.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 
@@ -111,7 +111,7 @@ void local_variables_append(LocalVariables *restrict lv, LocalVariable var) {
 }
 
 static void local_variables_name_ssa(LocalVariables *restrict lv,
-                                     u32 ssa,
+                                     u32        ssa,
                                      StringView name) {
     for (u64 i = 0; i < lv->size; ++i) {
         LocalVariable *var = lv->buffer + i;
@@ -139,16 +139,16 @@ LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv,
     }
     return NULL;
 }
-FunctionBody function_body_create() {
-    FunctionBody function = {.arguments   = formal_argument_list_create(),
-                             .locals      = local_variables_create(),
-                             .return_type = NULL,
-                             .bc          = bytecode_create(),
-                             .ssa_count   = 0};
+Function function_create() {
+    Function function = {.arguments   = formal_argument_list_create(),
+                         .locals      = local_variables_create(),
+                         .return_type = NULL,
+                         .bc          = bytecode_create(),
+                         .ssa_count   = 0};
     return function;
 }
 
-void function_body_destroy(FunctionBody *restrict function) {
+void function_destroy(Function *restrict function) {
     assert(function != NULL);
     formal_argument_list_destroy(&function->arguments);
     local_variables_destroy(&function->locals);
@@ -157,8 +157,8 @@ void function_body_destroy(FunctionBody *restrict function) {
     function->ssa_count   = 0;
 }
 
-void function_body_new_argument(FunctionBody *restrict function,
-                                FormalArgument argument) {
+void function_new_argument(Function *restrict function,
+                           FormalArgument argument) {
     assert(function != NULL);
 
     u32 ssa = function->ssa_count++;
@@ -171,14 +171,12 @@ void function_body_new_argument(FunctionBody *restrict function,
     formal_argument_list_append(&function->arguments, argument);
 }
 
-void function_body_new_local(FunctionBody *restrict function,
-                             StringView name,
-                             u32 ssa) {
+void function_new_local(Function *restrict function, StringView name, u32 ssa) {
     assert(function != NULL);
     local_variables_name_ssa(&function->locals, ssa, name);
 }
 
-Operand function_body_new_ssa(FunctionBody *restrict function) {
+Operand function_new_ssa(Function *restrict function) {
     assert(function != NULL);
     u32 ssa = function->ssa_count++;
     assert(function->ssa_count <= u16_MAX);
@@ -194,9 +192,9 @@ static void print_formal_argument(String *restrict string,
     print_type(string, arg->type);
 }
 
-void print_function_body(String *restrict string,
-                         FunctionBody const *restrict f,
-                         Context *restrict context) {
+void print_function(String *restrict string,
+                    Function const *restrict f,
+                    Context *restrict context) {
     string_append(string, SV("("));
     FormalArgumentList const *args = &f->arguments;
     for (u8 i = 0; i < args->size; ++i) {

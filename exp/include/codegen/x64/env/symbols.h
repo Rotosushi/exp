@@ -17,23 +17,23 @@
 #ifndef EXP_BACKEND_X64_SYMBOLS_H
 #define EXP_BACKEND_X64_SYMBOLS_H
 
-#include "codegen/x64/imr/function_body.h"
+#include "codegen/x64/imr/function.h"
 
 typedef struct x64_Symbol {
-    StringView name;
-    x64_FunctionBody body;
+    StringView   name;
+    x64_Function body;
 } x64_Symbol;
 
 void x64_symbol_destroy(x64_Symbol *restrict symbol);
 
 typedef struct x64_SymbolTable {
-    u64 count;
+    u64         count;
     x64_Symbol *buffer;
 } x64_SymbolTable;
 
 x64_SymbolTable x64_symbol_table_create(u64 count);
-void x64_symbol_table_destroy(x64_SymbolTable *restrict symbols);
-x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
-                                StringView name);
+void            x64_symbol_table_destroy(x64_SymbolTable *restrict symbols);
+x64_Symbol     *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
+                                    StringView name);
 
 #endif // !EXP_BACKEND_X64_SYMBOLS_H

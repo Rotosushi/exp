@@ -24,7 +24,6 @@
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
 #include "env/type_interner.h"
-#include "imr/function_body.h"
 
 /**
  * @brief A context models a Translation Unit.
@@ -33,12 +32,12 @@
 typedef struct Context {
     ContextOptions options;
     StringInterner string_interner;
-    TypeInterner type_interner;
-    SymbolTable global_symbol_table;
-    Labels global_labels;
-    Constants constants;
-    Error current_error;
-    FunctionBody *current_function;
+    TypeInterner   type_interner;
+    SymbolTable    global_symbol_table;
+    Labels         global_labels;
+    Constants      constants;
+    Error          current_error;
+    Function      *current_function;
 } Context;
 
 /**
@@ -50,7 +49,7 @@ typedef struct Context {
  * @return Context
  */
 Context context_create(CLIOptions *options);
-void context_destroy(Context *context);
+void    context_destroy(Context *context);
 
 // context options functions
 bool context_do_assemble(Context *context);
@@ -64,7 +63,7 @@ StringView context_output_path(Context *context);
 
 // current error functions
 Error *context_current_error(Context *context);
-bool context_has_error(Context *context);
+bool   context_has_error(Context *context);
 
 // string interner functions
 StringView context_intern(Context *context, StringView sv);
@@ -74,12 +73,12 @@ Type *context_nil_type(Context *context);
 Type *context_boolean_type(Context *context);
 Type *context_i64_type(Context *context);
 Type *context_tuple_type(Context *context, TupleType tuple);
-Type *context_function_type(Context *context,
-                            Type *return_type,
+Type *context_function_type(Context  *context,
+                            Type     *return_type,
                             TupleType argument_types);
 
 // labels functions
-u32 context_labels_insert(Context *context, StringView symbol);
+u32        context_labels_insert(Context *context, StringView symbol);
 StringView context_labels_at(Context *context, u32 index);
 
 // symbol table functions
@@ -88,8 +87,8 @@ Symbol *context_global_symbol_table_at(Context *context, StringView name);
 SymbolTableIterator context_global_symbol_table_iterator(Context *context);
 
 // function functions
-FunctionBody *context_enter_function(Context *c, StringView name);
-FunctionBody *context_current_function(Context *c);
+Function *context_enter_function(Context *c, StringView name);
+Function *context_current_function(Context *c);
 Bytecode *context_active_bytecode(Context *c);
 
 // CallPair context_new_call(Context * c);
@@ -107,10 +106,10 @@ void context_leave_function(Context *c);
 
 // Values functions
 Operand context_constants_append(Context *context, Value value);
-Value *context_constants_at(Context *context, u32 index);
+Value  *context_constants_at(Context *context, u32 index);
 
 // Bytecode functions
-void context_emit_return(Context *c, Operand B);
+void    context_emit_return(Context *c, Operand B);
 Operand context_emit_call(Context *c, Operand B, Operand C);
 Operand context_emit_dot(Context *c, Operand B, Operand C);
 Operand context_emit_load(Context *c, Operand B);

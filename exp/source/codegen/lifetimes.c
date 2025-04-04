@@ -143,7 +143,7 @@ static void lifetimes_compute_ABC(Instruction I,
 // the last use is the first use we encounter, and
 // the first use is the instruction which defines
 // the local (has the local in operand A)
-Lifetimes lifetimes_compute(FunctionBody *restrict body,
+Lifetimes lifetimes_compute(Function *restrict body,
                             Context *restrict context) {
     Bytecode *bc        = &body->bc;
     Lifetimes lifetimes = lifetimes_create(body->ssa_count);

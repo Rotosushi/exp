@@ -27,7 +27,7 @@
 void x64_codegen_return(Instruction I,
                         u64         block_index,
                         x64_Context *restrict context) {
-    x64_FunctionBody *body = current_x64_body(context);
+    x64_Function *body = current_x64_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);

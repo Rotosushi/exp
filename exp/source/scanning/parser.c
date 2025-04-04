@@ -77,17 +77,17 @@ typedef enum Precedence {
 } Precedence;
 
 typedef bool (*PrefixFunction)(Operand *result,
-                               Parser *parser,
+                               Parser  *parser,
                                Context *context);
 typedef bool (*InfixFunction)(Operand *result,
-                              Operand left,
-                              Parser *parser,
+                              Operand  left,
+                              Parser  *parser,
                               Context *context);
 
 typedef struct ParseRule {
     PrefixFunction prefix;
-    InfixFunction infix;
-    Precedence precedence;
+    InfixFunction  infix;
+    Precedence     precedence;
 } ParseRule;
 
 static Parser parser_create() {
@@ -181,11 +181,11 @@ static ExpectResult expect(Parser *parser, Context *context, Token token) {
 }
 
 static ParseRule *get_rule(Token token);
-static bool expression(Operand *result, Parser *parser, Context *context);
-static bool parse_precedence(Operand *result,
-                             Precedence precedence,
-                             Parser *parser,
-                             Context *context);
+static bool       expression(Operand *result, Parser *parser, Context *context);
+static bool       parse_precedence(Operand   *result,
+                                   Precedence precedence,
+                                   Parser    *parser,
+                                   Context   *context);
 
 static bool parse_type(Type **result, Parser *parser, Context *context);
 
@@ -289,9 +289,8 @@ parse_formal_argument(FormalArgument *arg, Parser *parser, Context *context) {
 }
 
 // formal-argument-list = "(" (formal-argument ("," formal-argument)*)? ")"
-static bool parse_formal_argument_list(FunctionBody *body,
-                                       Parser *parser,
-                                       Context *context) {
+static bool
+parse_formal_argument_list(Function *body, Parser *parser, Context *context) {
     // #note: the nil literal is spelled "()", which is
     // lexically identical to an empty argument list. so we parse it as such
     switch (expect(parser, context, TOK_NIL)) {
@@ -312,14 +311,14 @@ static bool parse_formal_argument_list(FunctionBody *body,
     switch (expect(parser, context, TOK_END_PAREN)) {
     case EXPECT_RESULT_SUCCESS:         return true;
     case EXPECT_RESULT_TOKEN_NOT_FOUND: {
-        u8 index         = 0;
+        u8   index       = 0;
         bool comma_found = false;
         do {
             FormalArgument arg = {.index = index++};
 
             if (!parse_formal_argument(&arg, parser, context)) { return false; }
 
-            function_body_new_argument(body, arg);
+            function_new_argument(body, arg);
 
             switch (expect(parser, context, TOK_COMMA)) {
             case EXPECT_RESULT_SUCCESS:         comma_found = true; break;
@@ -458,7 +457,7 @@ static bool function(Operand *result, Parser *parser, Context *context) {
     StringView name = context_intern(context, curtxt(parser));
     if (!nexttok(parser, context)) { return false; }
 
-    FunctionBody *body = context_enter_function(context, name);
+    Function *body = context_enter_function(context, name);
 
     if (!parse_formal_argument_list(body, parser, context)) { return false; }
 
@@ -475,7 +474,7 @@ static bool function(Operand *result, Parser *parser, Context *context) {
     String buffer = string_create();
     string_append(&buffer, SV("parsed function: "));
     string_append(&buffer, name);
-    print_function_body(&buffer, body, context);
+    print_function(&buffer, body, context);
     string_append(&buffer, SV("\n"));
     file_write(string_to_view(&buffer), stderr);
     string_destroy(&buffer);
@@ -574,7 +573,7 @@ static bool unop(Operand *result, Parser *parser, Context *context) {
 
 static bool
 binop(Operand *result, Operand left, Parser *parser, Context *context) {
-    Token op        = parser->curtok;
+    Token      op   = parser->curtok;
     ParseRule *rule = get_rule(op);
     if (!nexttok(parser, context)) { return false; } // eat the operator
 
@@ -634,8 +633,8 @@ static bool boolean_false(Operand *result, Parser *parser, Context *context) {
 
 static bool integer(Operand *result, Parser *parser, Context *context) {
     assert(peek(parser, TOK_INTEGER));
-    StringView sv = curtxt(parser);
-    u64 integer   = 0;
+    StringView sv      = curtxt(parser);
+    u64        integer = 0;
 
     if (!str_to_u64(&integer, sv.ptr, sv.length)) {
         return error(
@@ -679,10 +678,10 @@ static bool expression(Operand *result, Parser *parser, Context *context) {
     return parse_precedence(result, PREC_ASSIGNMENT, parser, context);
 }
 
-static bool parse_precedence(Operand *result,
+static bool parse_precedence(Operand   *result,
                              Precedence precedence,
-                             Parser *parser,
-                             Context *context) {
+                             Parser    *parser,
+                             Context   *context) {
     ParseRule *rule = get_rule(parser->curtok);
     if (rule->prefix == NULL) {
         return error(parser, context, ERROR_PARSER_EXPECTED_EXPRESSION);
@@ -787,9 +786,9 @@ i32 parse_buffer(char const *buffer, u64 length, Context *c) {
 
 i32 parse_source(Context *c) {
     assert(c != NULL);
-    StringView path = context_source_path(c);
-    FILE *file      = file_open(path.ptr, "r");
-    String buffer   = string_from_file(file);
+    StringView path   = context_source_path(c);
+    FILE      *file   = file_open(path.ptr, "r");
+    String     buffer = string_from_file(file);
     file_close(file);
     i32 result = parse_buffer(string_to_cstring(&buffer), buffer.length, c);
     string_destroy(&buffer);

@@ -30,7 +30,7 @@
  */
 Type *type_of_value(Value *restrict value, Context *restrict context);
 
-Type *type_of_function(FunctionBody *restrict body, Context *restrict context);
+Type *type_of_function(Function *restrict body, Context *restrict context);
 
 Type *type_of_operand(Operand operand, Context *restrict context);
 

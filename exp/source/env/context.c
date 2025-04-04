@@ -115,8 +115,8 @@ Type *context_tuple_type(Context *context, TupleType tuple) {
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
-Type *context_function_type(Context *context,
-                            Type *return_type,
+Type *context_function_type(Context  *context,
+                            Type     *return_type,
                             TupleType argument_types) {
     assert(context != nullptr);
     return type_interner_function_type(
@@ -143,7 +143,7 @@ SymbolTableIterator context_global_symbol_table_iterator(Context *context) {
     return symbol_table_iterator_create(&context->global_symbol_table);
 }
 
-FunctionBody *context_enter_function(Context *c, StringView name) {
+Function *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
     Symbol *element = symbol_table_at(&c->global_symbol_table, name);
     if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
@@ -152,7 +152,7 @@ FunctionBody *context_enter_function(Context *c, StringView name) {
     return c->current_function;
 }
 
-FunctionBody *context_current_function(Context *c) {
+Function *context_current_function(Context *c) {
     assert(c != nullptr);
     assert(c->current_function != nullptr);
     return c->current_function;
@@ -163,13 +163,13 @@ Bytecode *context_active_bytecode(Context *c) {
 }
 
 static Operand context_new_ssa(Context *c) {
-    return function_body_new_ssa(context_current_function(c));
+    return function_new_ssa(context_current_function(c));
 }
 
 void context_def_local_const(Context *c, StringView name, Operand value) {
     Operand A = context_emit_load(c, value);
     assert(A.kind == OPERAND_KIND_SSA);
-    function_body_new_local(context_current_function(c), name, A.data.ssa);
+    function_new_local(context_current_function(c), name, A.data.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *c, StringView name) {
@@ -215,7 +215,7 @@ void context_emit_return(Context *c, Operand B) {
 Operand context_emit_call(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_call(A, B, C));
     return A;
 }
@@ -223,7 +223,7 @@ Operand context_emit_call(Context *c, Operand B, Operand C) {
 Operand context_emit_dot(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_dot(A, B, C));
     return A;
 }
@@ -231,7 +231,7 @@ Operand context_emit_dot(Context *c, Operand B, Operand C) {
 Operand context_emit_load(Context *c, Operand B) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_load(A, B));
     return A;
 }
@@ -239,7 +239,7 @@ Operand context_emit_load(Context *c, Operand B) {
 Operand context_emit_negate(Context *c, Operand B) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_negate(A, B));
     return A;
 }
@@ -247,7 +247,7 @@ Operand context_emit_negate(Context *c, Operand B) {
 Operand context_emit_add(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_add(A, B, C));
     return A;
 }
@@ -255,7 +255,7 @@ Operand context_emit_add(Context *c, Operand B, Operand C) {
 Operand context_emit_subtract(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_subtract(A, B, C));
     return A;
 }
@@ -263,7 +263,7 @@ Operand context_emit_subtract(Context *c, Operand B, Operand C) {
 Operand context_emit_multiply(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_multiply(A, B, C));
     return A;
 }
@@ -271,7 +271,7 @@ Operand context_emit_multiply(Context *c, Operand B, Operand C) {
 Operand context_emit_divide(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_divide(A, B, C));
     return A;
 }
@@ -279,7 +279,7 @@ Operand context_emit_divide(Context *c, Operand B, Operand C) {
 Operand context_emit_modulus(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_modulus(A, B, C));
     return A;
 }

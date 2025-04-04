@@ -38,7 +38,7 @@ void symbol_table_destroy(SymbolTable *restrict symbol_table) {
     for (u64 i = 0; i < symbol_table->capacity; ++i) {
         Symbol *element = symbol_table->elements[i];
         if (element == nullptr) { continue; }
-        function_body_destroy(&element->function_body);
+        function_destroy(&element->function_body);
         deallocate(element);
     }
 
@@ -64,7 +64,7 @@ symbol_table_find(Symbol **restrict elements, u64 capacity, StringView name) {
 
 static void symbol_table_grow(SymbolTable *restrict symbol_table) {
     Growth_u64 g = array_growth_u64(symbol_table->capacity, sizeof(Symbol *));
-    Symbol **elements = callocate(g.new_capacity, sizeof(Symbol *));
+    Symbol   **elements = callocate(g.new_capacity, sizeof(Symbol *));
 
     if (symbol_table->elements != NULL) {
         for (u64 i = 0; i < symbol_table->capacity; ++i) {
