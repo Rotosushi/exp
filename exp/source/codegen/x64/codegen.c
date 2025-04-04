@@ -24,14 +24,14 @@
 #include "codegen/x64/env/context.h"
 #include "codegen/x64/instruction/add.h"
 #include "codegen/x64/instruction/call.h"
-#include "codegen/x64/instruction/divide.h"
+#include "codegen/x64/instruction/div.h"
 #include "codegen/x64/instruction/dot.h"
 #include "codegen/x64/instruction/load.h"
-#include "codegen/x64/instruction/modulus.h"
-#include "codegen/x64/instruction/multiply.h"
-#include "codegen/x64/instruction/negate.h"
-#include "codegen/x64/instruction/return.h"
-#include "codegen/x64/instruction/subtract.h"
+#include "codegen/x64/instruction/mod.h"
+#include "codegen/x64/instruction/mul.h"
+#include "codegen/x64/instruction/neg.h"
+#include "codegen/x64/instruction/ret.h"
+#include "codegen/x64/instruction/sub.h"
 #include "support/unreachable.h"
 
 /*
@@ -48,7 +48,7 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
         Instruction I = bc->buffer[idx];
 
         switch (I.opcode) {
-        case OPCODE_RETURN: {
+        case OPCODE_RET: {
             x64_codegen_return(I, idx, x64_context);
             break;
         }
@@ -68,7 +68,7 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
             break;
         }
 
-        case OPCODE_NEGATE: {
+        case OPCODE_NEG: {
             x64_codegen_negate(I, idx, x64_context);
             break;
         }
@@ -78,23 +78,23 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
             break;
         }
 
-        case OPCODE_SUBTRACT: {
-            x64_codegen_subtract(I, idx, x64_context);
+        case OPCODE_SUB: {
+            x64_codegen_sub(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_MULTIPLY: {
-            x64_codegen_multiply(I, idx, x64_context);
+        case OPCODE_MUL: {
+            x64_codegen_mul(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_DIVIDE: {
-            x64_codegen_divide(I, idx, x64_context);
+        case OPCODE_DIV: {
+            x64_codegen_div(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_MODULUS: {
-            x64_codegen_modulus(I, idx, x64_context);
+        case OPCODE_MOD: {
+            x64_codegen_mod(I, idx, x64_context);
             break;
         }
 
@@ -157,7 +157,7 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
 }
 
 void x64_codegen(Context *context) {
-    x64_Context x64context   = x64_context_create(context);
+    x64_Context         x64context = x64_context_create(context);
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
     while (!symbol_table_iterator_done(&iter)) {

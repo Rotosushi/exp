@@ -18,13 +18,13 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/instruction/multiply.h"
+#include "codegen/x64/instruction/mul.h"
 #include "support/unreachable.h"
 
-static void x64_codegen_multiply_ssa(Instruction I,
-                                     u64 block_index,
+static void x64_codegen_multiply_ssa(Instruction    I,
+                                     u64            block_index,
                                      LocalVariable *local,
-                                     x64_Context *context) {
+                                     x64_Context   *context) {
     x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
@@ -79,10 +79,9 @@ static void x64_codegen_multiply_ssa(Instruction I,
             x64_context_allocate_from_active(context, local, B, block_index);
 
             x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(
-                context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_immediate(I.C_data.i64_)));
+            x64_context_append(context,
+                               x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
+                                       x64_operand_immediate(I.C_data.i64_)));
             x64_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
@@ -125,10 +124,10 @@ static void x64_codegen_multiply_ssa(Instruction I,
     }
 }
 
-static void x64_codegen_multiply_immediate(Instruction I,
-                                           u64 block_index,
+static void x64_codegen_multiply_immediate(Instruction    I,
+                                           u64            block_index,
                                            LocalVariable *local,
-                                           x64_Context *context) {
+                                           x64_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
@@ -136,10 +135,9 @@ static void x64_codegen_multiply_immediate(Instruction I,
             x64_context_allocate_from_active(context, local, C, block_index);
 
             x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(
-                context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_immediate(I.B_data.i64_)));
+            x64_context_append(context,
+                               x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
+                                       x64_operand_immediate(I.B_data.i64_)));
             x64_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
@@ -187,10 +185,10 @@ static void x64_codegen_multiply_immediate(Instruction I,
     }
 }
 
-void x64_codegen_multiply_constant(Instruction I,
-                                   u64 block_index,
+void x64_codegen_multiply_constant(Instruction    I,
+                                   u64            block_index,
                                    LocalVariable *local,
-                                   x64_Context *context) {
+                                   x64_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
@@ -250,9 +248,9 @@ void x64_codegen_multiply_constant(Instruction I,
     }
 }
 
-void x64_codegen_multiply(Instruction I,
-                          u64 block_index,
-                          x64_Context *restrict context) {
+void x64_codegen_mul(Instruction I,
+                     u64         block_index,
+                     x64_Context *restrict context) {
     /*
     #NOTE:
       imul takes a single reg/mem argument,

@@ -16,13 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_BACKEND_X64_CODEGEN_MUL_H
-#define EXP_BACKEND_X64_CODEGEN_MUL_H
+#ifndef EXP_BACKEND_X64_CODEGEN_MOD_H
+#define EXP_BACKEND_X64_CODEGEN_MOD_H
 
 #include "codegen/x64/env/context.h"
 
-void x64_codegen_multiply(Instruction I,
-                          u64 Idx,
-                          x64_Context *restrict context);
+void x64_codegen_mod(Instruction I, u64 Idx, x64_Context *restrict context);
 
-#endif // !EXP_BACKEND_X64_CODEGEN_MUL_H
+#endif // !EXP_BACKEND_X64_CODEGEN_MOD_H

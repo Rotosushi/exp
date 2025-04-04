@@ -18,14 +18,14 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/instruction/subtract.h"
+#include "codegen/x64/instruction/sub.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-static void x64_codegen_subtract_ssa(Instruction I,
-                                     u64 block_index,
+static void x64_codegen_subtract_ssa(Instruction    I,
+                                     u64            block_index,
                                      LocalVariable *local,
-                                     x64_Context *context) {
+                                     x64_Context   *context) {
     x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
@@ -77,10 +77,10 @@ static void x64_codegen_subtract_ssa(Instruction I,
     }
 }
 
-static void x64_codegen_subtract_immediate(Instruction I,
-                                           u64 block_index,
+static void x64_codegen_subtract_immediate(Instruction    I,
+                                           u64            block_index,
                                            LocalVariable *local,
-                                           x64_Context *context) {
+                                           x64_Context   *context) {
     switch (I.C_kind) {
         /*
          * #NOTE: there is no x64 sub instruction which takes an
@@ -130,10 +130,10 @@ static void x64_codegen_subtract_immediate(Instruction I,
     }
 }
 
-void x64_codegen_subtract_constant(Instruction I,
-                                   u64 block_index,
+void x64_codegen_subtract_constant(Instruction    I,
+                                   u64            block_index,
                                    LocalVariable *local,
-                                   x64_Context *context) {
+                                   x64_Context   *context) {
     switch (I.C_kind) {
         /*
          * #NOTE: there is no x64 sub instruction which takes an
@@ -183,9 +183,9 @@ void x64_codegen_subtract_constant(Instruction I,
     }
 }
 
-void x64_codegen_subtract(Instruction I,
-                          u64 block_index,
-                          x64_Context *restrict context) {
+void x64_codegen_sub(Instruction I,
+                     u64         block_index,
+                     x64_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {

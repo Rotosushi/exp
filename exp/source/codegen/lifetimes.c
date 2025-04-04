@@ -47,8 +47,8 @@ Lifetime *lifetimes_at(Lifetimes *restrict lifetiems, u64 ssa) {
 
 static void lifetimes_compute_A(OperandKind A_kind,
                                 OperandData A_data,
-                                u64 block_index,
-                                Lifetimes *lifetimes) {
+                                u64         block_index,
+                                Lifetimes  *lifetimes) {
     switch (A_kind) {
     case OPERAND_KIND_SSA: {
         Lifetime *lifetime = lifetimes_at(lifetimes, A_data.ssa);
@@ -68,9 +68,9 @@ static void lifetimes_compute_A(OperandKind A_kind,
 
 static void lifetimes_compute_operand(OperandKind kind,
                                       OperandData data,
-                                      u64 block_index,
-                                      Lifetimes *lifetimes,
-                                      Context *context) {
+                                      u64         block_index,
+                                      Lifetimes  *lifetimes,
+                                      Context    *context) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
         Lifetime *lifetime = lifetimes_at(lifetimes, data.ssa);
@@ -102,18 +102,18 @@ static void lifetimes_compute_operand(OperandKind kind,
 }
 
 static void lifetimes_compute_B(Instruction I,
-                                u64 block_index,
-                                Lifetimes *lifetimes,
-                                Context *context) {
+                                u64         block_index,
+                                Lifetimes  *lifetimes,
+                                Context    *context) {
 
     lifetimes_compute_operand(
         I.B_kind, I.B_data, block_index, lifetimes, context);
 }
 
 static void lifetimes_compute_AB(Instruction I,
-                                 u64 block_index,
-                                 Lifetimes *lifetimes,
-                                 Context *context) {
+                                 u64         block_index,
+                                 Lifetimes  *lifetimes,
+                                 Context    *context) {
     lifetimes_compute_A(I.A_kind, I.A_data, block_index, lifetimes);
     lifetimes_compute_operand(
         I.A_kind, I.A_data, block_index, lifetimes, context);
@@ -122,9 +122,9 @@ static void lifetimes_compute_AB(Instruction I,
 }
 
 static void lifetimes_compute_ABC(Instruction I,
-                                  u64 block_index,
-                                  Lifetimes *lifetimes,
-                                  Context *context) {
+                                  u64         block_index,
+                                  Lifetimes  *lifetimes,
+                                  Context    *context) {
     lifetimes_compute_A(I.A_kind, I.A_data, block_index, lifetimes);
     lifetimes_compute_operand(
         I.A_kind, I.A_data, block_index, lifetimes, context);
@@ -149,10 +149,10 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
     Lifetimes lifetimes = lifetimes_create(body->ssa_count);
 
     for (u64 i = bc->length; i > 0; --i) {
-        u64 block_index = i - 1;
-        Instruction I   = bc->buffer[block_index];
+        u64         block_index = i - 1;
+        Instruction I           = bc->buffer[block_index];
         switch (I.opcode) {
-        case OPCODE_RETURN: {
+        case OPCODE_RET: {
             lifetimes_compute_B(I, block_index, &lifetimes, context);
             break;
         }
@@ -172,7 +172,7 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
             break;
         }
 
-        case OPCODE_NEGATE: {
+        case OPCODE_NEG: {
             lifetimes_compute_AB(I, block_index, &lifetimes, context);
             break;
         }
@@ -182,22 +182,22 @@ Lifetimes lifetimes_compute(FunctionBody *restrict body,
             break;
         }
 
-        case OPCODE_SUBTRACT: {
+        case OPCODE_SUB: {
             lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }
 
-        case OPCODE_MULTIPLY: {
+        case OPCODE_MUL: {
             lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }
 
-        case OPCODE_DIVIDE: {
+        case OPCODE_DIV: {
             lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }
 
-        case OPCODE_MODULUS: {
+        case OPCODE_MOD: {
             lifetimes_compute_ABC(I, block_index, &lifetimes, context);
             break;
         }

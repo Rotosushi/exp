@@ -18,14 +18,14 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/instruction/return.h"
+#include "codegen/x64/instruction/ret.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/load.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
 void x64_codegen_return(Instruction I,
-                        u64 block_index,
+                        u64         block_index,
                         x64_Context *restrict context) {
     x64_FunctionBody *body = current_x64_body(context);
     switch (I.B_kind) {

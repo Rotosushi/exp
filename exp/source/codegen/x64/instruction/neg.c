@@ -18,11 +18,11 @@
  */
 #include <assert.h>
 
-#include "codegen/x64/instruction/negate.h"
+#include "codegen/x64/instruction/neg.h"
 #include "support/unreachable.h"
 
 void x64_codegen_negate(Instruction I,
-                        u64 block_index,
+                        u64         block_index,
                         x64_Context *restrict context) {
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {

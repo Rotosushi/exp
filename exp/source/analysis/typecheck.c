@@ -23,6 +23,7 @@
 #include "analysis/typecheck.h"
 #include "env/error.h"
 #include "intrinsics/type_of.h"
+#include "support/unreachable.h"
 
 typedef struct TResult {
     bool has_error;
@@ -62,7 +63,7 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(c, data.ssa);
-        Type *type           = local->type;
+        Type          *type  = local->type;
         if (type == NULL) {
             return error(ERROR_TYPECHECK_UNDEFINED_SYMBOL,
                          string_from_view(SV("")));
@@ -81,9 +82,9 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView name = context_labels_at(c, data.label);
-        Symbol *global  = context_global_symbol_table_at(c, name);
-        Type *type      = global->type;
+        StringView name   = context_labels_at(c, data.label);
+        Symbol    *global = context_global_symbol_table_at(c, name);
+        Type      *type   = global->type;
         if (type == NULL) {
             try(Gty, typecheck_global(c, global));
             type = Gty;
@@ -92,7 +93,7 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
         return success(type);
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE();
     }
 }
 
@@ -122,8 +123,8 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     }
 
     FunctionType *function_type = &Bty->function_type;
-    TupleType *formal_types     = &function_type->argument_types;
-    Value *value                = context_constants_at(c, I.C_data.constant);
+    TupleType    *formal_types  = &function_type->argument_types;
+    Value        *value         = context_constants_at(c, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple *actual_args = &value->tuple;
 
@@ -137,8 +138,8 @@ static TResult typecheck_call(Context *restrict c, Instruction I) {
     }
 
     for (u8 i = 0; i < actual_args->size; ++i) {
-        Type *formal_type = formal_types->types[i];
-        Operand operand   = actual_args->elements[i];
+        Type   *formal_type = formal_types->types[i];
+        Operand operand     = actual_args->elements[i];
         try(actual_type, typecheck_operand(c, operand.kind, operand.data));
 
         if (!type_equality(actual_type, formal_type)) {
@@ -355,15 +356,15 @@ static TResult typecheck_mod(Context *restrict c, Instruction I) {
 }
 
 static TResult typecheck_function(Context *restrict c) {
-    Type *return_type  = NULL;
-    FunctionBody *body = context_current_function(c);
-    Bytecode *bc       = &body->bc;
+    Type         *return_type = NULL;
+    FunctionBody *body        = context_current_function(c);
+    Bytecode     *bc          = &body->bc;
 
     Instruction *ip = bc->buffer;
     for (u16 idx = 0; idx < bc->length; ++idx) {
         Instruction I = ip[idx];
         switch (I.opcode) {
-        case OPCODE_RETURN: {
+        case OPCODE_RET: {
             try(Bty, typecheck_ret(c, I));
 
             if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
@@ -398,7 +399,7 @@ static TResult typecheck_function(Context *restrict c) {
             break;
         }
 
-        case OPCODE_NEGATE: {
+        case OPCODE_NEG: {
             try(Bty, typecheck_neg(c, I));
             (void)Bty;
             break;
@@ -410,31 +411,31 @@ static TResult typecheck_function(Context *restrict c) {
             break;
         }
 
-        case OPCODE_SUBTRACT: {
+        case OPCODE_SUB: {
             try(Aty, typecheck_sub(c, I));
             (void)Aty;
             break;
         }
 
-        case OPCODE_MULTIPLY: {
+        case OPCODE_MUL: {
             try(Aty, typecheck_mul(c, I));
             (void)Aty;
             break;
         }
 
-        case OPCODE_DIVIDE: {
+        case OPCODE_DIV: {
             try(Aty, typecheck_div(c, I));
             (void)Aty;
             break;
         }
 
-        case OPCODE_MODULUS: {
+        case OPCODE_MOD: {
             try(Aty, typecheck_mod(c, I));
             (void)Aty;
             break;
         }
 
-        default: unreachable();
+        default: EXP_UNREACHABLE();
         }
     }
 
@@ -483,15 +484,15 @@ static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
         return success(function_type);
     }
 
-    default: unreachable();
+    default: EXP_UNREACHABLE();
     }
 }
 
 #undef try
 
 i32 typecheck(Context *restrict context) {
-    i32 result               = EXIT_SUCCESS;
-    SymbolTableIterator iter = context_global_symbol_table_iterator(context);
+    i32                 result = EXIT_SUCCESS;
+    SymbolTableIterator iter   = context_global_symbol_table_iterator(context);
     while (!symbol_table_iterator_done(&iter)) {
         TResult tr = typecheck_global(context, (*iter.element));
         if (tr.has_error) {
