@@ -22,7 +22,7 @@
 #include "support/panic.h"
 #include "support/unreachable.h"
 
-Type *type_of_value(Value *restrict value, Context *restrict context) {
+Type const *type_of_value(Value *restrict value, Context *restrict context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
     case VALUE_KIND_NIL:           return context_nil_type(context);
@@ -32,7 +32,7 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
         Tuple    *tuple      = &value->tuple;
         TupleType tuple_type = tuple_type_create();
         for (u64 i = 0; i < tuple->size; ++i) {
-            Type *T = type_of_operand(tuple->elements[i], context);
+            Type const *T = type_of_operand(tuple->elements[i], context);
             tuple_type_append(&tuple_type, T);
         }
         return context_tuple_type(context, tuple_type);
@@ -42,21 +42,22 @@ Type *type_of_value(Value *restrict value, Context *restrict context) {
     }
 }
 
-Type *type_of_function(Function *restrict body, Context *restrict context) {
+Type const *type_of_function(Function *restrict body,
+                             Context *restrict context) {
     assert(body != NULL);
     assert(body->return_type != NULL);
 
     TupleType argument_types = tuple_type_create();
     for (u64 i = 0; i < body->arguments.size; ++i) {
         FormalArgument *formal_argument = &body->arguments.list[i];
-        Type           *argument_type   = formal_argument->type;
+        Type const     *argument_type   = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 
     return context_function_type(context, body->return_type, argument_types);
 }
 
-Type *type_of_operand(Operand operand, Context *restrict context) {
+Type const *type_of_operand(Operand operand, Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(context, operand.data.ssa);

@@ -48,8 +48,8 @@ bool tuple_type_equality(TupleType const *A, TupleType const *B) {
     if (A->size != B->size) { return 0; }
 
     for (u64 i = 0; i < A->size; ++i) {
-        Type *t = A->types[i];
-        Type *u = B->types[i];
+        Type const *t = A->types[i];
+        Type const *u = B->types[i];
 
         if (!type_equality(t, u)) { return 0; }
     }
@@ -67,7 +67,7 @@ static void tuple_type_grow(TupleType *restrict tuple_type) {
     tuple_type->capacity = g.new_capacity;
 }
 
-void tuple_type_append(TupleType *restrict tuple_type, Type *type) {
+void tuple_type_append(TupleType *restrict tuple_type, Type const *type) {
     exp_assert(tuple_type != NULL);
 
     if (tuple_type_full(tuple_type)) { tuple_type_grow(tuple_type); }
@@ -126,7 +126,7 @@ Type type_create_tuple(TupleType tuple) {
     return (Type){.kind = TYPE_KIND_TUPLE, .tuple_type = tuple};
 }
 
-Type type_create_function(Type *result, TupleType args) {
+Type type_create_function(Type const *result, TupleType args) {
     return (Type){
         .kind          = TYPE_KIND_FUNCTION,
         .function_type = (FunctionType){result, args}
@@ -203,6 +203,13 @@ bool type_is_callable(Type const *T) {
     switch (T->kind) {
     case TYPE_KIND_FUNCTION: return true;
     default:                 return false;
+    }
+}
+
+bool type_is_indexable(Type const *T) {
+    switch (T->kind) {
+    case TYPE_KIND_TUPLE: return true;
+    default:              return false;
     }
 }
 

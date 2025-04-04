@@ -69,20 +69,20 @@ bool   context_has_error(Context *context);
 StringView context_intern(Context *context, StringView sv);
 
 // type interner functions
-Type *context_nil_type(Context *context);
-Type *context_boolean_type(Context *context);
-Type *context_u8_type(Context *context);
-Type *context_u16_type(Context *context);
-Type *context_u32_type(Context *context);
-Type *context_u64_type(Context *context);
-Type *context_i8_type(Context *context);
-Type *context_i16_type(Context *context);
-Type *context_i32_type(Context *context);
-Type *context_i64_type(Context *context);
-Type *context_tuple_type(Context *context, TupleType tuple);
-Type *context_function_type(Context  *context,
-                            Type     *return_type,
-                            TupleType argument_types);
+Type const *context_nil_type(Context *context);
+Type const *context_boolean_type(Context *context);
+Type const *context_u8_type(Context *context);
+Type const *context_u16_type(Context *context);
+Type const *context_u32_type(Context *context);
+Type const *context_u64_type(Context *context);
+Type const *context_i8_type(Context *context);
+Type const *context_i16_type(Context *context);
+Type const *context_i32_type(Context *context);
+Type const *context_i64_type(Context *context);
+Type const *context_tuple_type(Context *context, TupleType tuple);
+Type const *context_function_type(Context    *context,
+                                  Type const *return_type,
+                                  TupleType   argument_types);
 
 // labels functions
 u32        context_labels_insert(Context *context, StringView symbol);

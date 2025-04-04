@@ -318,9 +318,9 @@ x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
 
 static x64_Allocation *
 x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
-                             u64       ssa,
-                             Lifetime *lifetime,
-                             Type     *type) {
+                             u64         ssa,
+                             Lifetime   *lifetime,
+                             Type const *type) {
     assert(allocation_buffer != NULL);
     assert(type != NULL);
 
@@ -558,7 +558,7 @@ x64_Allocation *x64_allocator_allocate_to_stack(
 
 x64_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
                                               x64_Location location,
-                                              Type        *type) {
+                                              Type const  *type) {
     x64_Allocation *allocation = x64_allocation_buffer_append(
         &allocator->allocations, u64_MAX, nullptr, type);
 

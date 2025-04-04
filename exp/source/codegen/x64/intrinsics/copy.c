@@ -43,17 +43,17 @@ void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
 
 void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        x64_Address *restrict src,
-                                       Type *type,
-                                       u64 Idx,
+                                       Type const *type,
+                                       u64         Idx,
                                        x64_Context *restrict context) {
     assert(type->kind == TYPE_KIND_TUPLE);
-    TupleType *tuple_type = &type->tuple_type;
+    TupleType const *tuple_type = &type->tuple_type;
 
     x64_Address dst_element_address = *dst;
     x64_Address src_element_address = *src;
     for (u64 i = 0; i < tuple_type->size; ++i) {
-        Type *element_type = tuple_type->types[i];
-        u64 element_size   = size_of(element_type);
+        Type const *element_type = tuple_type->types[i];
+        u64         element_size = size_of(element_type);
 
         if (type_is_scalar(element_type)) {
             x64_codegen_copy_scalar_memory(&dst_element_address,
@@ -78,8 +78,8 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
 
 void x64_codegen_copy_memory(x64_Address *restrict dst,
                              x64_Address *restrict src,
-                             Type *type,
-                             u64 Idx,
+                             Type const *type,
+                             u64         Idx,
                              x64_Context *restrict context) {
     if (type_is_scalar(type)) {
         u64 size = size_of(type);
@@ -91,7 +91,7 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              x64_Address *restrict src,
-                                             Type *restrict type,
+                                             Type const *restrict type,
                                              u64 Idx,
                                              x64_Context *restrict context) {
     if (dst->location.kind == LOCATION_ADDRESS) {

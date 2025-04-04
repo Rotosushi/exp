@@ -95,64 +95,64 @@ StringView context_intern(Context *context, StringView sv) {
     return string_interner_insert(&(context->string_interner), sv);
 }
 
-Type *context_nil_type(Context *context) {
+Type const *context_nil_type(Context *context) {
     assert(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
-Type *context_boolean_type(Context *context) {
+Type const *context_boolean_type(Context *context) {
     assert(context != nullptr);
     return type_interner_boolean_type(&(context->type_interner));
 }
 
-Type *context_u8_type(Context *context) {
+Type const *context_u8_type(Context *context) {
     assert(context != nullptr);
     return type_interner_u8_type(&(context->type_interner));
 }
 
-Type *context_u16_type(Context *context) {
+Type const *context_u16_type(Context *context) {
     assert(context != nullptr);
     return type_interner_u16_type(&(context->type_interner));
 }
 
-Type *context_u32_type(Context *context) {
+Type const *context_u32_type(Context *context) {
     assert(context != nullptr);
     return type_interner_u32_type(&(context->type_interner));
 }
 
-Type *context_u64_type(Context *context) {
+Type const *context_u64_type(Context *context) {
     assert(context != nullptr);
     return type_interner_u64_type(&(context->type_interner));
 }
 
-Type *context_i8_type(Context *context) {
+Type const *context_i8_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i8_type(&(context->type_interner));
 }
 
-Type *context_i16_type(Context *context) {
+Type const *context_i16_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i16_type(&(context->type_interner));
 }
 
-Type *context_i32_type(Context *context) {
+Type const *context_i32_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i32_type(&(context->type_interner));
 }
 
-Type *context_i64_type(Context *context) {
+Type const *context_i64_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i64_type(&(context->type_interner));
 }
 
-Type *context_tuple_type(Context *context, TupleType tuple) {
+Type const *context_tuple_type(Context *context, TupleType tuple) {
     assert(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
-Type *context_function_type(Context  *context,
-                            Type     *return_type,
-                            TupleType argument_types) {
+Type const *context_function_type(Context    *context,
+                                  Type const *return_type,
+                                  TupleType   argument_types) {
     assert(context != nullptr);
     return type_interner_function_type(
         &context->type_interner, return_type, argument_types);

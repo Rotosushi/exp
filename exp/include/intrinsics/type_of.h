@@ -28,10 +28,11 @@
  * @param context
  * @return Type*
  */
-Type *type_of_value(Value *restrict value, Context *restrict context);
+Type const *type_of_value(Value *restrict value, Context *restrict context);
 
-Type *type_of_function(Function *restrict body, Context *restrict context);
+Type const *type_of_function(Function *restrict body,
+                             Context *restrict context);
 
-Type *type_of_operand(Operand operand, Context *restrict context);
+Type const *type_of_operand(Operand operand, Context *restrict context);
 
 #endif // !EXP_INTRINSICS_TYPE_OF_H

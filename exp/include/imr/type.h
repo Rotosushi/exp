@@ -38,19 +38,19 @@ typedef enum TypeKind {
 struct Type;
 
 typedef struct TupleType {
-    u32           size;
-    u32           capacity;
-    struct Type **types;
+    u32                 size;
+    u32                 capacity;
+    struct Type const **types;
 } TupleType;
 
 TupleType tuple_type_create();
 void      tuple_type_destroy(TupleType *restrict tuple_type);
 bool      tuple_type_equality(TupleType const *A, TupleType const *B);
-void      tuple_type_append(TupleType *restrict tuple_type, struct Type *type);
+void tuple_type_append(TupleType *restrict tuple_type, struct Type const *type);
 
 typedef struct FunctionType {
-    struct Type *return_type;
-    TupleType    argument_types;
+    struct Type const *return_type;
+    TupleType          argument_types;
 } FunctionType;
 
 bool function_type_equality(FunctionType const *A, FunctionType const *B);
@@ -85,7 +85,7 @@ Type type_create_i16();
 Type type_create_i32();
 Type type_create_i64();
 Type type_create_tuple(TupleType tuple_type);
-Type type_create_function(Type *result, TupleType args);
+Type type_create_function(Type const *result, TupleType args);
 void type_destroy(Type *type);
 
 bool type_equality(Type const *t1, Type const *t2);

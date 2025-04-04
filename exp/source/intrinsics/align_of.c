@@ -21,7 +21,7 @@
 #include "intrinsics/align_of.h"
 #include "support/unreachable.h"
 
-u64 align_of(Type *restrict type) {
+u64 align_of(Type const *restrict type) {
     assert(type != NULL);
 
     switch (type->kind) {
@@ -51,8 +51,8 @@ u64 align_of(Type *restrict type) {
         TupleType *tuple_type = (TupleType *)type;
         u64        max        = 0;
         for (u32 i = 0; i < tuple_type->size; ++i) {
-            Type *t = tuple_type->types[i];
-            u64   a = align_of(t);
+            Type const *t = tuple_type->types[i];
+            u64         a = align_of(t);
             if (a > max) { max = a; }
         }
         return max;

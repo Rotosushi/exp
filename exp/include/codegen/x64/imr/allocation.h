@@ -22,14 +22,14 @@
 #include "imr/type.h"
 
 typedef struct x64_Allocation {
-    u64 ssa;
-    Lifetime lifetime;
+    u64          ssa;
+    Lifetime     lifetime;
     x64_Location location;
-    Type *type;
+    Type const  *type;
 } x64_Allocation;
 
 x64_Allocation *x64_allocation_allocate();
-void x64_allocation_deallocate(x64_Allocation *restrict allocation);
+void            x64_allocation_deallocate(x64_Allocation *restrict allocation);
 
 bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
                                 x64_Location location);

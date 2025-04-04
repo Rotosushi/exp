@@ -25,6 +25,7 @@
 #include "env/error.h"
 #include "imr/type.h"
 #include "intrinsics/type_of.h"
+#include "support/string.h"
 #include "support/unreachable.h"
 
 static bool success(Type const **result, Type const *type) {
@@ -51,6 +52,38 @@ static bool failure_type_is_not_callable(Context *restrict context,
     print_type(&buf, type);
     string_append(&buf, SV("]"));
     return failure_string(context, ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+}
+
+static bool failure_type_is_not_indexable(Context *restrict context,
+                                          Type const *type) {
+    String buf = string_create();
+    string_append(&buf, SV("Type is not indexable ["));
+    print_type(&buf, type);
+    string_append(&buf, SV("]"));
+    return failure_string(context, ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+}
+
+static bool failure_operand_is_not_index(Context *restrict context,
+                                         Operand operand) {
+    String buf = string_create();
+    string_append(&buf, SV("Operand is not an index ["));
+    print_operand(&buf, operand, context);
+    string_append(&buf, SV("]"));
+    return failure_string(
+        context, ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE, buf);
+}
+
+static bool failure_tuple_index_out_of_bounds(Context *restrict context,
+                                              u64 max,
+                                              u64 index) {
+    String buf = string_create();
+    string_append(&buf, SV("Index ["));
+    string_append_u64(&buf, index);
+    string_append(&buf, SV("] out of range [0.."));
+    string_append_u64(&buf, max);
+    string_append(&buf, SV("]"));
+    return failure_string(
+        context, ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, buf);
 }
 
 static bool failure_mismatch_argument_count(Context *restrict context,
@@ -203,7 +236,7 @@ typecheck_call(Type const **result, Context *restrict context, Instruction I) {
     return success(result, function_type->return_type);
 }
 
-static bool tuple_index_out_of_bounds(u64 index, TupleType *tuple) {
+static bool tuple_index_out_of_bounds(u64 index, TupleType const *tuple) {
     return index >= tuple->size;
 }
 
@@ -214,215 +247,118 @@ typecheck_dot(Type const **result, Context *restrict context, Instruction I) {
     Type const    *Bty;
     if (!typecheck_operand(&Bty, context, I.B_kind, I.B_data)) { return false; }
 
-    if (Bty->kind != TYPE_KIND_TUPLE) {
-        String buf = string_create();
-        string_append(&buf, SV("Type is not a tuple ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    if (!type_is_indexable(Bty)) {
+        return failure_type_is_not_indexable(context, Bty);
     }
 
-    TupleType *tuple = &Bty->tuple_type;
-    Operand    C     = operand(I.C_kind, I.C_data);
+    TupleType const *tuple = &Bty->tuple_type;
+    Operand          C     = operand(I.C_kind, I.C_data);
 
     if (!operand_is_index(C)) {
-        return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
-                     string_from_view(SV("")));
+        return failure_operand_is_not_index(context, C);
     }
 
     u64 index = operand_as_index(C);
 
     if (tuple_index_out_of_bounds(index, tuple)) {
-        String buf = string_create();
-        string_append(&buf, SV("The given index "));
-        string_append_u64(&buf, index);
-        string_append(&buf, SV(" is not in the valid range of 0.."));
-        string_append_u64(&buf, tuple->size);
-        return error(ERROR_TYPECHECK_TUPLE_INDEX_OUT_OF_BOUNDS, buf);
+        return failure_tuple_index_out_of_bounds(context, tuple->size, index);
     }
 
     local->type = tuple->types[index];
-    return success(tuple->types[index]);
+    return success(result, tuple->types[index]);
 }
 
-static TResult typecheck_neg(Context *restrict c, Instruction I) {
+static bool typecheck_unop(Type const **result,
+                           Context *restrict c,
+                           Instruction I,
+                           Type const *result_type,
+                           Type const *argument_type) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    if (!typecheck_operand(&local->type, c, I.B_kind, I.B_data)) {
+        return false;
     }
 
-    local->type = Bty;
-    return success(Bty);
+    if (!type_equality(argument_type, local->type)) {
+        return failure_mismatch_type(c, argument_type, local->type);
+    }
+
+    return success(result, result_type);
 }
 
-static TResult typecheck_add(Context *restrict c, Instruction I) {
+static bool
+typecheck_neg(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_unop(result, c, I, type_i64, type_i64);
+}
+
+static bool typecheck_binop(Type const **result,
+                            Context *restrict c,
+                            Instruction I,
+                            Type const *result_type,
+                            Type const *lhs_type,
+                            Type const *rhs_type) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    Type const    *Bty;
+    if (!typecheck_operand(&Bty, c, I.B_kind, I.B_data)) { return false; }
+    if (!type_equality(lhs_type, Bty)) {
+        return failure_mismatch_type(c, lhs_type, Bty);
     }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Cty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+    Type const *Cty;
+    if (!typecheck_operand(&Cty, c, I.C_kind, I.C_data)) { return false; }
+    if (!type_equality(rhs_type, Cty)) {
+        return failure_mismatch_type(c, rhs_type, Cty);
     }
-
-    local->type = Bty;
-    return success(Bty);
+    local->type = result_type;
+    return success(result, result_type);
 }
 
-static TResult typecheck_sub(Context *restrict c, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Cty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    local->type = Bty;
-    return success(Bty);
+static bool
+typecheck_add(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
-static TResult typecheck_mul(Context *restrict c, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Cty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    local->type = Bty;
-    return success(Bty);
+static bool
+typecheck_sub(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
-static TResult typecheck_div(Context *restrict c, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Cty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    local->type = Bty;
-    return success(Bty);
+static bool
+typecheck_mul(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
-static TResult typecheck_mod(Context *restrict c, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = context_lookup_ssa(c, I.A_data.ssa);
-    try(Bty, typecheck_operand(c, I.B_kind, I.B_data));
-
-    try(Cty, typecheck_operand(c, I.C_kind, I.C_data));
-
-    Type *i64ty = context_i64_type(c);
-    if (!type_equality(i64ty, Bty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Bty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    if (!type_equality(Bty, Cty)) {
-        String buf = string_create();
-        string_append(&buf, SV("Expected [i64] Actual ["));
-        print_type(&buf, Cty);
-        string_append(&buf, SV("]"));
-        return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
-    }
-
-    local->type = Bty;
-    return success(Bty);
+static bool
+typecheck_div(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
-static TResult typecheck_function(Context *restrict c) {
-    Type     *return_type = NULL;
-    Function *body        = context_current_function(c);
-    Bytecode *bc          = &body->bc;
+static bool
+typecheck_mod(Type const **result, Context *restrict c, Instruction I) {
+    Type const *type_i64 = context_i64_type(c);
+    return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
+}
+
+static bool typecheck_function(Type const **result, Context *restrict c) {
+    Type const *return_type = NULL;
+    Function   *body        = context_current_function(c);
+    Bytecode   *bc          = &body->bc;
 
     Instruction *ip = bc->buffer;
     for (u16 idx = 0; idx < bc->length; ++idx) {
         Instruction I = ip[idx];
         switch (I.opcode) {
         case OPCODE_RET: {
-            try(Bty, typecheck_ret(c, I));
+            Type const *Bty;
+            if (!typecheck_ret(&Bty, c, I)) { return false; }
 
             if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-                String buf = string_create();
-                string_append(&buf, SV("Previous return statement had type ["));
-                print_type(&buf, return_type);
-                string_append(&buf, SV("] this return statement has type ["));
-                print_type(&buf, Bty);
-                string_append(&buf, SV("]"));
-                return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+                return failure_mismatch_type(c, return_type, Bty);
             }
 
             return_type = Bty;
@@ -430,56 +366,56 @@ static TResult typecheck_function(Context *restrict c) {
         }
 
         case OPCODE_CALL: {
-            try(Aty, typecheck_call(c, I));
-            (void)Aty;
-            break;
-        }
-
-        case OPCODE_DOT: {
-            try(Aty, typecheck_dot(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_call(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_LOAD: {
-            try(Bty, typecheck_load(c, I));
-            (void)Bty;
+            Type const *Aty;
+            if (!typecheck_load(&Aty, c, I)) { return false; }
+            break;
+        }
+
+        case OPCODE_DOT: {
+            Type const *Aty;
+            if (!typecheck_dot(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_NEG: {
-            try(Bty, typecheck_neg(c, I));
-            (void)Bty;
+            Type const *Aty;
+            if (!typecheck_neg(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_ADD: {
-            try(Aty, typecheck_add(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_add(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_SUB: {
-            try(Aty, typecheck_sub(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_sub(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_MUL: {
-            try(Aty, typecheck_mul(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_mul(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_DIV: {
-            try(Aty, typecheck_div(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_div(&Aty, c, I)) { return false; }
             break;
         }
 
         case OPCODE_MOD: {
-            try(Aty, typecheck_mod(c, I));
-            (void)Aty;
+            Type const *Aty;
+            if (!typecheck_mod(&Aty, c, I)) { return false; }
             break;
         }
 
@@ -487,19 +423,21 @@ static TResult typecheck_function(Context *restrict c) {
         }
     }
 
-    return success(return_type);
+    return success(result, return_type);
 }
 
-static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
+static bool typecheck_global(Type const **result,
+                             Context *restrict c,
+                             Symbol *restrict element) {
     assert(c != nullptr);
     assert(element != nullptr);
-    if (element->type != NULL) { return success(element->type); }
+    if (element->type != NULL) { return success(result, element->type); }
 
     switch (element->kind) {
     case STE_UNDEFINED: {
         // #TODO: this should be handled as a forward declaration
         // but only if the type exists.
-        return success(context_nil_type(c));
+        return success(result, context_nil_type(c));
     }
 
     case STE_FUNCTION: {
@@ -510,26 +448,23 @@ static TResult typecheck_global(Context *restrict c, Symbol *restrict element) {
         // the function body. This only breaks when we have mutual recursion,
         // otherwise, when the global is successfully typed.
         // the question is, how do we accomplish this?
-        Function *body = context_enter_function(c, element->name);
-
-        try(Rty, typecheck_function(c));
+        Function   *body = context_enter_function(c, element->name);
+        Type const *Rty;
+        if (!typecheck_function(&Rty, c)) {
+            context_leave_function(c);
+            return false;
+        }
         context_leave_function(c);
 
         if ((body->return_type != NULL) &&
             (!type_equality(Rty, body->return_type))) {
-            String buf = string_create();
-            string_append(&buf, SV("Function was annotated with type ["));
-            print_type(&buf, body->return_type);
-            string_append(&buf, SV("] actual returned type ["));
-            print_type(&buf, Rty);
-            string_append(&buf, SV("]"));
-            return error(ERROR_TYPECHECK_TYPE_MISMATCH, buf);
+            return failure_mismatch_type(c, body->return_type, Rty);
         }
 
-        body->return_type   = Rty;
-        Type *function_type = type_of_function(body, c);
-        element->type       = function_type;
-        return success(function_type);
+        body->return_type         = Rty;
+        Type const *function_type = type_of_function(body, c);
+        element->type             = function_type;
+        return success(result, function_type);
     }
 
     default: EXP_UNREACHABLE();
@@ -542,10 +477,11 @@ i32 typecheck(Context *restrict context) {
     i32                 result = EXIT_SUCCESS;
     SymbolTableIterator iter   = context_global_symbol_table_iterator(context);
     while (!symbol_table_iterator_done(&iter)) {
-        TResult tr = typecheck_global(context, (*iter.element));
-        if (tr.has_error) {
-            error_print(&tr.error, context_source_path(context), 0);
-            tresult_destroy(&tr);
+        Type const *type = NULL;
+        if (typecheck_global(&type, context, (*iter.element))) {
+            Error *error = context_current_error(context);
+            error_print(error, context_source_path(context), 0);
+            error_destroy(error);
             result |= EXIT_FAILURE;
         }
 

@@ -69,31 +69,21 @@ TypeInterner type_interner_create();
  */
 void type_interner_destroy(TypeInterner *restrict type_interner);
 
-Type *type_interner_nil_type(TypeInterner *restrict type_interner);
-Type *type_interner_boolean_type(TypeInterner *restrict type_interner);
-Type *type_interner_u8_type(TypeInterner *restrict type_interner);
-Type *type_interner_u16_type(TypeInterner *restrict type_interner);
-Type *type_interner_u32_type(TypeInterner *restrict type_interner);
-Type *type_interner_u64_type(TypeInterner *restrict type_interner);
-Type *type_interner_i8_type(TypeInterner *restrict type_interner);
-Type *type_interner_i16_type(TypeInterner *restrict type_interner);
-Type *type_interner_i32_type(TypeInterner *restrict type_interner);
-Type *type_interner_i64_type(TypeInterner *restrict type_interner);
-Type *type_interner_tuple_type(TypeInterner *restrict type_interer,
-                               TupleType tuple);
+Type const *type_interner_nil_type(TypeInterner *restrict type_interner);
+Type const *type_interner_boolean_type(TypeInterner *restrict type_interner);
+Type const *type_interner_u8_type(TypeInterner *restrict type_interner);
+Type const *type_interner_u16_type(TypeInterner *restrict type_interner);
+Type const *type_interner_u32_type(TypeInterner *restrict type_interner);
+Type const *type_interner_u64_type(TypeInterner *restrict type_interner);
+Type const *type_interner_i8_type(TypeInterner *restrict type_interner);
+Type const *type_interner_i16_type(TypeInterner *restrict type_interner);
+Type const *type_interner_i32_type(TypeInterner *restrict type_interner);
+Type const *type_interner_i64_type(TypeInterner *restrict type_interner);
+Type const *type_interner_tuple_type(TypeInterner *restrict type_interer,
+                                     TupleType tuple);
 
-/**
- * @brief get the FunctionType
- *
- * @note takes ownership of the passed in argument_types
- *
- * @param type_interner
- * @param return_type
- * @param argument_types
- * @return Type*
- */
-Type *type_interner_function_type(TypeInterner *restrict type_interner,
-                                  Type     *return_type,
-                                  TupleType argument_types);
+Type const *type_interner_function_type(TypeInterner *restrict type_interner,
+                                        Type const *return_type,
+                                        TupleType   argument_types);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

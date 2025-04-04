@@ -25,7 +25,7 @@
 #include "support/unreachable.h"
 
 void x64_codegen_dot(Instruction I,
-                     u64 block_index,
+                     u64         block_index,
                      x64_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
@@ -41,10 +41,10 @@ void x64_codegen_dot(Instruction I,
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x64_Address *tuple_address = &B->location.address;
-        x64_Address element_address =
+        x64_Address  element_address =
             x64_get_element_address(tuple_address, B->type, index);
-        TupleType *tuple_type = &B->type->tuple_type;
-        Type *element_type    = tuple_type->types[index];
+        TupleType const *tuple_type   = &B->type->tuple_type;
+        Type const      *element_type = tuple_type->types[index];
 
         x64_codegen_copy_allocation_from_memory(
             A, &element_address, element_type, block_index, context);
@@ -53,7 +53,7 @@ void x64_codegen_dot(Instruction I,
 
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        Value *value =
+        Value          *value =
             context_constants_at(context->context, I.B_data.constant);
         assert(value->kind == VALUE_KIND_TUPLE);
         Tuple *tuple = &value->tuple;

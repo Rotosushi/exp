@@ -68,7 +68,7 @@ LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u32 ssa);
 typedef struct Function {
     FormalArgumentList arguments;
     LocalVariables     locals;
-    Type              *return_type;
+    Type const        *return_type;
     u32                ssa_count;
     Bytecode           bc;
 } Function;
