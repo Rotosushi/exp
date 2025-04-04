@@ -102,6 +102,7 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
         case '\r':
         case '\t': lexer_next(lexer); break;
 
+        // single line comments
         case '/':
             if (lexer_peek_next(lexer) == '/') {
                 while ((lexer_peek(lexer) != '\n') && !lexer_at_end(lexer)) {
@@ -133,10 +134,10 @@ static Token lexer_integer(Lexer *restrict lexer) {
 }
 
 static Token lexer_check_keyword(Lexer *restrict lexer,
-                                 u64 begin,
-                                 u64 length,
+                                 u64         begin,
+                                 u64         length,
                                  const char *rest,
-                                 Token keyword) {
+                                 Token       keyword) {
     if ((lexer_current_text_length(lexer) == (begin + length)) &&
         (memcmp(lexer->token + begin, rest, length) == 0)) {
         return keyword;
@@ -159,10 +160,40 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
         }
         break;
 
-    case 'i': return lexer_check_keyword(lexer, 1, 2, "64", TOK_TYPE_I64);
+    case 'i':
+        if (lexer_current_text_length(lexer) > 1) {
+            switch (lexer->token[1]) {
+            case '8': return lexer_check_keyword(lexer, 2, 0, "", TOK_TYPE_I8);
+            case '1':
+                return lexer_check_keyword(lexer, 2, 1, "6", TOK_TYPE_I16);
+            case '3':
+                return lexer_check_keyword(lexer, 2, 1, "2", TOK_TYPE_I32);
+            case '6':
+                return lexer_check_keyword(lexer, 2, 1, "4", TOK_TYPE_I64);
+            default: break;
+            }
+        }
+        break;
+
     case 'n': return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
     case 'r': return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
     case 't': return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);
+
+    case 'u':
+        if (lexer_current_text_length(lexer) > 1) {
+            switch (lexer->token[1]) {
+            case '8': return lexer_check_keyword(lexer, 2, 0, "", TOK_TYPE_U8);
+            case '1':
+                return lexer_check_keyword(lexer, 2, 1, "6", TOK_TYPE_U16);
+            case '3':
+                return lexer_check_keyword(lexer, 2, 1, "2", TOK_TYPE_U32);
+            case '6':
+                return lexer_check_keyword(lexer, 2, 1, "4", TOK_TYPE_U64);
+            default: break;
+            }
+        }
+        break;
+
     case 'v': return lexer_check_keyword(lexer, 1, 2, "ar", TOK_VAR);
 
     default: break;
