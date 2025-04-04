@@ -30,9 +30,9 @@ void x64_codegen_dot(Instruction I,
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
 
-    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
-    assert(I.C_data.immediate >= 0);
-    u16 index = (u16)I.C_data.immediate;
+    assert(I.C_kind == OPERAND_KIND_I64);
+    assert(I.C_data.i64_ >= 0);
+    u16 index = (u16)I.C_data.i64_;
 
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
@@ -65,7 +65,7 @@ void x64_codegen_dot(Instruction I,
     }
 
     // we cannot store tuples as immediates
-    case OPERAND_KIND_IMMEDIATE:
+    case OPERAND_KIND_I64:
     // we don't support globals which are not functions yet
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();

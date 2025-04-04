@@ -100,10 +100,10 @@ x64_codegen_load_address_from_scalar_operand(x64_Address *restrict dst,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -172,7 +172,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 
     // #NOTE: an immediate value is never composite
-    case OPERAND_KIND_IMMEDIATE:
+    case OPERAND_KIND_I64:
     default:                     EXP_UNREACHABLE();
     }
 }
@@ -214,10 +214,10 @@ x64_codegen_load_argument_from_scalar_operand(x64_Address *restrict dst,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -285,7 +285,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 
     // #NOTE: immediate operands are never composite
-    case OPERAND_KIND_IMMEDIATE:
+    case OPERAND_KIND_I64:
     default:                     EXP_UNREACHABLE();
     }
 }
@@ -321,10 +321,10 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR gpr,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 

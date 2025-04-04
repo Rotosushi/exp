@@ -28,18 +28,6 @@ typedef enum TypeKind {
     TYPE_KIND_FUNCTION,
 } TypeKind;
 
-typedef struct NilType {
-    char empty; // zero length structs are not valid C
-} NilType;
-
-typedef struct BooleanType {
-    char empty;
-} BooleanType;
-
-typedef struct IntegerType {
-    char empty;
-} IntegerType;
-
 struct Type;
 
 typedef struct TupleType {
@@ -73,9 +61,7 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B);
 typedef struct Type {
     TypeKind kind;
     union {
-        NilType nil_type;
-        BooleanType boolean_type;
-        IntegerType integer_type;
+        u8 scalar_type;
         TupleType tuple_type;
         FunctionType function_type;
     };
@@ -83,7 +69,7 @@ typedef struct Type {
 
 Type type_create_nil();
 Type type_create_boolean();
-Type type_create_integer();
+Type type_create_i64();
 Type type_create_tuple(TupleType tuple_type);
 Type type_create_function(Type *result, TupleType args);
 void type_destroy(Type *type);

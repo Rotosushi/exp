@@ -52,13 +52,13 @@ static void x64_codegen_subtract_ssa(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_Allocation *A =
             x64_context_allocate_from_active(context, local, B, block_index);
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -96,21 +96,21 @@ static void x64_codegen_subtract_immediate(Instruction I,
         x86_64_GPR gpr = A->location.gpr;
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
 
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -118,7 +118,7 @@ static void x64_codegen_subtract_immediate(Instruction I,
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
                                    x64_operand_constant(I.C_data.constant)));
@@ -156,14 +156,14 @@ void x64_codegen_subtract_constant(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_constant(I.B_data.constant)));
         x64_context_append(context,
                            x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -194,7 +194,7 @@ void x64_codegen_subtract(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_codegen_subtract_immediate(I, block_index, local, context);
         break;
     }

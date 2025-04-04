@@ -22,7 +22,6 @@
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
-#include "support/io.h"
 #include "support/unreachable.h"
 
 TupleType tuple_type_create() {
@@ -88,17 +87,17 @@ bool function_type_equality(FunctionType const *A, FunctionType const *B) {
 }
 
 Type type_create_nil() {
-    Type type = {.kind = TYPE_KIND_NIL, .nil_type.empty = 0};
+    Type type = {.kind = TYPE_KIND_NIL, .scalar_type = 0};
     return type;
 }
 
 Type type_create_boolean() {
-    Type type = {.kind = TYPE_KIND_BOOLEAN, .boolean_type.empty = 0};
+    Type type = {.kind = TYPE_KIND_BOOLEAN, .scalar_type = 0};
     return type;
 }
 
-Type type_create_integer() {
-    Type type = {.kind = TYPE_KIND_I64, .integer_type.empty = 0};
+Type type_create_i64() {
+    Type type = {.kind = TYPE_KIND_I64, .scalar_type = 0};
     return type;
 }
 

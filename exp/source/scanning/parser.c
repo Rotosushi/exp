@@ -644,7 +644,7 @@ static bool integer(Operand *result, Parser *parser, Context *context) {
 
     if (!nexttok(parser, context)) { return false; }
     if (u64_in_range_i64(integer)) {
-        *result = operand_immediate((i64)integer);
+        *result = operand_i64((i64)integer);
     } else {
         return error(
             parser, context, ERROR_PARSER_INTEGER_LITERAL_OUT_OF_RANGE);

@@ -76,7 +76,7 @@ typecheck_operand(Context *restrict c, OperandKind kind, OperandData data) {
         return success(type_of_value(value, c));
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         return success(context_i64_type(c));
     }
 
@@ -175,13 +175,13 @@ static TResult typecheck_dot(Context *restrict c, Instruction I) {
 
     TupleType *tuple = &Bty->tuple_type;
 
-    if (I.C_kind != OPERAND_KIND_IMMEDIATE) {
+    if (I.C_kind != OPERAND_KIND_I64) {
         return error(ERROR_TYPECHECK_TUPLE_INDEX_NOT_IMMEDIATE,
                      string_from_view(SV("")));
     }
 
-    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
-    i64 index = I.C_data.immediate;
+    assert(I.C_kind == OPERAND_KIND_I64);
+    i64 index = I.C_data.i64_;
 
     if (tuple_index_out_of_bounds(index, tuple)) {
         String buf = string_create();

@@ -74,7 +74,7 @@ static void x64_codegen_multiply_ssa(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         if (x64_allocation_location_eq(B, x64_location_gpr(X86_64_GPR_RAX))) {
             x64_context_allocate_from_active(context, local, B, block_index);
 
@@ -82,7 +82,7 @@ static void x64_codegen_multiply_ssa(Instruction I,
             x64_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_immediate(I.C_data.immediate)));
+                        x64_operand_immediate(I.C_data.i64_)));
             x64_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
@@ -92,7 +92,7 @@ static void x64_codegen_multiply_ssa(Instruction I,
             context, local, X86_64_GPR_RAX, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         x64_context_append(context, x64_imul(x64_operand_alloc(B)));
         break;
     }
@@ -139,7 +139,7 @@ static void x64_codegen_multiply_immediate(Instruction I,
             x64_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_immediate(I.B_data.immediate)));
+                        x64_operand_immediate(I.B_data.i64_)));
             x64_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
@@ -149,21 +149,21 @@ static void x64_codegen_multiply_immediate(Instruction I,
             context, local, X86_64_GPR_RAX, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         x64_context_append(context, x64_imul(x64_operand_alloc(C)));
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_Allocation *A = x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
@@ -174,7 +174,7 @@ static void x64_codegen_multiply_immediate(Instruction I,
         x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                    x64_operand_constant(I.C_data.constant)));
@@ -217,7 +217,7 @@ void x64_codegen_multiply_constant(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_Allocation *A = x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -226,7 +226,7 @@ void x64_codegen_multiply_constant(Instruction I,
                                    x64_operand_constant(I.B_data.constant)));
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_immediate(I.C_data.immediate)));
+                                   x64_operand_immediate(I.C_data.i64_)));
         x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
@@ -267,7 +267,7 @@ void x64_codegen_multiply(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_codegen_multiply_immediate(I, block_index, local, context);
         break;
     }

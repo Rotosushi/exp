@@ -44,10 +44,10 @@ void x64_codegen_return(Instruction I,
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(body->result),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         break;
     }
 

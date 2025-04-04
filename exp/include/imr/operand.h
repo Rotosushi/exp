@@ -21,17 +21,17 @@
 #include "support/string.h"
 
 typedef enum OperandKind : u8 {
-    OPERAND_KIND_SSA       = 0x0,
-    OPERAND_KIND_CONSTANT  = 0x1,
-    OPERAND_KIND_LABEL     = 0x2,
-    OPERAND_KIND_IMMEDIATE = 0x3,
+    OPERAND_KIND_SSA      = 0x0,
+    OPERAND_KIND_CONSTANT = 0x1,
+    OPERAND_KIND_LABEL    = 0x2,
+    OPERAND_KIND_I64      = 0x3,
 } OperandKind;
 
 typedef union OperandPayload {
     u32 ssa;
     u32 constant;
     u32 label;
-    i64 immediate;
+    i64 i64_;
 } OperandData;
 
 typedef struct Operand {
@@ -45,10 +45,10 @@ Operand operand(OperandKind kind, OperandData data);
 Operand operand_ssa(u32 ssa);
 Operand operand_constant(u32 index);
 Operand operand_label(u32 index);
-Operand operand_immediate(i64 immediate);
-bool operand_equality(Operand A, Operand B);
-void print_operand(String *restrict string,
-                   Operand operand,
-                   struct Context *restrict context);
+Operand operand_i64(i64 i64_);
+bool    operand_equality(Operand A, Operand B);
+void    print_operand(String *restrict string,
+                      Operand operand,
+                      struct Context *restrict context);
 
 #endif // EXP_IMR_OPERAND_H

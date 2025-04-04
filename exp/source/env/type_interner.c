@@ -133,7 +133,7 @@ TypeInterner type_interner_create() {
     TypeInterner type_interner;
     type_interner.nil_type       = type_create_nil();
     type_interner.boolean_type   = type_create_boolean();
-    type_interner.i64_type       = type_create_integer();
+    type_interner.i64_type       = type_create_i64();
     type_interner.tuple_types    = tuple_types_create();
     type_interner.function_types = function_types_create();
     return type_interner;

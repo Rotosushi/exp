@@ -70,7 +70,7 @@ Type *type_of_operand(Operand operand, Context *restrict context) {
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         // #TODO: we can theoretically fit a u8 and a i8 in an
         //  immediate as well. so maybe let's do that?
         return context_i64_type(context);

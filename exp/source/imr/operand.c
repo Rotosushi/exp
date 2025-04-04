@@ -42,9 +42,9 @@ Operand operand_label(u32 index) {
     return operand;
 }
 
-Operand operand_immediate(i64 immediate) {
-    Operand operand = {.kind           = OPERAND_KIND_IMMEDIATE,
-                       .data.immediate = immediate};
+Operand operand_i64(i64 i64_) {
+    Operand operand = {.kind           = OPERAND_KIND_I64,
+                       .data.i64_ = i64_};
     return operand;
 }
 
@@ -54,7 +54,7 @@ bool operand_equality(Operand A, Operand B) {
     switch (A.kind) {
     case OPERAND_KIND_SSA:       return A.data.ssa == B.data.ssa;
     case OPERAND_KIND_CONSTANT:  return A.data.constant == B.data.constant;
-    case OPERAND_KIND_IMMEDIATE: return A.data.immediate == B.data.immediate;
+    case OPERAND_KIND_I64: return A.data.i64_ == B.data.i64_;
     case OPERAND_KIND_LABEL:     return A.data.label == B.data.label;
     default:                     EXP_UNREACHABLE();
     }
@@ -92,8 +92,8 @@ void print_operand(String *restrict string,
     case OPERAND_KIND_CONSTANT:
         print_operand_value(string, operand.data.constant, context);
         break;
-    case OPERAND_KIND_IMMEDIATE:
-        print_operand_immediate(string, operand.data.immediate);
+    case OPERAND_KIND_I64:
+        print_operand_immediate(string, operand.data.i64_);
         break;
     case OPERAND_KIND_LABEL:
         print_operand_label(string, operand.data.label, context);
