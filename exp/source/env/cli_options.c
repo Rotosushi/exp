@@ -25,20 +25,16 @@
 #include "support/io.h"
 #include "support/log.h"
 
-#define SET_BIT(B, r) ((B) |= (u64)(1 << r))
-#define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
-#define CHK_BIT(B, r) (((B) >> r) & 1)
-
 CLIOptions cli_options_create() {
     CLIOptions cli_options = {.flags = 0};
-    SET_BIT(cli_options.flags, CLI_DO_ASSEMBLE);
-    SET_BIT(cli_options.flags, CLI_DO_LINK);
-    SET_BIT(cli_options.flags, CLI_DO_CLEANUP);
+    bitset_set(&cli_options.flags, CLI_DO_ASSEMBLE);
+    bitset_set(&cli_options.flags, CLI_DO_LINK);
+    bitset_set(&cli_options.flags, CLI_DO_CLEANUP);
     return cli_options;
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
-    cli_options->flags = 0;
+    cli_options->flags = bitset_create();
     string_destroy(&cli_options->output);
     string_destroy(&cli_options->source);
 }
@@ -62,7 +58,7 @@ static void print_help(FILE *file) {
 }
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
-    CLIOptions options               = cli_options_create();
+    CLIOptions         options       = cli_options_create();
     static char const *short_options = "hvo:cs";
 
     i32 option = 0;
@@ -86,22 +82,22 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         }
 
         case 'c': {
-            CLR_BIT(options.flags, CLI_DO_CLEANUP);
-            CLR_BIT(options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_DO_CLEANUP);
+            bitset_clear(&options.flags, CLI_DO_LINK);
             break;
         }
 
         case 's': {
-            CLR_BIT(options.flags, CLI_DO_CLEANUP);
-            CLR_BIT(options.flags, CLI_DO_ASSEMBLE);
-            CLR_BIT(options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_DO_CLEANUP);
+            bitset_clear(&options.flags, CLI_DO_ASSEMBLE);
+            bitset_clear(&options.flags, CLI_DO_LINK);
             break;
         }
 
         default: {
-            char buf[2]            = {(char)option, '\0'};
+            char       buf[2]      = {(char)option, '\0'};
             StringView option_view = string_view_from_str(buf, 1);
-            String string          = string_create();
+            String     string      = string_create();
             string_append(&string, SV("unknown option ["));
             string_append(&string, option_view);
             string_append(&string, SV("]\n"));
@@ -133,10 +129,6 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
     return options;
 }
-
-#undef SET_BIT
-#undef CLR_BIT
-#undef CHK_BIT
 
 #else
 #error "unsupported host OS"

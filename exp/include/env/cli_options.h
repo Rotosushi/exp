@@ -17,6 +17,7 @@
 #ifndef EXP_UTILITY_CLI_OPTIONS_H
 #define EXP_UTILITY_CLI_OPTIONS_H
 
+#include "support/bitset.h"
 #include "support/string.h"
 
 typedef enum CLIFlags {
@@ -27,13 +28,13 @@ typedef enum CLIFlags {
 } CLIFlags;
 
 typedef struct CLIOptions {
-    u64 flags;
+    Bitset flags;
     String source;
     String output;
 } CLIOptions;
 
 CLIOptions cli_options_create();
-void cli_options_destroy(CLIOptions *restrict cli_options);
+void       cli_options_destroy(CLIOptions *restrict cli_options);
 
 [[nodiscard]] CLIOptions parse_cli_options(i32 argc, char const *argv[]);
 
