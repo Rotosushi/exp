@@ -478,7 +478,7 @@ i32 typecheck(Context *restrict context) {
     SymbolTableIterator iter   = context_global_symbol_table_iterator(context);
     while (!symbol_table_iterator_done(&iter)) {
         Type const *type = NULL;
-        if (typecheck_global(&type, context, (*iter.element))) {
+        if (!typecheck_global(&type, context, (*iter.element))) {
             Error *error = context_current_error(context);
             error_print(error, context_source_path(context), 0);
             error_destroy(error);

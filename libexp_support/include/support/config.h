@@ -21,18 +21,18 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "a717d78"
-#define EXP_TEST_DIR "/home/cade-weinberg/Source/Projects/exp/test"
-#define EXP_TEST_RESOURCES_DIR "/home/cade-weinberg/Source/Projects/exp/test/resources"
-#define EXP_BINARY_DIR "/home/cade-weinberg/Source/Projects/exp/build"
+#define EXP_GIT_REVISION "fcc94f9"
+#define EXP_TEST_DIR "/home/cade/source/exp/test"
+#define EXP_TEST_RESOURCES_DIR "/home/cade/source/exp/test/resources"
+#define EXP_BINARY_DIR "/home/cade/source/exp/build"
 #define EXP_LIBEXP_RUNTIME_SOURCE_DIR ""
-#define EXP_LIBEXP_RUNTIME_BINARY_DIR "/home/cade-weinberg/Source/Projects/exp/build/libexp_runtime"
+#define EXP_LIBEXP_RUNTIME_BINARY_DIR "/home/cade/source/exp/build/libexp_runtime"
 #define EXP_HOST_SYSTEM_LINUX
 /* #undef EXP_HOST_SYSTEM_WINDOWS */
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-04-04 11:06:29) git revision (a717d78)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2025-04-05 20:18:49) git revision (fcc94f9)"
 // NOLINTEND
 // clang-format on
 

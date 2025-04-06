@@ -16,7 +16,8 @@
 # along with exp.  If not, see <https://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set (TestsToRun 
+set (TestsToRun
+bitset_tests.c
 exp_byte_tests.c
 cli_options_tests.c
 cli_option_parser_tests.c
