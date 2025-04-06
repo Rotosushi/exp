@@ -8,6 +8,7 @@ set(SOURCE_FILES
   
   ${EXP_SOURCE_DIR}/codegen/directives.c
   ${EXP_SOURCE_DIR}/codegen/lifetimes.c
+  ${EXP_SOURCE_DIR}/codegen/IR/directives.c
   ${EXP_SOURCE_DIR}/codegen/x64/codegen.c
   ${EXP_SOURCE_DIR}/codegen/x64/emit.c
   ${EXP_SOURCE_DIR}/codegen/x64/env/context.c

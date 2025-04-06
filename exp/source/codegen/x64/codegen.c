@@ -156,7 +156,7 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     }
 }
 
-void x64_codegen(Context *context) {
+i32 x64_codegen(Context *context) {
     x64_Context         x64context = x64_context_create(context);
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
@@ -168,4 +168,5 @@ void x64_codegen(Context *context) {
 
     x64_emit(&x64context);
     x64_context_destroy(&x64context);
+    return 0;
 }

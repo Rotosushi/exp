@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 cade
 //
 // This file is part of exp.
 //
@@ -14,11 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_CODEGEN_H
-#define EXP_CODEGEN_CODEGEN_H
+
+#ifndef EXP_CODEGEN_IR_CODEGEN_H
+#define EXP_CODEGEN_IR_CODEGEN_H
+
 #include "env/context.h"
 
-i32 codegen_ir(Context *restrict context);
-i32 codegen_assembly(Context *restrict context);
+i32 ir_codegen(Context *restrict context);
 
-#endif // !EXP_CODEGEN_CODEGEN_H
+#endif // !EXP_CODEGEN_IR_CODEGEN_H

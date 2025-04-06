@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
+ * Copyright (C) 2025 cade
  *
  * This file is part of exp.
  *
@@ -16,10 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
-#include "codegen/IR/codegen.h"
-#include "codegen/x64/codegen.h"
 
-i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
+#include "codegen/IR/directives.h"
 
-i32 codegen_assembly(Context *restrict context) { return x64_codegen(context); }
+void ir_directive_version(StringView version, String *restrict str) {
+    string_append(str, SV(".version "));
+    string_append(str, version);
+    string_append(str, SV("\n"));
+}
+
+void ir_directive_file(StringView path, String *restrict str) {
+    string_append(str, SV(".file "));
+    string_append(str, path);
+    string_append(str, SV("\n"));
+}
+
+void ir_directive_function(StringView name, String *restrict str) {
+    string_append(str, SV(".function "));
+    string_append(str, name);
+}

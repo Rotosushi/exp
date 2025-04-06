@@ -89,6 +89,11 @@ StringView context_source_path(Context *context) {
     return string_to_view(&(context->options.source));
 }
 
+StringView context_ir_path(Context *context) {
+    assert(context != nullptr);
+    return string_to_view(&(context->options.ir));
+}
+
 StringView context_assembly_path(Context *context) {
     assert(context != nullptr);
     return string_to_view(&context->options.assembly);

@@ -24,6 +24,9 @@ ContextOptions context_options_create(CLIOptions *restrict cli_options) {
     if (!string_empty(&cli_options->source)) {
         string_assign_string(&options.source, &cli_options->source);
 
+        string_assign_string(&options.ir, &cli_options->source);
+        string_replace_extension(&options.ir, SV(".expir"));
+
         string_assign_string(&options.assembly, &cli_options->source);
         string_replace_extension(&options.assembly, SV(".s"));
 
@@ -40,6 +43,7 @@ ContextOptions context_options_create(CLIOptions *restrict cli_options) {
 
 void context_options_destroy(ContextOptions *restrict options) {
     string_destroy(&options->source);
+    string_destroy(&options->ir);
     string_destroy(&options->assembly);
     string_destroy(&options->object);
     string_destroy(&options->output);

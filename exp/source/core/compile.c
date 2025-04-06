@@ -33,9 +33,6 @@ static i32 compile_context(Context *restrict c) {
 
     if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
-    // @todo: codegen IR or assembly?
-    codegen(c);
-
     return EXIT_SUCCESS;
 }
 
@@ -44,6 +41,15 @@ i32 compile(i32 argc, char const *argv[]) {
     Context    context     = context_create(&cli_options);
 
     i32 result = compile_context(&context);
+
+    if ((result != EXIT_FAILURE) && context_create_ir_artifact(&context)) {
+        result |= codegen_ir(&context);
+    }
+
+    if ((result != EXIT_FAILURE) &&
+        context_create_assembly_artifact(&context)) {
+        result |= codegen_assembly(&context);
+    }
 
     if ((result != EXIT_FAILURE) && context_create_object_artifact(&context)) {
         result |= assemble(&context);

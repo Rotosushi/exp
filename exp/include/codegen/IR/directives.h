@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 cade
 //
 // This file is part of exp.
 //
@@ -14,11 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_CODEGEN_H
-#define EXP_CODEGEN_CODEGEN_H
-#include "env/context.h"
 
-i32 codegen_ir(Context *restrict context);
-i32 codegen_assembly(Context *restrict context);
+#ifndef EXP_CODEGEN_IR_DIRECTIVES_H
+#define EXP_CODEGEN_IR_DIRECTIVES_H
 
-#endif // !EXP_CODEGEN_CODEGEN_H
+#include "support/string.h"
+
+void ir_directive_version(StringView version, String *restrict str);
+void ir_directive_file(StringView path, String *restrict str);
+void ir_directive_function(StringView name, String *restrict str);
+
+#endif // !EXP_CODEGEN_IR_DIRECTIVES_H

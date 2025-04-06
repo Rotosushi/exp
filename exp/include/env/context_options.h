@@ -38,6 +38,7 @@
 typedef struct ContextOptions {
     Bitset flags;
     String source;
+    String ir;
     String assembly;
     String object;
     String output;
