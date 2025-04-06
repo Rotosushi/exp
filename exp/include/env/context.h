@@ -52,9 +52,15 @@ Context context_create(CLIOptions *options);
 void    context_destroy(Context *context);
 
 // context options functions
-bool context_do_assemble(Context *context);
-bool context_do_link(Context *context);
-bool context_do_cleanup(Context *context);
+bool context_prolix(Context const *context);
+bool context_trace(Context const *context);
+bool context_create_ir_artifact(Context const *context);
+bool context_create_assembly_artifact(Context const *context);
+bool context_create_object_artifact(Context const *context);
+bool context_create_executable_artifact(Context const *context);
+bool context_cleanup_ir_artifact(Context const *context);
+bool context_cleanup_assembly_artifact(Context const *context);
+bool context_cleanup_object_artifact(Context const *context);
 
 StringView context_source_path(Context *context);
 StringView context_assembly_path(Context *context);

@@ -45,16 +45,21 @@ void context_options_destroy(ContextOptions *restrict options) {
     string_destroy(&options->output);
 }
 
-bool context_options_do_assemble(ContextOptions *restrict options) {
-    return bitset_check(&options->flags, CLI_DO_ASSEMBLE);
-}
-
-bool context_options_do_link(ContextOptions *restrict options) {
-    return bitset_check(&options->flags, CLI_DO_LINK);
-}
-
-bool context_options_do_cleanup(ContextOptions *restrict options) {
-    return bitset_check(&options->flags, CLI_DO_CLEANUP);
-}
+extern bool context_options_prolix(ContextOptions const *restrict options);
+extern bool context_options_trace(ContextOptions const *restrict options);
+extern bool
+context_options_create_ir_artifact(ContextOptions const *restrict options);
+extern bool context_options_create_assembly_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_create_object_artifact(ContextOptions const *restrict options);
+extern bool context_options_create_executable_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_cleanup_ir_artifact(ContextOptions const *restrict options);
+extern bool context_options_cleanup_assembly_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_cleanup_object_artifact(ContextOptions const *restrict options);
 
 #undef CHK_BIT

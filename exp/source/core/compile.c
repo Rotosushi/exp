@@ -33,6 +33,7 @@ static i32 compile_context(Context *restrict c) {
 
     if (analyze(c) == EXIT_FAILURE) { return EXIT_FAILURE; }
 
+    // @todo: codegen IR or assembly?
     codegen(c);
 
     return EXIT_SUCCESS;
@@ -40,22 +41,26 @@ static i32 compile_context(Context *restrict c) {
 
 i32 compile(i32 argc, char const *argv[]) {
     CLIOptions cli_options = parse_cli_options(argc, argv);
-    Context context        = context_create(&cli_options);
+    Context    context     = context_create(&cli_options);
 
     i32 result = compile_context(&context);
 
-    if ((result != EXIT_FAILURE) && context_do_assemble(&context)) {
+    if ((result != EXIT_FAILURE) && context_create_object_artifact(&context)) {
         result |= assemble(&context);
     }
 
-    if ((result != EXIT_FAILURE) && context_do_link(&context)) {
+    if ((result != EXIT_FAILURE) &&
+        context_create_executable_artifact(&context)) {
         result |= link(&context);
     }
 
-    if (context_do_cleanup(&context) && (result != EXIT_FAILURE)) {
+    if (context_cleanup_assembly_artifact(&context) &&
+        (result != EXIT_FAILURE)) {
         StringView asm_path = context_assembly_path(&context);
         file_remove(asm_path.ptr);
+    }
 
+    if (context_cleanup_object_artifact(&context) && (result != EXIT_FAILURE)) {
         StringView obj_path = context_object_path(&context);
         file_remove(obj_path.ptr);
     }

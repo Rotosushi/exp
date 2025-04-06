@@ -68,7 +68,7 @@ inline void bitset_clear(Bitset *bitset, u8 index) {
  * @return true if the bit is set
  * @return false if the bit is not set
  */
-inline bool bitset_check(Bitset *bitset, u8 index) {
+inline bool bitset_check(Bitset const *bitset, u8 index) {
     return ((bitset->data >> index) & 1ULL);
 }
 

@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "env/context.h"
+#include "env/context_options.h"
 
 Context context_create(CLIOptions *options) {
     assert(options != nullptr);
@@ -45,19 +46,42 @@ void context_destroy(Context *context) {
     context->current_function = nullptr;
 }
 
-bool context_do_assemble(Context *context) {
+bool context_prolix(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_assemble(&context->options);
+    return context_options_prolix(&(context->options));
 }
 
-bool context_do_link(Context *context) {
+bool context_trace(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_link(&context->options);
+    return context_options_trace(&(context->options));
 }
-
-bool context_do_cleanup(Context *context) {
+bool context_create_ir_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_cleanup(&context->options);
+    return context_options_create_ir_artifact(&(context->options));
+}
+bool context_create_assembly_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_assembly_artifact(&(context->options));
+}
+bool context_create_object_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_object_artifact(&(context->options));
+}
+bool context_create_executable_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_executable_artifact(&(context->options));
+}
+bool context_cleanup_ir_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_ir_artifact(&(context->options));
+}
+bool context_cleanup_assembly_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_assembly_artifact(&(context->options));
+}
+bool context_cleanup_object_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_object_artifact(&(context->options));
 }
 
 StringView context_source_path(Context *context) {

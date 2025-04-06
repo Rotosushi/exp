@@ -27,9 +27,13 @@
 
 CLIOptions cli_options_create() {
     CLIOptions cli_options = {.flags = 0};
-    bitset_set(&cli_options.flags, CLI_DO_ASSEMBLE);
-    bitset_set(&cli_options.flags, CLI_DO_LINK);
-    bitset_set(&cli_options.flags, CLI_DO_CLEANUP);
+    // @note the default behavior is to create an executable, from
+    // the source file, and cleanup all intermediate files.
+    bitset_set(&cli_options.flags, CLI_CREATE_ASSEMBLY_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CREATE_OBJECT_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
     return cli_options;
 }
 
@@ -82,15 +86,16 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         }
 
         case 'c': {
-            bitset_clear(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear(&options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
             break;
         }
 
         case 's': {
-            bitset_clear(&options.flags, CLI_DO_CLEANUP);
-            bitset_clear(&options.flags, CLI_DO_ASSEMBLE);
-            bitset_clear(&options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CREATE_OBJECT_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
             break;
         }
 

@@ -10,4 +10,4 @@
 extern Bitset bitset_create();
 extern void   bitset_set(Bitset *bitset, u8 index);
 extern void   bitset_clear(Bitset *bitset, u8 index);
-extern bool   bitset_check(Bitset *bitset, u8 index);
+extern bool   bitset_check(Bitset const *bitset, u8 index);

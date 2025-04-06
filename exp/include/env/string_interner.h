@@ -39,6 +39,7 @@ typedef struct SimpleString {
  * allocated for these strings is all managed in one location,
  * this has the additional benefiet of allowing string
  * comparison outside the string interner to require a single
+ * memory comparison.
  */
 typedef struct StringInterner {
     u64            capacity;
