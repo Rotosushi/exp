@@ -1,0 +1,650 @@
+"AMD Zen 1",,,,,,
+"List of instruction timings and macro-operation breakdown",,,,,,
+,,,,,,
+"Explanation of column headings:",,,,,,
+"Instruction:","Instruction name. cc means any condition code. For example, Jcc can be JB, JNE, etc.",,,,,
+"Operands:","i = immediate constant, r = any register, r32 = 32-bit register, etc., mm = 64 bit mmx register, x = 128 bit xmm register, y = 256 bit ymm register, m = any memory operand including indirect operands, m64 means 64-bit memory operand, etc.",,,,,
+"Ops:","Number of macro-operations issued from instruction decoder to schedulers.",,,,,
+"Latency:","This is the delay that the instruction generates in a dependency chain. The numbers are minimum values. Cache misses, misalignment, and exceptions may increase the clock counts considerably. The latency listed does not include the memory operand where the listing for register and memory operand are joined (r/m).",,,,,
+"Reciprocal throughput:","This is also called issue latency. This value indicates the average number of clock cycles from the execution of an instruction begins to a subsequent independent instruction of the same kind can begin to execute. A value of 1/3 indicates that the execution units can handle 3 instructions per clock cycle in one thread. However, the throughput may be limited by other bottlenecks in the pipeline. ",,,,,
+"Execution pipe:","Indicates which execution pipe or unit is used for the macro-operations:
+P0: Floating point and vector pipe 0
+P1: Floating point and vector pipe 1
+P2: Floating point and vector pipe 2
+P3: Floating point and vector pipe 3
+P0 P1: Uses both P0 and P1
+P01: Uses either P0 and P1
+Where no unit is specified, it uses one or more integer pipe or address generation units.
+Two micro-operations can execute simultaneously if they go to different
+execution pipes",,,,,
+"Domain:","Tells which execution unit domain is used:
+ivec: integer vector execution unit.
+fp: floating point execution unit.
+inherit: the output operand inherits the domain of the input operand.
+There is an additional latency of 1 clock cycle if the output of an ivec instruction goes to the input of a fp instruction, and when the output of a fp instruction goes to the input of an ivec instruction. All other latencies after memory load and before memory store instructions are included in the latency counts.",,,,,
+,,,,,,
+"Integer instructions",,,,,,
+"Instruction","Operands","Ops","Latency","Reciprocal throughput","Execution pipes","Notes"
+"Move instructions",,,,,,
+"MOV","r8,r8","1","1","0.25",,
+"MOV","r16,r16","1","1","0.25",,
+"MOV","r32,r32","1","0","0.3",,"renaming"
+"MOV","r64,r64","1","0","0.2",,"renaming"
+"MOV","r,i","1",,"0.25",,
+"MOV","r,m","1","4","0.5",,
+"MOV","m,r","1","3","1",,
+"MOV","m,i","1",,"1",,
+"MOVNTI","m,r","1","high","1",,
+"MOVZX, MOVSX","r,r","1","1","0.25",,
+"MOVZX, MOVSX","r,m","1","4","0.5",,
+"MOVSXD","r64,r32","1","1","0.25",,
+"MOVSXD","r64,m32","1","3","0.5",,
+"CMOVcc","r,r","1","1","0.25",,
+"CMOVcc","r,m","1",,"0.5",,
+"XCHG","r8,r8","2","1","1",,
+"XCHG","r16,r16","2","1","1",,
+"XCHG","r32,r32","2","0","0.33",,"renaming"
+"XCHG","r64,r64","2","0","0.33",,"renaming"
+"XCHG","r,m","2","~30","~30",,"depends on hw"
+"XLAT",,"2","5","2",,
+"PUSH","r","1",,"1",,
+"PUSH","i","1",,"1",,
+"PUSH","m","2",,"1",,
+"PUSHF(D/Q)",,"9",,"4",,
+"PUSH","sp","2",,"1",,
+"PUSHA(D)",,"9",,"8",,
+"POP","r","1",,"0.5",,
+"POP","m","2",,"1",,
+"POPF(D/Q)",,"35",,"13",,
+"POPA(D)",,"9",,"4",,
+"POP","sp","1","2","2",,
+"LEA","r16,[m]","2","2","1",,
+"LEA","r32,[m]","1","1","0.5",,"64 bit mode"
+"LEA","r32/64,[m]",,"1","0.5",,"rip relative"
+"LEA","r32/64,[m]","1","1","0.25",,"all other cases"
+"LAHF",,"4","3","2",,
+"SAHF",,"2","2","0.5",,
+"SALC",,"1","1","1",,
+"BSWAP","r","1","1","0.25",,
+"MOVBE","r,[m]","1",,"0.5",,"MOVBE"
+"MOVBE","[m],r","1",,"1",,"MOVBE"
+"PREFETCHNTA","m","1",,"0.5",,
+"PREFETCHT0/1/2","m","1",,"0.5",,
+"PREFETCH/W","m","1",,"0.5",,"PREFETCHW"
+"SFENCE",,"4",,"~20",,
+"LFENCE",,"1",,"0.25",,
+"MFENCE",,"7",,"~70",,
+,,,,,,
+"Arithmetic instructions",,,,,,
+"ADD, SUB","r,r","1","1","0.25",,
+"ADD, SUB","r,i","1","1","0.25",,
+"ADD, SUB","r,m","1",,"0.5",,
+"ADD, SUB","m,r","1","6","1",,
+"ADD, SUB","m,i","1","6","1",,
+"ADC, SBB","r,r","1","1",,,
+"ADC, SBB","r,i","1","1",,,
+"ADC, SBB","r,m","1","1","1",,
+"ADC, SBB","m,r","1","6","1",,
+"ADC, SBB","m,i","1","6","1",,
+"ADCX ADOX","r,r","1","1","1",,"ADX"
+"CMP","r,r","1","1","0.25",,
+"CMP","r,i","1","1","0.25",,
+"CMP","r,m","1",,"0.5",,
+"CMP","m,i","1",,"0.5",,
+"INC, DEC, NEG","r","1","1","0.25",,
+"INC, DEC, NEG","m","1","6","1",,
+"AAA, AAS",,"10","6",,,
+"DAA",,"16","8",,,
+"DAS",,"20","9",,,
+"AAD",,"4","5",,,
+"AAM",,"4","13",,,
+"MUL, IMUL","r8/m8","1","3","1",,
+"MUL, IMUL","r16/m16","3","3","2",,
+"MUL, IMUL","r32/m32","2","3","2",,
+"MUL, IMUL","r64/m64","2","3","2",,
+"IMUL","r,r","1","3","1",,
+"IMUL","r,m","1",,"1",,
+"IMUL","r16,r16,i","2","4","1",,
+"IMUL","r32,r32,i","1","3","1",,
+"IMUL","r64,r64,i","1","3","1",,
+"IMUL","r16,m16,i","2",,"1",,
+"IMUL","r32,m32,i","1",,"1",,
+"IMUL","r64,m64,i","1",,"1",,
+"MULX","r,r,r","2","4","2",,"BMI2"
+"DIV","r8/m8","1","13-16","13-16",,
+"DIV","r16/m16","2","14-21","14-21",,"depends on operand values"
+"DIV","r32/m32","2","14-30","14-30",,
+"DIV","r64/m64","2","14-46","14-45",,
+"IDIV","r8/m8","1","13-16","13-16",,
+"IDIV","r16/m16","2","13-21","14-22",,
+"IDIV","r32/m32","2","14-30","14-30",,
+"IDIV","r64/m64","2","14-47","14-45",,
+"CBW",,"1","1","1",,
+"CWDE, CDQE",,"1","1","0.5",,
+"CDQ, CQO",,"1","1","0.25",,
+"CWD",,"2","1","1",,
+,,,,,,
+"Logic instructions",,,,,,
+"AND, OR, XOR","r,r","1","1","0.25",,
+"AND, OR, XOR","r,i","1","1","0.25",,
+"AND, OR, XOR","r,m","1",,"0.5",,
+"AND, OR, XOR","m,r","1","6","1",,
+"AND, OR, XOR","m,i","1","6","1",,
+"TEST","r,r","1","1","0.25",,
+"TEST","r,i","1","1","0.25",,
+"TEST","m,r","1",,"0.5",,
+"TEST","m,i","1",,"0.5",,
+"NOT","r","1","1","0.25",,
+"NOT","m","1","6","1",,
+"ANDN","r,r,r","1","1","0.25",,"BMI1"
+"SHL, SHR, SAR","r,i/CL","1","1","0.25",,
+"ROL, ROR","r,i/CL","1","1","0.25",,
+"RCL","r,1","1","1","1",,
+"RCL","r,i","9","4","4",,
+"RCL","r,cl","9","4","4",,
+"RCR","r,1","1","1","1",,
+"RCR","r,i","7","3","3",,
+"RCR","r,cl","7","3","3",,
+"SHLD, SHRD","r,r,i","6","3","3",,
+"SHLD, SHRD","r,r,cl","7","3","3",,
+"SHLD, SHRD","m,r,i/CL","8",,"3",,
+"SARX","r,r,r","1","1","0.25",,"BMI2"
+"SHLX","r,r,r","1","1","0.25",,"BMI2"
+"SHRX","r,r,r","1","1","0.25",,"BMI2"
+"RORX","r,r,i","1","1","0.25",,"BMI2"
+"BT","r,r/i","1","1","0.25",,
+"BT","m,i","1",,"0.5",,
+"BT","m,r","5",,"3",,
+"BTC, BTR, BTS","r,r/i","2","2","0.5",,
+"BTC, BTR, BTS","m,i","4",,"2",,
+"BTC, BTR, BTS","m,r","8",,"3",,
+"BSF","r,r","6","3","3",,
+"BSF","r,m","8","4","4",,
+"BSR","r,r","6","4","4",,
+"BSR","r,m","8","4","4",,
+"SETcc","r","1","1","0.5",,
+"SETcc","m","1",,"2",,
+"CLC, STC",,"1",,"0.25",,
+"CMC",,"1","1",,,
+"CLD",,"2",,"3",,
+"STD",,"2",,"4",,
+"POPCNT","r,r","1","1","0.25",,"SSE4.2"
+"LZCNT","r,r","1","1","0.25",,"LZCNT"
+"TZCNT","r,r","2","2","0.5",,"BMI1"
+"BEXTR","r,r,r","1","1","0.25",,"BMI1"
+"BLSI","r,r","2","2","0.5",,"BMI1"
+"BLSMSK","r,r","2","2","0.5",,"BMI1"
+"BLSR","r,r","2","2","0.5",,"BMI1"
+"PDEP","r,r,r","6","18","18",,"BMI2"
+"PEXT","r,r,r","7","18","18",,"BMI2"
+"BZHI","r,r,r","1","1","0.25",,"BMI2"
+,,,,,,
+"Control transfer instructions",,,,,,
+"JMP","short/near","1",,"2",,
+"JMP","r","1",,"2",,
+"JMP","m","1",,"2",,
+"Jcc","short/near","1",,"0.5-2",,"2 if jumping"
+"fused CMP+Jcc","short/near","1",,"0.5-2",,"2 if jumping"
+"J(E/R)CXZ","short","1",,"0.5-2",,"2 if jumping"
+"LOOP","short","1",,2,,"2 if jumping"
+"LOOPE LOOPNE","short","1",,2,,"2 if jumping"
+"CALL","near","2",,"2",,
+"CALL","r","2",,"2",,
+"CALL","m","6",,"2",,
+"RET",,"1",,"2",,
+"RET","i","2",,"2",,
+"BOUND","m","11",,"3",,"for no jump"
+"INTO",,"4",,"2",,"for no jump"
+,,,,,,
+"String instructions",,,,,,
+"LODS",,"3",,"3",,
+"REP LODS","m","6n",,"2n",,
+"STOS",,"3",,"3",,
+"REP STOS",,"1n",,"~1n",,"small n"
+"REP STOS",,"3 per 16B",,"1 per 16B",,"best case"
+"MOVS",,"5",,"3",,
+"REP MOVS",,"~1n",,"~1n",,"small n"
+"REP MOVS",,"4 pr 16B",,"1 per 16B",,"best case"
+"SCAS",,"3",,"3",,
+"REP SCAS",,"7n",,"2n",,
+"CMPS",,"6",,"3",,
+"REP CMPS",,"9n",,"3n",,
+,,,,,,
+"Synchronization",,,,,,
+"LOCK ADD","m,r","1","~17",,,
+"XADD","m,r","4","7",,,
+"LOCK XADD","m,r","4","~23",,,
+"CMPXCHG","m,r8","5","8",,,
+"CMPXCHG","m,r16","6","8",,,
+"CMPXCHG","m,r32/64","6","8",,,
+"LOCK CMPXCHG","m8,r8","5","~22",,,
+"LOCK CMPXCHG","m16,r16","6","~22",,,
+"LOCK CMPXCHG","m,r32/64","6","~22",,,
+"CMPXCHG8B","m64","18","8",,,
+"LOCK CMPXCHG8B","m64","18","~22",,,
+"CMPXCHG16B","m128","27","13",,,
+"LOCK CMPXCHG16B","m128","27","~21",,,
+,,,,,,
+"Other",,,,,,
+"NOP (90)",,"1",,"0.2",,
+"Long NOP (0F 1F)",,"1",,"0.2",,
+"PAUSE",,"8",,"3",,
+"ENTER","a,0","12",,"16",,
+"ENTER","a,b","11+3b",,"~18+b",,
+"LEAVE",,"2",,"3",,
+"CPUID",,"37-50",,"125-133",,
+"XGETBV",,,,"42",,
+"RDTSC",,"37",,"36",,
+"RDTSCP",,"64",,"64",,"rdtscp"
+"RDPMC ",,"20",,"20",,
+"CRC32","r32,r8","3","3","3",,
+"CRC32","r32,r16","3","3","3",,
+"CRC32","r32,r32","3","3","3",,
+"RDRAND RDSEED","r16/32","13",,"~1200",,
+"RDRAND RDSEED","r64","19",,"~2500",,
+,,,,,,
+"Floating point x87 instructions",,,,,,
+"Instruction","Operands","Ops","Latency","Reciprocal throughput","Execution pipes","Domain, notes"
+"Move instructions",,,,,,
+"FLD","r","1","1","1","P3",
+"FLD","m32/64","1","6","1","P1",
+"FLD","m80","8","7","4",,
+"FBLD","m80","24",,"24","P2 P3",
+"FST(P)","r","1","1","1","P3",
+"FST(P)","m32/64","2","5","1","P2 P3",
+"FSTP","m80","15","8",,,
+"FBSTP","m80","274",,"~145","P2 P3",
+"FXCH","r","1","0","0.25",,
+"FILD","m","1","8","1","P3",
+"FIST(T)(P)","m","2","5","1","P2 P3",
+"FLDZ, FLD1",,"1",,"1","P3",
+"FCMOVcc","st0,r","7","3","3","P0 P1 P2 P3",
+"FFREE","r","1","0","0.25",,
+"FINCSTP, FDECSTP",,"1","0","0.25",,
+"FNSTSW","AX","3",,"16","P2 P3",
+"FNSTSW","m16","2",,"14","P2 P3",
+"FLDCW","m16","1",,"2","P3",
+"FNSTCW","m16","2",,"2","P2 P3",
+,,,,,,
+"Arithmetic instructions",,,,,,
+"FADD(P),FSUB(R)(P)","r/m","1","5","1","P0",
+"FIADD,FISUB(R)","m","2",,"1","P0 P3",
+"FMUL(P)","r/m","1","5","1","P0",
+"FIMUL","m","2",,"1","P0 P3",
+"FDIV(R)(P)","r","1","8-15","4-6","P3",
+"FDIV(R)","m","1",,,"P3",
+"FIDIV(R)","m","2",,,"P3",
+"FABS, FCHS",,"1","1","1","P3",
+"FCOM(P), FUCOM(P)","r/m","1",,"1","P0",
+"FCOMPP, FUCOMPP",,"1",,"1","P0",
+"FCOMI(P)","r","2",,"1","P2",
+"FICOM(P)","m","2",,"1","P0 P3",
+"FTST",,"1",,"1","P0",
+"FXAM",,"1",,"1","P3",
+"FRNDINT",,"1","4","3",,
+"FPREM FPREM1",,"2",,"12-50",,
+,,,,,,
+"Math",,,,,,
+"FSQRT",,"1","8-21","4-10","P3",
+"FLDPI, etc.",,"1",,"1","P3",
+"FSIN",,"11-60","50-170",,"P0 P3",
+"FCOS",,"55","50-115",,,
+"FSINCOS",,"80-140","60-120",,"P0 P3",
+"FPTAN",,"11-52","~90","50-80",,
+"FPATAN",,"11-82","50-160","45-150",,
+"FSCALE",,"8","9","4","P0 P2 P3",
+"FXTRACT",,"13","10","7","P0 P2 P3",
+"F2XM1",,"10","~50",,"P2 P3",
+"FYL2X",,"10-25","~50","~50","P0 P2 P3",
+"FYL2XP1",,"69","~135","~135","P0 P2 P3",
+,,,,,,
+"Other",,,,,,
+"FNOP",,"1",,"0.25",,
+"(F)WAIT",,"1",,"0.25",,
+"FNCLEX",,"20",,"45",,
+"FNINIT",,"34",,"85",,
+"FNSAVE","m864","99",,"~160",,
+"FRSTOR","m864","77",,"~130",,
+,,,,,,
+"Integer vector instructions",,,,,,
+"Instruction","Operands","Ops","Latency","Reciprocal throughput","Execution pipes","Notes"
+"Move instructions",,,,,,
+"MOVD","r32, mm","1","3","1",,
+"MOVD","mm, r32","2","3","1",,
+"MOVD","r32/64, x","1","3","1",,
+"MOVD","x, r32/64","1","3","1",,
+"MOVD","mm/x,m32","1","4","0.5",,
+"MOVD","m32,mm/x","1","4","1","P2",
+"MOVQ","mm/x,mm/x","1","1","0.25","P0123",
+"MOVQ","mm/x,m64","1","4","0.5",,
+"MOVQ","m64,mm/x","1","4","1","P2",
+"MOVDQA","x,x","1","0","0.25",,"renaming"
+"MOVDQA","x,m","1","3","0.5",,
+"MOVDQA","m,x","1","4","1","P2",
+"VMOVDQA","y,y","2","1","0.5",,"lower half renamed"
+"VMOVDQA","y,m256","2","3","1",,
+"VMOVDQA","m256,y","2","4","2","P2",
+"MOVDQU","x,x","1","0","0.25",,"renaming"
+"MOVDQU","x,m","1","3","0.5",,
+"MOVDQU","m,x","1","4","1","P2",
+"LDDQU","x,m","1","3","0.5",,
+"VMOVDQU","ymm,m256","2","3","1",,
+"VMOVDQU","m256,ymm","2","4","2","P2",
+"MOVDQ2Q","mm,xmm","1","1","0.25","P0123",
+"MOVQ2DQ","xmm,mm","1","1","0.25","P0123",
+"MOVNTQ","m,mm","1","~900","1","P2",
+"MOVNTDQ","m,xmm","1","~900","1","P2",
+"MOVNTDQA","xmm,m","1","3","0.5",,
+"PACKSSWB/DW","mm/x,r/m","1","1","0.5","P12",
+"PACKUSWB","mm/x,r/m","1","1","0.5","P12",
+"VPACKSSWB/DW","y,r/m","2","1","1","P12",
+"VPACKUSWB","y,r/m","2","1","1","P12",
+"PUNPCKH/LBW/WD/DQ","mm/x,r/m","1","1","0.5","P12","ivec"
+"PUNPCKL/HQDQ","xmm,r/m","1","1","0.5","P12",
+"VPUNPCKL/HQDQ","y,r/m","2","1","1","P12",
+"PSHUFB","mm/x,r/m","1","1","0.5","P12",
+"VPSHUFB","y,r/m","2","1","1","P12",
+"PSHUFD","x,x,i","1","1","0.5","P12",
+"VPSHUFD","y,y,i","2","1","1","P12",
+"PSHUFW","mm,mm,i","1","1","0.5","P12",
+"PSHUFL/HW","x,x,i","1","1","0.5","P12",
+"VPSHUFL/HW","y,y,i","2","1","1","P12",
+"PALIGNR","mm/x,r/m,i","1","1","0.5","P12",
+"VPALIGNR","y,r/m,i","2","1","1","P12",
+"PBLENDW","x,r/m,i","1","1","0.33","P013","SSE4.1"
+"PBLENDW","y,r/m,i","2","1","0.67","P013",
+"VPERMD","v,v,v","3","5","4","2P1 P02",
+"VPERMD","v,v,m","4",,"4",,
+"VPERMQ","v,v,i","3","2","2",,
+"VPERMQ","v,m,i","4",,"2",,
+"VPERM2I128","v,v,v,i","8","4","3",,
+"VPERM2I128","v,v,m,i","12",,"4",,
+"VEXTRACTI128","x,y,i","1",,"1",,
+"VEXTRACTI128","m,y,i","2","8","2",,
+"VINSERTI128","y,x,i","2",,"0.5",,
+"MASKMOVQ","mm,mm","30","~3000","~9",,
+"MASKMOVDQU","x,x","60","~3000","~18",,
+"PMOVMSKB","r32,mm/x","1","3","1","P2",
+"VPMOVMSKB","r32,y","2","3","2","P2",
+"PEXTRB/W/D/Q","r,x/mm,i","2","3","1","P1 P2","SSE4.1"
+"PINSRB/W/D/Q","x/mm,r,i","2","3","1","P12",
+"EXTRQ","x,i,i","2","6","4",,"AMD SSE4A"
+"EXTRQ","x,x","1","4","4","P1","AMD SSE4A"
+"INSERTQ","x,x,i,i","2","4","4","P0 P1","AMD SSE4A"
+"INSERTQ","x,x","1","4","4","P1","AMD SSE4A"
+"PMOVSXBW/BD/BQ/WD/WQ/DQ","x,x","1","1","0.5","P12","SSE4.1"
+"PMOVZXBW/BD/BQ/WD/WQ/DQ","x,x","1","1","0.5","P12","SSE4.1"
+"VINSERTI128","y,y,x,i","2","1",".67","P013","AVX2"
+"VINSERTI128","y,y,m,i","2","4","1","P013","AVX2"
+"VPBROADCAST
+B/W/D/Q","x,x","1","1","0.5","P12","AVX2"
+"VPBROADCAST
+B/W/D/Q","x,m","1","4","1",,"AVX2"
+"VPBROADCAST
+B/W/D/Q","y,x","2","1","1","P12","AVX2"
+"VPBROADCAST
+B/W/D/Q","y,m","2",,"0.5",,"AVX2"
+"VBROADCASTI128","y,m128","2","3","0.5",,"AVX2"
+"VPGATHERDD","x,[r+s*x],x","38",,"13","P0 P1 P2","AVX2"
+"VPGATHERDD","y,[r+s*y],y","66",,"20","P0 P1 P2","AVX2"
+"VPGATHERQD","x,[r+s*x],x","24",,"9","P0 P1 P2","AVX2"
+"VPGATHERQD","x,[r+s*y],x","36",,"12","P0 P1 P2","AVX2"
+"VPGATHERDQ","x,[r+s*x],x","23",,"9","P0 P1 P2","AVX2"
+"VPGATHERDQ","y,[r+s*x],y","35",,"12","P0 P1 P2","AVX2"
+"VPGATHERQQ","x,[r+s*x],x","23",,"9","P0 P1 P2","AVX2"
+"VPGATHERQQ","y,[r+s*y],y","35",,"12","P0 P1 P2","AVX2"
+,,,,,,
+"Arithmetic instructions",,,,,,
+"PADDB/W/D/Q/SB/SW/USB/USW","mm/x,r/m","1","1","0.33",,"ivec"
+"VPADD..","y,y,r/m","2","1","0.67",,
+"PSUBB/W/D/Q/SB/SW/USB/USW","mm/x,r/m","1","1","0.33",,
+"VPSUB..","y,y,r/m","2","1","0.67",,
+"PHADD/SUB(S)W/D","x,x","4","2","2","P0 P1 P2 P3","SSSE3"
+"VPHADD/SUB(S)W/D","y,y,y","8","3","3","P0 P1 P2 P3",
+"PCMPEQ B/W/D","mm/x,r/m","1","1","0.33","P013",
+"VPCMPEQ B/W/D","y,y,r/m","2","2","0.67","P013",
+"PCMPEQQ","mm/x,r/m","1","1","0.5","P03",
+"VPCMPEQQ","y,y,r/m","2","2","1","P03",
+"PCMPGT B/W/D","mm/x,r/m","1","1","0.33","P013",
+"VPCMPGT B/W/D","y,y,r/m","2","2","0.67","P013",
+"PCMPGTQ","mm/x,r/m","1","1","1","P0",
+"VPCMPGTQ","y,y,r/m","2",,"2","P0",
+"PMULLW PMULHW PMULHUW PMULDQ PMULUDQ","mm/x,r/m","1","3","1","P0",
+"VPMULLW VPMULHW VPMULHUW VPMULDQ VPMULUDQ","y,y,r/m","2","3","2","P0",
+"PMULLD","x,r/m","1","4","2","P0","SSE4.1"
+"VPMULLD","y,y,r/m","2","4","4","P0",
+"PMULHRSW","mm/x,r/m","1","4","1","P0","SSSE3"
+"VPMULHRSW","y,y,r/m","2","4","2","P0",
+"PMADDWD","mm/x,r/m","1","3","1","P0",
+"VPMADDWD","y,y,r/m","2","3","2","P0",
+"PMADDUBSW","mm/x,r/m","1","4","1","P0",
+"VPMADDUBSW","y,y,r/m","2","4","2","P0",
+"PAVGB/W","mm/x,r/m","1","1","0.5","P03",
+"VPAVGB/W","mm/x,r/m","2","1","1","P03",
+"PMIN/MAX SB/SW/ SD UB/UW/UD","mm/x,r/m","1","1","0.33","P013",
+"VPMIN/MAX SB/SW/ SD UB/UW/UD","y,y,r/m","2","1","0.67","P013",
+"PHMINPOSUW","x,r/m","1","3","2",,"SSE4.1"
+"PABSB/W/D","mm/x,r/m","1","1","0.5","P03","SSSE3"
+"VPABSB/W/D","y,r/m","2","1","1","P03",
+"PSIGNB/W/D","mm/x,r/m","1","1","0.5","P03","SSSE3"
+"VPSIGNB/W/D","y,r/m","2","1","1","P03","SSSE3"
+"PSADBW","mm/x,r/m","1","3","1","P0",
+"VPSADBW","y,y,r/m","1","3","2","P0",
+"MPSADBW","x,x,i","4","4","2","P0 P1 P2","SSE4.1"
+"VMPSADBW","y,y,y,i","8","4","3",,
+,,,,,,
+"Logic",,,,,,
+"PAND PANDN POR PXOR","mm/x,r/m","1","1","0.25","P0123","ivec"
+"VPAND VPANDN VPOR VPXOR","y,y,r/m","2","1","0.5","P0123",
+"PSLL/RL W/D/Q PSRAW/D","mm/x,r/m","1","1","1","P2",
+"VPSLL/RL W/D/Q VPSRAW/D","y,y,x/m","2","1","2","P2",
+"PSLL/RL W/D/Q PSRAW/D","mm/x,i","1","1","1","P2",
+"VPSLL/RL W/D/Q VPSRAW/D","y,y,i","2","1","2","P2",
+"PSLLDQ, PSRLDQ","x,i","1","1","0.5","P12",
+"VPSLLDQ VPSRLDQ","y,y,i","2","1","1","P12",
+"VPSLLVD/Q
+VPSRAVD
+VPSRLVD/Q","x,x,x","1","3","2","P1","AVX2"
+"VPSLLVD/Q
+VPSRAVD
+VPSRLVD/Q","y,y,y","2","3","4","P1","AVX2"
+"PTEST","x,r/m","1","2","1","P2","SSE4.1"
+"VPTEST","y,y/m","3","4","2","P1 P2",
+,,,,,,
+"String instructions",,,,,,
+"PCMPESTRI","x,x,i","6","8","3","P1 P2","SSE4.2"
+"PCMPESTRI","x,m,i","12",,"4",,"SSE4.2"
+"PCMPESTRM","x,x,i","7","8","3","P0 P1 P2","SSE4.2"
+"PCMPESTRM","x,m,i","12",,"4",,"SSE4.2"
+"PCMPISTRI","x,x,i","2","11","2","P1 P2","SSE4.2"
+"PCMPISTRI","x,m,i","3",,"2",,"SSE4.2"
+"PCMPISTRM","x,x,i","3","7","2","P1 P2","SSE4.2"
+"PCMPISTRM","x,m,i","4",,"2",,"SSE4.2"
+,,,,,,
+"Encryption",,,,,,
+"PCLMULQDQ","x,x/m,i","4","4","2",,"pclmul"
+"AESDEC","x,x","1","4","0.5","P01","aes"
+"AESDECLAST","x,x","1","4","0.5","P01","aes"
+"AESENC","x,x","1","4","0.5","P01","aes"
+"AESENCLAST","x,x","1","4","0.5","P01","aes"
+"AESIMC","x,x","1","4","0.5","P01","aes"
+"AESKEYGENASSIST","x,x,i","1","4","0.5","P01","aes"
+"SHA1RNDS4","x,x,i","1","6","4","P1","sha"
+"SHA1NEXTE","x,x","1","1","1","P1","sha"
+"SHA1MSG1","x,x","2","2","1","multi","sha"
+"SHA1MSG2","x,x","1","1","0.5","P12","sha"
+"SHA256RNDS2","x,x","1","4","2","P1","sha"
+"SHA256MSG1","x,x","2","2","0.5","P0123","sha"
+"SHA256MSG2","x,x","4","3","2","P0123","sha"
+,,,,,,
+"Other",,,,,,
+"EMMS",,"1",,"0.25",,
+,,,,,,
+"Floating point XMM and YMM instructions",,,,,,
+"Instruction","Operands","Ops","Latency","Reciprocal throughput","Execution pipes","Domain, notes"
+"Move instructions",,,,,,
+"MOVAPS/D MOVUPS/D","x,x","1","0","0.25","none","inherit"
+"VMOVAPS/D","y,y","2","1","0.5",,"inherit"
+"MOVAPS/D MOVUPS/D","x,m128","1","3","0.5",,
+"VMOVAPS/D VMOVUPS/D","y,m256","2","5","1",,
+"MOVAPS/D MOVUPS/D","m128,x","1","4","1","P2",
+"VMOVAPS/D VMOVUPS/D","m256,y","2","3","2","P2",
+"MOVSS/D","x,x","1","1","0.25","P0123",
+"MOVSS/D","x,m32/64","1","4","0.5",,
+"MOVSS/D","m32/64,x","1","4","1","P2",
+"MOVHPS/D","x,m64","1","4","0.5","P12",
+"MOVLPS/D","x,m64","1","4","0.5","P12",
+"MOVHPS/D","m64,x","2","5","1","P1 P2",
+"MOVLPS/D","m64,x","1","4","1","P1 P2",
+"MOVLHPS MOVHLPS","x,x","1","1","0.5","P12","ivec"
+"MOVMSKPS/D","r32,x","1","3","1","P2",
+"VMOVMSKPS/D","r32,y","1","3","1","P2",
+"MOVNTPS/D","m128,x","1","~950","1","P2",
+"VMOVNTPS/D","m256,y","2","~950","2","P2",
+"MOVNTSS/SD","m,x","1",,"4","P2","AMD SSE4A"
+"SHUFPS/D","x,x/m,i","1","1","0.5","P12","ivec"
+"VSHUFPS/D","y,y,y/m,i","2","1","1","P2","ivec"
+"VPERMILPS/PD","x,x,x/m","1","3","2","P1",
+"VPERMILPS/PD","y,y,y/m","2","4","4","P1",
+"VPERMILPS/PD","x,x/m,i","1","1","0.5","P12",
+"VPERMILPS/PD","y,y/m,i","2","1","1","P12",
+"VPERM2F128","y,y,y,i","8","3","3","P0 P1 P3",
+"VPERM2F128","y,y,m,i","12",,"4","P0 P1 P3",
+"VPERMPS","y,y,y","3","5","4","P0 P1 P2","AVX2"
+"VPERMPS","y,y,m","4",,"4",,"AVX2"
+"VPERMPD","y,y,i","3","2","2","P0 P1 P2 P3","AVX2"
+"VPERMPD","y,m,i","4",,"2","P0 P1 P2 P3","AVX2"
+"BLENDPS/PD","x,x/m,i","1","1","0.5","P01","fp"
+"VBLENDPS/PD","y,y,y/m,i","2","1","1","P01",
+"BLENDVPS/PD","x,x/m,xmm0","1","1","0.5","P01",
+"VBLENDVPS/PD","y,y,y/m,y","2","1","1","P01",
+"MOVDDUP","x,x","1","1","0.5","P12","ivec"
+"MOVDDUP","x,m64","1",,"0.5",,
+"VMOVDDUP","y,y","2","1","1","P12",
+"VMOVDDUP","y,m256","2",,"1",,
+"VBROADCASTSS/D","x,x","1","1","0.5","P12",
+"VBROADCASTSS/D","y,x","2","1","1","P12",
+"VBROADCASTSS/D","x,m","2","3","0.5",,
+"VBROADCASTSS","y,m32","2","3","1",,
+"VBROADCASTF128","y,m128","2","4","5",,
+"MOVSH/LDUP","x,x/m","1","1","0.5","P12","ivec"
+"VMOVSH/LDUP","y,y/m","2",,"1","P12",
+"UNPCKH/LPS/D","x,x/m","1","1","0.5","P12",
+"VUNPCKH/LPS/D","y,y,y/m","2","1","1","P12",
+"EXTRACTPS","r32,x,i","2","3","1","P1 P2",
+"EXTRACTPS","m32,x,i","2","6","1","P1 P2",
+"VEXTRACTF128","x,y,i","1","1","0.33","P013",
+"VEXTRACTF128","m128,y,i","2","7","1","P01 P2",
+"INSERTPS","x,x,i","1","1","0.5","P12","ivec"
+"INSERTPS","x,m32,i","1","4","1","P12",
+"VINSERTF128","y,y,x,i","2","1","0.5","P013",
+"VINSERTF128","y,y,m128,i","2","5","1","P013",
+"VMASKMOVPS/D","x,x,m128","1","4","1","P01",
+"VMASKMOVPS/D","y,y,m256","2","4","1","P01",
+"VMASKMOVPS/D","m128,x,x","19","~50","5","P1 P2",
+"VMASKMOVPS/D","m256,y,y","42","~50","11","P1 P2",
+"VGATHERDPS","x,[r+s*x],x","38",,"13","P0 P1 P2","AVX2"
+"VGATHERDPS","y,[r+s*y],y","66",,"20","P0 P1 P2","AVX2"
+"VGATHERQPS","x,[r+s*x],x","24",,"9","P0 P1 P2","AVX2"
+"VGATHERQPS","x,[r+s*y],x","36",,"12","P0 P1 P2","AVX2"
+"VGATHERDPD","x,[r+s*x],x","23",,"9","P0 P1 P2","AVX2"
+"VGATHERDPD","y,[r+s*x],y","35",,"12","P0 P1 P2","AVX2"
+"VGATHERQPD","x,[r+s*x],x","23",,"9","P0 P1 P2","AVX2"
+"VGATHERQPD","y,[r+s*y],y","35",,"12","P0 P1 P2","AVX2"
+,,,,,,
+"Conversion",,,,,,
+"CVTPD2PS","x,x","1","3","1","P3","fp"
+"VCVTPD2PS","x,y","2","5","2","P3",
+"CVTPS2PD","x,x","1","3","1","P3",
+"VCVTPS2PD","y,x","2","5","2","P3",
+"CVTSD2SS","x,x","1","3","1","P3",
+"CVTSS2SD","x,x","1","3","1","P3",
+"CVTDQ2PS","x,x","1","4","1","P3",
+"VCVTDQ2PS","y,y","2","4","2","P3",
+"CVT(T) PS2DQ","x,x","1","4","1","P3","mixed domain"
+"VCVT(T) PS2DQ","y,y","2","4","2","P3",
+"CVTDQ2PD","x,x","2","6","1","P12 P3",
+"VCVTDQ2PD","y,x","4","6","2","P12 P3",
+"CVT(T)PD2DQ","x,x","2","6","1","P12 P3",
+"VCVT(T)PD2DQ","x,y","4","6","2","P12 P3",
+"CVTPI2PS","x,mm","2","6","1","P12 P3",
+"CVT(T)PS2PI","mm,x","2","6","1","P12 P3",
+"CVTPI2PD","x,mm","2","6","1","P12 P3",
+"CVT(T) PD2PI","mm,x","2","6","1","P12 P3",
+"CVTSI2SS","x,r32","2","8","1",,
+"CVT(T)SS2SI","r32,x","2","7","1","P2 P3",
+"CVTSI2SD","x,r32/64","2","8","1",,
+"CVT(T)SD2SI","r32/64,x","2","7","1","P2 P3",
+"VCVTPS2PH","x/m,x,i","2","6","2","P1 P3",
+"VCVTPS2PH","x/m,y,i","4","6","2","P12 P3",
+"VCVTPH2PS","x,x/m","2","6","2","P1 P3",
+"VCVTPH2PS","y,x/m","4","6","2","P12 P3",
+,,,,,,
+"Arithmetic",,,,,,
+"ADDSS/D SUBSS/D","x,x/m","1","3","0.5","P23","fp"
+"ADDPS/D SUBPS/D","x,x/m","1","3","0.5","P23","fp"
+"VADDPS/D VSUBPS/D","y,y,y/m","2","3","1","P23","fp"
+"ADDSUBPS/D","x,x/m","1","3","0.5","P23","fp"
+"VADDSUBPS/D","y,y,y/m","2","3","1","P23",
+"HADDPS/D HSUBPS/D","x,x","4","7","2","P1 P2 P3",
+"VHADDPS/D
+VHSUBPS/D","y,y,y/m","8","7","3","P1 P2 P3","mixed domain"
+"MULSS MULPS","x,x/m","1","3","0.5","P01","fp"
+"MULSD MULPD","x,x/m","1","4","0.5","P01","fp"
+"VMULPS","y,y,y/m","2","3","1","P01","fp"
+"VMULPD","y,y,y/m","2","4","1","P01","fp"
+"DIVSS DIVPS","x,x/m","1","10","3","P3",
+"VDIVPS","y,y,y/m","2","10","6","P3",
+"DIVSD DIVPD","x,x/m","1","8-13","4-5","P3",
+"VDIVPD","y,y,y/m","2","8-13","8-9","P3",
+"RCPSS/PS","x,x/m","1","5","1","P01",
+"VRCPPS","y,y/m","2","5","2","P01",
+"CMPSS/D
+CMPPS/D","x,x/m","1","1","0.5","P01",
+"VCMPPS/D","y,y,y/m","2","1","1","P01",
+"COMISS/D UCOMISS/D","x,x/m","2","4","1","P012",
+"MAXSS/SD/PS/PD MINSS/SD/PS/PD","x,x/m","1","1","0.5","P01","fp"
+"VMAXPS/D VMINPS/D","y,y,y/m","2","1","1","P01",
+"ROUNDSS/SD/PS/PD","x,x/m,i","1","4","1","P3","fp"
+"VROUNDSS/SD/PS/ PD","y,y/m,i","2","4","2","P3","fp"
+"DPPS","x,x,i","8","15","4","P0 P1 P2 P3","SSE4.1"
+"DPPS","x,m,i","10",,"5","P0 P1 P2 P3","SSE4.1"
+"VDPPS","y,y,y,i","13","16","5","P0 P1 P2 P3","SSE4.1"
+"VDPPS","y,m,i","14",,"5","P0 P1 P2 P3","SSE4.1"
+"DPPD","x,x,i","3","10","3","P0 P1 P2 P3","SSE4.1"
+"DPPD","x,m,i","5",,"4","P0 P1 P2 P3","SSE4.1"
+"VFMADD132SS/SD","x,x,x/m","1","5","0.5","P01","FMA3"
+"VFMADD132PS/PD","x,x,x/m","1","5","0.5","P01","FMA3"
+"VFMADD132PS/PD","y,y,y/m","2","5","1","P01","FMA3"
+"All other FMA3 instructions: same as above",,,,,"P01","FMA3"
+"VFMADDSS/SD","x,x,x,x/m","1","5","0.5","P01","Not officially supported.
+Don't use!"
+"VFMADDPS/PD","x,x,x,x/m","1","5","0.5","P01",
+"VFMADDPS/PD","y,y,y,y/m","2","5","1","P01",
+"All other FMA4 instructions: same as above",,,,,,
+,,,,,,
+"Math",,,,,,
+"SQRTSS/PS","x,x/m","1","9-10","4-5","P3","fp"
+"VSQRTPS","y,y/m","2","9-10","8-10",,
+"SQRTSD/PD","x,x/m","1","14-15","4-8",,
+"VSQRTPD","y,y/m","2","14-15","8-16",,
+"RSQRTSS/PS","x,x/m","1","5","1","P01",
+"VRSQRTPS","y,y/m","2","5","2","P01",
+,,,,,,
+"Logic",,,,,,
+"AND/ANDN/OR/XORPS/ PD","x,x/m","1","1","0.25","P0123","fp"
+"VAND/ANDN/OR/XORPS/PD","y,y,y/m","2","1","0.5","P0123",
+,,,,,,
+"Other",,,,,,
+"VZEROUPPER",,"10",,"4",,"32 bit mode"
+"VZEROUPPER",,"17",,"6",,"64 bit mode"
+"VZEROALL",,"18",,"6",,"32 bit mode"
+"VZEROALL",,"33",,"11",,"64 bit mode"
+"LDMXCSR","m32","1",,"16",,
+"STMXCSR","m32","2",,"14",,
+"FXSAVE","m4096","87",,"90",,
+"FXRSTOR","m4096","121",,"140",,
+"XSAVE","m","160",,"166",,
+"XSAVEOPT","m","97",,"130",,
+"XRSTOR","m","213",,"340",,
+"XSAVEC","m","111",,"150",,
