@@ -26,6 +26,7 @@
 #include "scanning/parser.h"
 #include "scanning/token.h"
 #include "support/io.h"
+#include "support/message.h"
 #include "support/numeric_conversions.h"
 #include "support/unreachable.h"
 
@@ -128,6 +129,11 @@ static bool peek(Parser *parser, Token token) {
 }
 
 static bool comment(Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("comment:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     // a comment starts with '/*' and lasts until
     // it's matching '*/'.
     // we handle any number of comment blocks to
@@ -191,6 +197,10 @@ static bool parse_type(Type const **result, Parser *parser, Context *context);
 
 static bool
 parse_tuple_type(Type const **result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_tuple_type:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
 
     // an empty tuple type is equivalent to a nil type.
     switch (expect(parser, context, TOK_NIL)) {
@@ -245,6 +255,11 @@ parse_tuple_type(Type const **result, Parser *parser, Context *context) {
 }
 
 static bool parse_type(Type const **result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_type:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     switch (parser->curtok) {
     // composite types
     case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser, context);
@@ -265,6 +280,11 @@ static bool parse_type(Type const **result, Parser *parser, Context *context) {
 // formal-argument = identifier ":" type
 static bool
 parse_formal_argument(FormalArgument *arg, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_formal_argument:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
@@ -292,6 +312,10 @@ parse_formal_argument(FormalArgument *arg, Parser *parser, Context *context) {
 // formal-argument-list = "(" (formal-argument ("," formal-argument)*)? ")"
 static bool
 parse_formal_argument_list(Function *body, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_formal_argument_list:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     // #note: the nil literal is spelled "()", which is
     // lexically identical to an empty argument list. so we parse it as such
     switch (expect(parser, context, TOK_NIL)) {
@@ -346,6 +370,11 @@ parse_formal_argument_list(Function *body, Parser *parser, Context *context) {
 
 // return = "return" expression ";"
 static bool return_(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("return_:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     if (!nexttok(parser, context)) { return false; } // eat "return"
 
     if (!expression(result, parser, context)) { return false; }
@@ -363,34 +392,50 @@ static bool return_(Operand *result, Parser *parser, Context *context) {
 }
 
 // constant = "const" identifier "=" expression ";"
-static bool constant(Operand *result, Parser *parser, Context *constant) {
-    if (!nexttok(parser, constant)) { return false; } // eat 'const'
+static bool constant(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("constant:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
+    if (!nexttok(parser, context)) { return false; } // eat 'const'
 
     if (!peek(parser, TOK_IDENTIFIER)) {
-        return error(parser, constant, ERROR_PARSER_EXPECTED_IDENTIFIER);
+        return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
-    StringView name = context_intern(constant, curtxt(parser));
-    if (!nexttok(parser, constant)) { return false; }
+    StringView name = context_intern(context, curtxt(parser));
+    if (!nexttok(parser, context)) { return false; }
 
-    switch (expect(parser, constant, TOK_EQUAL)) {
+    switch (expect(parser, context, TOK_EQUAL)) {
     case EXPECT_RESULT_SUCCESS: break;
     case EXPECT_RESULT_TOKEN_NOT_FOUND:
-        return error(parser, constant, ERROR_PARSER_EXPECTED_EQUAL);
+        return error(parser, context, ERROR_PARSER_EXPECTED_EQUAL);
     case EXPECT_RESULT_FAILURE: return false;
     default:                    EXP_UNREACHABLE();
     }
 
-    if (!expression(result, parser, constant)) { return false; }
+    if (!expression(result, parser, context)) { return false; }
 
-    switch (expect(parser, constant, TOK_SEMICOLON)) {
+    switch (expect(parser, context, TOK_SEMICOLON)) {
     case EXPECT_RESULT_SUCCESS: break;
     case EXPECT_RESULT_TOKEN_NOT_FOUND:
-        return error(parser, constant, ERROR_PARSER_EXPECTED_SEMICOLON);
+        return error(parser, context, ERROR_PARSER_EXPECTED_SEMICOLON);
     case EXPECT_RESULT_FAILURE: return false;
     default:                    EXP_UNREACHABLE();
     }
 
-    context_def_local_const(constant, name, *result);
+    if (context_trace(context) && context_prolix(context)) {
+        String buffer = string_create();
+        string_append(&buffer, SV("parsed a constant definition: "));
+        string_append(&buffer, name);
+        string_append(&buffer, SV(" = "));
+        print_operand(&buffer, *result, context);
+        string_append(&buffer, SV("\n"));
+        trace(string_to_view(&buffer), stdout);
+        string_destroy(&buffer);
+    }
+
+    context_def_local_const(context, name, *result);
     return true;
 }
 
@@ -398,6 +443,11 @@ static bool constant(Operand *result, Parser *parser, Context *constant) {
 //           | constant
 //           | expression
 static bool statement(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("statement:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     switch (parser->curtok) {
     case TOK_RETURN: return return_(result, parser, context);
     case TOK_CONST:  return constant(result, parser, context);
@@ -419,6 +469,11 @@ static bool statement(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool parse_block(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_block:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     switch (expect(parser, context, TOK_BEGIN_BRACE)) {
     case EXPECT_RESULT_SUCCESS: break;
     case EXPECT_RESULT_TOKEN_NOT_FOUND:
@@ -449,6 +504,11 @@ static bool parse_block(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool function(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("function:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     if (!nexttok(parser, context)) { return false; } // eat "fn"
 
     if (!peek(parser, TOK_IDENTIFIER)) {
@@ -472,19 +532,26 @@ static bool function(Operand *result, Parser *parser, Context *context) {
 
     if (!parse_block(result, parser, context)) { return false; }
 
-    String buffer = string_create();
-    string_append(&buffer, SV("parsed function: "));
-    string_append(&buffer, name);
-    print_function(&buffer, body, context);
-    string_append(&buffer, SV("\n"));
-    file_write(string_to_view(&buffer), stderr);
-    string_destroy(&buffer);
+    if (context_trace(context) && context_prolix(context)) {
+        String buffer = string_create();
+        string_append(&buffer, SV("parsed a function definition: "));
+        string_append(&buffer, name);
+        print_function(&buffer, body, context);
+        string_append(&buffer, SV("\n"));
+        trace(string_to_view(&buffer), stdout);
+        string_destroy(&buffer);
+    }
 
     context_leave_function(context);
     return true;
 }
 
 static bool definition(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("definition:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     switch (parser->curtok) {
     case TOK_FN: return function(result, parser, context);
 
@@ -493,6 +560,11 @@ static bool definition(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool parse_tuple(Tuple *tuple, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parse_tuple:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     switch (expect(parser, context, TOK_NIL)) {
     case EXPECT_RESULT_SUCCESS:         return true;
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
@@ -540,6 +612,11 @@ static bool parse_tuple(Tuple *tuple, Parser *parser, Context *context) {
 }
 
 static bool parens(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("parens:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     Tuple tuple = tuple_create();
 
     if (!parse_tuple(&tuple, parser, context)) { return false; };
@@ -558,6 +635,10 @@ static bool parens(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool unop(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("unop:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     Token op = parser->curtok;
     if (!nexttok(parser, context)) { return false; }
 
@@ -574,6 +655,10 @@ static bool unop(Operand *result, Parser *parser, Context *context) {
 
 static bool
 binop(Operand *result, Operand left, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("binop:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     Token      op   = parser->curtok;
     ParseRule *rule = get_rule(op);
     if (!nexttok(parser, context)) { return false; } // eat the operator
@@ -603,6 +688,10 @@ binop(Operand *result, Operand left, Parser *parser, Context *context) {
 
 static bool
 call(Operand *result, Operand left, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("call:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     Tuple argument_list = tuple_create();
 
     if (!parse_tuple(&argument_list, parser, context)) { return false; }
@@ -615,18 +704,33 @@ call(Operand *result, Operand left, Parser *parser, Context *context) {
 }
 
 static bool nil(Operand *result, Parser *parser, Context *context) {
+    assert(peek(parser, TOK_NIL));
+    if (context_trace(context)) {
+        trace(SV("nil:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     if (!nexttok(parser, context)) { return false; }
     *result = context_constants_append(context, value_create_nil());
     return true;
 }
 
 static bool boolean_true(Operand *result, Parser *parser, Context *context) {
+    assert(peek(parser, TOK_TRUE));
+    if (context_trace(context)) {
+        trace(SV("boolean_true:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     if (!nexttok(parser, context)) { return false; }
     *result = context_constants_append(context, value_create_boolean(true));
     return true;
 }
 
 static bool boolean_false(Operand *result, Parser *parser, Context *context) {
+    assert(peek(parser, TOK_FALSE));
+    if (context_trace(context)) {
+        trace(SV("boolean_false:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     if (!nexttok(parser, context)) { return false; }
     *result = context_constants_append(context, value_create_boolean(0));
     return true;
@@ -634,6 +738,11 @@ static bool boolean_false(Operand *result, Parser *parser, Context *context) {
 
 static bool integer(Operand *result, Parser *parser, Context *context) {
     assert(peek(parser, TOK_INTEGER));
+    if (context_trace(context)) {
+        trace(SV("integer:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     StringView sv      = curtxt(parser);
     u64        integer = 0;
 
@@ -646,16 +755,19 @@ static bool integer(Operand *result, Parser *parser, Context *context) {
     if (u64_in_range_i64(integer)) {
         *result = operand_i64((i64)integer);
     } else {
-        return error(
-            parser, context, ERROR_PARSER_INTEGER_LITERAL_OUT_OF_RANGE);
-        *result =
-            context_constants_append(context, value_create_i64((i64)integer));
+        *result = operand_u64(integer);
     }
 
     return true;
 }
 
 static bool identifier(Operand *result, Parser *parser, Context *context) {
+    assert(peek(parser, TOK_IDENTIFIER));
+    if (context_trace(context)) {
+        trace(SV("identifier:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
+
     StringView name = context_intern(context, curtxt(parser));
     if (!nexttok(parser, context)) { return false; }
 
@@ -676,6 +788,10 @@ static bool identifier(Operand *result, Parser *parser, Context *context) {
 }
 
 static bool expression(Operand *result, Parser *parser, Context *context) {
+    if (context_trace(context)) {
+        trace(SV("expression:"), stderr);
+        trace(curtxt(parser), stderr);
+    }
     return parse_precedence(result, PREC_ASSIGNMENT, parser, context);
 }
 
@@ -687,11 +803,26 @@ static bool parse_precedence(Operand   *result,
     if (rule->prefix == NULL) {
         return error(parser, context, ERROR_PARSER_EXPECTED_EXPRESSION);
     }
+    if (context_trace(context)) {
+        trace(SV("parse_precedence:"), stderr);
+        trace(SV("precedence: "), stderr);
+        trace_u64(precedence, stderr);
+        trace(SV("prefix: "), stderr);
+        trace(curtxt(parser), stderr);
+    }
 
     // Parse the left hand side of the expression
     if (!rule->prefix(result, parser, context)) { return false; }
 
     while (1) {
+        if (context_trace(context)) {
+            trace(SV("parse_precedence: "), stderr);
+            trace(SV("precedence: "), stderr);
+            trace_u64(precedence, stderr);
+            trace(SV("infix: "), stderr);
+            trace(curtxt(parser), stderr);
+        }
+
         ParseRule *rule = get_rule(parser->curtok);
 
         if (precedence > rule->precedence) { break; }
@@ -787,6 +918,10 @@ i32 parse_buffer(char const *buffer, u64 length, Context *c) {
 
 i32 parse_source(Context *c) {
     assert(c != NULL);
+    if (context_prolix(c) || context_trace(c)) {
+        trace(SV("parsing source: "), stderr);
+        trace(context_source_path(c), stderr);
+    }
     StringView path   = context_source_path(c);
     FILE      *file   = file_open(path.ptr, "r");
     String     buffer = string_from_file(file);

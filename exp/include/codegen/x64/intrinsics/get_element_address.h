@@ -22,6 +22,18 @@
 #include "codegen/x64/imr/address.h"
 #include "imr/type.h"
 
+/**
+ * @brief Get the address of an element in a tuple
+ *
+ * @note This function computes the address at comptime. When considering
+ * addresses of elements in memory more generally we have to consider the
+ * full capabilities of the LEA instruction.
+ *
+ * @param src The address of the tuple.
+ * @param type The type of the tuple.
+ * @param index The index of the element to get the address of.
+ * @return The address of the element.
+ */
 x64_Address
 x64_get_element_address(x64_Address *src, Type const *type, u64 index);
 

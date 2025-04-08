@@ -25,6 +25,7 @@
 #include "env/error.h"
 #include "imr/type.h"
 #include "intrinsics/type_of.h"
+#include "support/message.h"
 #include "support/string.h"
 #include "support/unreachable.h"
 
@@ -429,18 +430,26 @@ static bool typecheck_function(Type const **result, Context *restrict c) {
 static bool typecheck_global(Type const **result,
                              Context *restrict c,
                              Symbol *restrict element) {
+    if (context_trace(c)) { trace(SV("typecheck_global:"), stdout); }
     assert(c != nullptr);
     assert(element != nullptr);
     if (element->type != NULL) { return success(result, element->type); }
 
     switch (element->kind) {
     case STE_UNDEFINED: {
+        if (context_trace(c)) {
+            trace(SV("typecheck_global: undefined"), stdout);
+        }
         // #TODO: this should be handled as a forward declaration
         // but only if the type exists.
         return success(result, context_nil_type(c));
     }
 
     case STE_FUNCTION: {
+        if (context_trace(c)) {
+            trace(SV("typecheck_global: function:"), stdout);
+            trace(element->name, stdout);
+        }
         // we want to avoid infinite recursion. but we also need to
         // handle the fact that functions are going to be typechecked
         // in an indeterminite order. the natural solution is to type
@@ -474,6 +483,10 @@ static bool typecheck_global(Type const **result,
 #undef try
 
 i32 typecheck(Context *restrict context) {
+    if (context_trace(context)) {
+        trace(SV("typecheck:"), stdout);
+        trace(context_source_path(context), stdout);
+    }
     i32                 result = EXIT_SUCCESS;
     SymbolTableIterator iter   = context_global_symbol_table_iterator(context);
     while (!symbol_table_iterator_done(&iter)) {

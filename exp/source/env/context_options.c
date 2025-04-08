@@ -35,7 +35,7 @@ ContextOptions context_options_create(CLIOptions *restrict cli_options) {
     }
 
     if (!string_empty(&cli_options->output)) {
-        string_assign_string(&options.output, &cli_options->output);
+        string_assign_string(&options.executable, &cli_options->output);
     }
 
     return options;
@@ -46,7 +46,7 @@ void context_options_destroy(ContextOptions *restrict options) {
     string_destroy(&options->ir);
     string_destroy(&options->assembly);
     string_destroy(&options->object);
-    string_destroy(&options->output);
+    string_destroy(&options->executable);
 }
 
 extern bool context_options_prolix(ContextOptions const *restrict options);

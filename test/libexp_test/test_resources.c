@@ -7,12 +7,12 @@
 #include "support/array_growth.h"
 #include "support/config.h"
 #include "support/io.h"
-#include "support/log.h"
+#include "support/message.h"
 #include "support/panic.h"
 #include "test_resources.h"
 
 void test_resources_gather(TestResources *test_resources,
-                           char const *directory);
+                           char const    *directory);
 
 void test_resources_initialize(TestResources *test_resources) {
     assert(test_resources != nullptr);
@@ -46,7 +46,7 @@ static void test_resources_grow(TestResources *test_resources) {
 }
 
 void test_resources_append(TestResources *test_resources,
-                           String const *resource) {
+                           String const  *resource) {
     assert(test_resources != nullptr);
     assert(resource != nullptr);
     assert(!string_empty(resource));
@@ -67,18 +67,21 @@ void test_resources_append(TestResources *test_resources,
 #include <unistd.h>
 
 void test_resources_gather(TestResources *test_resources,
-                           char const *directory) {
+                           char const    *directory) {
     assert(test_resources != nullptr);
     assert(directory != nullptr);
 
     DIR *resource_directory = opendir(directory);
     if (resource_directory == nullptr) {
-        exp_log(LOG_ERROR, NULL, 0, SV("opendir failed"), stderr);
-        exp_log(LOG_STATUS, NULL, 0, SV("directory: "), stderr);
-        exp_log(
-            LOG_STATUS, NULL, 0, string_view_from_cstring(directory), stderr);
-        exp_log(LOG_STATUS, NULL, 0, SV("errno:"), stderr);
-        exp_log(LOG_STATUS,
+        message(MESSAGE_ERROR, NULL, 0, SV("opendir failed"), stderr);
+        message(MESSAGE_STATUS, NULL, 0, SV("directory: "), stderr);
+        message(MESSAGE_STATUS,
+                NULL,
+                0,
+                string_view_from_cstring(directory),
+                stderr);
+        message(MESSAGE_STATUS, NULL, 0, SV("errno:"), stderr);
+        message(MESSAGE_STATUS,
                 NULL,
                 0,
                 string_view_from_cstring(strerror(errno)),

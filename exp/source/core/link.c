@@ -24,7 +24,7 @@
 
 i32 link(Context *restrict context) {
     StringView obj_path = context_object_path(context);
-    StringView out_path = context_output_path(context);
+    StringView out_path = context_executable_path(context);
 
     // #TODO: place our target libraries into one of ld's standard search
     //  locations on install.

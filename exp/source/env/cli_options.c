@@ -23,7 +23,7 @@
 #include "env/cli_options.h"
 #include "support/config.h"
 #include "support/io.h"
-#include "support/log.h"
+#include "support/message.h"
 
 CLIOptions cli_options_create() {
     CLIOptions cli_options = {.flags = 0};
@@ -106,7 +106,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
             string_append(&string, SV("unknown option ["));
             string_append(&string, option_view);
             string_append(&string, SV("]\n"));
-            exp_log(LOG_ERROR, NULL, 0, string_to_view(&string), stderr);
+            message(MESSAGE_ERROR, NULL, 0, string_to_view(&string), stderr);
             string_destroy(&string);
             break;
         }
@@ -117,7 +117,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         string_assign(&(options.source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        exp_log(LOG_ERROR,
+        message(MESSAGE_ERROR,
                 NULL,
                 0,
                 SV("an input file must be specified.\n"),

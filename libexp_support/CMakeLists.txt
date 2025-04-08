@@ -51,7 +51,7 @@ set(EXP_SUPPORT_SOURCE_FILES
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/cli_option_parser.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/hash.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/io.c
-  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/log.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/message.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/nearest_power.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/numeric_conversions.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/panic.c

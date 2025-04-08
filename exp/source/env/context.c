@@ -104,9 +104,9 @@ StringView context_object_path(Context *context) {
     return string_to_view(&context->options.object);
 }
 
-StringView context_output_path(Context *context) {
+StringView context_executable_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&(context->options.output));
+    return string_to_view(&(context->options.executable));
 }
 
 Error *context_current_error(Context *context) {

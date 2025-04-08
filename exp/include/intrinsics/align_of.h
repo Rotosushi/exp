@@ -21,9 +21,12 @@
 #include "imr/type.h"
 
 /**
- * @brief returns the native alignment of the <type>
+ * @brief returns the x86-64 alignment of the <type>
  *
  * @note this is the number of bytes to align a <value> with <type> to.
+ *
+ * @todo Take into account the target architecture. When we support more than
+ * x86-64
  *
  * @param type
  * @return u64

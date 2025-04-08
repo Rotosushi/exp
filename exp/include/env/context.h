@@ -66,7 +66,7 @@ StringView context_source_path(Context *context);
 StringView context_ir_path(Context *context);
 StringView context_assembly_path(Context *context);
 StringView context_object_path(Context *context);
-StringView context_output_path(Context *context);
+StringView context_executable_path(Context *context);
 
 // current error functions
 Error *context_current_error(Context *context);

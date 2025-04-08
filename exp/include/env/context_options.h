@@ -41,7 +41,7 @@ typedef struct ContextOptions {
     String ir;
     String assembly;
     String object;
-    String output;
+    String executable;
 } ContextOptions;
 
 ContextOptions context_options_create(CLIOptions *restrict cli_options);
