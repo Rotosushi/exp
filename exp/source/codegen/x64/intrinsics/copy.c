@@ -24,6 +24,7 @@
 #include "imr/type.h"
 #include "intrinsics/size_of.h"
 #include "support/assert.h"
+#include "support/message.h"
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
@@ -31,6 +32,9 @@ void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     u64 Idx,
                                     x64_Context *restrict context) {
     exp_assert(x86_64_gpr_valid_size(size));
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_scalar_memory"), stdout);
+    }
     x86_64_GPR gpr = x64_context_aquire_any_gpr(context, size, Idx);
 
     x64_context_append(
@@ -46,6 +50,9 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        Type const *type,
                                        u64         Idx,
                                        x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_composite_memory"), stdout);
+    }
     assert(type->kind == TYPE_KIND_TUPLE);
     TupleType const *tuple_type = &type->tuple_type;
 
@@ -81,6 +88,9 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
                              Type const *type,
                              u64         Idx,
                              x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_memory"), stdout);
+    }
     if (type_is_scalar(type)) {
         u64 size = size_of(type);
         x64_codegen_copy_scalar_memory(dst, src, size, Idx, context);
@@ -94,6 +104,9 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              Type const *restrict type,
                                              u64 Idx,
                                              x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_allocation_from_memory"), stdout);
+    }
     if (dst->location.kind == LOCATION_ADDRESS) {
         x64_codegen_copy_memory(
             &dst->location.address, src, type, Idx, context);
@@ -108,6 +121,9 @@ static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
                                                x64_Allocation *restrict src,
                                                u64 Idx,
                                                x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_scalar_allocation"), stdout);
+    }
     if ((dst->location.kind == LOCATION_GPR) ||
         (src->location.kind == LOCATION_GPR)) {
         x64_context_append(
@@ -123,6 +139,9 @@ void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                  x64_Allocation *restrict src,
                                  u64 Idx,
                                  x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_copy_allocation"), stdout);
+    }
     assert(type_equality(dst->type, src->type));
 
     if (x64_location_eq(dst->location, src->location)) { return; }

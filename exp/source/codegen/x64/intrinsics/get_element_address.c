@@ -24,6 +24,7 @@
 
 x64_Address
 x64_get_element_address(x64_Address *src, Type const *type, u64 index) {
+
     x64_Address result = *src;
 
     switch (type->kind) {

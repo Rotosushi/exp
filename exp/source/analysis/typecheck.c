@@ -118,6 +118,7 @@ static bool typecheck_operand(Type const **result,
                               Context *restrict context,
                               OperandKind kind,
                               OperandData data) {
+    if (context_trace(context)) { trace(SV("typecheck_operand:"), stdout); }
     switch (kind) {
     case OPERAND_KIND_SSA: {
         LocalVariable *local = context_lookup_ssa(context, data.ssa);
@@ -184,6 +185,7 @@ static bool typecheck_operand(Type const **result,
 static bool
 typecheck_load(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
+    if (context_trace(context)) { trace(SV("typecheck_load:"), stdout); }
     LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
     if (!typecheck_operand(&local->type, context, I.B_kind, I.B_data)) {
         return false;
@@ -193,12 +195,14 @@ typecheck_load(Type const **result, Context *restrict context, Instruction I) {
 
 static bool
 typecheck_ret(Type const **result, Context *restrict context, Instruction I) {
+    if (context_trace(context)) { trace(SV("typecheck_ret:"), stdout); }
     return typecheck_operand(result, context, I.B_kind, I.B_data);
 }
 
 static bool
 typecheck_call(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
+    if (context_trace(context)) { trace(SV("typecheck_call:"), stdout); }
     LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
     Type const    *Bty;
     if (!typecheck_operand(&Bty, context, I.B_kind, I.B_data)) { return false; }
@@ -244,6 +248,7 @@ static bool tuple_index_out_of_bounds(u64 index, TupleType const *tuple) {
 static bool
 typecheck_dot(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
+    if (context_trace(context)) { trace(SV("typecheck_dot:"), stdout); }
     LocalVariable *local = context_lookup_ssa(context, I.A_data.ssa);
     Type const    *Bty;
     if (!typecheck_operand(&Bty, context, I.B_kind, I.B_data)) { return false; }
@@ -289,6 +294,7 @@ static bool typecheck_unop(Type const **result,
 
 static bool
 typecheck_neg(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_neg:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_unop(result, c, I, type_i64, type_i64);
 }
@@ -317,30 +323,35 @@ static bool typecheck_binop(Type const **result,
 
 static bool
 typecheck_add(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_add:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 typecheck_sub(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_sub:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 typecheck_mul(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_mul:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 typecheck_div(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_div:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 typecheck_mod(Type const **result, Context *restrict c, Instruction I) {
+    if (context_trace(c)) { trace(SV("typecheck_mod:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return typecheck_binop(result, c, I, type_i64, type_i64, type_i64);
 }

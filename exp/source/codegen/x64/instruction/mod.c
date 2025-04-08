@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include "codegen/x64/instruction/mod.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 static void x64_codegen_modulus_ssa(Instruction    I,
@@ -29,6 +30,9 @@ static void x64_codegen_modulus_ssa(Instruction    I,
     x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_ssa: ssa"), stdout);
+        }
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(B->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x64_context_allocate_to_gpr(
@@ -68,6 +72,9 @@ static void x64_codegen_modulus_ssa(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_ssa: i64"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
@@ -85,6 +92,9 @@ static void x64_codegen_modulus_ssa(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_ssa: constant"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
@@ -112,6 +122,9 @@ static void x64_codegen_modulus_immediate(Instruction    I,
                                           x64_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_immediate: ssa"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(
@@ -131,6 +144,9 @@ static void x64_codegen_modulus_immediate(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_immediate: i64"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(
@@ -153,6 +169,9 @@ static void x64_codegen_modulus_immediate(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_immediate: constant"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(
@@ -185,6 +204,9 @@ void x64_codegen_modulus_constant(Instruction    I,
                                   x64_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_constant: ssa"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(
@@ -204,6 +226,9 @@ void x64_codegen_modulus_constant(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_constant: i64"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(
@@ -226,6 +251,9 @@ void x64_codegen_modulus_constant(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_modulus_constant: constant"), stdout);
+        }
         x64_context_allocate_to_gpr(
             context, local, X86_64_GPR_RDX, block_index);
         x64_context_append(

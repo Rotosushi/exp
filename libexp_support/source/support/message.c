@@ -84,6 +84,18 @@ void trace_i64(i64 value, FILE *restrict stream) {
     message(MESSAGE_TRACE, NULL, 0, string_view_from_str(buf, len), stream);
 }
 
+void trace_command(StringView   cmd,
+                   i32          argc,
+                   char const **argv,
+                   FILE *restrict stream) {
+    trace(SV("command: "), stream);
+    trace(cmd, stream);
+    trace(SV("args: "), stream);
+    for (i32 i = 0; argv[i] != NULL && (i < argc); ++i) {
+        trace(string_view_from_cstring(argv[i]), stream);
+    }
+}
+
 #undef LOG_FATAL_MSG
 #undef LOG_WARNING_MSG
 #undef LOG_STATUS_MSG

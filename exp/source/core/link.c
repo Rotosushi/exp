@@ -20,6 +20,7 @@
 
 #include "core/link.h"
 #include "support/config.h"
+#include "support/message.h"
 #include "support/process.h"
 
 i32 link(Context *restrict context) {
@@ -40,6 +41,12 @@ i32 link(Context *restrict context) {
         obj_path.ptr,
         NULL,
     };
+
+    if (context_trace(context)) {
+        trace(SV("link:"), stdout);
+        trace(obj_path, stdout);
+        trace_command(string_view_from_cstring("ld"), 7, args, stdout);
+    }
 
     return process("ld", 7, args);
 }

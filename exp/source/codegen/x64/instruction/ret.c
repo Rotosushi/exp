@@ -21,6 +21,7 @@
 #include "codegen/x64/instruction/ret.h"
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/load.h"
+#include "support/message.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
@@ -30,6 +31,9 @@ void x64_codegen_return(Instruction I,
     x64_Function *body = current_x64_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_return: ssa"), stdout);
+        }
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
         if (x64_allocation_location_eq(B, body->result->location)) { break; }
         x64_codegen_copy_allocation(body->result, B, block_index, context);
@@ -37,6 +41,9 @@ void x64_codegen_return(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_return: constant"), stdout);
+        }
         Value *value =
             context_constants_at(context->context, I.B_data.constant);
         x64_codegen_load_allocation_from_value(
@@ -45,6 +52,9 @@ void x64_codegen_return(Instruction I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_return: i64"), stdout);
+        }
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(body->result),
                                    x64_operand_immediate(I.B_data.i64_)));

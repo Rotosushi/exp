@@ -32,6 +32,7 @@
 #include "codegen/x64/instruction/neg.h"
 #include "codegen/x64/instruction/ret.h"
 #include "codegen/x64/instruction/sub.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 /*
@@ -137,17 +138,30 @@ static void x64_codegen_function(x64_Context *x64_context) {
 }
 
 static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
+    if (context_trace(x64_context->context)) {
+        trace(SV("x64_codegen_symbol:"), stdout);
+        trace(symbol->name, stdout);
+    }
     StringView name = symbol->name;
 
     switch (symbol->kind) {
     case STE_UNDEFINED: {
-        // #TODO this should lower to a forward declaration
         break;
     }
 
     case STE_FUNCTION: {
         x64_context_enter_function(x64_context, name);
         x64_codegen_function(x64_context);
+        if (context_trace(x64_context->context) &&
+            context_prolix(x64_context->context)) {
+            String buffer = string_create();
+            string_append(&buffer, SV("Generated x86-64 function:"));
+            string_append(&buffer, name);
+            x64_bytecode_emit(
+                &x64_context->x64_body->bc, &buffer, x64_context->context);
+            trace(string_to_view(&buffer), stdout);
+            string_destroy(&buffer);
+        }
         x64_context_leave_function(x64_context);
         break;
     }

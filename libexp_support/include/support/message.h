@@ -55,5 +55,9 @@ void message(MessageLevel level,
 void trace(StringView msg, FILE *restrict stream);
 void trace_u64(u64 value, FILE *restrict stream);
 void trace_i64(i64 value, FILE *restrict stream);
+void trace_command(StringView   cmd,
+                   i32          argc,
+                   char const **argv,
+                   FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

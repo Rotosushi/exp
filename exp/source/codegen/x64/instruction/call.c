@@ -24,6 +24,7 @@
 #include "intrinsics/type_of.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/message.h"
 
 typedef struct OperandArray {
     u8       size;
@@ -99,6 +100,9 @@ x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
 void x64_codegen_call(Instruction I,
                       u64         block_index,
                       x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_call:"), stdout);
+    }
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
     u8             scalar_argument_count = 0;

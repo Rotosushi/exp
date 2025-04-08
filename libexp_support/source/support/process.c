@@ -24,16 +24,6 @@
 #include "support/panic.h"
 #include "support/process.h"
 
-static void log_command(char const *cmd, i32 argc, char const *argv[]) {
-    message(MESSAGE_STATUS, NULL, 0, SV("command: "), stderr);
-    message(MESSAGE_STATUS, NULL, 0, string_view_from_cstring(cmd), stderr);
-    message(MESSAGE_STATUS, NULL, 0, SV("args: "), stderr);
-    for (i32 i = 0; argv[i] != NULL && (i < argc); ++i) {
-        message(
-            MESSAGE_STATUS, NULL, 0, string_view_from_cstring(argv[i]), stderr);
-    }
-}
-
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -64,38 +54,38 @@ i32 process(char const *cmd, i32 argc, char const *argv[]) {
         case CLD_KILLED: {
             message(
                 MESSAGE_ERROR, NULL, 0, SV("child killed by signal."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_DUMPED: {
             message(MESSAGE_ERROR, NULL, 0, SV("child dumped core."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_STOPPED: {
             message(MESSAGE_ERROR, NULL, 0, SV("child stopped."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_TRAPPED: {
             message(MESSAGE_ERROR, NULL, 0, SV("child trapped."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_CONTINUED: {
             message(MESSAGE_ERROR, NULL, 0, SV("child continued."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
 
         default: {
             message(
                 MESSAGE_ERROR, NULL, 0, SV("unknown child status."), stderr);
-            log_command(cmd, argc, argv);
+            trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
             return EXIT_FAILURE;
         }
         }

@@ -63,7 +63,7 @@ static void print_help(FILE *file) {
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     CLIOptions         options       = cli_options_create();
-    static char const *short_options = "hvo:cs";
+    static char const *short_options = "hvpto:cs";
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -77,6 +77,16 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         case 'v': {
             print_version(stdout);
             exit(EXIT_SUCCESS);
+            break;
+        }
+
+        case 'p': {
+            bitset_set(&options.flags, CLI_PROLIX);
+            break;
+        }
+
+        case 't': {
+            bitset_set(&options.flags, CLI_TRACE);
             break;
         }
 

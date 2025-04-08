@@ -20,6 +20,7 @@
 
 #include "codegen/x64/instruction/sub.h"
 #include "support/assert.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 static void x64_codegen_subtract_ssa(Instruction    I,
@@ -29,6 +30,9 @@ static void x64_codegen_subtract_ssa(Instruction    I,
     x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_ssa: ssa"), stdout);
+        }
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
         // #NOTE since subtraction is not commutative we have to allocate A from
         // B regardless of which of B or C is in a register.
@@ -53,6 +57,9 @@ static void x64_codegen_subtract_ssa(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_ssa: i64"), stdout);
+        }
         x64_Allocation *A =
             x64_context_allocate_from_active(context, local, B, block_index);
 
@@ -63,6 +70,9 @@ static void x64_codegen_subtract_ssa(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_ssa: constant"), stdout);
+        }
         x64_Allocation *A =
             x64_context_allocate_from_active(context, local, B, block_index);
 
@@ -89,6 +99,9 @@ static void x64_codegen_subtract_immediate(Instruction    I,
          * Then we can emit the sub instruction.
          */
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_immediate: ssa"), stdout);
+        }
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
         x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
@@ -104,6 +117,9 @@ static void x64_codegen_subtract_immediate(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_immediate: i64"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -115,6 +131,9 @@ static void x64_codegen_subtract_immediate(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_immediate: constant"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -142,6 +161,9 @@ void x64_codegen_subtract_constant(Instruction    I,
          *  Then we can emit the sub instruction.
          */
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_constant: ssa"), stdout);
+        }
         x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
 
         x64_Allocation *A = x64_context_allocate_to_any_gpr(context, local);
@@ -157,6 +179,9 @@ void x64_codegen_subtract_constant(Instruction    I,
     }
 
     case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_constant: i64"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -168,6 +193,9 @@ void x64_codegen_subtract_constant(Instruction    I,
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_subtract_constant: constant"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),

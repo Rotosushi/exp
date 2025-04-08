@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "core/assemble.h"
+#include "support/message.h"
 #include "support/process.h"
 
 i32 assemble(Context *restrict context) {
@@ -32,6 +33,12 @@ i32 assemble(Context *restrict context) {
         obj_path.ptr,
         NULL,
     };
+
+    if (context_trace(context)) {
+        trace(SV("assemble:"), stdout);
+        trace(asm_path, stdout);
+        trace_command(string_view_from_cstring("as"), 4, args, stdout);
+    }
 
     return process("as", 4, args);
 }

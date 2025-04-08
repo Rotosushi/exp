@@ -22,11 +22,15 @@
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/get_element_address.h"
 #include "codegen/x64/intrinsics/load.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 void x64_codegen_dot(Instruction I,
                      u64         block_index,
                      x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_dot"), stdout);
+    }
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
 
