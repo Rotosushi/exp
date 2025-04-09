@@ -23,24 +23,25 @@
 
 void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
+                                    u64 size,
                                     u64 Idx,
                                     x64_Context *restrict context);
 
 void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        x64_Address *restrict src,
-                                       Type *type,
-                                       u64 Idx,
+                                       Type const *type,
+                                       u64         Idx,
                                        x64_Context *restrict context);
 
 void x64_codegen_copy_memory(x64_Address *restrict dst,
                              x64_Address *restrict src,
-                             Type *type,
-                             u64 Idx,
+                             Type const *type,
+                             u64         Idx,
                              x64_Context *restrict context);
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              x64_Address *restrict src,
-                                             Type *restrict type,
+                                             Type const *restrict type,
                                              u64 Idx,
                                              x64_Context *restrict context);
 

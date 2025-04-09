@@ -22,17 +22,21 @@
 #include "codegen/x64/intrinsics/copy.h"
 #include "codegen/x64/intrinsics/get_element_address.h"
 #include "codegen/x64/intrinsics/load.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 void x64_codegen_dot(Instruction I,
-                     u64 block_index,
+                     u64         block_index,
                      x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_dot"), stdout);
+    }
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
 
-    assert(I.C_kind == OPERAND_KIND_IMMEDIATE);
-    assert(I.C_data.immediate >= 0);
-    u16 index = (u16)I.C_data.immediate;
+    assert(I.C_kind == OPERAND_KIND_I64);
+    assert(I.C_data.i64_ >= 0);
+    u16 index = (u16)I.C_data.i64_;
 
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
@@ -41,10 +45,10 @@ void x64_codegen_dot(Instruction I,
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x64_Address *tuple_address = &B->location.address;
-        x64_Address element_address =
+        x64_Address  element_address =
             x64_get_element_address(tuple_address, B->type, index);
-        TupleType *tuple_type = &B->type->tuple_type;
-        Type *element_type    = tuple_type->types[index];
+        TupleType const *tuple_type   = &B->type->tuple_type;
+        Type const      *element_type = tuple_type->types[index];
 
         x64_codegen_copy_allocation_from_memory(
             A, &element_address, element_type, block_index, context);
@@ -53,7 +57,7 @@ void x64_codegen_dot(Instruction I,
 
     case OPERAND_KIND_CONSTANT: {
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        Value *value =
+        Value          *value =
             context_constants_at(context->context, I.B_data.constant);
         assert(value->kind == VALUE_KIND_TUPLE);
         Tuple *tuple = &value->tuple;
@@ -65,7 +69,7 @@ void x64_codegen_dot(Instruction I,
     }
 
     // we cannot store tuples as immediates
-    case OPERAND_KIND_IMMEDIATE:
+    case OPERAND_KIND_I64:
     // we don't support globals which are not functions yet
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();

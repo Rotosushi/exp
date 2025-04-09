@@ -28,10 +28,26 @@
  * @param context
  * @return Type*
  */
-Type *type_of_value(Value *restrict value, Context *restrict context);
+Type const *type_of_value(Value *restrict value, Context *restrict context);
 
-Type *type_of_function(FunctionBody *restrict body, Context *restrict context);
+/**
+ * @brief return the type of the given function
+ *
+ * @note This is computed using the type annotations of the arguments and
+ * the return type of the function. It does not take into account the
+ * actual implementation of the function. The "typecheck" pass computes
+ * the type of the function from the implementation, and checks that it
+ * matches the type annotations, if there are explicit type annotation,
+ * otherwise it fills in the type annotation. (the only optional type
+ * annotation is the return type.)
+ *
+ * @param body
+ * @param context
+ * @return Type*
+ */
+Type const *type_of_function(Function *restrict body,
+                             Context *restrict context);
 
-Type *type_of_operand(Operand operand, Context *restrict context);
+Type const *type_of_operand(Operand operand, Context *restrict context);
 
 #endif // !EXP_INTRINSICS_TYPE_OF_H

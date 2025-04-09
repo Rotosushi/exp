@@ -34,9 +34,9 @@ typedef enum Opcode : u16 {
      *          indexing the global symbol table.
      * Calls[*]         -> indexing the actual argument lists array.
      */
-    OPCODE_RETURN, // B -- R = B,    <return>
-                   // B -- R = Values[B], <return>
-                   // B -- R = SSA[B], <return>
+    OPCODE_RET, // B -- R = B,    <return>
+                // B -- R = Values[B], <return>
+                // B -- R = SSA[B], <return>
 
     OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
 
@@ -47,37 +47,37 @@ typedef enum Opcode : u16 {
                  // AB  -- SSA[A] = Values[B]
                  // AB  -- SSA[A] = SSA[B]
 
-    OPCODE_NEGATE, // AB  -- SSA[A] = -(B)
-                   // AB  -- SSA[A] = -(SSA[B])
+    OPCODE_NEG, // AB  -- SSA[A] = -(B)
+                // AB  -- SSA[A] = -(SSA[B])
 
     OPCODE_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
                 // ABC -- SSA[A] = SSA[B] + C
                 // ABC -- SSA[A] = B    + SSA[C]
                 // ABC -- SSA[A] = B    + C
 
-    OPCODE_SUBTRACT, // ABC -- SSA[A] = SSA[B] - SSA[C]
-                     // ABC -- SSA[A] = SSA[B] - C
-                     // ABC -- SSA[A] = B    - SSA[C]
-                     // ABC -- SSA[A] = B    - C
+    OPCODE_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
+                // ABC -- SSA[A] = SSA[B] - C
+                // ABC -- SSA[A] = B    - SSA[C]
+                // ABC -- SSA[A] = B    - C
 
-    OPCODE_MULTIPLY, // ABC -- SSA[A] = SSA[B] * SSA[C]
-                     // ABC -- SSA[A] = SSA[B] * C
-                     // ABC -- SSA[A] = B    * SSA[C]
-                     // ABC -- SSA[A] = B    * C
+    OPCODE_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
+                // ABC -- SSA[A] = SSA[B] * C
+                // ABC -- SSA[A] = B    * SSA[C]
+                // ABC -- SSA[A] = B    * C
 
-    OPCODE_DIVIDE, // ABC -- SSA[A] = SSA[B] / SSA[C]
-                   // ABC -- SSA[A] = SSA[B] / C
-                   // ABC -- SSA[A] = B    / SSA[C]
-                   // ABC -- SSA[A] = B    / C
+    OPCODE_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
+                // ABC -- SSA[A] = SSA[B] / C
+                // ABC -- SSA[A] = B    / SSA[C]
+                // ABC -- SSA[A] = B    / C
 
-    OPCODE_MODULUS, // ABC -- SSA[A] = SSA[B] % SSA[C]
-                    // ABC -- SSA[A] = SSA[B] % C
-                    // ABC -- SSA[A] = B    % SSA[C]
-                    // ABC -- SSA[A] = B    % C
+    OPCODE_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
+                // ABC -- SSA[A] = SSA[B] % C
+                // ABC -- SSA[A] = B    % SSA[C]
+                // ABC -- SSA[A] = B    % C
 } Opcode;
 
 typedef struct Instruction {
-    Opcode opcode;
+    Opcode      opcode;
     OperandKind A_kind;
     OperandKind B_kind;
     OperandKind C_kind;

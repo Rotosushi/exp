@@ -23,11 +23,16 @@
 #include "codegen/x64/intrinsics/load.h"
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
+#include "support/assert.h"
+#include "support/message.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
 static void
 x64_codegen_load_i64(x64_Address *dst, i64 value, x64_Context *x64_context) {
+    if (context_trace(x64_context->context)) {
+        trace(SV("x64_codegen_load_i64"), stdout);
+    }
     if (i64_in_range_i16(value)) {
         x64_context_append(x64_context,
                            x64_mov(x64_operand_address(*dst),
@@ -47,6 +52,9 @@ static void
 x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
                                            Value *restrict value,
                                            x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_address_from_scalar_value"), stdout);
+    }
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
@@ -74,13 +82,16 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
     }
 }
 
-static void x64_codegen_load_address_from_scalar_operand(
-    x64_Address *restrict dst,
-    Operand src,
-    [[maybe_unused]] Type *restrict type,
-    u64 Idx,
-    x64_Context *restrict context) {
+static void
+x64_codegen_load_address_from_scalar_operand(x64_Address *restrict dst,
+                                             Operand src,
+                                             Type const *restrict type,
+                                             u64 Idx,
+                                             x64_Context *restrict context) {
     assert(type_is_scalar(type));
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_address_from_scalar_operand"), stdout);
+    }
 
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
@@ -92,16 +103,17 @@ static void x64_codegen_load_address_from_scalar_operand(
                 x64_mov(x64_operand_address(*dst),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
+            u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
-                dst, &allocation->location.address, Idx, context);
+                dst, &allocation->location.address, size, Idx, context);
         }
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -124,9 +136,12 @@ static void x64_codegen_load_address_from_scalar_operand(
 static void
 x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
                                                 Operand src,
-                                                Type *restrict type,
+                                                Type const *restrict type,
                                                 u64 Idx,
                                                 x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_address_from_composite_operand"), stdout);
+    }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
@@ -140,8 +155,8 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src.data.constant);
-        Type *type   = type_of_value(value, context->context);
+        Value      *value = x64_context_value_at(context, src.data.constant);
+        Type const *type  = type_of_value(value, context->context);
         assert(value->kind == VALUE_KIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
@@ -149,9 +164,10 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
 
         x64_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
-            Operand element    = tuple->elements[i];
-            Type *element_type = type_of_operand(element, context->context);
-            u64 element_size   = size_of(element_type);
+            Operand     element = tuple->elements[i];
+            Type const *element_type =
+                type_of_operand(element, context->context);
+            u64 element_size = size_of(element_type);
 
             x64_codegen_load_address_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
@@ -170,16 +186,19 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 
     // #NOTE: an immediate value is never composite
-    case OPERAND_KIND_IMMEDIATE:
-    default:                     EXP_UNREACHABLE();
+    case OPERAND_KIND_I64:
+    default:               EXP_UNREACHABLE();
     }
 }
 
 void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
                                            Operand src,
-                                           Type *restrict type,
+                                           Type const *restrict type,
                                            u64 Idx,
                                            x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_address_from_operand"), stdout);
+    }
     if (type_is_scalar(type)) {
         x64_codegen_load_address_from_scalar_operand(
             dst, src, type, Idx, context);
@@ -189,12 +208,15 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
     }
 }
 
-static void x64_codegen_load_argument_from_scalar_operand(
-    x64_Address *restrict dst,
-    Operand src,
-    [[maybe_unused]] Type *restrict type,
-    u64 Idx,
-    x64_Context *restrict context) {
+static void
+x64_codegen_load_argument_from_scalar_operand(x64_Address *restrict dst,
+                                              Operand src,
+                                              Type const *restrict type,
+                                              u64 Idx,
+                                              x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_argument_from_scalar_operand"), stdout);
+    }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
@@ -205,16 +227,17 @@ static void x64_codegen_load_argument_from_scalar_operand(
                 x64_mov(x64_operand_address(*dst),
                         x64_operand_gpr(allocation->location.gpr)));
         } else {
+            u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
-                dst, &allocation->location.address, Idx, context);
+                dst, &allocation->location.address, size, Idx, context);
         }
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -236,9 +259,12 @@ static void x64_codegen_load_argument_from_scalar_operand(
 static void x64_codegen_load_argument_from_composite_operand(
     x64_Address *restrict dst,
     Operand src,
-    Type *restrict type,
+    Type const *restrict type,
     u64 Idx,
     x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_argument_from_composite_operand"), stdout);
+    }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
@@ -252,8 +278,8 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x64_context_value_at(context, src.data.constant);
-        Type *type   = type_of_value(value, context->context);
+        Value      *value = x64_context_value_at(context, src.data.constant);
+        Type const *type  = type_of_value(value, context->context);
         assert(value->kind == VALUE_KIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
@@ -261,9 +287,10 @@ static void x64_codegen_load_argument_from_composite_operand(
 
         x64_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
-            Operand element    = tuple->elements[i];
-            Type *element_type = type_of_operand(element, context->context);
-            u64 element_size   = size_of(element_type);
+            Operand     element = tuple->elements[i];
+            Type const *element_type =
+                type_of_operand(element, context->context);
+            u64 element_size = size_of(element_type);
 
             x64_codegen_load_argument_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
@@ -282,16 +309,19 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 
     // #NOTE: immediate operands are never composite
-    case OPERAND_KIND_IMMEDIATE:
-    default:                     EXP_UNREACHABLE();
+    case OPERAND_KIND_I64:
+    default:               EXP_UNREACHABLE();
     }
 }
 
 void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
                                             Operand src,
-                                            Type *restrict type,
+                                            Type const *restrict type,
                                             u64 Idx,
                                             x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_argument_from_operand"), stdout);
+    }
     if (type_is_scalar(type)) {
         x64_codegen_load_argument_from_scalar_operand(
             dst, src, type, Idx, context);
@@ -301,24 +331,30 @@ void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
-                                       Operand src,
+void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
+                                       Operand              src,
                                        [[maybe_unused]] u64 Idx,
                                        x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_gpr_from_operand"), stdout);
+    }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
         x64_Allocation *allocation =
             x64_context_allocation_of(context, src.data.ssa);
+        u64 size = size_of(allocation->type);
+        exp_assert_debug(x86_64_gpr_valid_size(size));
+        x86_64_GPR sized_gpr = x86_64_gpr_resize(gpr, size);
         x64_context_append(
             context,
-            x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(allocation)));
+            x64_mov(x64_operand_gpr(sized_gpr), x64_operand_alloc(allocation)));
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
         x64_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(src.data.immediate)));
+                                   x64_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -335,8 +371,11 @@ void x64_codegen_load_gpr_from_operand(x64_GPR gpr,
 
 void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
                                               Operand src,
-                                              u64 Idx,
+                                              u64     Idx,
                                               x64_Context *restrict context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_allocation_from_operand"), stdout);
+    }
     if (dst->location.kind == LOCATION_ADDRESS) {
         x64_codegen_load_address_from_operand(
             &dst->location.address, src, dst->type, Idx, context);
@@ -346,8 +385,11 @@ void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
 }
 
 static void x64_codegen_load_allocation_from_i64(x64_Allocation *dst,
-                                                 i64 value,
-                                                 x64_Context *context) {
+                                                 i64             value,
+                                                 x64_Context    *context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_allocation_from_i64"), stdout);
+    }
     if (i64_in_range_i16(value)) {
         x64_context_append(
             context,
@@ -364,15 +406,18 @@ static void x64_codegen_load_allocation_from_i64(x64_Allocation *dst,
 }
 
 static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
-                                                   Tuple *tuple,
-                                                   u64 Idx,
-                                                   x64_Context *context) {
+                                                   Tuple          *tuple,
+                                                   u64             Idx,
+                                                   x64_Context    *context) {
+    if (context_trace(context->context)) {
+        trace(SV("x64_codegen_load_allocation_from_tuple"), stdout);
+    }
     assert(dst->location.kind == LOCATION_ADDRESS);
     x64_Address dst_address = dst->location.address;
     for (u64 i = 0; i < tuple->size; ++i) {
-        Operand element    = tuple->elements[i];
-        Type *element_type = type_of_operand(element, context->context);
-        u64 element_size   = size_of(element_type);
+        Operand     element      = tuple->elements[i];
+        Type const *element_type = type_of_operand(element, context->context);
+        u64         element_size = size_of(element_type);
 
         x64_codegen_load_address_from_operand(
             &dst_address, element, element_type, Idx, context);
@@ -385,9 +430,12 @@ static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
 
 void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
                                             Value *value,
-                                            u64 Idx,
+                                            u64    Idx,
                                             x64_Context *restrict x64_context) {
-    Type *type = type_of_value(value, x64_context->context);
+    if (context_trace(x64_context->context)) {
+        trace(SV("x64_codegen_load_allocation_from_value"), stdout);
+    }
+    Type const *type = type_of_value(value, x64_context->context);
     assert(type_equality(dst->type, type));
     (void)type;
 

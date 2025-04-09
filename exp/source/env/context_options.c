@@ -18,45 +18,52 @@
  */
 #include "env/context_options.h"
 
-#define CHK_BIT(U, b) (((U) >> b) & 1)
-
 ContextOptions context_options_create(CLIOptions *restrict cli_options) {
-  ContextOptions options = {.flags = cli_options->flags};
+    ContextOptions options = {.flags = cli_options->flags};
 
-  if (!string_empty(&cli_options->source)) {
-    string_assign_string(&options.source, &cli_options->source);
+    if (!string_empty(&cli_options->source)) {
+        string_assign_string(&options.source, &cli_options->source);
 
-    string_assign_string(&options.assembly, &cli_options->source);
-    string_replace_extension(&options.assembly, SV(".s"));
+        string_assign_string(&options.ir, &cli_options->source);
+        string_replace_extension(&options.ir, SV(".expir"));
 
-    string_assign_string(&options.object, &cli_options->source);
-    string_replace_extension(&options.object, SV(".o"));
-  }
+        string_assign_string(&options.assembly, &cli_options->source);
+        string_replace_extension(&options.assembly, SV(".s"));
 
-  if (!string_empty(&cli_options->output)) {
-    string_assign_string(&options.output, &cli_options->output);
-  }
+        string_assign_string(&options.object, &cli_options->source);
+        string_replace_extension(&options.object, SV(".o"));
+    }
 
-  return options;
+    if (!string_empty(&cli_options->output)) {
+        string_assign_string(&options.executable, &cli_options->output);
+    }
+
+    return options;
 }
 
 void context_options_destroy(ContextOptions *restrict options) {
-  string_destroy(&options->source);
-  string_destroy(&options->assembly);
-  string_destroy(&options->object);
-  string_destroy(&options->output);
+    string_destroy(&options->source);
+    string_destroy(&options->ir);
+    string_destroy(&options->assembly);
+    string_destroy(&options->object);
+    string_destroy(&options->executable);
 }
 
-bool context_options_do_assemble(ContextOptions *restrict options) {
-  return CHK_BIT(options->flags, CLI_DO_ASSEMBLE);
-}
-
-bool context_options_do_link(ContextOptions *restrict options) {
-  return CHK_BIT(options->flags, CLI_DO_LINK);
-}
-
-bool context_options_do_cleanup(ContextOptions *restrict options) {
-  return CHK_BIT(options->flags, CLI_DO_CLEANUP);
-}
+extern bool context_options_prolix(ContextOptions const *restrict options);
+extern bool context_options_trace(ContextOptions const *restrict options);
+extern bool
+context_options_create_ir_artifact(ContextOptions const *restrict options);
+extern bool context_options_create_assembly_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_create_object_artifact(ContextOptions const *restrict options);
+extern bool context_options_create_executable_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_cleanup_ir_artifact(ContextOptions const *restrict options);
+extern bool context_options_cleanup_assembly_artifact(
+    ContextOptions const *restrict options);
+extern bool
+context_options_cleanup_object_artifact(ContextOptions const *restrict options);
 
 #undef CHK_BIT

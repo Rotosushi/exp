@@ -20,11 +20,12 @@
 
 #include "core/link.h"
 #include "support/config.h"
+#include "support/message.h"
 #include "support/process.h"
 
 i32 link(Context *restrict context) {
     StringView obj_path = context_object_path(context);
-    StringView out_path = context_output_path(context);
+    StringView out_path = context_executable_path(context);
 
     // #TODO: place our target libraries into one of ld's standard search
     //  locations on install.
@@ -41,5 +42,11 @@ i32 link(Context *restrict context) {
         NULL,
     };
 
-    return process("ld", args);
+    if (context_trace(context)) {
+        trace(SV("link:"), stdout);
+        trace(obj_path, stdout);
+        trace_command(string_view_from_cstring("ld"), 7, args, stdout);
+    }
+
+    return process("ld", 7, args);
 }

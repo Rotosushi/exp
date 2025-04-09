@@ -42,4 +42,5 @@
 
   4 - "How does the CFG get created to represent the source code?"
       It would be nice if the parser could build the control flow graph as 
-      it built the IR.
+      it built the IR, I think it can as well, given that the CFG essentially 
+      operates on names. 

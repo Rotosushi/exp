@@ -17,7 +17,6 @@
 #ifndef EXP_ENV_ERROR_H
 #define EXP_ENV_ERROR_H
 
-#include "support/log.h"
 #include "support/string.h"
 
 typedef enum ErrorCode : u8 {
@@ -68,15 +67,16 @@ StringView error_code_to_view(ErrorCode code);
  */
 typedef struct Error {
     ErrorCode code;
-    String message;
+    String    message;
 } Error;
 
 Error error_create();
 Error error_construct(ErrorCode code, StringView sv);
 Error error_from_string(ErrorCode code, String str);
-void error_destroy(Error *restrict error);
+void  error_destroy(Error *restrict error);
 
 void error_assign(Error *restrict error, ErrorCode code, StringView sv);
+void error_assign_string(Error *restrict error, ErrorCode code, String str);
 
 void error_print(Error *restrict error, StringView file, u64 line);
 

@@ -55,9 +55,9 @@ static void function_types_grow(FunctionTypes *restrict function_types) {
     function_types->capacity = g.new_capacity;
 }
 
-static Type *function_types_append(FunctionTypes *restrict function_types,
-                                   Type *return_type,
-                                   TupleType argument_types) {
+static Type const *function_types_append(FunctionTypes *restrict function_types,
+                                         Type const *return_type,
+                                         TupleType   argument_types) {
     assert(function_types != NULL);
 
     Type function_type = type_create_function(return_type, argument_types);
@@ -133,7 +133,14 @@ TypeInterner type_interner_create() {
     TypeInterner type_interner;
     type_interner.nil_type       = type_create_nil();
     type_interner.boolean_type   = type_create_boolean();
-    type_interner.i64_type       = type_create_integer();
+    type_interner.u8_type        = type_create_u8();
+    type_interner.u16_type       = type_create_u16();
+    type_interner.u32_type       = type_create_u32();
+    type_interner.u64_type       = type_create_u64();
+    type_interner.i8_type        = type_create_i8();
+    type_interner.i16_type       = type_create_i16();
+    type_interner.i32_type       = type_create_i32();
+    type_interner.i64_type       = type_create_i64();
     type_interner.tuple_types    = tuple_types_create();
     type_interner.function_types = function_types_create();
     return type_interner;
@@ -146,30 +153,65 @@ void type_interner_destroy(TypeInterner *restrict type_interner) {
     return;
 }
 
-Type *type_interner_nil_type(TypeInterner *restrict type_interner) {
+Type const *type_interner_nil_type(TypeInterner *restrict type_interner) {
     assert(type_interner != NULL);
     return &(type_interner->nil_type);
 }
 
-Type *type_interner_boolean_type(TypeInterner *restrict type_interner) {
+Type const *type_interner_boolean_type(TypeInterner *restrict type_interner) {
     assert(type_interner != NULL);
     return &(type_interner->boolean_type);
 }
 
-Type *type_interner_i64_type(TypeInterner *restrict type_interner) {
+Type const *type_interner_u8_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->u8_type);
+}
+
+Type const *type_interner_u16_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->u16_type);
+}
+
+Type const *type_interner_u32_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->u32_type);
+}
+
+Type const *type_interner_u64_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->u64_type);
+}
+
+Type const *type_interner_i8_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->i8_type);
+}
+
+Type const *type_interner_i16_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->i16_type);
+}
+
+Type const *type_interner_i32_type(TypeInterner *restrict type_interner) {
+    assert(type_interner != NULL);
+    return &(type_interner->i32_type);
+}
+
+Type const *type_interner_i64_type(TypeInterner *restrict type_interner) {
     assert(type_interner != NULL);
     return &(type_interner->i64_type);
 }
 
-Type *type_interner_tuple_type(TypeInterner *restrict type_interner,
-                               TupleType tuple) {
+Type const *type_interner_tuple_type(TypeInterner *restrict type_interner,
+                                     TupleType tuple) {
     assert(type_interner != NULL);
     return tuple_types_append(&type_interner->tuple_types, tuple);
 }
 
-Type *type_interner_function_type(TypeInterner *restrict type_interner,
-                                  Type *return_type,
-                                  TupleType argument_types) {
+Type const *type_interner_function_type(TypeInterner *restrict type_interner,
+                                        Type const *return_type,
+                                        TupleType   argument_types) {
     assert(type_interner != NULL);
     return function_types_append(
         &type_interner->function_types, return_type, argument_types);

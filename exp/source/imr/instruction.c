@@ -49,7 +49,7 @@ instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
 }
 
 Instruction instruction_return(Operand result) {
-    return instruction_B(OPCODE_RETURN, result);
+    return instruction_B(OPCODE_RET, result);
 }
 
 Instruction instruction_call(Operand dst, Operand label, Operand args) {
@@ -69,7 +69,7 @@ Instruction instruction_load(Operand dst, Operand src) {
 
 Instruction instruction_negate(Operand dst, Operand src) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_AB(OPCODE_NEGATE, dst, src);
+    return instruction_AB(OPCODE_NEG, dst, src);
 }
 
 Instruction instruction_add(Operand dst, Operand left, Operand right) {
@@ -79,26 +79,26 @@ Instruction instruction_add(Operand dst, Operand left, Operand right) {
 
 Instruction instruction_subtract(Operand dst, Operand left, Operand right) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_SUBTRACT, dst, left, right);
+    return instruction_ABC(OPCODE_SUB, dst, left, right);
 }
 
 Instruction instruction_multiply(Operand dst, Operand left, Operand right) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MULTIPLY, dst, left, right);
+    return instruction_ABC(OPCODE_MUL, dst, left, right);
 }
 
 Instruction instruction_divide(Operand dst, Operand left, Operand right) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_DIVIDE, dst, left, right);
+    return instruction_ABC(OPCODE_DIV, dst, left, right);
 }
 
 Instruction instruction_modulus(Operand dst, Operand left, Operand right) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_ABC(OPCODE_MODULUS, dst, left, right);
+    return instruction_ABC(OPCODE_MOD, dst, left, right);
 }
 
 static void print_B(String *restrict string,
-                    StringView mnemonic,
+                    StringView  mnemonic,
                     Instruction I,
                     Context *restrict context) {
     string_append(string, mnemonic);
@@ -107,7 +107,7 @@ static void print_B(String *restrict string,
 }
 
 static void print_AB(String *restrict string,
-                     StringView mnemonic,
+                     StringView  mnemonic,
                      Instruction I,
                      Context *restrict context) {
     string_append(string, mnemonic);
@@ -118,7 +118,7 @@ static void print_AB(String *restrict string,
 }
 
 static void print_ABC(String *restrict string,
-                      StringView mnemonic,
+                      StringView  mnemonic,
                       Instruction I,
                       Context *restrict context) {
     string_append(string, mnemonic);
@@ -134,16 +134,16 @@ void print_instruction(String *restrict string,
                        Instruction I,
                        struct Context *restrict context) {
     switch (I.opcode) {
-    case OPCODE_RETURN:   print_B(string, SV("ret"), I, context); break;
-    case OPCODE_CALL:     print_ABC(string, SV("call"), I, context); break;
-    case OPCODE_DOT:      print_ABC(string, SV("dot"), I, context); break;
-    case OPCODE_LOAD:     print_AB(string, SV("load"), I, context); break;
-    case OPCODE_NEGATE:   print_AB(string, SV("neg"), I, context); break;
-    case OPCODE_ADD:      print_ABC(string, SV("add"), I, context); break;
-    case OPCODE_SUBTRACT: print_ABC(string, SV("sub"), I, context); break;
-    case OPCODE_MULTIPLY: print_ABC(string, SV("mul"), I, context); break;
-    case OPCODE_DIVIDE:   print_ABC(string, SV("div"), I, context); break;
-    case OPCODE_MODULUS:  print_ABC(string, SV("mod"), I, context); break;
+    case OPCODE_RET:  print_B(string, SV("ret"), I, context); break;
+    case OPCODE_CALL: print_ABC(string, SV("call"), I, context); break;
+    case OPCODE_DOT:  print_ABC(string, SV("dot"), I, context); break;
+    case OPCODE_LOAD: print_AB(string, SV("load"), I, context); break;
+    case OPCODE_NEG:  print_AB(string, SV("neg"), I, context); break;
+    case OPCODE_ADD:  print_ABC(string, SV("add"), I, context); break;
+    case OPCODE_SUB:  print_ABC(string, SV("sub"), I, context); break;
+    case OPCODE_MUL:  print_ABC(string, SV("mul"), I, context); break;
+    case OPCODE_DIV:  print_ABC(string, SV("div"), I, context); break;
+    case OPCODE_MOD:  print_ABC(string, SV("mod"), I, context); break;
 
     default: EXP_UNREACHABLE();
     }

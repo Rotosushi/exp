@@ -17,6 +17,9 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "core/codegen.h"
+#include "codegen/IR/codegen.h"
 #include "codegen/x64/codegen.h"
 
-void codegen(Context *restrict context) { x64_codegen(context); }
+i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
+
+i32 codegen_assembly(Context *restrict context) { return x64_codegen(context); }

@@ -25,12 +25,13 @@
  * and that means we cannot safely return a view into the
  * small string and freely grow the interned strings.
  * as reallocating the buffer of strings may move the interned
- * string, invalidating the string view returned by the string
- * interner.
+ * string, and any small strings will have their data stored directly
+ * in the previous buffer, thus invalidating the string view returned by the
+ * string interner. Causing chaos somewhere down the line.
  */
 typedef struct SimpleString {
-    u64 length;
-    char *ptr;
+    u64  length;
+    char data[];
 } SimpleString;
 
 /**
@@ -38,11 +39,12 @@ typedef struct SimpleString {
  * allocated for these strings is all managed in one location,
  * this has the additional benefiet of allowing string
  * comparison outside the string interner to require a single
+ * memory comparison.
  */
 typedef struct StringInterner {
-    u64 capacity;
-    u64 count;
-    SimpleString *buffer;
+    u64            capacity;
+    u64            count;
+    SimpleString **buffer;
 } StringInterner;
 
 StringInterner string_interner_create();

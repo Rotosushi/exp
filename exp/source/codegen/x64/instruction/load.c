@@ -20,33 +20,43 @@
 
 #include "codegen/x64/instruction/load.h"
 #include "codegen/x64/intrinsics/load.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 void x64_codegen_load(Instruction I,
-                      u64 block_index,
+                      u64         block_index,
                       x64_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_load: ssa"), stdout);
+        }
         x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
         x64_context_allocate_from_active(context, local, B, block_index);
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_load: constant"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
-        Value *value =
+        Value          *value =
             context_constants_at(context->context, I.B_data.constant);
         x64_codegen_load_allocation_from_value(A, value, block_index, context);
         break;
     }
 
-    case OPERAND_KIND_IMMEDIATE: {
+    case OPERAND_KIND_I64: {
+        if (context_trace(context->context)) {
+            trace(SV("x64_codegen_load: i64"), stdout);
+        }
         x64_Allocation *A = x64_context_allocate(context, local, block_index);
         x64_context_append(context,
                            x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.immediate)));
+                                   x64_operand_immediate(I.B_data.i64_)));
         break;
     }
 

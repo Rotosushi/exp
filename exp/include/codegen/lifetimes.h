@@ -18,7 +18,7 @@
 #define EXP_BACKEND_LIFETIMES_H
 
 #include "env/context.h"
-#include "imr/function_body.h"
+#include "imr/function.h"
 
 /**
  * @brief represents the lifetime of a local variable in the function.
@@ -33,8 +33,8 @@
  *
  */
 typedef struct Lifetime {
-  u64 first_use;
-  u64 last_use;
+    u64 first_use;
+    u64 last_use;
 } Lifetime;
 
 Lifetime lifetime_immortal();
@@ -47,14 +47,13 @@ Lifetime lifetime_immortal();
  * know exactly how many SSA locals a function body uses.
  */
 typedef struct Lifetimes {
-  u64 count;
-  Lifetime *buffer;
+    u64       count;
+    Lifetime *buffer;
 } Lifetimes;
 
 Lifetimes lifetimes_create(u64 count);
-void lifetimes_destroy(Lifetimes *restrict li);
+void      lifetimes_destroy(Lifetimes *restrict li);
 Lifetime *lifetimes_at(Lifetimes *restrict li, u64 ssa);
-Lifetimes lifetimes_compute(FunctionBody *restrict body,
-                            Context *restrict context);
+Lifetimes lifetimes_compute(Function *restrict body, Context *restrict context);
 
 #endif // !EXP_BACKEND_LIFETIMES_H

@@ -57,7 +57,7 @@ void x64_context_enter_function(x64_Context *x64_context, StringView name) {
     x64_Symbol *symbol    = x64_symbol_table_at(&x64_context->symbols, name);
     x64_context->x64_body = &symbol->body;
     *x64_context->x64_body =
-        x64_function_body_create(x64_context->body, x64_context);
+        x64_function_create(x64_context->body, x64_context);
 }
 
 void x64_context_leave_function(x64_Context *x64_context) {
@@ -80,7 +80,7 @@ FormalArgument *x64_context_argument_at(x64_Context *x64_context, u8 index) {
     return context_argument_at(x64_context->context, index);
 }
 
-FunctionBody *current_body(x64_Context *x64_context) {
+Function *current_body(x64_Context *x64_context) {
     assert(x64_context->body != nullptr);
     return x64_context->body;
 }
@@ -93,7 +93,7 @@ LocalVariables *current_locals(x64_Context *x64_context) {
     return &current_body(x64_context)->locals;
 }
 
-x64_FunctionBody *current_x64_body(x64_Context *x64_context) {
+x64_Function *current_x64_body(x64_Context *x64_context) {
     assert(x64_context->x64_body != nullptr);
     return x64_context->x64_body;
 }
@@ -111,9 +111,9 @@ u64 x64_context_current_offset(x64_Context *x64_context) {
     return x64_bytecode_current_offset(current_x64_bc(x64_context));
 }
 
-void x64_context_insert(x64_Context *x64_context,
+void x64_context_insert(x64_Context    *x64_context,
                         x64_Instruction I,
-                        u64 offset) {
+                        u64             offset) {
     x64_bytecode_insert(current_x64_bc(x64_context), I, offset);
 }
 
@@ -144,13 +144,15 @@ x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u32 ssa) {
     return x64_allocator_allocation_of(current_allocator(x64_context), ssa);
 }
 
-void x64_context_release_gpr(x64_Context *x64_context, x64_GPR gpr, u64 Idx) {
+void x64_context_release_gpr(x64_Context *x64_context,
+                             x86_64_GPR   gpr,
+                             u64          Idx) {
     assert(x64_context != nullptr);
     x64_allocator_release_gpr(
         current_allocator(x64_context), gpr, Idx, current_x64_bc(x64_context));
 }
 
-void x64_context_aquire_gpr(x64_Context *x64_context, x64_GPR gpr, u64 Idx) {
+void x64_context_aquire_gpr(x64_Context *x64_context, x86_64_GPR gpr, u64 Idx) {
     assert(x64_context != nullptr);
     x64_allocator_aquire_gpr(
         current_allocator(x64_context), gpr, Idx, current_x64_bc(x64_context));
@@ -164,10 +166,10 @@ x64_context_allocate(x64_Context *x64_context, LocalVariable *local, u64 Idx) {
                                   current_x64_bc(x64_context));
 }
 
-x64_Allocation *x64_context_allocate_from_active(x64_Context *x64_context,
-                                                 LocalVariable *local,
+x64_Allocation *x64_context_allocate_from_active(x64_Context    *x64_context,
+                                                 LocalVariable  *local,
                                                  x64_Allocation *active,
-                                                 u64 Idx) {
+                                                 u64             Idx) {
     return x64_allocator_allocate_from_active(current_allocator(x64_context),
                                               Idx,
                                               local,
@@ -175,21 +177,28 @@ x64_Allocation *x64_context_allocate_from_active(x64_Context *x64_context,
                                               current_x64_bc(x64_context));
 }
 
-x64_Allocation *x64_context_allocate_to_gpr(x64_Context *x64_context,
+x64_Allocation *x64_context_allocate_to_any_gpr(x64_Context   *x64_context,
+                                                LocalVariable *local) {
+    assert(x64_context != nullptr);
+    return x64_allocator_allocate_to_any_gpr(
+        current_allocator(x64_context), local, current_x64_bc(x64_context));
+}
+
+x64_Allocation *x64_context_allocate_to_gpr(x64_Context *restrict x64_context,
                                             LocalVariable *local,
-                                            x64_GPR gpr,
-                                            u64 Idx) {
+                                            x86_64_GPR     gpr,
+                                            u64            Idx) {
     assert(x64_context != nullptr);
     return x64_allocator_allocate_to_gpr(current_allocator(x64_context),
+                                         local,
                                          gpr,
                                          Idx,
-                                         local,
                                          current_x64_bc(x64_context));
 }
 
-x64_Allocation *x64_context_allocate_to_stack(x64_Context *x64_context,
+x64_Allocation *x64_context_allocate_to_stack(x64_Context   *x64_context,
                                               LocalVariable *local,
-                                              i64 offset) {
+                                              i64            offset) {
     assert(x64_context != nullptr);
     return x64_allocator_allocate_to_stack(
         current_allocator(x64_context), offset, local);
@@ -197,19 +206,20 @@ x64_Allocation *x64_context_allocate_to_stack(x64_Context *x64_context,
 
 x64_Allocation *x64_context_allocate_result(x64_Context *x64_context,
                                             x64_Location location,
-                                            Type *type) {
+                                            Type        *type) {
     assert(x64_context != nullptr);
     return x64_allocator_allocate_result(
         current_allocator(x64_context), location, type);
 }
 
-void x64_context_reallocate_active(x64_Context *x64_context,
+void x64_context_reallocate_active(x64_Context    *x64_context,
                                    x64_Allocation *active) {
     x64_allocator_reallocate_active(
         current_allocator(x64_context), active, current_x64_bc(x64_context));
 }
 
-x64_GPR x64_context_aquire_any_gpr(x64_Context *x64_context, u64 Idx) {
+x86_64_GPR
+x64_context_aquire_any_gpr(x64_Context *x64_context, u64 size, u64 Idx) {
     return x64_allocator_aquire_any_gpr(
-        current_allocator(x64_context), Idx, current_x64_bc(x64_context));
+        current_allocator(x64_context), size, Idx, current_x64_bc(x64_context));
 }

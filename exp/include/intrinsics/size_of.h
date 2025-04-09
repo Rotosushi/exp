@@ -23,9 +23,11 @@
 /**
  * @brief returns the size in bytes of the given type.
  *
+ * @note this is the number of bytes to store a <value> with <type>.
+ *
  * @param type
  * @return u64
  */
-u64 size_of(Type *restrict type);
+u64 size_of(Type const *restrict type);
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

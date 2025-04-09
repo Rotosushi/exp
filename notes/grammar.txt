@@ -47,7 +47,7 @@
           //| "false"
           //| "nil"
 
-  type = "Integer"
+  type = "i64"
        //| "Bool"
        //| "Nil"
 

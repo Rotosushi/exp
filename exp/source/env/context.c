@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include "env/context.h"
+#include "env/context_options.h"
 
 Context context_create(CLIOptions *options) {
     assert(options != nullptr);
@@ -45,24 +46,52 @@ void context_destroy(Context *context) {
     context->current_function = nullptr;
 }
 
-bool context_do_assemble(Context *context) {
+bool context_prolix(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_assemble(&context->options);
+    return context_options_prolix(&(context->options));
 }
 
-bool context_do_link(Context *context) {
+bool context_trace(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_link(&context->options);
+    return context_options_trace(&(context->options));
 }
-
-bool context_do_cleanup(Context *context) {
+bool context_create_ir_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_do_cleanup(&context->options);
+    return context_options_create_ir_artifact(&(context->options));
+}
+bool context_create_assembly_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_assembly_artifact(&(context->options));
+}
+bool context_create_object_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_object_artifact(&(context->options));
+}
+bool context_create_executable_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_create_executable_artifact(&(context->options));
+}
+bool context_cleanup_ir_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_ir_artifact(&(context->options));
+}
+bool context_cleanup_assembly_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_assembly_artifact(&(context->options));
+}
+bool context_cleanup_object_artifact(Context const *context) {
+    assert(context != nullptr);
+    return context_options_cleanup_object_artifact(&(context->options));
 }
 
 StringView context_source_path(Context *context) {
     assert(context != nullptr);
     return string_to_view(&(context->options.source));
+}
+
+StringView context_ir_path(Context *context) {
+    assert(context != nullptr);
+    return string_to_view(&(context->options.ir));
 }
 
 StringView context_assembly_path(Context *context) {
@@ -75,9 +104,9 @@ StringView context_object_path(Context *context) {
     return string_to_view(&context->options.object);
 }
 
-StringView context_output_path(Context *context) {
+StringView context_executable_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&(context->options.output));
+    return string_to_view(&(context->options.executable));
 }
 
 Error *context_current_error(Context *context) {
@@ -95,29 +124,64 @@ StringView context_intern(Context *context, StringView sv) {
     return string_interner_insert(&(context->string_interner), sv);
 }
 
-Type *context_nil_type(Context *context) {
+Type const *context_nil_type(Context *context) {
     assert(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
-Type *context_boolean_type(Context *context) {
+Type const *context_boolean_type(Context *context) {
     assert(context != nullptr);
     return type_interner_boolean_type(&(context->type_interner));
 }
 
-Type *context_i64_type(Context *context) {
+Type const *context_u8_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u8_type(&(context->type_interner));
+}
+
+Type const *context_u16_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u16_type(&(context->type_interner));
+}
+
+Type const *context_u32_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u32_type(&(context->type_interner));
+}
+
+Type const *context_u64_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_u64_type(&(context->type_interner));
+}
+
+Type const *context_i8_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i8_type(&(context->type_interner));
+}
+
+Type const *context_i16_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i16_type(&(context->type_interner));
+}
+
+Type const *context_i32_type(Context *context) {
+    assert(context != nullptr);
+    return type_interner_i32_type(&(context->type_interner));
+}
+
+Type const *context_i64_type(Context *context) {
     assert(context != nullptr);
     return type_interner_i64_type(&(context->type_interner));
 }
 
-Type *context_tuple_type(Context *context, TupleType tuple) {
+Type const *context_tuple_type(Context *context, TupleType tuple) {
     assert(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
-Type *context_function_type(Context *context,
-                            Type *return_type,
-                            TupleType argument_types) {
+Type const *context_function_type(Context    *context,
+                                  Type const *return_type,
+                                  TupleType   argument_types) {
     assert(context != nullptr);
     return type_interner_function_type(
         &context->type_interner, return_type, argument_types);
@@ -143,7 +207,7 @@ SymbolTableIterator context_global_symbol_table_iterator(Context *context) {
     return symbol_table_iterator_create(&context->global_symbol_table);
 }
 
-FunctionBody *context_enter_function(Context *c, StringView name) {
+Function *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
     Symbol *element = symbol_table_at(&c->global_symbol_table, name);
     if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
@@ -152,7 +216,7 @@ FunctionBody *context_enter_function(Context *c, StringView name) {
     return c->current_function;
 }
 
-FunctionBody *context_current_function(Context *c) {
+Function *context_current_function(Context *c) {
     assert(c != nullptr);
     assert(c->current_function != nullptr);
     return c->current_function;
@@ -163,13 +227,13 @@ Bytecode *context_active_bytecode(Context *c) {
 }
 
 static Operand context_new_ssa(Context *c) {
-    return function_body_new_ssa(context_current_function(c));
+    return function_new_ssa(context_current_function(c));
 }
 
 void context_def_local_const(Context *c, StringView name, Operand value) {
     Operand A = context_emit_load(c, value);
     assert(A.kind == OPERAND_KIND_SSA);
-    function_body_new_local(context_current_function(c), name, A.data.ssa);
+    function_new_local(context_current_function(c), name, A.data.ssa);
 }
 
 LocalVariable *context_lookup_local(Context *c, StringView name) {
@@ -215,7 +279,7 @@ void context_emit_return(Context *c, Operand B) {
 Operand context_emit_call(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_call(A, B, C));
     return A;
 }
@@ -223,7 +287,7 @@ Operand context_emit_call(Context *c, Operand B, Operand C) {
 Operand context_emit_dot(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_dot(A, B, C));
     return A;
 }
@@ -231,7 +295,7 @@ Operand context_emit_dot(Context *c, Operand B, Operand C) {
 Operand context_emit_load(Context *c, Operand B) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_load(A, B));
     return A;
 }
@@ -239,7 +303,7 @@ Operand context_emit_load(Context *c, Operand B) {
 Operand context_emit_negate(Context *c, Operand B) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_negate(A, B));
     return A;
 }
@@ -247,7 +311,7 @@ Operand context_emit_negate(Context *c, Operand B) {
 Operand context_emit_add(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_add(A, B, C));
     return A;
 }
@@ -255,7 +319,7 @@ Operand context_emit_add(Context *c, Operand B, Operand C) {
 Operand context_emit_subtract(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_subtract(A, B, C));
     return A;
 }
@@ -263,7 +327,7 @@ Operand context_emit_subtract(Context *c, Operand B, Operand C) {
 Operand context_emit_multiply(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_multiply(A, B, C));
     return A;
 }
@@ -271,7 +335,7 @@ Operand context_emit_multiply(Context *c, Operand B, Operand C) {
 Operand context_emit_divide(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_divide(A, B, C));
     return A;
 }
@@ -279,7 +343,7 @@ Operand context_emit_divide(Context *c, Operand B, Operand C) {
 Operand context_emit_modulus(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Bytecode *bc = context_active_bytecode(c);
-    Operand A    = context_new_ssa(c);
+    Operand   A  = context_new_ssa(c);
     bytecode_append(bc, instruction_modulus(A, B, C));
     return A;
 }

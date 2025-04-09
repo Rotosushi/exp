@@ -24,14 +24,15 @@
 #include "codegen/x64/env/context.h"
 #include "codegen/x64/instruction/add.h"
 #include "codegen/x64/instruction/call.h"
-#include "codegen/x64/instruction/divide.h"
+#include "codegen/x64/instruction/div.h"
 #include "codegen/x64/instruction/dot.h"
 #include "codegen/x64/instruction/load.h"
-#include "codegen/x64/instruction/modulus.h"
-#include "codegen/x64/instruction/multiply.h"
-#include "codegen/x64/instruction/negate.h"
-#include "codegen/x64/instruction/return.h"
-#include "codegen/x64/instruction/subtract.h"
+#include "codegen/x64/instruction/mod.h"
+#include "codegen/x64/instruction/mul.h"
+#include "codegen/x64/instruction/neg.h"
+#include "codegen/x64/instruction/ret.h"
+#include "codegen/x64/instruction/sub.h"
+#include "support/message.h"
 #include "support/unreachable.h"
 
 /*
@@ -48,7 +49,7 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
         Instruction I = bc->buffer[idx];
 
         switch (I.opcode) {
-        case OPCODE_RETURN: {
+        case OPCODE_RET: {
             x64_codegen_return(I, idx, x64_context);
             break;
         }
@@ -68,7 +69,7 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
             break;
         }
 
-        case OPCODE_NEGATE: {
+        case OPCODE_NEG: {
             x64_codegen_negate(I, idx, x64_context);
             break;
         }
@@ -78,23 +79,23 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
             break;
         }
 
-        case OPCODE_SUBTRACT: {
-            x64_codegen_subtract(I, idx, x64_context);
+        case OPCODE_SUB: {
+            x64_codegen_sub(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_MULTIPLY: {
-            x64_codegen_multiply(I, idx, x64_context);
+        case OPCODE_MUL: {
+            x64_codegen_mul(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_DIVIDE: {
-            x64_codegen_divide(I, idx, x64_context);
+        case OPCODE_DIV: {
+            x64_codegen_div(I, idx, x64_context);
             break;
         }
 
-        case OPCODE_MODULUS: {
-            x64_codegen_modulus(I, idx, x64_context);
+        case OPCODE_MOD: {
+            x64_codegen_mod(I, idx, x64_context);
             break;
         }
 
@@ -107,7 +108,7 @@ static void x64_codegen_allocate_stack_space(x64_Context *x64_context) {
     i64 stack_size = x64_context_stack_size(x64_context);
     if (i64_in_range_i16(stack_size)) {
         x64_context_prepend(x64_context,
-                            x64_sub(x64_operand_gpr(X64_GPR_RSP),
+                            x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                                     x64_operand_immediate((i16)stack_size)));
     } else {
         Operand operand = context_constants_append(
@@ -115,7 +116,7 @@ static void x64_codegen_allocate_stack_space(x64_Context *x64_context) {
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x64_context_prepend(
             x64_context,
-            x64_sub(x64_operand_gpr(X64_GPR_RSP),
+            x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                     x64_operand_constant(operand.data.constant)));
     }
 }
@@ -125,10 +126,10 @@ static void x64_codegen_prepend_function_header(x64_Context *x64_context) {
         x64_codegen_allocate_stack_space(x64_context);
     }
 
-    x64_context_prepend(
-        x64_context,
-        x64_mov(x64_operand_gpr(X64_GPR_RBP), x64_operand_gpr(X64_GPR_RSP)));
-    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X64_GPR_RBP)));
+    x64_context_prepend(x64_context,
+                        x64_mov(x64_operand_gpr(X86_64_GPR_RBP),
+                                x64_operand_gpr(X86_64_GPR_RSP)));
+    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X86_64_GPR_RBP)));
 }
 
 static void x64_codegen_function(x64_Context *x64_context) {
@@ -137,17 +138,30 @@ static void x64_codegen_function(x64_Context *x64_context) {
 }
 
 static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
+    if (context_trace(x64_context->context)) {
+        trace(SV("x64_codegen_symbol:"), stdout);
+        trace(symbol->name, stdout);
+    }
     StringView name = symbol->name;
 
     switch (symbol->kind) {
     case STE_UNDEFINED: {
-        // #TODO this should lower to a forward declaration
         break;
     }
 
     case STE_FUNCTION: {
         x64_context_enter_function(x64_context, name);
         x64_codegen_function(x64_context);
+        if (context_trace(x64_context->context) &&
+            context_prolix(x64_context->context)) {
+            String buffer = string_create();
+            string_append(&buffer, SV("Generated x86-64 function:"));
+            string_append(&buffer, name);
+            x64_bytecode_emit(
+                &x64_context->x64_body->bc, &buffer, x64_context->context);
+            trace(string_to_view(&buffer), stdout);
+            string_destroy(&buffer);
+        }
         x64_context_leave_function(x64_context);
         break;
     }
@@ -156,8 +170,12 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     }
 }
 
-void x64_codegen(Context *context) {
-    x64_Context x64context   = x64_context_create(context);
+i32 x64_codegen(Context *context) {
+    if (context_trace(context)) {
+        trace(SV("x64_codegen"), stderr);
+        trace(context_source_path(context), stderr);
+    }
+    x64_Context         x64context = x64_context_create(context);
     SymbolTableIterator iter = context_global_symbol_table_iterator(context);
 
     while (!symbol_table_iterator_done(&iter)) {
@@ -168,4 +186,5 @@ void x64_codegen(Context *context) {
 
     x64_emit(&x64context);
     x64_context_destroy(&x64context);
+    return 0;
 }

@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(EXP_LIBSTART_SOURCES
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_start.s
+  ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_start.s
 )
 
 add_library(exp_runtime_start
@@ -25,12 +25,16 @@ add_library(exp_runtime_start
 )
 
 set(EXP_LIBEXP_RUNTIME_SOURCES
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_syscalls.s
-  ${EXP_LIBEXP_RUNTIME_DIR}/exp_byte.s
+  ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_syscalls.s
+  ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_byte.s
 )
 
 add_library(exp_runtime
   ${EXP_LIBEXP_RUNTIME_SOURCES}
+)
+target_include_directories(exp_runtime PUBLIC 
+  ${EXP_LIBEXP_RUNTIME_DIR}/include
+  ${EXP_LIBEXP_SUPPORT_DIR}/include
 )
 
 

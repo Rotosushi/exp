@@ -23,7 +23,7 @@
 #include "support/unreachable.h"
 
 void x64_symbol_destroy(x64_Symbol *restrict symbol) {
-    x64_function_body_destroy(&symbol->body);
+    x64_function_destroy(&symbol->body);
 }
 
 x64_SymbolTable x64_symbol_table_create(u64 count) {

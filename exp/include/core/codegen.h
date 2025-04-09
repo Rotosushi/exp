@@ -18,6 +18,7 @@
 #define EXP_CODEGEN_CODEGEN_H
 #include "env/context.h"
 
-void codegen(Context *restrict context);
+i32 codegen_ir(Context *restrict context);
+i32 codegen_assembly(Context *restrict context);
 
 #endif // !EXP_CODEGEN_CODEGEN_H

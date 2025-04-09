@@ -21,17 +21,31 @@
 #include "support/string.h"
 
 typedef enum OperandKind : u8 {
-    OPERAND_KIND_SSA       = 0x0,
-    OPERAND_KIND_CONSTANT  = 0x1,
-    OPERAND_KIND_LABEL     = 0x2,
-    OPERAND_KIND_IMMEDIATE = 0x3,
+    OPERAND_KIND_SSA,
+    OPERAND_KIND_CONSTANT,
+    OPERAND_KIND_LABEL,
+    OPERAND_KIND_U8,
+    OPERAND_KIND_U16,
+    OPERAND_KIND_U32,
+    OPERAND_KIND_U64,
+    OPERAND_KIND_I8,
+    OPERAND_KIND_I16,
+    OPERAND_KIND_I32,
+    OPERAND_KIND_I64,
 } OperandKind;
 
 typedef union OperandPayload {
     u32 ssa;
     u32 constant;
     u32 label;
-    i64 immediate;
+    u8  u8_;
+    u16 u16_;
+    u32 u32_;
+    u64 u64_;
+    i8  i8_;
+    i16 i16_;
+    i32 i32_;
+    i64 i64_;
 } OperandData;
 
 typedef struct Operand {
@@ -45,8 +59,19 @@ Operand operand(OperandKind kind, OperandData data);
 Operand operand_ssa(u32 ssa);
 Operand operand_constant(u32 index);
 Operand operand_label(u32 index);
-Operand operand_immediate(i64 immediate);
+Operand operand_u8(u8 u8_);
+Operand operand_u16(u16 u16_);
+Operand operand_u32(u32 u32_);
+Operand operand_u64(u64 u64_);
+Operand operand_i8(i8 i8_);
+Operand operand_i16(i16 i16_);
+Operand operand_i32(i32 i32_);
+Operand operand_i64(i64 i64_);
+
 bool operand_equality(Operand A, Operand B);
+bool operand_is_index(Operand A);
+u64  operand_as_index(Operand A);
+
 void print_operand(String *restrict string,
                    Operand operand,
                    struct Context *restrict context);

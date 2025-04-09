@@ -21,7 +21,7 @@
 #include "intrinsics/align_of.h"
 #include "support/unreachable.h"
 
-u64 align_of(Type *restrict type) {
+u64 align_of(Type const *restrict type) {
     assert(type != NULL);
 
     switch (type->kind) {
@@ -39,8 +39,24 @@ u64 align_of(Type *restrict type) {
     // string literals are align 8 as well.
     case TYPE_KIND_NIL:     return 1;
     case TYPE_KIND_BOOLEAN: return 1;
+    case TYPE_KIND_U8:      return 1;
+    case TYPE_KIND_U16:     return 2;
+    case TYPE_KIND_U32:     return 4;
+    case TYPE_KIND_U64:     return 8;
+    case TYPE_KIND_I8:      return 1;
+    case TYPE_KIND_I16:     return 2;
+    case TYPE_KIND_I32:     return 4;
     case TYPE_KIND_I64:     return 8;
-    case TYPE_KIND_TUPLE:   return 8;
+    case TYPE_KIND_TUPLE:   {
+        TupleType *tuple_type = (TupleType *)type;
+        u64        max        = 0;
+        for (u32 i = 0; i < tuple_type->size; ++i) {
+            Type const *t = tuple_type->types[i];
+            u64         a = align_of(t);
+            if (a > max) { max = a; }
+        }
+        return max;
+    }
 
     default: EXP_UNREACHABLE();
     }

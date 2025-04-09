@@ -28,14 +28,16 @@ typedef enum x64_LocationKind : u8 {
 typedef struct x64_Location {
     x64_LocationKind kind;
     union {
-        x64_GPR gpr;
+        x86_64_GPR gpr;
         x64_Address address;
     };
 } x64_Location;
 
-x64_Location x64_location_gpr(x64_GPR gpr);
+x64_Location x64_location_gpr(x86_64_GPR gpr);
 x64_Location
-x64_location_address(x64_GPR base, x64_GPR index, u8 scale, i64 offset);
+x64_location_address(x86_64_GPR base, i64 offset);
+x64_Location
+x64_location_address_indexed(x86_64_GPR base, x86_64_GPR index, u8 scale, i64 offset);
 bool x64_location_eq(x64_Location A, x64_Location B);
 
 #endif // !EXP_BACKEND_X64_LOCATION_H

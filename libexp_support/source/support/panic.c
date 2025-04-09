@@ -23,23 +23,23 @@
 #include "support/ansi_colors.h"
 #include "support/assert.h"
 #include "support/debug.h"
-#include "support/log.h"
+#include "support/message.h"
 #include "support/panic.h"
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
     exp_assert(file != NULL);
-    u64 redlen = sizeof(ANSI_COLOR_RED) - 1;
-    u64 rstlen = sizeof(ANSI_COLOR_RESET) - 1;
-    u64 msglen = msg.length + redlen + rstlen;
+    u64  redlen = sizeof(ANSI_COLOR_RED) - 1;
+    u64  rstlen = sizeof(ANSI_COLOR_RESET) - 1;
+    u64  msglen = msg.length + redlen + rstlen;
     char msgbuf[msglen + 1];
-    u64 offset = 0;
+    u64  offset = 0;
     memcpy(msgbuf + offset, ANSI_COLOR_RED, redlen);
     offset += redlen;
     memcpy(msgbuf + offset, msg.ptr, msg.length);
     offset += msg.length;
     memcpy(msgbuf + offset, ANSI_COLOR_RESET, rstlen);
     msgbuf[msglen] = '\0';
-    exp_log(LOG_FATAL,
+    message(MESSAGE_FATAL,
             file,
             (u64)line,
             string_view_from_str(msgbuf, msglen),
@@ -50,15 +50,15 @@
 
 [[noreturn]] void panic_errno(StringView msg, const char *file, i32 line) {
     exp_assert(file != NULL);
-    static char const text[] = " :: ";
-    char const *errmsg       = strerror(errno);
-    u64 redlen               = sizeof(ANSI_COLOR_RED) - 1;
-    u64 rstlen               = sizeof(ANSI_COLOR_RED) - 1;
-    u64 errmsglen            = strlen(errmsg);
-    u64 textlen              = sizeof(text) - 1;
-    u64 buflen =
+    static char const text[]    = " :: ";
+    char const       *errmsg    = strerror(errno);
+    u64               redlen    = sizeof(ANSI_COLOR_RED) - 1;
+    u64               rstlen    = sizeof(ANSI_COLOR_RED) - 1;
+    u64               errmsglen = strlen(errmsg);
+    u64               textlen   = sizeof(text) - 1;
+    u64               buflen =
         redlen + msg.length + rstlen + textlen + redlen + errmsglen + rstlen;
-    u64 offset = 0;
+    u64  offset = 0;
     char msgbuf[buflen + 1];
     memcpy(msgbuf + offset, ANSI_COLOR_RED, redlen);
     offset += redlen;
@@ -76,7 +76,7 @@
     offset += rstlen;
     msgbuf[buflen] = '\0';
 
-    exp_log(LOG_FATAL,
+    message(MESSAGE_FATAL,
             file,
             (u64)line,
             string_view_from_str(msgbuf, buflen),

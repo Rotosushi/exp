@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "scanning/lexer.h"
+#include "scanning/token.h"
 
 // return true on failure
 static bool test_lexer_scans_token(const char *buffer, Token token) {
@@ -92,6 +93,28 @@ i32 lexer_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     failed |= test_lexer_scans_token("bool", TOK_TYPE_BOOL);
     failed |= test_lexer_scans_token("boo", TOK_IDENTIFIER);
     failed |= test_lexer_scans_token("booll", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("u8", TOK_TYPE_U8);
+    failed |= test_lexer_scans_token("u7", TOK_IDENTIFIER);
+    failed |= test_lexer_scans_token("u", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("u16", TOK_TYPE_U16);
+    failed |= test_lexer_scans_token("u15", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("u32", TOK_TYPE_U32);
+    failed |= test_lexer_scans_token("u31", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("u64", TOK_TYPE_U64);
+    failed |= test_lexer_scans_token("u63", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("i8", TOK_TYPE_I8);
+    failed |= test_lexer_scans_token("i7", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("i16", TOK_TYPE_I16);
+    failed |= test_lexer_scans_token("i15", TOK_IDENTIFIER);
+
+    failed |= test_lexer_scans_token("i32", TOK_TYPE_I32);
+    failed |= test_lexer_scans_token("i31", TOK_IDENTIFIER);
 
     failed |= test_lexer_scans_token("i64", TOK_TYPE_I64);
     failed |= test_lexer_scans_token("i63", TOK_IDENTIFIER);

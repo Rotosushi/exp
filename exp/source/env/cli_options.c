@@ -23,22 +23,22 @@
 #include "env/cli_options.h"
 #include "support/config.h"
 #include "support/io.h"
-#include "support/log.h"
-
-#define SET_BIT(B, r) ((B) |= (u64)(1 << r))
-#define CLR_BIT(B, r) ((B) &= (u64)(~(1 << r)))
-#define CHK_BIT(B, r) (((B) >> r) & 1)
+#include "support/message.h"
 
 CLIOptions cli_options_create() {
     CLIOptions cli_options = {.flags = 0};
-    SET_BIT(cli_options.flags, CLI_DO_ASSEMBLE);
-    SET_BIT(cli_options.flags, CLI_DO_LINK);
-    SET_BIT(cli_options.flags, CLI_DO_CLEANUP);
+    // @note the default behavior is to create an executable, from
+    // the source file, and cleanup all intermediate files.
+    bitset_set(&cli_options.flags, CLI_CREATE_ASSEMBLY_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CREATE_OBJECT_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
+    bitset_set(&cli_options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
     return cli_options;
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
-    cli_options->flags = 0;
+    cli_options->flags = bitset_create();
     string_destroy(&cli_options->output);
     string_destroy(&cli_options->source);
 }
@@ -62,8 +62,8 @@ static void print_help(FILE *file) {
 }
 
 CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
-    CLIOptions options               = cli_options_create();
-    static char const *short_options = "hvo:cs";
+    CLIOptions         options       = cli_options_create();
+    static char const *short_options = "hvpto:cs";
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -80,32 +80,43 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
             break;
         }
 
+        case 'p': {
+            bitset_set(&options.flags, CLI_PROLIX);
+            break;
+        }
+
+        case 't': {
+            bitset_set(&options.flags, CLI_TRACE);
+            break;
+        }
+
         case 'o': {
             string_assign(&(options.output), string_view_from_cstring(optarg));
             break;
         }
 
         case 'c': {
-            CLR_BIT(options.flags, CLI_DO_CLEANUP);
-            CLR_BIT(options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
             break;
         }
 
         case 's': {
-            CLR_BIT(options.flags, CLI_DO_CLEANUP);
-            CLR_BIT(options.flags, CLI_DO_ASSEMBLE);
-            CLR_BIT(options.flags, CLI_DO_LINK);
+            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CREATE_OBJECT_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
+            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
             break;
         }
 
         default: {
-            char buf[2]            = {(char)option, '\0'};
+            char       buf[2]      = {(char)option, '\0'};
             StringView option_view = string_view_from_str(buf, 1);
-            String string          = string_create();
+            String     string      = string_create();
             string_append(&string, SV("unknown option ["));
             string_append(&string, option_view);
             string_append(&string, SV("]\n"));
-            exp_log(LOG_ERROR, NULL, 0, string_to_view(&string), stderr);
+            message(MESSAGE_ERROR, NULL, 0, string_to_view(&string), stderr);
             string_destroy(&string);
             break;
         }
@@ -116,7 +127,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         string_assign(&(options.source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        exp_log(LOG_ERROR,
+        message(MESSAGE_ERROR,
                 NULL,
                 0,
                 SV("an input file must be specified.\n"),
@@ -133,10 +144,6 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
 
     return options;
 }
-
-#undef SET_BIT
-#undef CLR_BIT
-#undef CHK_BIT
 
 #else
 #error "unsupported host OS"

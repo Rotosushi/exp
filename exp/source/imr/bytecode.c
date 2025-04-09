@@ -23,8 +23,6 @@
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
-#include "support/io.h"
-#include "support/unreachable.h"
 
 Bytecode bytecode_create() {
     Bytecode bc;
