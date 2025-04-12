@@ -44,7 +44,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/core/link.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
-  ${EXP_SOURCE_DIR}/env/context_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/labels.c

@@ -32,11 +32,13 @@ typedef struct String {
     u64 capacity;
     union {
         char *ptr;
-        char buffer[sizeof(char *)];
+        char  buffer[sizeof(char *)];
     };
 } String;
 
 String string_create();
+
+void string_initialize(String *restrict str);
 
 void string_destroy(String *restrict str);
 

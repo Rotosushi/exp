@@ -23,14 +23,10 @@
 #include "support/io.h"
 #include "test_resources.h"
 
-static Context init_context() {
-    CLIOptions options = cli_options_create();
-    Context result     = context_create(&options);
-    return result;
-}
-
-i32 test_parse(StringView contents) {
-    Context context = init_context();
+i32 test_parse(StringView path, StringView contents) {
+    ContextOptions options = {};
+    Context        context;
+    context_create(&context, &options, path);
 
     i32 result = parse_buffer(contents.ptr, contents.length, &context);
 
@@ -46,7 +42,7 @@ i32 test_parse(StringView contents) {
 }
 
 i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
-    i32 result = 0;
+    i32           result = 0;
     TestResources test_resources;
     test_resources_initialize(&test_resources);
 
@@ -55,10 +51,11 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
         file_write(SV("\ntesting resource: "), stderr);
         file_write(string_to_view(resource), stderr);
 
-        FILE *file      = file_open(string_to_cstring(resource), "r");
+        FILE  *file     = file_open(string_to_cstring(resource), "r");
         String contents = string_from_file(file);
         file_close(file);
-        result += test_parse(string_to_view(&contents));
+        result +=
+            test_parse(string_to_view(resource), string_to_view(&contents));
         string_destroy(&contents);
     }
 

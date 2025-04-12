@@ -20,23 +20,62 @@
 
 #include "env/context.h"
 #include "env/context_options.h"
+#include "support/string_view.h"
 
-Context context_create(CLIOptions *options) {
+#define EXP_IR_EXTENSION  "eir"
+#define EXP_ASM_EXTENSION "s"
+#define EXP_OBJ_EXTENSION "o"
+#define EXP_EXE_EXTENSION ""
+#define EXP_LIB_EXTENSION "a"
+
+static void generate_path_from_source(String *restrict target,
+                                      StringView source_path,
+                                      StringView extension) {
+    string_assign(target, source_path);
+    string_replace_extension(target, extension);
+}
+
+void context_create(Context *restrict context,
+                    ContextOptions *restrict options,
+                    StringView source_path) {
+    assert(context != nullptr);
     assert(options != nullptr);
-    Context context = {.options             = context_options_create(options),
-                       .string_interner     = string_interner_create(),
-                       .type_interner       = type_interner_create(),
-                       .global_symbol_table = symbol_table_create(),
-                       .global_labels       = labels_create(),
-                       .constants           = constants_create(),
-                       .current_error       = error_create(),
-                       .current_function    = nullptr};
-    return context;
+    assert(!string_view_empty(source_path));
+    context->options = *options;
+    string_initialize(&(context->source_path));
+    string_initialize(&(context->ir_path));
+    string_initialize(&(context->assembly_path));
+    string_initialize(&(context->object_path));
+    string_initialize(&(context->executable_path));
+    string_initialize(&(context->library_path));
+    string_assign(&(context->source_path), source_path);
+    generate_path_from_source(
+        &(context->ir_path), source_path, SV(EXP_IR_EXTENSION));
+    generate_path_from_source(
+        &(context->assembly_path), source_path, SV(EXP_ASM_EXTENSION));
+    generate_path_from_source(
+        &(context->object_path), source_path, SV(EXP_OBJ_EXTENSION));
+    generate_path_from_source(
+        &(context->executable_path), source_path, SV(EXP_EXE_EXTENSION));
+    generate_path_from_source(
+        &(context->library_path), source_path, SV(EXP_LIB_EXTENSION));
+    context->current_function    = nullptr;
+    context->current_error       = error_create();
+    context->global_symbol_table = symbol_table_create();
+    context->global_labels       = labels_create();
+    context->constants           = constants_create();
+    context->string_interner     = string_interner_create();
+    context->type_interner       = type_interner_create();
 }
 
 void context_destroy(Context *context) {
     assert(context != nullptr);
-    context_options_destroy(&(context->options));
+    string_destroy(&(context->source_path));
+    string_destroy(&(context->ir_path));
+    string_destroy(&(context->assembly_path));
+    string_destroy(&(context->object_path));
+    string_destroy(&(context->executable_path));
+    string_destroy(&(context->library_path));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->global_symbol_table));
@@ -48,65 +87,65 @@ void context_destroy(Context *context) {
 
 bool context_prolix(Context const *context) {
     assert(context != nullptr);
-    return context_options_prolix(&(context->options));
+    return context->options.prolix;
 }
 
 bool context_trace(Context const *context) {
     assert(context != nullptr);
-    return context_options_trace(&(context->options));
+    return context->options.trace;
 }
 bool context_create_ir_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_create_ir_artifact(&(context->options));
+    return context->options.create_ir_artifact;
 }
 bool context_create_assembly_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_create_assembly_artifact(&(context->options));
+    return context->options.create_assembly_artifact;
 }
 bool context_create_object_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_create_object_artifact(&(context->options));
+    return context->options.create_object_artifact;
 }
 bool context_create_executable_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_create_executable_artifact(&(context->options));
+    return context->options.create_executable_artifact;
 }
 bool context_cleanup_ir_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_cleanup_ir_artifact(&(context->options));
+    return context->options.cleanup_ir_artifact;
 }
 bool context_cleanup_assembly_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_cleanup_assembly_artifact(&(context->options));
+    return context->options.cleanup_assembly_artifact;
 }
 bool context_cleanup_object_artifact(Context const *context) {
     assert(context != nullptr);
-    return context_options_cleanup_object_artifact(&(context->options));
+    return context->options.cleanup_object_artifact;
 }
 
-StringView context_source_path(Context *context) {
+StringView context_source_path(Context *restrict context) {
     assert(context != nullptr);
-    return string_to_view(&(context->options.source));
+    return string_to_view(&(context->source_path));
 }
 
 StringView context_ir_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&(context->options.ir));
+    return string_to_view(&(context->ir_path));
 }
 
 StringView context_assembly_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&context->options.assembly);
+    return string_to_view(&context->assembly_path);
 }
 
 StringView context_object_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&context->options.object);
+    return string_to_view(&context->object_path);
 }
 
 StringView context_executable_path(Context *context) {
     assert(context != nullptr);
-    return string_to_view(&(context->options.executable));
+    return string_to_view(&(context->executable_path));
 }
 
 Error *context_current_error(Context *context) {

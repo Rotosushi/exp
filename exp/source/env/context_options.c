@@ -18,8 +18,9 @@
  */
 #include "env/context_options.h"
 
-ContextOptions context_options_create(CLIOptions *restrict cli_options) {
-    ContextOptions options = {.flags = cli_options->flags};
+ContextOptions context_options_create(CLIOptions cli_options) {
+    ContextOptions options = {};
+    options.cli_options    = cli_options;
 
     if (!string_empty(&cli_options->source)) {
         string_assign_string(&options.source, &cli_options->source);
@@ -42,11 +43,10 @@ ContextOptions context_options_create(CLIOptions *restrict cli_options) {
 }
 
 void context_options_destroy(ContextOptions *restrict options) {
-    string_destroy(&options->source);
+    cli_options_destroy(&options->cli_options);
     string_destroy(&options->ir);
     string_destroy(&options->assembly);
     string_destroy(&options->object);
-    string_destroy(&options->executable);
 }
 
 extern bool context_options_prolix(ContextOptions const *restrict options);

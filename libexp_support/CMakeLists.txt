@@ -49,6 +49,7 @@ set(EXP_SUPPORT_SOURCE_FILES
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/array_growth.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/bitset.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/cli_option_parser.c
+  ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/constant_string.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/hash.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/io.c
   ${EXP_LIBEXP_SUPPORT_SOURCE_DIR}/support/message.c

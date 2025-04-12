@@ -72,8 +72,13 @@ static i32 compile_context(Context *restrict c) {
 }
 
 i32 compile(i32 argc, char const *argv[]) {
-    CLIOptions cli_options = parse_cli_options(argc, argv);
-    Context    context     = context_create(&cli_options);
+    CLIOptions cli_options;
+    cli_options_init(&cli_options);
+    Context context;
+    parse_cli_options(argc, argv, &cli_options);
+    context_create(&context,
+                   &cli_options.context_options,
+                   string_to_view(&cli_options.source));
 
     if (context_prolix(&context)) {
         message(MESSAGE_STATUS, NULL, 0, SV("prolix mode enabled"), stdout);

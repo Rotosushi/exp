@@ -25,21 +25,21 @@
 #include "support/io.h"
 #include "support/message.h"
 
-CLIOptions cli_options_create() {
-    CLIOptions cli_options = {.flags = 0};
-    // @note the default behavior is to create an executable, from
-    // the source file, and cleanup all intermediate files.
-    bitset_set(&cli_options.flags, CLI_CREATE_ASSEMBLY_ARTIFACT);
-    bitset_set(&cli_options.flags, CLI_CREATE_OBJECT_ARTIFACT);
-    bitset_set(&cli_options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
-    bitset_set(&cli_options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
-    bitset_set(&cli_options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
-    return cli_options;
+void cli_options_init(CLIOptions *restrict cli_options) {
+    cli_options->context_options.prolix                     = false;
+    cli_options->context_options.trace                      = false;
+    cli_options->context_options.create_ir_artifact         = false;
+    cli_options->context_options.create_assembly_artifact   = true;
+    cli_options->context_options.create_object_artifact     = true;
+    cli_options->context_options.create_library_artifact    = false;
+    cli_options->context_options.create_executable_artifact = true;
+    cli_options->context_options.cleanup_ir_artifact        = false;
+    cli_options->context_options.cleanup_assembly_artifact  = true;
+    cli_options->context_options.cleanup_object_artifact    = true;
+    string_initialize(&cli_options->source);
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
-    cli_options->flags = bitset_create();
-    string_destroy(&cli_options->output);
     string_destroy(&cli_options->source);
 }
 
@@ -61,9 +61,10 @@ static void print_help(FILE *file) {
     file_write(SV("\n"), file);
 }
 
-CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
-    CLIOptions         options       = cli_options_create();
-    static char const *short_options = "hvpto:cs";
+void parse_cli_options(i32         argc,
+                       char const *argv[],
+                       CLIOptions *restrict cli_options) {
+    static char const *short_options = "hvptcs";
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -81,31 +82,26 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
         }
 
         case 'p': {
-            bitset_set(&options.flags, CLI_PROLIX);
+            cli_options->context_options.prolix = true;
             break;
         }
 
         case 't': {
-            bitset_set(&options.flags, CLI_TRACE);
-            break;
-        }
-
-        case 'o': {
-            string_assign(&(options.output), string_view_from_cstring(optarg));
+            cli_options->context_options.trace = true;
             break;
         }
 
         case 'c': {
-            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
-            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
+            cli_options->context_options.create_executable_artifact = false;
+            cli_options->context_options.cleanup_object_artifact    = false;
             break;
         }
 
         case 's': {
-            bitset_clear(&options.flags, CLI_CREATE_EXECUTABLE_ARTIFACT);
-            bitset_clear(&options.flags, CLI_CREATE_OBJECT_ARTIFACT);
-            bitset_clear(&options.flags, CLI_CLEANUP_ASSEMBLY_ARTIFACT);
-            bitset_clear(&options.flags, CLI_CLEANUP_OBJECT_ARTIFACT);
+            cli_options->context_options.create_executable_artifact = false;
+            cli_options->context_options.create_object_artifact     = false;
+            cli_options->context_options.cleanup_assembly_artifact  = false;
+            cli_options->context_options.cleanup_object_artifact    = false;
             break;
         }
 
@@ -124,7 +120,7 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
     }
 
     if (optind < argc) {
-        string_assign(&(options.source),
+        string_assign(&(cli_options->source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
         message(MESSAGE_ERROR,
@@ -134,15 +130,6 @@ CLIOptions parse_cli_options(i32 argc, char const *argv[]) {
                 stderr);
         exit(EXIT_SUCCESS);
     }
-
-    // use the input filename as the default
-    // base of the output filename
-    if (string_empty(&(options.output))) {
-        string_assign_string(&options.output, &options.source);
-        string_replace_extension(&options.output, SV(""));
-    }
-
-    return options;
 }
 
 #else

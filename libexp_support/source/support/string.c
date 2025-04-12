@@ -36,6 +36,13 @@ String string_create() {
     return str;
 }
 
+void string_initialize(String *restrict str) {
+    assert(str != NULL);
+    str->length    = 0;
+    str->capacity  = sizeof(char *);
+    str->buffer[0] = '\0';
+}
+
 static bool string_is_small(String const *restrict str) {
     return str->capacity <= sizeof(char *);
 }
@@ -98,8 +105,8 @@ String string_from_cstring(char const *cstring) {
 }
 
 String string_from_file(FILE *restrict file) {
-    String s = string_create();
-    u64 flen = file_length(file);
+    String s    = string_create();
+    u64    flen = file_length(file);
     string_resize(&s, flen);
     if (flen < sizeof(char *)) {
         file_read(s.buffer, flen, file);
@@ -171,8 +178,8 @@ void string_append_string(String *restrict dst, String const *restrict src) {
 }
 
 void string_append_i64(String *restrict str, i64 i) {
-    u64 len = i64_safe_strlen(i);
-    char buf[len + 1];
+    u64   len = i64_safe_strlen(i);
+    char  buf[len + 1];
     char *r = i64_to_str(i, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
@@ -180,8 +187,8 @@ void string_append_i64(String *restrict str, i64 i) {
 }
 
 void string_append_u64(String *restrict str, u64 u) {
-    u64 len = u64_safe_strlen(u);
-    char buf[len + 1];
+    u64   len = u64_safe_strlen(u);
+    char  buf[len + 1];
     char *r = u64_to_str(u, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
@@ -217,17 +224,17 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
 
     // erase <length> characters starting from <str->buffer + offset>
     if (string_is_small(str)) {
-        char *pos       = str->buffer + offset;
-        char *rest      = pos + length;
-        u64 rest_length = (u64)((str->buffer + str->length) - rest);
+        char *pos         = str->buffer + offset;
+        char *rest        = pos + length;
+        u64   rest_length = (u64)((str->buffer + str->length) - rest);
         memmove(pos, rest, rest_length);
         u64 new_length          = offset + rest_length;
         str->buffer[new_length] = '\0';
         str->length             = new_length;
     } else {
-        char *pos       = str->ptr + offset;
-        char *rest      = pos + length;
-        u64 rest_length = (u64)((str->ptr + str->length) - rest);
+        char *pos         = str->ptr + offset;
+        char *rest        = pos + length;
+        u64   rest_length = (u64)((str->ptr + str->length) - rest);
         memmove(pos, rest, rest_length);
         u64 new_length       = offset + rest_length;
         str->ptr[new_length] = '\0';
@@ -286,8 +293,8 @@ void string_replace_extension(String *restrict str, StringView ext) {
     // /some/kind/of/file.with.multiple.extensions
 
     // search for the last '/' in the string
-    u64 length   = str->length;
-    u64 cursor   = length;
+    u64   length = str->length;
+    u64   cursor = length;
     char *buffer = string_is_small(str) ? str->buffer : str->ptr;
     while ((cursor != 0) && (buffer[cursor] != '/')) {
         --cursor;
@@ -326,8 +333,8 @@ void string_replace_extension(String *restrict str, StringView ext) {
 
 StringView string_extension(String const *restrict str) {
     assert(str != NULL);
-    u64 length         = str->length;
-    u64 cursor         = length;
+    u64         length = str->length;
+    u64         cursor = length;
     char const *buffer = string_is_small(str) ? str->buffer : str->ptr;
 
     // search for the last '.' in the string

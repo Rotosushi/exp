@@ -24,7 +24,7 @@
 #include "test_resources.h"
 
 i32 resource_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-    i32 result = EXIT_SUCCESS;
+    i32           result = EXIT_SUCCESS;
     TestResources test_resources;
     test_resources_initialize(&test_resources);
 
@@ -33,7 +33,10 @@ i32 resource_tests([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
         file_write(SV("testing resource: "), stderr);
         file_write(string_to_view(resource), stderr);
         file_write(SV("\n"), stderr);
-        result |= test_source(string_to_view(resource));
+        if (test_source(string_to_view(resource)) != EXIT_SUCCESS) {
+            result = EXIT_FAILURE;
+            break;
+        }
     }
 
     test_resources_terminate(&test_resources);

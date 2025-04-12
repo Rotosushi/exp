@@ -37,7 +37,9 @@ i32 process(char const *cmd, i32 argc, char const *argv[]) {
         // child process
         execvp(cmd, (char *const *)argv);
 
-        PANIC_ERRNO("execvp failed");
+        message(MESSAGE_ERROR, NULL, 0, SV("execvp failed"), stderr);
+        trace_command(string_view_from_cstring(cmd), argc, argv, stderr);
+        abort();
     } else {
         // parent process
         siginfo_t status = {};

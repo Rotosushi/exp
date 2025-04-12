@@ -43,12 +43,12 @@ i32 test_exp(StringView source_path, char const *contents, i32 expected_code) {
     file_close(file);
 
     char const *exp_args[] = {exp_path, source_path.ptr, NULL};
-    i32 exp_result         = process(exp_path, 2, exp_args);
+    i32         exp_result = process(exp_path, 2, exp_args);
     result |= exp_result;
 
     if (result == EXIT_SUCCESS) {
         char const *test_args[] = {exe_path, NULL};
-        i32 test_result         = process(exe_path, 1, test_args);
+        i32         test_result = process(exe_path, 1, test_args);
         if (test_result != expected_code) {
             file_write(SV("expected code: "), stderr);
             file_write_i64(expected_code, stderr);
@@ -77,8 +77,8 @@ u8 parse_exit_code(StringView path) {
 
     if (!isdigit(path.ptr[cursor])) { PANIC("path doesn't contain exit code"); }
 
-    char const *exit_code_begin = path.ptr + cursor;
-    u64 exit_code_length        = 0;
+    char const *exit_code_begin  = path.ptr + cursor;
+    u64         exit_code_length = 0;
     while (isdigit(path.ptr[cursor])) {
         ++cursor;
         ++exit_code_length;
@@ -108,7 +108,7 @@ i32 test_source(StringView path) {
     }
 
     char const *test_args[] = {exe_path, nullptr};
-    i32 test_result         = process(exe_path, 1, test_args);
+    i32         test_result = process(exe_path, 1, test_args);
     file_remove(exe_path);
     string_destroy(&exe_string);
 
