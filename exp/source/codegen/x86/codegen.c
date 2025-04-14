@@ -184,7 +184,7 @@ i32 x86_codegen(Context *context) {
         x86_codegen_symbol(element, &x64context);
     }
 
-    x64_emit(&x64context);
+    x86_emit(&x64context);
     x86_context_destroy(&x64context);
     return 0;
 }

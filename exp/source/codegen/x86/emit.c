@@ -22,7 +22,7 @@
 #include "support/config.h"
 #include "support/io.h"
 
-static void x64_emit_symbol(x86_Symbol *restrict sym,
+static void x86_emit_symbol(x86_Symbol *restrict sym,
                             String *restrict buffer,
                             Context *restrict context) {
     directive_text(buffer);
@@ -36,30 +36,30 @@ static void x64_emit_symbol(x86_Symbol *restrict sym,
     string_append(buffer, SV("\n"));
 }
 
-static void x64_emit_file_prolouge(Context *restrict context,
+static void x86_emit_file_prolouge(Context *restrict context,
                                    String *restrict buffer) {
     directive_file(context_source_path(context), buffer);
     string_append(buffer, SV("\n"));
 }
 
-static void x64_emit_file_epilouge(String *restrict buffer) {
+static void x86_emit_file_epilouge(String *restrict buffer) {
     StringView version = SV(EXP_VERSION_STRING);
     directive_ident(version, buffer);
     directive_noexecstack(buffer);
 }
 
-void x64_emit(x86_Context *restrict x64context) {
+void x86_emit(x86_Context *restrict x64context) {
     String buffer = string_create();
 
-    x64_emit_file_prolouge(x64context->context, &buffer);
+    x86_emit_file_prolouge(x64context->context, &buffer);
 
     x86_SymbolTable *symbols = &x64context->symbols;
     for (u64 i = 0; i < symbols->count; ++i) {
         x86_Symbol *sym = symbols->buffer + i;
-        x64_emit_symbol(sym, &buffer, x64context->context);
+        x86_emit_symbol(sym, &buffer, x64context->context);
     }
 
-    x64_emit_file_epilouge(&buffer);
+    x86_emit_file_epilouge(&buffer);
 
     StringView path = context_assembly_path(x64context->context);
 

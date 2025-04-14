@@ -19,6 +19,6 @@
 
 #include "codegen/x86/env/context.h"
 
-void x64_emit(x86_Context *restrict x64context);
+void x86_emit(x86_Context *restrict x64context);
 
 #endif // !EXP_BACKEND_X64_EMIT_H
