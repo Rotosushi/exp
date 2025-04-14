@@ -6,7 +6,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/analysis/typecheck.c
   
-  ${EXP_SOURCE_DIR}/codegen/directives.c
+  ${EXP_SOURCE_DIR}/codegen/GAS/directives.c
   ${EXP_SOURCE_DIR}/codegen/lifetimes.c
   ${EXP_SOURCE_DIR}/codegen/IR/codegen.c
   ${EXP_SOURCE_DIR}/codegen/IR/directives.c

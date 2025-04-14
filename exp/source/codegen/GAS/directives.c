@@ -17,28 +17,28 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/directives.h"
+#include "codegen/GAS/directives.h"
 #include "support/unreachable.h"
 
-void directive_file(StringView path, String *restrict str) {
+void gas_directive_file(StringView path, String *restrict str) {
     string_append(str, SV("\t.file \""));
     string_append(str, path);
     string_append(str, SV("\"\n"));
 }
 
-void directive_arch(StringView cpu_type, String *restrict str) {
+void gas_directive_arch(StringView cpu_type, String *restrict str) {
     string_append(str, SV("\t.arch "));
     string_append(str, cpu_type);
     string_append(str, SV("\n"));
 }
 
-void directive_ident(StringView comment, String *restrict str) {
+void gas_directive_ident(StringView comment, String *restrict str) {
     string_append(str, SV("\t.ident \""));
     string_append(str, comment);
     string_append(str, SV("\"\n"));
 }
 
-void directive_noexecstack(String *restrict str) {
+void gas_directive_noexecstack(String *restrict str) {
     /**
      * this is the assembly directive which marks the stack as unexecutable.
      * (as far as I can tell, I cannot find documentation which explicitly
@@ -51,29 +51,31 @@ void directive_noexecstack(String *restrict str) {
     string_append(str, noexecstack);
 }
 
-void directive_globl(StringView name, String *restrict str) {
+void gas_directive_globl(StringView name, String *restrict str) {
     string_append(str, SV("\t.globl "));
     string_append(str, name);
     string_append(str, SV("\n"));
 }
 
-void directive_data(String *restrict str) {
+void gas_directive_data(String *restrict str) {
     string_append(str, SV("\t.data\n"));
 }
 
-void directive_bss(String *restrict str) { string_append(str, SV("\t.bss\n")); }
+void gas_directive_bss(String *restrict str) {
+    string_append(str, SV("\t.bss\n"));
+}
 
-void directive_text(String *restrict str) {
+void gas_directive_text(String *restrict str) {
     string_append(str, SV("\t.text\n"));
 }
 
-void directive_balign(u64 align, String *restrict str) {
+void gas_directive_balign(u64 align, String *restrict str) {
     string_append(str, SV("\t.balign "));
     string_append_u64(str, align);
     string_append(str, SV("\n"));
 }
 
-void directive_size(StringView name, u64 size, String *restrict str) {
+void gas_directive_size(StringView name, u64 size, String *restrict str) {
     string_append(str, SV("\t.size "));
     string_append(str, name);
     string_append(str, SV(", "));
@@ -81,7 +83,7 @@ void directive_size(StringView name, u64 size, String *restrict str) {
     string_append(str, SV("\n"));
 }
 
-void directive_size_label_relative(StringView name, String *restrict str) {
+void gas_directive_size_label_relative(StringView name, String *restrict str) {
     string_append(str, SV("\t.size "));
     string_append(str, name);
     // the '.' symbol refers to the current address, the '-' is
@@ -94,7 +96,7 @@ void directive_size_label_relative(StringView name, String *restrict str) {
     string_append(str, SV("\n"));
 }
 
-void directive_type(StringView name, STT_Type kind, String *restrict str) {
+void gas_directive_type(StringView name, STT_Type kind, String *restrict str) {
     string_append(str, SV("\t.type "));
     string_append(str, name);
     string_append(str, SV(", "));
@@ -108,31 +110,31 @@ void directive_type(StringView name, STT_Type kind, String *restrict str) {
     }
 }
 
-void directive_quad(i64 value, String *restrict str) {
+void gas_directive_quad(i64 value, String *restrict str) {
     string_append(str, SV("\t.quad "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
-void directive_byte(unsigned char value, String *restrict str) {
+void gas_directive_byte(unsigned char value, String *restrict str) {
     string_append(str, SV("\t.byte "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));
 }
 
-void directive_zero(u64 bytes, String *restrict str) {
+void gas_directive_zero(u64 bytes, String *restrict str) {
     string_append(str, SV("\t.zero "));
     string_append_u64(str, bytes);
     string_append(str, SV("\n"));
 }
 
-void directive_string(StringView sv, String *restrict str) {
+void gas_directive_string(StringView sv, String *restrict str) {
     string_append(str, SV("\t.string \""));
     string_append(str, sv);
     string_append(str, SV("\"\n"));
 }
 
-void directive_label(StringView name, String *restrict str) {
+void gas_directive_label(StringView name, String *restrict str) {
     string_append(str, name);
     string_append(str, SV(":\n"));
 }

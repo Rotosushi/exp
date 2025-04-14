@@ -18,50 +18,50 @@
  */
 
 #include "codegen/x86/emit.h"
-#include "codegen/directives.h"
+#include "codegen/GAS/directives.h"
 #include "support/config.h"
 #include "support/io.h"
 
 static void x86_emit_symbol(x86_Symbol *restrict sym,
                             String *restrict buffer,
                             Context *restrict context) {
-    directive_text(buffer);
-    directive_globl(sym->name, buffer);
-    directive_type(sym->name, STT_FUNC, buffer);
-    directive_label(sym->name, buffer);
+    gas_directive_text(buffer);
+    gas_directive_globl(sym->name, buffer);
+    gas_directive_type(sym->name, STT_FUNC, buffer);
+    gas_directive_label(sym->name, buffer);
 
     x86_bytecode_emit(&sym->body.bc, buffer, context);
 
-    directive_size_label_relative(sym->name, buffer);
+    gas_directive_size_label_relative(sym->name, buffer);
     string_append(buffer, SV("\n"));
 }
 
 static void x86_emit_file_prolouge(Context *restrict context,
                                    String *restrict buffer) {
-    directive_file(context_source_path(context), buffer);
+    gas_directive_file(context_source_path(context), buffer);
     string_append(buffer, SV("\n"));
 }
 
 static void x86_emit_file_epilouge(String *restrict buffer) {
     StringView version = SV(EXP_VERSION_STRING);
-    directive_ident(version, buffer);
-    directive_noexecstack(buffer);
+    gas_directive_ident(version, buffer);
+    gas_directive_noexecstack(buffer);
 }
 
-void x86_emit(x86_Context *restrict x64context) {
+void x86_emit(x86_Context *restrict x86_context) {
     String buffer = string_create();
 
-    x86_emit_file_prolouge(x64context->context, &buffer);
+    x86_emit_file_prolouge(x86_context->context, &buffer);
 
-    x86_SymbolTable *symbols = &x64context->symbols;
+    x86_SymbolTable *symbols = &x86_context->symbols;
     for (u64 i = 0; i < symbols->count; ++i) {
         x86_Symbol *sym = symbols->buffer + i;
-        x86_emit_symbol(sym, &buffer, x64context->context);
+        x86_emit_symbol(sym, &buffer, x86_context->context);
     }
 
     x86_emit_file_epilouge(&buffer);
 
-    StringView path = context_assembly_path(x64context->context);
+    StringView path = context_assembly_path(x86_context->context);
 
     FILE *file = file_open(path.ptr, "w");
     file_write(string_to_view(&buffer), file);
