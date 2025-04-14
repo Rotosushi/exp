@@ -14,31 +14,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_LOCATION_H
-#define EXP_BACKEND_X64_LOCATION_H
+#ifndef EXP_BACKEND_X86_LOCATION_H
+#define EXP_BACKEND_X86_LOCATION_H
 
 #include "codegen/x86/imr/address.h"
 #include "codegen/x86/imr/registers.h"
 
-typedef enum x64_LocationKind : u8 {
-    LOCATION_GPR,
-    LOCATION_ADDRESS,
-} x64_LocationKind;
+typedef enum x86_LocationKind : u8 {
+    X86_LOCATION_GPR,
+    X86_LOCATION_ADDRESS,
+} x86_LocationKind;
 
 typedef struct x64_Location {
-    x64_LocationKind kind;
+    x86_LocationKind kind;
     union {
         x86_64_GPR  gpr;
         x86_Address address;
     };
-} x64_Location;
+} x86_Location;
 
-x64_Location x64_location_gpr(x86_64_GPR gpr);
-x64_Location x64_location_address(x86_64_GPR base, i64 offset);
-x64_Location x64_location_address_indexed(x86_64_GPR base,
+x86_Location x86_location_gpr(x86_64_GPR gpr);
+x86_Location x86_location_address(x86_64_GPR base, i64 offset);
+x86_Location x86_location_address_indexed(x86_64_GPR base,
                                           x86_64_GPR index,
                                           u8         scale,
                                           i64        offset);
-bool         x64_location_eq(x64_Location A, x64_Location B);
+bool         x86_location_eq(x86_Location A, x86_Location B);
 
-#endif // !EXP_BACKEND_X64_LOCATION_H
+#endif // !EXP_BACKEND_X86_LOCATION_H

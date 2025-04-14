@@ -24,7 +24,7 @@
 typedef struct x86_Allocation {
     u64          ssa;
     Lifetime     lifetime;
-    x64_Location location;
+    x86_Location location;
     Type const  *type;
 } x86_Allocation;
 
@@ -32,6 +32,6 @@ x86_Allocation *x86_allocation_allocate();
 void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
 
 bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x64_Location location);
+                                x86_Location location);
 
 #endif // !EXP_BACKEND_X86_ALLOCATION_H

@@ -32,6 +32,6 @@ void x86_allocation_deallocate(x86_Allocation *restrict allocation) {
 }
 
 bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x64_Location location) {
-    return x64_location_eq(location, allocation->location);
+                                x86_Location location) {
+    return x86_location_eq(location, allocation->location);
 }

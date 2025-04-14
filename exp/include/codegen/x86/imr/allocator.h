@@ -102,7 +102,7 @@ x86_Allocation *x86_allocator_allocate_to_stack(
     x86_Allocator *restrict allocator, i64 offset, LocalVariable *local);
 
 x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
-                                              x64_Location location,
+                                              x86_Location location,
                                               Type const  *type);
 
 void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,

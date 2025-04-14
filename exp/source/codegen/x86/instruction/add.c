@@ -46,7 +46,7 @@ static void x64_codegen_add_ssa(Instruction    I,
         // of the local variable. And since function arguments are also
         // constant, and these may be passed in registers, we can overwrite
         // their value if we are not careful.
-        if (B->location.kind == LOCATION_GPR) {
+        if (B->location.kind == X86_LOCATION_GPR) {
             x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, B, block_index);
             x86_context_append(
@@ -54,7 +54,7 @@ static void x64_codegen_add_ssa(Instruction    I,
             return;
         }
 
-        if (C->location.kind == LOCATION_GPR) {
+        if (C->location.kind == X86_LOCATION_GPR) {
             x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, C, block_index);
             x86_context_append(

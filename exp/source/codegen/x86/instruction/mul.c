@@ -43,7 +43,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
          * allow for the different sizes of available registers, based on the
          * size of the incoming operands.
          */
-        if (x64_location_eq(B->location, x64_location_gpr(X86_64_GPR_RAX))) {
+        if (x86_location_eq(B->location, x86_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -52,7 +52,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
             break;
         }
 
-        if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
+        if (x86_location_eq(C->location, x86_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, C, block_index);
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -82,7 +82,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_ssa: i64"), stdout);
         }
-        if (x86_allocation_location_eq(B, x64_location_gpr(X86_64_GPR_RAX))) {
+        if (x86_allocation_location_eq(B, x86_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -107,7 +107,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_ssa: constant"), stdout);
         }
-        if (x86_allocation_location_eq(B, x64_location_gpr(X86_64_GPR_RAX))) {
+        if (x86_allocation_location_eq(B, x86_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -144,7 +144,7 @@ static void x64_codegen_multiply_immediate(Instruction    I,
             trace(SV("x64_codegen_multiply_immediate: ssa"), stdout);
         }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
+        if (x86_location_eq(C->location, x86_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, C, block_index);
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
@@ -214,7 +214,7 @@ void x64_codegen_multiply_constant(Instruction    I,
             trace(SV("x64_codegen_multiply_constant: ssa"), stdout);
         }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if ((C->location.kind == LOCATION_GPR) &&
+        if ((C->location.kind == X86_LOCATION_GPR) &&
             (C->location.gpr == X86_64_GPR_RAX)) {
             x86_context_allocate_from_active(context, local, C, block_index);
 

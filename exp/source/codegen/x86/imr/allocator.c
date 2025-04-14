@@ -76,7 +76,7 @@ x86_gprp_allocate_to_gpr_index(x86_GPRP *restrict gprp,
     x86_64_GPR gpr = x86_64_gpr_with_size(gpr_index, size);
     SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
     gprp->buffer[x86_64_gpr_index(gpr)] = allocation;
-    allocation->location                = x64_location_gpr(gpr);
+    allocation->location                = x86_location_gpr(gpr);
 }
 
 static void x86_gprp_allocate_to_gpr(x86_GPRP *restrict gprp,
@@ -89,7 +89,7 @@ static void x86_gprp_allocate_to_gpr(x86_GPRP *restrict gprp,
 
     SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
     gprp->buffer[x86_64_gpr_index(gpr)] = allocation;
-    allocation->location                = x64_location_gpr(gpr);
+    allocation->location                = x86_location_gpr(gpr);
 }
 
 /**
@@ -123,7 +123,7 @@ static bool x86_gprp_allocate(x86_GPRP *restrict gprp,
  */
 static bool x86_gprp_reallocate(x86_GPRP *restrict gprp,
                                 x86_Allocation *restrict allocation) {
-    assert(allocation->location.kind == LOCATION_GPR);
+    assert(allocation->location.kind == X86_LOCATION_GPR);
     u8 gpr_index;
     if (x86_gprp_any_available(gprp, &gpr_index)) {
         x86_gprp_release(gprp, allocation->location.gpr);
@@ -239,7 +239,7 @@ x86_stack_allocations_allocate(x86_StackAllocations *restrict stack_allocations,
 
     i64 offset = stack_allocations->total_stack_size;
 
-    allocation->location = x64_location_address(X86_64_GPR_RBP, -offset);
+    allocation->location = x86_location_address(X86_64_GPR_RBP, -offset);
 
     x86_stack_allocations_append(stack_allocations, allocation);
 }
@@ -381,7 +381,7 @@ x86_allocator_release_expired_lifetimes(x86_Allocator *restrict allocator,
 static void x86_allocator_spill_allocation(x86_Allocator *restrict allocator,
                                            x86_Allocation *restrict allocation,
                                            x86_Bytecode *restrict x64bc) {
-    assert(allocation->location.kind == LOCATION_GPR);
+    assert(allocation->location.kind == X86_LOCATION_GPR);
     x86_64_GPR gpr = allocation->location.gpr;
     x86_gprp_release(&allocator->gprp, gpr);
     x86_stack_allocations_allocate(&allocator->stack_allocations, allocation);
@@ -497,8 +497,8 @@ x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
     x86_Allocation *new = x86_allocator_allocate(allocator, Idx, local, x64bc);
 
     // initialize the new allocation
-    if ((active->location.kind == LOCATION_ADDRESS) &&
-        (new->location.kind == LOCATION_ADDRESS)) {
+    if ((active->location.kind == X86_LOCATION_ADDRESS) &&
+        (new->location.kind == X86_LOCATION_ADDRESS)) {
         u64 size = size_of(new->type);
         exp_assert(x86_64_gpr_valid_size(size));
         x86_64_GPR gpr =
@@ -550,14 +550,14 @@ x86_Allocation *x86_allocator_allocate_to_stack(
     x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, local->ssa, lifetime, local->type);
 
-    allocation->location = x64_location_address(X86_64_GPR_RBP, offset);
+    allocation->location = x86_location_address(X86_64_GPR_RBP, offset);
 
     x86_stack_allocations_append(&allocator->stack_allocations, allocation);
     return allocation;
 }
 
 x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
-                                              x64_Location location,
+                                              x86_Location location,
                                               Type const  *type) {
     x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, u64_MAX, nullptr, type);
@@ -577,7 +577,7 @@ x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
 void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,
                                      x86_Allocation *restrict active,
                                      x86_Bytecode *restrict x64bc) {
-    if (active->location.kind == LOCATION_ADDRESS) { return; }
+    if (active->location.kind == X86_LOCATION_ADDRESS) { return; }
 
     x86_64_GPR prev_gpr = active->location.gpr;
     if (x86_gprp_reallocate(&allocator->gprp, active)) {

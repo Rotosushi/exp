@@ -31,13 +31,13 @@ x64_Operand x64_operand_address(x86_Address address) {
     return opr;
 }
 
-x64_Operand x64_operand_location(x64_Location location) {
+x64_Operand x64_operand_location(x86_Location location) {
     switch (location.kind) {
-    case LOCATION_GPR: {
+    case X86_LOCATION_GPR: {
         return x64_operand_gpr(location.gpr);
     }
 
-    case LOCATION_ADDRESS: {
+    case X86_LOCATION_ADDRESS: {
         return x64_operand_address(location.address);
     }
 

@@ -107,7 +107,7 @@ void x64_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_allocation_from_memory"), stdout);
     }
-    if (dst->location.kind == LOCATION_ADDRESS) {
+    if (dst->location.kind == X86_LOCATION_ADDRESS) {
         x64_codegen_copy_memory(
             &dst->location.address, src, type, Idx, context);
     } else {
@@ -124,8 +124,8 @@ static void x64_codegen_copy_scalar_allocation(x86_Allocation *restrict dst,
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_scalar_allocation"), stdout);
     }
-    if ((dst->location.kind == LOCATION_GPR) ||
-        (src->location.kind == LOCATION_GPR)) {
+    if ((dst->location.kind == X86_LOCATION_GPR) ||
+        (src->location.kind == X86_LOCATION_GPR)) {
         x86_context_append(
             context, x64_mov(x64_operand_alloc(dst), x64_operand_alloc(src)));
     } else {
@@ -144,13 +144,13 @@ void x64_codegen_copy_allocation(x86_Allocation *restrict dst,
     }
     assert(type_equality(dst->type, src->type));
 
-    if (x64_location_eq(dst->location, src->location)) { return; }
+    if (x86_location_eq(dst->location, src->location)) { return; }
 
     if (type_is_scalar(dst->type)) {
         x64_codegen_copy_scalar_allocation(dst, src, Idx, context);
     } else {
-        assert(dst->location.kind == LOCATION_ADDRESS);
-        assert(src->location.kind == LOCATION_ADDRESS);
+        assert(dst->location.kind == X86_LOCATION_ADDRESS);
+        assert(src->location.kind == X86_LOCATION_ADDRESS);
 
         x64_codegen_copy_composite_memory(&dst->location.address,
                                           &src->location.address,

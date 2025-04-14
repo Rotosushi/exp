@@ -97,7 +97,7 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
     case OPERAND_KIND_SSA: {
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
-        if (allocation->location.kind == LOCATION_GPR) {
+        if (allocation->location.kind == X86_LOCATION_GPR) {
             x86_context_append(
                 context,
                 x64_mov(x64_operand_address(*dst),
@@ -147,7 +147,7 @@ x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
 
-        assert(allocation->location.kind == LOCATION_ADDRESS);
+        assert(allocation->location.kind == X86_LOCATION_ADDRESS);
 
         x64_codegen_copy_composite_memory(
             dst, &allocation->location.address, type, Idx, context);
@@ -221,7 +221,7 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
     case OPERAND_KIND_SSA: {
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
-        if (allocation->location.kind == LOCATION_GPR) {
+        if (allocation->location.kind == X86_LOCATION_GPR) {
             x86_context_append(
                 context,
                 x64_mov(x64_operand_address(*dst),
@@ -270,7 +270,7 @@ static void x64_codegen_load_argument_from_composite_operand(
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
 
-        assert(allocation->location.kind == LOCATION_ADDRESS);
+        assert(allocation->location.kind == X86_LOCATION_ADDRESS);
 
         x64_codegen_copy_composite_memory(
             dst, &allocation->location.address, type, Idx, context);
@@ -376,7 +376,7 @@ void x64_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_load_allocation_from_operand"), stdout);
     }
-    if (dst->location.kind == LOCATION_ADDRESS) {
+    if (dst->location.kind == X86_LOCATION_ADDRESS) {
         x64_codegen_load_address_from_operand(
             &dst->location.address, src, dst->type, Idx, context);
     } else {
@@ -412,7 +412,7 @@ static void x64_codegen_load_allocation_from_tuple(x86_Allocation *dst,
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_load_allocation_from_tuple"), stdout);
     }
-    assert(dst->location.kind == LOCATION_ADDRESS);
+    assert(dst->location.kind == X86_LOCATION_ADDRESS);
     x86_Address dst_address = dst->location.address;
     for (u64 i = 0; i < tuple->size; ++i) {
         Operand     element      = tuple->elements[i];

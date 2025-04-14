@@ -42,7 +42,7 @@ void x64_codegen_dot(Instruction I,
     case OPERAND_KIND_SSA: {
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
-        assert(B->location.kind == LOCATION_ADDRESS);
+        assert(B->location.kind == X86_LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x86_Address *tuple_address = &B->location.address;
         x86_Address  element_address =

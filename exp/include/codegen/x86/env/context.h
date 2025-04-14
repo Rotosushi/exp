@@ -93,7 +93,7 @@ x86_Allocation *x86_context_allocate_to_stack(x86_Context   *x86_context,
                                               i64            offset);
 
 x86_Allocation *x86_context_allocate_result(x86_Context *x86_context,
-                                            x64_Location location,
+                                            x86_Location location,
                                             Type        *type);
 
 void x86_context_reallocate_active(x86_Context    *x86_context,

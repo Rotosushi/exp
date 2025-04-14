@@ -206,7 +206,7 @@ x86_Allocation *x86_context_allocate_to_stack(x86_Context   *x64_context,
 }
 
 x86_Allocation *x86_context_allocate_result(x86_Context *x64_context,
-                                            x64_Location location,
+                                            x86_Location location,
                                             Type        *type) {
     assert(x64_context != nullptr);
     return x86_allocator_allocate_result(

@@ -36,8 +36,8 @@ static void x64_codegen_subtract_ssa(Instruction    I,
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         // #NOTE since subtraction is not commutative we have to allocate A from
         // B regardless of which of B or C is in a register.
-        if ((B->location.kind == LOCATION_GPR) ||
-            (C->location.kind == LOCATION_GPR)) {
+        if ((B->location.kind == X86_LOCATION_GPR) ||
+            (C->location.kind == X86_LOCATION_GPR)) {
             x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, B, block_index);
 
@@ -105,7 +105,7 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
         x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
-        exp_assert_debug(A->location.kind == LOCATION_GPR);
+        exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),
@@ -167,7 +167,7 @@ void x64_codegen_subtract_constant(Instruction    I,
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
         x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
-        exp_assert_debug(A->location.kind == LOCATION_GPR);
+        exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
                            x64_mov(x64_operand_gpr(gpr),

@@ -117,7 +117,7 @@ void x64_codegen_call(Instruction I,
     } else {
         x86_Allocation *result =
             x86_context_allocate(context, local, block_index);
-        assert(result->location.kind == LOCATION_ADDRESS);
+        assert(result->location.kind == X86_LOCATION_ADDRESS);
         x86_context_append(
             context,
             x64_lea(x64_operand_gpr(

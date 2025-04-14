@@ -59,11 +59,11 @@ x86_Function x86_function_create(Function *restrict body,
 
     if (type_is_scalar(body->return_type)) {
         x64_body.result = x86_allocator_allocate_result(
-            allocator, x64_location_gpr(X86_64_GPR_RAX), body->return_type);
+            allocator, x86_location_gpr(X86_64_GPR_RAX), body->return_type);
     } else {
         x64_body.result = x86_allocator_allocate_result(
             allocator,
-            x64_location_address(X86_64_GPR_RDI, 0),
+            x86_location_address(X86_64_GPR_RDI, 0),
             body->return_type);
         scalar_argument_count += 1;
     }
