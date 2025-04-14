@@ -48,7 +48,7 @@ static void x64_emit_file_epilouge(String *restrict buffer) {
     directive_noexecstack(buffer);
 }
 
-void x64_emit(x64_Context *restrict x64context) {
+void x64_emit(x86_Context *restrict x64context) {
     String buffer = string_create();
 
     x64_emit_file_prolouge(x64context->context, &buffer);

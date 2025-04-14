@@ -14,97 +14,92 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_CONTEXT_H
-#define EXP_BACKEND_X64_CONTEXT_H
+#ifndef EXP_BACKEND_X86_CONTEXT_H
+#define EXP_BACKEND_X86_CONTEXT_H
 
-// #include "codegen/x64/addresses.h"
 #include "codegen/x86/env/symbols.h"
 #include "env/context.h"
 
-typedef struct x64_Context {
+typedef struct x86_Context {
     x64_SymbolTable symbols;
     Context        *context;
     Function       *body;
     x64_Function   *x64_body;
-} x64_Context;
+} x86_Context;
 
 // x64 context functions
-x64_Context x64_context_create(Context *context);
-void        x64_context_destroy(x64_Context *x64_context);
+x86_Context x86_context_create(Context *context);
+void        x86_context_destroy(x86_Context *x64_context);
 
 // x64 symbol table functions
-x64_Symbol *x64_context_symbol(x64_Context *x64_context, StringView name);
+x64_Symbol *x86_context_symbol(x86_Context *x86_context, StringView name);
 
 // context functions
 // context constants functions
-Value *x64_context_value_at(x64_Context *context, u32 index);
+Value *x86_context_value_at(x86_Context *x86_context, u32 index);
 
 // context global symbol table functions
-StringView x64_context_global_labels_at(x64_Context *x64_context, u32 index);
+StringView x86_context_global_labels_at(x86_Context *x86_context, u32 index);
 
 // context x64 function functions
-void x64_context_enter_function(x64_Context *x64_context, StringView name);
-void x64_context_leave_function(x64_Context *context);
+void x86_context_enter_function(x86_Context *x86_context, StringView name);
+void x86_context_leave_function(x86_Context *context);
 
-/*
-ActualArgumentList *x64_context_call_at(x64_Context * x64_context,
-                                        u64 idx);
-*/
-FormalArgument *x64_context_argument_at(x64_Context *x64_context, u8 index);
+FormalArgument *x86_context_argument_at(x86_Context *x86_context, u8 index);
 
-Function       *current_body(x64_Context *x64_context);
-Bytecode       *current_bc(x64_Context *x64_context);
-LocalVariables *current_locals(x64_Context *x64_context);
-x64_Function   *current_x64_body(x64_Context *x64_context);
-x64_Bytecode   *current_x64_bc(x64_Context *x64_context);
-x64_Allocator  *current_x64_allocator(x64_Context *x64_context);
+Function       *x86_context_current_body(x86_Context *x86_context);
+Bytecode       *x86_context_current_bc(x86_Context *x86_context);
+LocalVariables *x86_context_current_locals(x86_Context *x86_context);
+x64_Function   *x86_context_current_x86_body(x86_Context *x86_context);
+x64_Bytecode   *x86_context_current_x86_bc(x86_Context *x86_context);
+x64_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
 
-u64  x64_context_current_offset(x64_Context *x64_context);
-void x64_context_insert(x64_Context    *x64_context,
+u64  x86_context_current_offset(x86_Context *x86_context);
+void x86_context_insert(x86_Context    *x86_context,
                         x64_Instruction I,
                         u64             offset);
-void x64_context_prepend(x64_Context *x64_context, x64_Instruction I);
-void x64_context_append(x64_Context *x64_context, x64_Instruction I);
+void x86_context_prepend(x86_Context *x86_context, x64_Instruction I);
+void x86_context_append(x86_Context *x86_context, x64_Instruction I);
 
-LocalVariable *x64_context_lookup_ssa(x64_Context *x64_context, u32 ssa);
+LocalVariable *x86_context_lookup_ssa(x86_Context *x86_context, u32 ssa);
 
-bool x64_context_uses_stack(x64_Context *x64_context);
-i64  x64_context_stack_size(x64_Context *x64_context);
+bool x86_context_uses_stack(x86_Context *x86_context);
+i64  x86_context_stack_size(x86_Context *x86_context);
 
-x64_Allocation *x64_context_allocation_of(x64_Context *x64_context, u32 ssa);
+x64_Allocation *x86_context_allocation_of(x86_Context *x86_context, u32 ssa);
 
-void x64_context_release_gpr(x64_Context *x64_context, x86_64_GPR gpr, u64 Idx);
+void x86_context_release_gpr(x86_Context *x86_context, x86_64_GPR gpr, u64 Idx);
 
-void x64_context_aquire_gpr(x64_Context *x64_context, x86_64_GPR gpr, u64 Idx);
+void x86_context_aquire_gpr(x86_Context *x86_context, x86_64_GPR gpr, u64 Idx);
 
 x64_Allocation *
-x64_context_allocate(x64_Context *x64_context, LocalVariable *local, u64 Idx);
+x86_context_allocate(x86_Context *x86_context, LocalVariable *local, u64 Idx);
 
-x64_Allocation *x64_context_allocate_from_active(x64_Context    *x64_context,
+x64_Allocation *x86_context_allocate_from_active(x86_Context    *x86_context,
                                                  LocalVariable  *local,
                                                  x64_Allocation *active,
                                                  u64             Idx);
 
-x64_Allocation *x64_context_allocate_to_any_gpr(x64_Context   *x64_context,
+x64_Allocation *x86_context_allocate_to_any_gpr(x86_Context   *x86_context,
                                                 LocalVariable *local);
 
-x64_Allocation *x64_context_allocate_to_gpr(x64_Context *restrict x64_context,
+x64_Allocation *x86_context_allocate_to_gpr(x86_Context *restrict x86_context,
                                             LocalVariable *local,
                                             x86_64_GPR     gpr,
                                             u64            Idx);
 
-x64_Allocation *x64_context_allocate_to_stack(x64_Context   *x64_context,
+x64_Allocation *x86_context_allocate_to_stack(x86_Context   *x86_context,
                                               LocalVariable *local,
                                               i64            offset);
 
-x64_Allocation *x64_context_allocate_result(x64_Context *x64_context,
+x64_Allocation *x86_context_allocate_result(x86_Context *x86_context,
                                             x64_Location location,
                                             Type        *type);
 
-void x64_context_reallocate_active(x64_Context    *x64_context,
+void x86_context_reallocate_active(x86_Context    *x86_context,
                                    x64_Allocation *active);
 
 x86_64_GPR
-x64_context_aquire_any_gpr(x64_Context *x64_context, u64 size, u64 Idx);
+x86_context_aquire_any_gpr(x86_Context *x86_context, u64 size, u64 Idx);
 
-#endif // !EXP_BACKEND_X64_CONTEXT_H
+#endif // !EXP_BACKEND_X86_CONTEXT_H

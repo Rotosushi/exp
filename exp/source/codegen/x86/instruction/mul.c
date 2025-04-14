@@ -25,14 +25,14 @@
 static void x64_codegen_multiply_ssa(Instruction    I,
                                      u64            block_index,
                                      LocalVariable *local,
-                                     x64_Context   *context) {
-    x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
+                                     x86_Context   *context) {
+    x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_ssa: ssa"), stdout);
         }
-        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
+        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         /*
          * #TODO: GPR location equality needs to take into account overlapping
          * registers. i.e. register a, ax, eax, rax, all refer to the "same"
@@ -44,36 +44,36 @@ static void x64_codegen_multiply_ssa(Instruction    I,
          * size of the incoming operands.
          */
         if (x64_location_eq(B->location, x64_location_gpr(X86_64_GPR_RAX))) {
-            x64_context_allocate_from_active(context, local, B, block_index);
+            x86_context_allocate_from_active(context, local, B, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
 
-            x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+            x86_context_append(context, x64_imul(x64_operand_alloc(C)));
             break;
         }
 
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
-            x64_context_allocate_from_active(context, local, C, block_index);
+            x86_context_allocate_from_active(context, local, C, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
 
-            x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+            x86_context_append(context, x64_imul(x64_operand_alloc(B)));
             break;
         }
 
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+        x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         if ((B->lifetime.last_use <= C->lifetime.last_use)) {
-            x64_context_append(
+            x86_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
-            x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+            x86_context_append(context, x64_imul(x64_operand_alloc(C)));
         } else {
-            x64_context_append(
+            x86_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(C)));
-            x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+            x86_context_append(context, x64_imul(x64_operand_alloc(B)));
         }
         break;
     }
@@ -83,23 +83,23 @@ static void x64_codegen_multiply_ssa(Instruction    I,
             trace(SV("x64_codegen_multiply_ssa: i64"), stdout);
         }
         if (x64_allocation_location_eq(B, x64_location_gpr(X86_64_GPR_RAX))) {
-            x64_context_allocate_from_active(context, local, B, block_index);
+            x86_context_allocate_from_active(context, local, B, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(context,
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_append(context,
                                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                        x64_operand_immediate(I.C_data.i64_)));
-            x64_context_append(context,
+            x86_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
                                    x64_operand_immediate(I.C_data.i64_)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+        x86_context_append(context, x64_imul(x64_operand_alloc(B)));
         break;
     }
 
@@ -108,24 +108,24 @@ static void x64_codegen_multiply_ssa(Instruction    I,
             trace(SV("x64_codegen_multiply_ssa: constant"), stdout);
         }
         if (x64_allocation_location_eq(B, x64_location_gpr(X86_64_GPR_RAX))) {
-            x64_context_allocate_from_active(context, local, B, block_index);
+            x86_context_allocate_from_active(context, local, B, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                         x64_operand_constant(I.C_data.constant)));
-            x64_context_append(context,
+            x86_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
                                    x64_operand_constant(I.C_data.constant)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(B)));
+        x86_context_append(context, x64_imul(x64_operand_alloc(B)));
         break;
     }
 
@@ -137,31 +137,31 @@ static void x64_codegen_multiply_ssa(Instruction    I,
 static void x64_codegen_multiply_immediate(Instruction    I,
                                            u64            block_index,
                                            LocalVariable *local,
-                                           x64_Context   *context) {
+                                           x86_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_immediate: ssa"), stdout);
         }
-        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
+        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
-            x64_context_allocate_from_active(context, local, C, block_index);
+            x86_context_allocate_from_active(context, local, C, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(context,
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_append(context,
                                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                        x64_operand_immediate(I.B_data.i64_)));
-            x64_context_append(context,
+            x86_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
                                    x64_operand_immediate(I.B_data.i64_)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+        x86_context_append(context, x64_imul(x64_operand_alloc(C)));
         break;
     }
 
@@ -169,16 +169,16 @@ static void x64_codegen_multiply_immediate(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_immediate: i64"), stdout);
         }
-        x64_Allocation *A = x64_context_allocate_to_gpr(
+        x64_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-        x64_context_append(context,
+        x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+        x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_immediate(I.B_data.i64_)));
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                    x64_operand_immediate(I.C_data.i64_)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -186,16 +186,16 @@ static void x64_codegen_multiply_immediate(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_immediate: constant"), stdout);
         }
-        x64_Allocation *A = x64_context_allocate_to_gpr(
+        x64_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-        x64_context_append(context,
+        x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+        x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_immediate(I.B_data.i64_)));
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                    x64_operand_constant(I.C_data.constant)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -207,33 +207,33 @@ static void x64_codegen_multiply_immediate(Instruction    I,
 void x64_codegen_multiply_constant(Instruction    I,
                                    u64            block_index,
                                    LocalVariable *local,
-                                   x64_Context   *context) {
+                                   x86_Context   *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_constant: ssa"), stdout);
         }
-        x64_Allocation *C = x64_context_allocation_of(context, I.C_data.ssa);
+        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if ((C->location.kind == LOCATION_GPR) &&
             (C->location.gpr == X86_64_GPR_RAX)) {
-            x64_context_allocate_from_active(context, local, C, block_index);
+            x86_context_allocate_from_active(context, local, C, block_index);
 
-            x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-            x64_context_append(
+            x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+            x86_context_append(
                 context,
                 x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                         x64_operand_constant(I.B_data.constant)));
-            x64_context_append(context,
+            x86_context_append(context,
                                x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
                                    x64_operand_constant(I.B_data.constant)));
-        x64_context_append(context, x64_imul(x64_operand_alloc(C)));
+        x86_context_append(context, x64_imul(x64_operand_alloc(C)));
         break;
     }
 
@@ -241,16 +241,16 @@ void x64_codegen_multiply_constant(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_constant: i64"), stdout);
         }
-        x64_Allocation *A = x64_context_allocate_to_gpr(
+        x64_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-        x64_context_append(context,
+        x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+        x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_constant(I.B_data.constant)));
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                    x64_operand_immediate(I.C_data.i64_)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -258,16 +258,16 @@ void x64_codegen_multiply_constant(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_multiply_constant: constant"), stdout);
         }
-        x64_Allocation *A = x64_context_allocate_to_gpr(
+        x64_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
-        x64_context_release_gpr(context, X86_64_GPR_RDX, block_index);
-        x64_context_append(context,
+        x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
+        x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_constant(I.B_data.constant)));
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
                                    x64_operand_constant(I.C_data.constant)));
-        x64_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -278,7 +278,7 @@ void x64_codegen_multiply_constant(Instruction    I,
 
 void x64_codegen_mul(Instruction I,
                      u64         block_index,
-                     x64_Context *restrict context) {
+                     x86_Context *restrict context) {
     /*
     #NOTE:
       imul takes a single reg/mem argument,
@@ -286,7 +286,7 @@ void x64_codegen_mul(Instruction I,
       and stores the result in %rdx:%rax.
     */
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
+    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x64_codegen_multiply_ssa(I, block_index, local, context);

@@ -30,26 +30,26 @@ void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
                                     x64_Address *restrict src,
                                     u64 size,
                                     u64 Idx,
-                                    x64_Context *restrict context) {
+                                    x86_Context *restrict context) {
     exp_assert(x86_64_gpr_valid_size(size));
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_scalar_memory"), stdout);
     }
-    x86_64_GPR gpr = x64_context_aquire_any_gpr(context, size, Idx);
+    x86_64_GPR gpr = x86_context_aquire_any_gpr(context, size, Idx);
 
-    x64_context_append(
+    x86_context_append(
         context, x64_mov(x64_operand_gpr(gpr), x64_operand_address(*src)));
-    x64_context_append(
+    x86_context_append(
         context, x64_mov(x64_operand_address(*dst), x64_operand_gpr(gpr)));
 
-    x64_context_release_gpr(context, gpr, Idx);
+    x86_context_release_gpr(context, gpr, Idx);
 }
 
 void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
                                        x64_Address *restrict src,
                                        Type const *type,
                                        u64         Idx,
-                                       x64_Context *restrict context) {
+                                       x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_composite_memory"), stdout);
     }
@@ -87,7 +87,7 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
                              x64_Address *restrict src,
                              Type const *type,
                              u64         Idx,
-                             x64_Context *restrict context) {
+                             x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_memory"), stdout);
     }
@@ -103,7 +103,7 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
                                              x64_Address *restrict src,
                                              Type const *restrict type,
                                              u64 Idx,
-                                             x64_Context *restrict context) {
+                                             x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_allocation_from_memory"), stdout);
     }
@@ -111,7 +111,7 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
         x64_codegen_copy_memory(
             &dst->location.address, src, type, Idx, context);
     } else {
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_gpr(dst->location.gpr),
                                    x64_operand_address(*src)));
     }
@@ -120,13 +120,13 @@ void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
 static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
                                                x64_Allocation *restrict src,
                                                u64 Idx,
-                                               x64_Context *restrict context) {
+                                               x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_scalar_allocation"), stdout);
     }
     if ((dst->location.kind == LOCATION_GPR) ||
         (src->location.kind == LOCATION_GPR)) {
-        x64_context_append(
+        x86_context_append(
             context, x64_mov(x64_operand_alloc(dst), x64_operand_alloc(src)));
     } else {
         u64 size = size_of(dst->type);
@@ -138,7 +138,7 @@ static void x64_codegen_copy_scalar_allocation(x64_Allocation *restrict dst,
 void x64_codegen_copy_allocation(x64_Allocation *restrict dst,
                                  x64_Allocation *restrict src,
                                  u64 Idx,
-                                 x64_Context *restrict context) {
+                                 x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_allocation"), stdout);
     }

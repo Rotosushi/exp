@@ -60,11 +60,11 @@ static void operand_array_append(OperandArray *restrict array,
     array->buffer[array->size++] = operand;
 }
 
-static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
+static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
                                                            i64 stack_space,
                                                            u64 block_index) {
     if (i64_in_range_i16(stack_space)) {
-        x64_context_insert(context,
+        x86_context_insert(context,
                            x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                                    x64_operand_immediate((i16)stack_space)),
                            block_index);
@@ -72,7 +72,7 @@ static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
         Operand operand = context_constants_append(
             context->context, value_create_i64(stack_space));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_insert(context,
+        x86_context_insert(context,
                            x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                                    x64_operand_constant(operand.data.constant)),
                            block_index);
@@ -80,17 +80,17 @@ static void x64_codegen_allocate_stack_space_for_arguments(x64_Context *context,
 }
 
 static void
-x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
+x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
                                                  i64          stack_space) {
     if (i64_in_range_i16(stack_space)) {
-        x64_context_append(x64_context,
+        x86_context_append(x64_context,
                            x64_add(x64_operand_gpr(X86_64_GPR_RSP),
                                    x64_operand_immediate((i16)stack_space)));
     } else {
         Operand operand = context_constants_append(
             x64_context->context, value_create_i64(stack_space));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_append(
+        x86_context_append(
             x64_context,
             x64_add(x64_operand_gpr(X86_64_GPR_RSP),
                     x64_operand_constant(operand.data.constant)));
@@ -99,12 +99,12 @@ x64_codegen_deallocate_stack_space_for_arguments(x64_Context *x64_context,
 
 void x64_codegen_call(Instruction I,
                       u64         block_index,
-                      x64_Context *restrict context) {
+                      x86_Context *restrict context) {
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_call:"), stdout);
     }
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x64_context_lookup_ssa(context, I.A_data.ssa);
+    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     u8             scalar_argument_count = 0;
 
     // #NOTE the result of a call expression is either stored in a register
@@ -112,23 +112,23 @@ void x64_codegen_call(Instruction I,
     // and the first argument to the function is used to store a pointer to said
     // stack allocation
     if (type_is_scalar(local->type)) {
-        x64_context_allocate_to_gpr(
+        x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_rAX, block_index);
     } else {
         x64_Allocation *result =
-            x64_context_allocate(context, local, block_index);
+            x86_context_allocate(context, local, block_index);
         assert(result->location.kind == LOCATION_ADDRESS);
-        x64_context_append(
+        x86_context_append(
             context,
             x64_lea(x64_operand_gpr(
                         x86_64_gpr_scalar_argument(scalar_argument_count++, 8)),
                     x64_operand_address(result->location.address)));
     }
 
-    Value *value = x64_context_value_at(context, I.C_data.constant);
+    Value *value = x86_context_value_at(context, I.C_data.constant);
     assert(value->kind == VALUE_KIND_TUPLE);
     Tuple       *args       = &value->tuple;
-    u64          call_start = x64_context_current_offset(context);
+    u64          call_start = x86_context_current_offset(context);
     OperandArray stack_args = operand_array_create();
 
     for (u8 i = 0; i < args->size; ++i) {
@@ -147,7 +147,7 @@ void x64_codegen_call(Instruction I,
     }
 
     if (stack_args.size == 0) {
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_call(x64_operand_label(I.B_data.label)));
         return;
     }
@@ -172,7 +172,7 @@ void x64_codegen_call(Instruction I,
     x64_codegen_allocate_stack_space_for_arguments(
         context, stack_space, call_start);
 
-    x64_context_append(context, x64_call(x64_operand_label(I.B_data.label)));
+    x86_context_append(context, x64_call(x64_operand_label(I.B_data.label)));
 
     x64_codegen_deallocate_stack_space_for_arguments(context, stack_space);
 

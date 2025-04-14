@@ -43,9 +43,9 @@ typedef struct x64_Function {
     x64_Allocator          allocator;
 } x64_Function;
 
-struct x64_Context;
+struct x86_Context;
 x64_Function x64_function_create(Function *restrict body,
-                                 struct x64_Context *restrict context);
+                                 struct x86_Context *restrict context);
 void         x64_function_destroy(x64_Function *restrict body);
 
 #endif // !EXP_BACKEND_X64_FUNCTION_BODY_H

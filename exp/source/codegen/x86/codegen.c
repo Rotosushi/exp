@@ -43,8 +43,8 @@
  *  by adding a specification of them.
  */
 
-static void x64_codegen_bytecode(x64_Context *x64_context) {
-    Bytecode *bc = current_bc(x64_context);
+static void x64_codegen_bytecode(x86_Context *x64_context) {
+    Bytecode *bc = x86_context_current_bc(x64_context);
     for (u64 idx = 0; idx < bc->length; ++idx) {
         Instruction I = bc->buffer[idx];
 
@@ -104,40 +104,40 @@ static void x64_codegen_bytecode(x64_Context *x64_context) {
     }
 }
 
-static void x64_codegen_allocate_stack_space(x64_Context *x64_context) {
-    i64 stack_size = x64_context_stack_size(x64_context);
+static void x64_codegen_allocate_stack_space(x86_Context *x64_context) {
+    i64 stack_size = x86_context_stack_size(x64_context);
     if (i64_in_range_i16(stack_size)) {
-        x64_context_prepend(x64_context,
+        x86_context_prepend(x64_context,
                             x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                                     x64_operand_immediate((i16)stack_size)));
     } else {
         Operand operand = context_constants_append(
             x64_context->context, value_create_i64(stack_size));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x64_context_prepend(
+        x86_context_prepend(
             x64_context,
             x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
                     x64_operand_constant(operand.data.constant)));
     }
 }
 
-static void x64_codegen_prepend_function_header(x64_Context *x64_context) {
-    if (x64_context_uses_stack(x64_context)) {
+static void x64_codegen_prepend_function_header(x86_Context *x64_context) {
+    if (x86_context_uses_stack(x64_context)) {
         x64_codegen_allocate_stack_space(x64_context);
     }
 
-    x64_context_prepend(x64_context,
+    x86_context_prepend(x64_context,
                         x64_mov(x64_operand_gpr(X86_64_GPR_RBP),
                                 x64_operand_gpr(X86_64_GPR_RSP)));
-    x64_context_prepend(x64_context, x64_push(x64_operand_gpr(X86_64_GPR_RBP)));
+    x86_context_prepend(x64_context, x64_push(x64_operand_gpr(X86_64_GPR_RBP)));
 }
 
-static void x64_codegen_function(x64_Context *x64_context) {
+static void x64_codegen_function(x86_Context *x64_context) {
     x64_codegen_bytecode(x64_context);
     x64_codegen_prepend_function_header(x64_context);
 }
 
-static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
+static void x64_codegen_symbol(Symbol *symbol, x86_Context *x64_context) {
     if (context_trace(x64_context->context)) {
         trace(SV("x64_codegen_symbol:"), stdout);
         trace(symbol->name, stdout);
@@ -150,7 +150,7 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     }
 
     case SYMBOL_KIND_FUNCTION: {
-        x64_context_enter_function(x64_context, name);
+        x86_context_enter_function(x64_context, name);
         x64_codegen_function(x64_context);
         if (context_trace(x64_context->context) &&
             context_prolix(x64_context->context)) {
@@ -162,7 +162,7 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
             trace(string_to_view(&buffer), stdout);
             string_destroy(&buffer);
         }
-        x64_context_leave_function(x64_context);
+        x86_context_leave_function(x64_context);
         break;
     }
 
@@ -175,7 +175,7 @@ i32 x64_codegen(Context *context) {
         trace(SV("x64_codegen"), stderr);
         trace(context_source_path(context), stderr);
     }
-    x64_Context  x64context = x64_context_create(context);
+    x86_Context  x64context = x86_context_create(context);
     SymbolTable *table      = &context->global_symbol_table;
 
     for (u64 index = 0; index < table->capacity; ++index) {
@@ -185,6 +185,6 @@ i32 x64_codegen(Context *context) {
     }
 
     x64_emit(&x64context);
-    x64_context_destroy(&x64context);
+    x86_context_destroy(&x64context);
     return 0;
 }

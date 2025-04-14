@@ -27,14 +27,14 @@
 
 void x64_codegen_return(Instruction I,
                         u64         block_index,
-                        x64_Context *restrict context) {
-    x64_Function *body = current_x64_body(context);
+                        x86_Context *restrict context) {
+    x64_Function *body = x86_context_current_x86_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_return: ssa"), stdout);
         }
-        x64_Allocation *B = x64_context_allocation_of(context, I.B_data.ssa);
+        x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         if (x64_allocation_location_eq(B, body->result->location)) { break; }
         x64_codegen_copy_allocation(body->result, B, block_index, context);
         break;
@@ -55,7 +55,7 @@ void x64_codegen_return(Instruction I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_return: i64"), stdout);
         }
-        x64_context_append(context,
+        x86_context_append(context,
                            x64_mov(x64_operand_alloc(body->result),
                                    x64_operand_immediate(I.B_data.i64_)));
         break;
@@ -78,9 +78,9 @@ void x64_codegen_return(Instruction I,
     default: EXP_UNREACHABLE();
     }
 
-    x64_context_append(context,
+    x86_context_append(context,
                        x64_mov(x64_operand_gpr(X86_64_GPR_RSP),
                                x64_operand_gpr(X86_64_GPR_RBP)));
-    x64_context_append(context, x64_pop(x64_operand_gpr(X86_64_GPR_RBP)));
-    x64_context_append(context, x64_ret());
+    x86_context_append(context, x64_pop(x64_operand_gpr(X86_64_GPR_RBP)));
+    x86_context_append(context, x64_ret());
 }

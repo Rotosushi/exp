@@ -45,7 +45,7 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
 }
 
 x64_Function x64_function_create(Function *restrict body,
-                                 x64_Context *restrict context) {
+                                 x86_Context *restrict context) {
     x64_Function x64_body = {
         .arguments = x64_formal_argument_list_create(body->arguments.size),
         .result    = NULL,

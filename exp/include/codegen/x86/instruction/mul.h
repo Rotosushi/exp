@@ -21,6 +21,6 @@
 
 #include "codegen/x86/env/context.h"
 
-void x64_codegen_mul(Instruction I, u64 Idx, x64_Context *restrict context);
+void x64_codegen_mul(Instruction I, u64 Idx, x86_Context *restrict context);
 
 #endif // !EXP_BACKEND_X64_CODEGEN_MUL_H
