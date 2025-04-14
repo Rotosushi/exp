@@ -25,7 +25,7 @@
 #include "support/message.h"
 #include "support/unreachable.h"
 
-void x64_codegen_dot(Instruction I,
+void x86_codegen_dot(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
     if (context_trace(context->context)) {
@@ -46,11 +46,11 @@ void x64_codegen_dot(Instruction I,
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x86_Address *tuple_address = &B->location.address;
         x86_Address  element_address =
-            x64_get_element_address(tuple_address, B->type, index);
+            x86_get_element_address(tuple_address, B->type, index);
         TupleType const *tuple_type   = &B->type->tuple_type;
         Type const      *element_type = tuple_type->types[index];
 
-        x64_codegen_copy_allocation_from_memory(
+        x86_codegen_copy_allocation_from_memory(
             A, &element_address, element_type, block_index, context);
         break;
     }
@@ -63,7 +63,7 @@ void x64_codegen_dot(Instruction I,
         Tuple *tuple = &value->tuple;
         assert(index < tuple->size);
         Operand operand = tuple->elements[index];
-        x64_codegen_load_allocation_from_operand(
+        x86_codegen_load_allocation_from_operand(
             A, operand, block_index, context);
         break;
     }

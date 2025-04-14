@@ -50,52 +50,52 @@ static void x64_codegen_bytecode(x86_Context *x64_context) {
 
         switch (I.opcode) {
         case OPCODE_RET: {
-            x64_codegen_return(I, idx, x64_context);
+            x86_codegen_ret(I, idx, x64_context);
             break;
         }
 
         case OPCODE_CALL: {
-            x64_codegen_call(I, idx, x64_context);
+            x86_codegen_call(I, idx, x64_context);
             break;
         }
 
         case OPCODE_DOT: {
-            x64_codegen_dot(I, idx, x64_context);
+            x86_codegen_dot(I, idx, x64_context);
             break;
         }
 
         case OPCODE_LOAD: {
-            x64_codegen_load(I, idx, x64_context);
+            x86_codegen_load(I, idx, x64_context);
             break;
         }
 
         case OPCODE_NEG: {
-            x64_codegen_negate(I, idx, x64_context);
+            x86_codegen_negate(I, idx, x64_context);
             break;
         }
 
         case OPCODE_ADD: {
-            x64_codegen_add(I, idx, x64_context);
+            x86_codegen_add(I, idx, x64_context);
             break;
         }
 
         case OPCODE_SUB: {
-            x64_codegen_sub(I, idx, x64_context);
+            x86_codegen_sub(I, idx, x64_context);
             break;
         }
 
         case OPCODE_MUL: {
-            x64_codegen_mul(I, idx, x64_context);
+            x86_codegen_mul(I, idx, x64_context);
             break;
         }
 
         case OPCODE_DIV: {
-            x64_codegen_div(I, idx, x64_context);
+            x86_codegen_div(I, idx, x64_context);
             break;
         }
 
         case OPCODE_MOD: {
-            x64_codegen_mod(I, idx, x64_context);
+            x86_codegen_mod(I, idx, x64_context);
             break;
         }
 

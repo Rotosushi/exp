@@ -26,7 +26,7 @@
 #include "support/assert.h"
 #include "support/message.h"
 
-void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
+void x86_codegen_copy_scalar_memory(x86_Address *restrict dst,
                                     x86_Address *restrict src,
                                     u64 size,
                                     u64 Idx,
@@ -45,7 +45,7 @@ void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
     x86_context_release_gpr(context, gpr, Idx);
 }
 
-void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
+void x86_codegen_copy_composite_memory(x86_Address *restrict dst,
                                        x86_Address *restrict src,
                                        Type const *type,
                                        u64         Idx,
@@ -63,13 +63,13 @@ void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
         u64         element_size = size_of(element_type);
 
         if (type_is_scalar(element_type)) {
-            x64_codegen_copy_scalar_memory(&dst_element_address,
+            x86_codegen_copy_scalar_memory(&dst_element_address,
                                            &src_element_address,
                                            element_size,
                                            Idx,
                                            context);
         } else {
-            x64_codegen_copy_composite_memory(&dst_element_address,
+            x86_codegen_copy_composite_memory(&dst_element_address,
                                               &src_element_address,
                                               element_type,
                                               Idx,
@@ -83,7 +83,7 @@ void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
     }
 }
 
-void x64_codegen_copy_memory(x86_Address *restrict dst,
+void x86_codegen_copy_memory(x86_Address *restrict dst,
                              x86_Address *restrict src,
                              Type const *type,
                              u64         Idx,
@@ -93,13 +93,13 @@ void x64_codegen_copy_memory(x86_Address *restrict dst,
     }
     if (type_is_scalar(type)) {
         u64 size = size_of(type);
-        x64_codegen_copy_scalar_memory(dst, src, size, Idx, context);
+        x86_codegen_copy_scalar_memory(dst, src, size, Idx, context);
     } else {
-        x64_codegen_copy_composite_memory(dst, src, type, Idx, context);
+        x86_codegen_copy_composite_memory(dst, src, type, Idx, context);
     }
 }
 
-void x64_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
+void x86_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
                                              x86_Address *restrict src,
                                              Type const *restrict type,
                                              u64 Idx,
@@ -108,7 +108,7 @@ void x64_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
         trace(SV("x64_codegen_copy_allocation_from_memory"), stdout);
     }
     if (dst->location.kind == X86_LOCATION_ADDRESS) {
-        x64_codegen_copy_memory(
+        x86_codegen_copy_memory(
             &dst->location.address, src, type, Idx, context);
     } else {
         x86_context_append(context,
@@ -117,7 +117,7 @@ void x64_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
     }
 }
 
-static void x64_codegen_copy_scalar_allocation(x86_Allocation *restrict dst,
+static void x86_codegen_copy_scalar_allocation(x86_Allocation *restrict dst,
                                                x86_Allocation *restrict src,
                                                u64 Idx,
                                                x86_Context *restrict context) {
@@ -130,12 +130,12 @@ static void x64_codegen_copy_scalar_allocation(x86_Allocation *restrict dst,
             context, x64_mov(x86_operand_alloc(dst), x86_operand_alloc(src)));
     } else {
         u64 size = size_of(dst->type);
-        x64_codegen_copy_scalar_memory(
+        x86_codegen_copy_scalar_memory(
             &dst->location.address, &src->location.address, size, Idx, context);
     }
 }
 
-void x64_codegen_copy_allocation(x86_Allocation *restrict dst,
+void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
                                  x86_Allocation *restrict src,
                                  u64 Idx,
                                  x86_Context *restrict context) {
@@ -147,12 +147,12 @@ void x64_codegen_copy_allocation(x86_Allocation *restrict dst,
     if (x86_location_eq(dst->location, src->location)) { return; }
 
     if (type_is_scalar(dst->type)) {
-        x64_codegen_copy_scalar_allocation(dst, src, Idx, context);
+        x86_codegen_copy_scalar_allocation(dst, src, Idx, context);
     } else {
         assert(dst->location.kind == X86_LOCATION_ADDRESS);
         assert(src->location.kind == X86_LOCATION_ADDRESS);
 
-        x64_codegen_copy_composite_memory(&dst->location.address,
+        x86_codegen_copy_composite_memory(&dst->location.address,
                                           &src->location.address,
                                           dst->type,
                                           Idx,

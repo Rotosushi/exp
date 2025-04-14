@@ -22,7 +22,7 @@
 #include "support/message.h"
 #include "support/unreachable.h"
 
-void x64_codegen_negate(Instruction I,
+void x86_codegen_negate(Instruction I,
                         u64         block_index,
                         x86_Context *restrict context) {
     LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);

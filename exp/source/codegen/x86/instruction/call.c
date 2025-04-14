@@ -60,7 +60,7 @@ static void operand_array_append(OperandArray *restrict array,
     array->buffer[array->size++] = operand;
 }
 
-static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
+static void x86_codegen_allocate_stack_space_for_arguments(x86_Context *context,
                                                            i64 stack_space,
                                                            u64 block_index) {
     if (i64_in_range_i16(stack_space)) {
@@ -80,7 +80,7 @@ static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
 }
 
 static void
-x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
+x86_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
                                                  i64          stack_space) {
     if (i64_in_range_i16(stack_space)) {
         x86_context_append(x64_context,
@@ -97,7 +97,7 @@ x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
     }
 }
 
-void x64_codegen_call(Instruction I,
+void x86_codegen_call(Instruction I,
                       u64         block_index,
                       x86_Context *restrict context) {
     if (context_trace(context->context)) {
@@ -139,7 +139,7 @@ void x64_codegen_call(Instruction I,
             assert(x86_gpr_valid_size(size));
             x86_GPR gpr =
                 x86_gpr_scalar_argument(scalar_argument_count++, size);
-            x64_codegen_load_gpr_from_operand(gpr, arg, block_index, context);
+            x86_codegen_load_gpr_from_operand(gpr, arg, block_index, context);
         } else {
             operand_array_append(&stack_args, arg);
         }
@@ -162,18 +162,18 @@ void x64_codegen_call(Instruction I,
         i64 offset = (i64)(arg_size);
         stack_space += offset;
 
-        x64_codegen_load_address_from_operand(
+        x86_codegen_load_address_from_operand(
             &arg_address, arg, arg_type, block_index, context);
 
         arg_address.offset += offset;
     }
 
-    x64_codegen_allocate_stack_space_for_arguments(
+    x86_codegen_allocate_stack_space_for_arguments(
         context, stack_space, call_start);
 
     x86_context_append(context, x64_call(x86_operand_label(I.B_data.label)));
 
-    x64_codegen_deallocate_stack_space_for_arguments(context, stack_space);
+    x86_codegen_deallocate_stack_space_for_arguments(context, stack_space);
 
     operand_array_destroy(&stack_args);
 }

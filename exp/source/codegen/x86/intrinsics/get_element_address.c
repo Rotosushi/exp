@@ -23,7 +23,7 @@
 #include "support/unreachable.h"
 
 x86_Address
-x64_get_element_address(x86_Address *src, Type const *type, u64 index) {
+x86_get_element_address(x86_Address *src, Type const *type, u64 index) {
 
     x86_Address result = *src;
 

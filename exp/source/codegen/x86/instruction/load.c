@@ -23,7 +23,7 @@
 #include "support/message.h"
 #include "support/unreachable.h"
 
-void x64_codegen_load(Instruction I,
+void x86_codegen_load(Instruction I,
                       u64         block_index,
                       x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
@@ -45,7 +45,7 @@ void x64_codegen_load(Instruction I,
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         Value          *value =
             context_constants_at(context->context, I.B_data.constant);
-        x64_codegen_load_allocation_from_value(A, value, block_index, context);
+        x86_codegen_load_allocation_from_value(A, value, block_index, context);
         break;
     }
 

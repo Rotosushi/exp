@@ -29,7 +29,7 @@
 #include "support/unreachable.h"
 
 static void
-x64_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
+x86_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
     if (context_trace(x64_context->context)) {
         trace(SV("x64_codegen_load_i64"), stdout);
     }
@@ -49,7 +49,7 @@ x64_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
 }
 
 static void
-x64_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
+x86_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
                                            Value *restrict value,
                                            x86_Context *restrict context) {
     if (context_trace(context->context)) {
@@ -73,7 +73,7 @@ x64_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
     }
 
     case VALUE_KIND_I64: {
-        x64_codegen_load_i64(dst, value->i64_, context);
+        x86_codegen_load_i64(dst, value->i64_, context);
         break;
     }
 
@@ -83,7 +83,7 @@ x64_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
 }
 
 static void
-x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
+x86_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
                                              Operand src,
                                              Type const *restrict type,
                                              u64 Idx,
@@ -104,7 +104,7 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
                         x86_operand_gpr(allocation->location.gpr)));
         } else {
             u64 size = size_of(type);
-            x64_codegen_copy_scalar_memory(
+            x86_codegen_copy_scalar_memory(
                 dst, &allocation->location.address, size, Idx, context);
         }
         break;
@@ -125,7 +125,7 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
     case OPERAND_KIND_CONSTANT: {
         Value *value = x86_context_value_at(context, src.data.constant);
         assert(type_equality(type, type_of_value(value, context->context)));
-        x64_codegen_load_address_from_scalar_value(dst, value, context);
+        x86_codegen_load_address_from_scalar_value(dst, value, context);
         break;
     }
 
@@ -134,7 +134,7 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
 }
 
 static void
-x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
+x86_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
                                                 Operand src,
                                                 Type const *restrict type,
                                                 u64 Idx,
@@ -149,7 +149,7 @@ x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
 
         assert(allocation->location.kind == X86_LOCATION_ADDRESS);
 
-        x64_codegen_copy_composite_memory(
+        x86_codegen_copy_composite_memory(
             dst, &allocation->location.address, type, Idx, context);
         break;
     }
@@ -169,7 +169,7 @@ x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
                 type_of_operand(element, context->context);
             u64 element_size = size_of(element_type);
 
-            x64_codegen_load_address_from_operand(
+            x86_codegen_load_address_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
 
             assert(element_size <= i64_MAX);
@@ -191,7 +191,7 @@ x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
     }
 }
 
-void x64_codegen_load_address_from_operand(x86_Address *restrict dst,
+void x86_codegen_load_address_from_operand(x86_Address *restrict dst,
                                            Operand src,
                                            Type const *restrict type,
                                            u64 Idx,
@@ -200,16 +200,16 @@ void x64_codegen_load_address_from_operand(x86_Address *restrict dst,
         trace(SV("x64_codegen_load_address_from_operand"), stdout);
     }
     if (type_is_scalar(type)) {
-        x64_codegen_load_address_from_scalar_operand(
+        x86_codegen_load_address_from_scalar_operand(
             dst, src, type, Idx, context);
     } else {
-        x64_codegen_load_address_from_composite_operand(
+        x86_codegen_load_address_from_composite_operand(
             dst, src, type, Idx, context);
     }
 }
 
 static void
-x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
+x86_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
                                               Operand src,
                                               Type const *restrict type,
                                               u64 Idx,
@@ -228,7 +228,7 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
                         x86_operand_gpr(allocation->location.gpr)));
         } else {
             u64 size = size_of(type);
-            x64_codegen_copy_scalar_memory(
+            x86_codegen_copy_scalar_memory(
                 dst, &allocation->location.address, size, Idx, context);
         }
         break;
@@ -248,7 +248,7 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
 
     case OPERAND_KIND_CONSTANT: {
         Value *value = x86_context_value_at(context, src.data.constant);
-        x64_codegen_load_address_from_scalar_value(dst, value, context);
+        x86_codegen_load_address_from_scalar_value(dst, value, context);
         break;
     }
 
@@ -256,7 +256,7 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
     }
 }
 
-static void x64_codegen_load_argument_from_composite_operand(
+static void x86_codegen_load_argument_from_composite_operand(
     x86_Address *restrict dst,
     Operand src,
     Type const *restrict type,
@@ -272,7 +272,7 @@ static void x64_codegen_load_argument_from_composite_operand(
 
         assert(allocation->location.kind == X86_LOCATION_ADDRESS);
 
-        x64_codegen_copy_composite_memory(
+        x86_codegen_copy_composite_memory(
             dst, &allocation->location.address, type, Idx, context);
         break;
     }
@@ -292,7 +292,7 @@ static void x64_codegen_load_argument_from_composite_operand(
                 type_of_operand(element, context->context);
             u64 element_size = size_of(element_type);
 
-            x64_codegen_load_argument_from_operand(
+            x86_codegen_load_argument_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
 
             assert(element_size <= i64_MAX);
@@ -314,7 +314,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 }
 
-void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
+void x86_codegen_load_argument_from_operand(x86_Address *restrict dst,
                                             Operand src,
                                             Type const *restrict type,
                                             u64 Idx,
@@ -323,15 +323,15 @@ void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
         trace(SV("x64_codegen_load_argument_from_operand"), stdout);
     }
     if (type_is_scalar(type)) {
-        x64_codegen_load_argument_from_scalar_operand(
+        x86_codegen_load_argument_from_scalar_operand(
             dst, src, type, Idx, context);
     } else {
-        x64_codegen_load_argument_from_composite_operand(
+        x86_codegen_load_argument_from_composite_operand(
             dst, src, type, Idx, context);
     }
 }
 
-void x64_codegen_load_gpr_from_operand(x86_GPR              gpr,
+void x86_codegen_load_gpr_from_operand(x86_GPR              gpr,
                                        Operand              src,
                                        [[maybe_unused]] u64 Idx,
                                        x86_Context *restrict context) {
@@ -369,7 +369,7 @@ void x64_codegen_load_gpr_from_operand(x86_GPR              gpr,
     }
 }
 
-void x64_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
+void x86_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
                                               Operand src,
                                               u64     Idx,
                                               x86_Context *restrict context) {
@@ -377,14 +377,14 @@ void x64_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
         trace(SV("x64_codegen_load_allocation_from_operand"), stdout);
     }
     if (dst->location.kind == X86_LOCATION_ADDRESS) {
-        x64_codegen_load_address_from_operand(
+        x86_codegen_load_address_from_operand(
             &dst->location.address, src, dst->type, Idx, context);
     } else {
-        x64_codegen_load_gpr_from_operand(dst->location.gpr, src, Idx, context);
+        x86_codegen_load_gpr_from_operand(dst->location.gpr, src, Idx, context);
     }
 }
 
-static void x64_codegen_load_allocation_from_i64(x86_Allocation *dst,
+static void x86_codegen_load_allocation_from_i64(x86_Allocation *dst,
                                                  i64             value,
                                                  x86_Context    *context) {
     if (context_trace(context->context)) {
@@ -405,7 +405,7 @@ static void x64_codegen_load_allocation_from_i64(x86_Allocation *dst,
     }
 }
 
-static void x64_codegen_load_allocation_from_tuple(x86_Allocation *dst,
+static void x86_codegen_load_allocation_from_tuple(x86_Allocation *dst,
                                                    Tuple          *tuple,
                                                    u64             Idx,
                                                    x86_Context    *context) {
@@ -419,7 +419,7 @@ static void x64_codegen_load_allocation_from_tuple(x86_Allocation *dst,
         Type const *element_type = type_of_operand(element, context->context);
         u64         element_size = size_of(element_type);
 
-        x64_codegen_load_address_from_operand(
+        x86_codegen_load_address_from_operand(
             &dst_address, element, element_type, Idx, context);
 
         assert(element_size <= i64_MAX);
@@ -428,7 +428,7 @@ static void x64_codegen_load_allocation_from_tuple(x86_Allocation *dst,
     }
 }
 
-void x64_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
+void x86_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
                                             Value *value,
                                             u64    Idx,
                                             x86_Context *restrict x64_context) {
@@ -457,12 +457,12 @@ void x64_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
     }
 
     case VALUE_KIND_I64: {
-        x64_codegen_load_allocation_from_i64(dst, value->i64_, x64_context);
+        x86_codegen_load_allocation_from_i64(dst, value->i64_, x64_context);
         break;
     }
 
     case VALUE_KIND_TUPLE: {
-        x64_codegen_load_allocation_from_tuple(
+        x86_codegen_load_allocation_from_tuple(
             dst, &value->tuple, Idx, x64_context);
         break;
     }

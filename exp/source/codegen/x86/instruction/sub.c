@@ -23,7 +23,7 @@
 #include "support/message.h"
 #include "support/unreachable.h"
 
-static void x64_codegen_subtract_ssa(Instruction    I,
+static void x86_codegen_subtract_ssa(Instruction    I,
                                      u64            block_index,
                                      LocalVariable *local,
                                      x86_Context   *context) {
@@ -87,7 +87,7 @@ static void x64_codegen_subtract_ssa(Instruction    I,
     }
 }
 
-static void x64_codegen_subtract_immediate(Instruction    I,
+static void x86_codegen_subtract_immediate(Instruction    I,
                                            u64            block_index,
                                            LocalVariable *local,
                                            x86_Context   *context) {
@@ -149,7 +149,7 @@ static void x64_codegen_subtract_immediate(Instruction    I,
     }
 }
 
-void x64_codegen_subtract_constant(Instruction    I,
+void x86_codegen_subtract_constant(Instruction    I,
                                    u64            block_index,
                                    LocalVariable *local,
                                    x86_Context   *context) {
@@ -211,24 +211,24 @@ void x64_codegen_subtract_constant(Instruction    I,
     }
 }
 
-void x64_codegen_sub(Instruction I,
+void x86_codegen_sub(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
-        x64_codegen_subtract_ssa(I, block_index, local, context);
+        x86_codegen_subtract_ssa(I, block_index, local, context);
         break;
     }
 
     case OPERAND_KIND_I64: {
-        x64_codegen_subtract_immediate(I, block_index, local, context);
+        x86_codegen_subtract_immediate(I, block_index, local, context);
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        x64_codegen_subtract_constant(I, block_index, local, context);
+        x86_codegen_subtract_constant(I, block_index, local, context);
         break;
     }
 

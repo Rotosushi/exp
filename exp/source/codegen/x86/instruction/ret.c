@@ -25,9 +25,9 @@
 #include "support/panic.h"
 #include "support/unreachable.h"
 
-void x64_codegen_return(Instruction I,
-                        u64         block_index,
-                        x86_Context *restrict context) {
+void x86_codegen_ret(Instruction I,
+                     u64         block_index,
+                     x86_Context *restrict context) {
     x86_Function *body = x86_context_current_x86_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
@@ -36,7 +36,7 @@ void x64_codegen_return(Instruction I,
         }
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         if (x86_allocation_location_eq(B, body->result->location)) { break; }
-        x64_codegen_copy_allocation(body->result, B, block_index, context);
+        x86_codegen_copy_allocation(body->result, B, block_index, context);
         break;
     }
 
@@ -46,7 +46,7 @@ void x64_codegen_return(Instruction I,
         }
         Value *value =
             context_constants_at(context->context, I.B_data.constant);
-        x64_codegen_load_allocation_from_value(
+        x86_codegen_load_allocation_from_value(
             body->result, value, block_index, context);
         break;
     }

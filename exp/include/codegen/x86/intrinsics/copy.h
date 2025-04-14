@@ -16,38 +16,38 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_BACKEND_X64_INTRINSICS_H
-#define EXP_BACKEND_X64_INTRINSICS_H
+#ifndef EXP_BACKEND_X86_INTRINSICS_H
+#define EXP_BACKEND_X86_INTRINSICS_H
 
 #include "codegen/x86/env/context.h"
 
-void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
+void x86_codegen_copy_scalar_memory(x86_Address *restrict dst,
                                     x86_Address *restrict src,
                                     u64 size,
                                     u64 Idx,
                                     x86_Context *restrict context);
 
-void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
+void x86_codegen_copy_composite_memory(x86_Address *restrict dst,
                                        x86_Address *restrict src,
                                        Type const *type,
                                        u64         Idx,
                                        x86_Context *restrict context);
 
-void x64_codegen_copy_memory(x86_Address *restrict dst,
+void x86_codegen_copy_memory(x86_Address *restrict dst,
                              x86_Address *restrict src,
                              Type const *type,
                              u64         Idx,
                              x86_Context *restrict context);
 
-void x64_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
+void x86_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
                                              x86_Address *restrict src,
                                              Type const *restrict type,
                                              u64 Idx,
                                              x86_Context *restrict context);
 
-void x64_codegen_copy_allocation(x86_Allocation *restrict dst,
+void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
                                  x86_Allocation *restrict src,
                                  u64 Idx,
                                  x86_Context *restrict context);
 
-#endif // !EXP_BACKEND_X64_INTRINSICS_H
+#endif // !EXP_BACKEND_X86_INTRINSICS_H
