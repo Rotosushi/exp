@@ -14,29 +14,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_OPERAND_H
-#define EXP_BACKEND_X64_OPERAND_H
+#ifndef EXP_BACKEND_X86_OPERAND_H
+#define EXP_BACKEND_X86_OPERAND_H
 
 #include "codegen/x86/imr/allocation.h"
 
-typedef enum x64_OperandKind : u8 {
-    X64_OPERAND_KIND_GPR,
-    X64_OPERAND_KIND_ADDRESS,
-    X64_OPERAND_KIND_LABEL,
-    X64_OPERAND_KIND_CONSTANT,
-    X64_OPERAND_KIND_IMMEDIATE,
-} x64_OperandKind;
+typedef enum x86_OperandKind : u8 {
+    X86_OPERAND_KIND_GPR,
+    X86_OPERAND_KIND_ADDRESS,
+    X86_OPERAND_KIND_LABEL,
+    X86_OPERAND_KIND_CONSTANT,
+    X86_OPERAND_KIND_IMMEDIATE,
+} x86_OperandKind;
 
-typedef union x64_OperandData {
+typedef union x86_OperandData {
     x86_64_GPR  gpr;
     x86_Address address;
     u32         label;
     u32         constant;
     i64         immediate;
-} x64_OperandData;
+} x86_OperandData;
 
-typedef struct x64_Operand {
-    x64_OperandKind kind;
+typedef struct x86_Operand {
+    x86_OperandKind kind;
     union {
         x86_64_GPR  gpr;
         x86_Address address;
@@ -44,14 +44,14 @@ typedef struct x64_Operand {
         u32         constant;
         i64         immediate;
     };
-} x64_Operand;
+} x86_Operand;
 
-x64_Operand x64_operand_gpr(x86_64_GPR gpr);
-x64_Operand x64_operand_address(x86_Address address);
-x64_Operand x64_operand_location(x86_Location location);
-x64_Operand x64_operand_alloc(x86_Allocation *alloc);
-x64_Operand x64_operand_constant(u32 index);
-x64_Operand x64_operand_label(u32 index);
-x64_Operand x64_operand_immediate(i64 value);
+x86_Operand x86_operand_gpr(x86_64_GPR gpr);
+x86_Operand x86_operand_address(x86_Address address);
+x86_Operand x86_operand_location(x86_Location location);
+x86_Operand x86_operand_alloc(x86_Allocation *alloc);
+x86_Operand x86_operand_constant(u32 index);
+x86_Operand x86_operand_label(u32 index);
+x86_Operand x86_operand_immediate(i64 value);
 
-#endif // !EXP_BACKEND_X64_OPERAND_H
+#endif // !EXP_BACKEND_X86_OPERAND_H

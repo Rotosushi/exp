@@ -48,7 +48,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
 
-            x86_context_append(context, x64_imul(x64_operand_alloc(C)));
+            x86_context_append(context, x64_imul(x86_operand_alloc(C)));
             break;
         }
 
@@ -57,7 +57,7 @@ static void x64_codegen_multiply_ssa(Instruction    I,
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
 
-            x86_context_append(context, x64_imul(x64_operand_alloc(B)));
+            x86_context_append(context, x64_imul(x86_operand_alloc(B)));
             break;
         }
 
@@ -67,13 +67,13 @@ static void x64_codegen_multiply_ssa(Instruction    I,
         if ((B->lifetime.last_use <= C->lifetime.last_use)) {
             x86_context_append(
                 context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
-            x86_context_append(context, x64_imul(x64_operand_alloc(C)));
+                x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(B)));
+            x86_context_append(context, x64_imul(x86_operand_alloc(C)));
         } else {
             x86_context_append(
                 context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(C)));
-            x86_context_append(context, x64_imul(x64_operand_alloc(B)));
+                x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(C)));
+            x86_context_append(context, x64_imul(x86_operand_alloc(B)));
         }
         break;
     }
@@ -87,19 +87,19 @@ static void x64_codegen_multiply_ssa(Instruction    I,
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
             x86_context_append(context,
-                               x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                       x64_operand_immediate(I.C_data.i64_)));
+                               x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                       x86_operand_immediate(I.C_data.i64_)));
             x86_context_append(context,
-                               x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                               x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
         x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.C_data.i64_)));
-        x86_context_append(context, x64_imul(x64_operand_alloc(B)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(context, x64_imul(x86_operand_alloc(B)));
         break;
     }
 
@@ -113,19 +113,19 @@ static void x64_codegen_multiply_ssa(Instruction    I,
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
             x86_context_append(
                 context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_constant(I.C_data.constant)));
+                x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                        x86_operand_constant(I.C_data.constant)));
             x86_context_append(context,
-                               x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                               x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
         x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_constant(I.C_data.constant)));
-        x86_context_append(context, x64_imul(x64_operand_alloc(B)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_constant(I.C_data.constant)));
+        x86_context_append(context, x64_imul(x86_operand_alloc(B)));
         break;
     }
 
@@ -149,19 +149,19 @@ static void x64_codegen_multiply_immediate(Instruction    I,
 
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
             x86_context_append(context,
-                               x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                       x64_operand_immediate(I.B_data.i64_)));
+                               x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                       x86_operand_immediate(I.B_data.i64_)));
             x86_context_append(context,
-                               x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                               x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
         x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.i64_)));
-        x86_context_append(context, x64_imul(x64_operand_alloc(C)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(context, x64_imul(x86_operand_alloc(C)));
         break;
     }
 
@@ -173,12 +173,12 @@ static void x64_codegen_multiply_immediate(Instruction    I,
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.B_data.i64_)));
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_immediate(I.C_data.i64_)));
-        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(context, x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -190,12 +190,12 @@ static void x64_codegen_multiply_immediate(Instruction    I,
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.B_data.i64_)));
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_constant(I.C_data.constant)));
-        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                   x86_operand_constant(I.C_data.constant)));
+        x86_context_append(context, x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -221,19 +221,19 @@ void x64_codegen_multiply_constant(Instruction    I,
             x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
             x86_context_append(
                 context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                        x64_operand_constant(I.B_data.constant)));
+                x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                        x86_operand_constant(I.B_data.constant)));
             x86_context_append(context,
-                               x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                               x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
             break;
         }
 
         x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_constant(I.B_data.constant)));
-        x86_context_append(context, x64_imul(x64_operand_alloc(C)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_constant(I.B_data.constant)));
+        x86_context_append(context, x64_imul(x86_operand_alloc(C)));
         break;
     }
 
@@ -245,12 +245,12 @@ void x64_codegen_multiply_constant(Instruction    I,
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_constant(I.B_data.constant)));
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_immediate(I.C_data.i64_)));
-        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(context, x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 
@@ -262,12 +262,12 @@ void x64_codegen_multiply_constant(Instruction    I,
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_64_GPR_RDX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_constant(I.B_data.constant)));
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                   x64_operand_constant(I.C_data.constant)));
-        x86_context_append(context, x64_imul(x64_operand_gpr(X86_64_GPR_RDX)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                   x86_operand_constant(I.C_data.constant)));
+        x86_context_append(context, x64_imul(x86_operand_gpr(X86_64_GPR_RDX)));
         break;
     }
 

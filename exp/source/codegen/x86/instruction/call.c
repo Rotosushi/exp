@@ -65,16 +65,16 @@ static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
                                                            u64 block_index) {
     if (i64_in_range_i16(stack_space)) {
         x86_context_insert(context,
-                           x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
-                                   x64_operand_immediate((i16)stack_space)),
+                           x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+                                   x86_operand_immediate((i16)stack_space)),
                            block_index);
     } else {
         Operand operand = context_constants_append(
             context->context, value_create_i64(stack_space));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_insert(context,
-                           x64_sub(x64_operand_gpr(X86_64_GPR_RSP),
-                                   x64_operand_constant(operand.data.constant)),
+                           x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+                                   x86_operand_constant(operand.data.constant)),
                            block_index);
     }
 }
@@ -84,16 +84,16 @@ x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
                                                  i64          stack_space) {
     if (i64_in_range_i16(stack_space)) {
         x86_context_append(x64_context,
-                           x64_add(x64_operand_gpr(X86_64_GPR_RSP),
-                                   x64_operand_immediate((i16)stack_space)));
+                           x64_add(x86_operand_gpr(X86_64_GPR_RSP),
+                                   x86_operand_immediate((i16)stack_space)));
     } else {
         Operand operand = context_constants_append(
             x64_context->context, value_create_i64(stack_space));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_append(
             x64_context,
-            x64_add(x64_operand_gpr(X86_64_GPR_RSP),
-                    x64_operand_constant(operand.data.constant)));
+            x64_add(x86_operand_gpr(X86_64_GPR_RSP),
+                    x86_operand_constant(operand.data.constant)));
     }
 }
 
@@ -120,9 +120,9 @@ void x64_codegen_call(Instruction I,
         assert(result->location.kind == X86_LOCATION_ADDRESS);
         x86_context_append(
             context,
-            x64_lea(x64_operand_gpr(
+            x64_lea(x86_operand_gpr(
                         x86_64_gpr_scalar_argument(scalar_argument_count++, 8)),
-                    x64_operand_address(result->location.address)));
+                    x86_operand_address(result->location.address)));
     }
 
     Value *value = x86_context_value_at(context, I.C_data.constant);
@@ -148,7 +148,7 @@ void x64_codegen_call(Instruction I,
 
     if (stack_args.size == 0) {
         x86_context_append(context,
-                           x64_call(x64_operand_label(I.B_data.label)));
+                           x64_call(x86_operand_label(I.B_data.label)));
         return;
     }
 
@@ -172,7 +172,7 @@ void x64_codegen_call(Instruction I,
     x64_codegen_allocate_stack_space_for_arguments(
         context, stack_space, call_start);
 
-    x86_context_append(context, x64_call(x64_operand_label(I.B_data.label)));
+    x86_context_append(context, x64_call(x86_operand_label(I.B_data.label)));
 
     x64_codegen_deallocate_stack_space_for_arguments(context, stack_space);
 

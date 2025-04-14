@@ -21,45 +21,45 @@
 #include "codegen/x86/imr/operand.h"
 #include "support/unreachable.h"
 
-x64_Operand x64_operand_gpr(x86_64_GPR gpr) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_GPR, .gpr = gpr};
+x86_Operand x86_operand_gpr(x86_64_GPR gpr) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_GPR, .gpr = gpr};
     return opr;
 }
 
-x64_Operand x64_operand_address(x86_Address address) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_ADDRESS, .address = address};
+x86_Operand x86_operand_address(x86_Address address) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_ADDRESS, .address = address};
     return opr;
 }
 
-x64_Operand x64_operand_location(x86_Location location) {
+x86_Operand x86_operand_location(x86_Location location) {
     switch (location.kind) {
     case X86_LOCATION_GPR: {
-        return x64_operand_gpr(location.gpr);
+        return x86_operand_gpr(location.gpr);
     }
 
     case X86_LOCATION_ADDRESS: {
-        return x64_operand_address(location.address);
+        return x86_operand_address(location.address);
     }
 
     default: EXP_UNREACHABLE();
     }
 }
 
-x64_Operand x64_operand_alloc(x86_Allocation *alloc) {
-    return x64_operand_location(alloc->location);
+x86_Operand x86_operand_alloc(x86_Allocation *alloc) {
+    return x86_operand_location(alloc->location);
 }
 
-x64_Operand x64_operand_constant(u32 index) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_CONSTANT, .constant = index};
+x86_Operand x86_operand_constant(u32 index) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_CONSTANT, .constant = index};
     return opr;
 }
 
-x64_Operand x64_operand_label(u32 index) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_LABEL, .label = index};
+x86_Operand x86_operand_label(u32 index) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_LABEL, .label = index};
     return opr;
 }
 
-x64_Operand x64_operand_immediate(i64 value) {
-    x64_Operand opr = {.kind = X64_OPERAND_KIND_IMMEDIATE, .immediate = value};
+x86_Operand x86_operand_immediate(i64 value) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_IMMEDIATE, .immediate = value};
     return opr;
 }

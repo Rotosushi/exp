@@ -35,16 +35,16 @@ x64_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
     }
     if (i64_in_range_i16(value)) {
         x86_context_append(x64_context,
-                           x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate((i16)value)));
+                           x64_mov(x86_operand_address(*dst),
+                                   x86_operand_immediate((i16)value)));
     } else {
         Operand operand = context_constants_append(x64_context->context,
                                                    value_create_i64(value));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_append(
             x64_context,
-            x64_mov(x64_operand_address(*dst),
-                    x64_operand_constant(operand.data.constant)));
+            x64_mov(x86_operand_address(*dst),
+                    x86_operand_constant(operand.data.constant)));
     }
 }
 
@@ -61,14 +61,14 @@ x64_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
     case VALUE_KIND_NIL: {
         x86_context_append(
             context,
-            x64_mov(x64_operand_address(*dst), x64_operand_immediate(0)));
+            x64_mov(x86_operand_address(*dst), x86_operand_immediate(0)));
         break;
     }
 
     case VALUE_KIND_BOOLEAN: {
         x86_context_append(context,
-                           x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate((i16)value->boolean)));
+                           x64_mov(x86_operand_address(*dst),
+                                   x86_operand_immediate((i16)value->boolean)));
         break;
     }
 
@@ -100,8 +100,8 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
         if (allocation->location.kind == X86_LOCATION_GPR) {
             x86_context_append(
                 context,
-                x64_mov(x64_operand_address(*dst),
-                        x64_operand_gpr(allocation->location.gpr)));
+                x64_mov(x86_operand_address(*dst),
+                        x86_operand_gpr(allocation->location.gpr)));
         } else {
             u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
@@ -112,8 +112,8 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
 
     case OPERAND_KIND_I64: {
         x86_context_append(context,
-                           x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.i64_)));
+                           x64_mov(x86_operand_address(*dst),
+                                   x86_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -224,8 +224,8 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
         if (allocation->location.kind == X86_LOCATION_GPR) {
             x86_context_append(
                 context,
-                x64_mov(x64_operand_address(*dst),
-                        x64_operand_gpr(allocation->location.gpr)));
+                x64_mov(x86_operand_address(*dst),
+                        x86_operand_gpr(allocation->location.gpr)));
         } else {
             u64 size = size_of(type);
             x64_codegen_copy_scalar_memory(
@@ -236,8 +236,8 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
 
     case OPERAND_KIND_I64: {
         x86_context_append(context,
-                           x64_mov(x64_operand_address(*dst),
-                                   x64_operand_immediate(src.data.i64_)));
+                           x64_mov(x86_operand_address(*dst),
+                                   x86_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -347,14 +347,14 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
         x86_64_GPR sized_gpr = x86_64_gpr_resize(gpr, size);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(sized_gpr), x64_operand_alloc(allocation)));
+            x64_mov(x86_operand_gpr(sized_gpr), x86_operand_alloc(allocation)));
         break;
     }
 
     case OPERAND_KIND_I64: {
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(src.data.i64_)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_immediate(src.data.i64_)));
         break;
     }
 
@@ -393,15 +393,15 @@ static void x64_codegen_load_allocation_from_i64(x86_Allocation *dst,
     if (i64_in_range_i16(value)) {
         x86_context_append(
             context,
-            x64_mov(x64_operand_alloc(dst), x64_operand_immediate((i16)value)));
+            x64_mov(x86_operand_alloc(dst), x86_operand_immediate((i16)value)));
     } else {
         Operand operand =
             context_constants_append(context->context, value_create_i64(value));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_append(
             context,
-            x64_mov(x64_operand_alloc(dst),
-                    x64_operand_constant(operand.data.constant)));
+            x64_mov(x86_operand_alloc(dst),
+                    x86_operand_constant(operand.data.constant)));
     }
 }
 
@@ -445,14 +445,14 @@ void x64_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
     case VALUE_KIND_NIL: {
         x86_context_append(
             x64_context,
-            x64_mov(x64_operand_alloc(dst), x64_operand_immediate(0)));
+            x64_mov(x86_operand_alloc(dst), x86_operand_immediate(0)));
         break;
     }
 
     case VALUE_KIND_BOOLEAN: {
         x86_context_append(x64_context,
-                           x64_mov(x64_operand_alloc(dst),
-                                   x64_operand_immediate((i16)value->boolean)));
+                           x64_mov(x86_operand_alloc(dst),
+                                   x86_operand_immediate((i16)value->boolean)));
         break;
     }
 

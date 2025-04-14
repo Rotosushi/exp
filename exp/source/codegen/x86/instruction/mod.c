@@ -38,10 +38,10 @@ static void x64_codegen_modulus_ssa(Instruction    I,
             x86_context_allocate_to_gpr(
                 context, local, X86_64_GPR_RDX, block_index);
             x86_context_append(context,
-                               x64_mov(x64_operand_gpr(X86_64_GPR_RDX),
-                                       x64_operand_immediate(0)));
+                               x64_mov(x86_operand_gpr(X86_64_GPR_RDX),
+                                       x86_operand_immediate(0)));
 
-            x86_context_append(context, x64_idiv(x64_operand_alloc(C)));
+            x86_context_append(context, x64_idiv(x86_operand_alloc(C)));
             break;
         }
 
@@ -54,9 +54,9 @@ static void x64_codegen_modulus_ssa(Instruction    I,
             x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
             x86_context_append(
                 context,
-                x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
+                x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(B)));
 
-            x86_context_append(context, x64_idiv(x64_operand_alloc(C)));
+            x86_context_append(context, x64_idiv(x86_operand_alloc(C)));
             break;
         }
 
@@ -65,9 +65,9 @@ static void x64_codegen_modulus_ssa(Instruction    I,
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(B)));
 
-        x86_context_append(context, x64_idiv(x64_operand_alloc(C)));
+        x86_context_append(context, x64_idiv(x86_operand_alloc(C)));
         break;
     }
 
@@ -80,14 +80,14 @@ static void x64_codegen_modulus_ssa(Instruction    I,
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(B)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(I.C_data.i64_)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_immediate(I.C_data.i64_)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         break;
     }
 
@@ -100,14 +100,14 @@ static void x64_codegen_modulus_ssa(Instruction    I,
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RAX), x64_operand_alloc(B)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RAX), x86_operand_alloc(B)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_constant(I.C_data.constant)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         break;
     }
 
@@ -129,7 +129,7 @@ static void x64_codegen_modulus_immediate(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x86_location_eq(C->location, x86_location_gpr(X86_64_GPR_RAX))) {
@@ -137,9 +137,9 @@ static void x64_codegen_modulus_immediate(Instruction    I,
         }
 
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.i64_)));
-        x86_context_append(context, x64_idiv(x64_operand_alloc(C)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(context, x64_idiv(x86_operand_alloc(C)));
         break;
     }
 
@@ -151,19 +151,19 @@ static void x64_codegen_modulus_immediate(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.B_data.i64_)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(I.C_data.i64_)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_immediate(I.C_data.i64_)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         x86_context_release_gpr(context, gpr, block_index);
         break;
     }
@@ -176,19 +176,19 @@ static void x64_codegen_modulus_immediate(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.B_data.i64_)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_constant(I.C_data.constant)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         x86_context_release_gpr(context, gpr, block_index);
         break;
     }
@@ -211,7 +211,7 @@ void x64_codegen_modulus_constant(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x86_location_eq(C->location, x86_location_gpr(X86_64_GPR_RAX))) {
@@ -219,9 +219,9 @@ void x64_codegen_modulus_constant(Instruction    I,
         }
 
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_constant(I.B_data.constant)));
-        x86_context_append(context, x64_idiv(x64_operand_alloc(C)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_constant(I.B_data.constant)));
+        x86_context_append(context, x64_idiv(x86_operand_alloc(C)));
         break;
     }
 
@@ -233,19 +233,19 @@ void x64_codegen_modulus_constant(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_immediate(I.B_data.i64_)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_constant(I.C_data.constant)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         x86_context_release_gpr(context, gpr, block_index);
         break;
     }
@@ -258,19 +258,19 @@ void x64_codegen_modulus_constant(Instruction    I,
             context, local, X86_64_GPR_RDX, block_index);
         x86_context_append(
             context,
-            x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
+            x64_mov(x86_operand_gpr(X86_64_GPR_RDX), x86_operand_immediate(0)));
 
         x86_context_aquire_gpr(context, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(X86_64_GPR_RAX),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_gpr(X86_64_GPR_RAX),
+                                   x86_operand_constant(I.B_data.constant)));
 
         x86_64_GPR gpr = x86_context_aquire_any_gpr(context, 8, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_constant(I.C_data.constant)));
 
-        x86_context_append(context, x64_idiv(x64_operand_gpr(gpr)));
+        x86_context_append(context, x64_idiv(x86_operand_gpr(gpr)));
         x86_context_release_gpr(context, gpr, block_index);
         break;
     }

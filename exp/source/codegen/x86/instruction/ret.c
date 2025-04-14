@@ -56,8 +56,8 @@ void x64_codegen_return(Instruction I,
             trace(SV("x64_codegen_return: i64"), stdout);
         }
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(body->result),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(body->result),
+                                   x86_operand_immediate(I.B_data.i64_)));
         break;
     }
 
@@ -79,8 +79,8 @@ void x64_codegen_return(Instruction I,
     }
 
     x86_context_append(context,
-                       x64_mov(x64_operand_gpr(X86_64_GPR_RSP),
-                               x64_operand_gpr(X86_64_GPR_RBP)));
-    x86_context_append(context, x64_pop(x64_operand_gpr(X86_64_GPR_RBP)));
+                       x64_mov(x86_operand_gpr(X86_64_GPR_RSP),
+                               x86_operand_gpr(X86_64_GPR_RBP)));
+    x86_context_append(context, x64_pop(x86_operand_gpr(X86_64_GPR_RBP)));
     x86_context_append(context, x64_ret());
 }

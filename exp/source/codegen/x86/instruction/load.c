@@ -55,8 +55,8 @@ void x64_codegen_load(Instruction I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.B_data.i64_)));
         break;
     }
 

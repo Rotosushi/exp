@@ -28,56 +28,56 @@ static x64_Instruction x64_instruction(x64_Opcode opcode) {
     return I;
 }
 
-static x64_Instruction x64_instruction_A(x64_Opcode opcode, x64_Operand A) {
+static x64_Instruction x64_instruction_A(x64_Opcode opcode, x86_Operand A) {
     x64_Instruction I = {.opcode = opcode, .A = A};
     return I;
 }
 
 static x64_Instruction
-x64_instruction_AB(x64_Opcode opcode, x64_Operand A, x64_Operand B) {
+x64_instruction_AB(x64_Opcode opcode, x86_Operand A, x86_Operand B) {
     x64_Instruction I = {.opcode = opcode, .A = A, .B = B};
     return I;
 }
 
 x64_Instruction x64_ret() { return x64_instruction(X64_OPCODE_RETURN); }
 
-x64_Instruction x64_call(x64_Operand label) {
+x64_Instruction x64_call(x86_Operand label) {
     return x64_instruction_A(X64_OPCODE_CALL, label);
 }
 
-x64_Instruction x64_push(x64_Operand src) {
+x64_Instruction x64_push(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_PUSH, src);
 }
 
-x64_Instruction x64_pop(x64_Operand dst) {
+x64_Instruction x64_pop(x86_Operand dst) {
     return x64_instruction_A(X64_OPCODE_POP, dst);
 }
 
-x64_Instruction x64_mov(x64_Operand dst, x64_Operand src) {
+x64_Instruction x64_mov(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_MOV, dst, src);
 }
 
-x64_Instruction x64_lea(x64_Operand dst, x64_Operand src) {
+x64_Instruction x64_lea(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_LEA, dst, src);
 }
 
-x64_Instruction x64_neg(x64_Operand dst) {
+x64_Instruction x64_neg(x86_Operand dst) {
     return x64_instruction_A(X64_OPCODE_NEG, dst);
 }
 
-x64_Instruction x64_add(x64_Operand dst, x64_Operand src) {
+x64_Instruction x64_add(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_ADD, dst, src);
 }
 
-x64_Instruction x64_sub(x64_Operand dst, x64_Operand src) {
+x64_Instruction x64_sub(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_SUB, dst, src);
 }
 
-x64_Instruction x64_imul(x64_Operand src) {
+x64_Instruction x64_imul(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_IMUL, src);
 }
 
-x64_Instruction x64_idiv(x64_Operand src) {
+x64_Instruction x64_idiv(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_IDIV, src);
 }
 
@@ -111,17 +111,17 @@ static void x64_emit_mnemonic(StringView                       mnemonic,
     string_append(buffer, SV("q\t"));
 }
 
-static void x64_emit_operand(x64_Operand operand,
+static void x64_emit_operand(x86_Operand operand,
                              String *restrict buffer,
                              Context *restrict context) {
     switch (operand.kind) {
-    case X64_OPERAND_KIND_GPR: {
+    case X86_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
         string_append(buffer, x86_64_gpr_mnemonic(operand.gpr));
         break;
     }
 
-    case X64_OPERAND_KIND_ADDRESS: {
+    case X86_OPERAND_KIND_ADDRESS: {
         x86_Address *address = &operand.address;
         string_append_i64(buffer, address->offset);
 
@@ -139,13 +139,13 @@ static void x64_emit_operand(x64_Operand operand,
         break;
     }
 
-    case X64_OPERAND_KIND_IMMEDIATE: {
+    case X86_OPERAND_KIND_IMMEDIATE: {
         string_append(buffer, SV("$"));
         string_append_i64(buffer, operand.immediate);
         break;
     }
 
-    case X64_OPERAND_KIND_CONSTANT: {
+    case X86_OPERAND_KIND_CONSTANT: {
         Value *constant = context_constants_at(context, operand.constant);
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
@@ -156,7 +156,7 @@ static void x64_emit_operand(x64_Operand operand,
         break;
     }
 
-    case X64_OPERAND_KIND_LABEL: {
+    case X86_OPERAND_KIND_LABEL: {
         assert(operand.label <= u16_MAX);
         StringView name = context_labels_at(context, operand.label);
         string_append(buffer, name);

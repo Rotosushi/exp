@@ -37,22 +37,22 @@ typedef enum x64_Opcode : u8 {
 
 typedef struct x64_Instruction {
     x64_Opcode  opcode;
-    x64_Operand A;
-    x64_Operand B;
+    x86_Operand A;
+    x86_Operand B;
 } x64_Instruction;
 
 x64_Instruction x64_ret();
-x64_Instruction x64_call(x64_Operand label);
-x64_Instruction x64_push(x64_Operand src);
-x64_Instruction x64_pop(x64_Operand dst);
-x64_Instruction x64_mov(x64_Operand dst, x64_Operand src);
-x64_Instruction x64_lea(x64_Operand dst, x64_Operand src);
+x64_Instruction x64_call(x86_Operand label);
+x64_Instruction x64_push(x86_Operand src);
+x64_Instruction x64_pop(x86_Operand dst);
+x64_Instruction x64_mov(x86_Operand dst, x86_Operand src);
+x64_Instruction x64_lea(x86_Operand dst, x86_Operand src);
 
-x64_Instruction x64_neg(x64_Operand dst);
-x64_Instruction x64_add(x64_Operand dst, x64_Operand src);
-x64_Instruction x64_sub(x64_Operand dst, x64_Operand src);
-x64_Instruction x64_imul(x64_Operand src);
-x64_Instruction x64_idiv(x64_Operand src);
+x64_Instruction x64_neg(x86_Operand dst);
+x64_Instruction x64_add(x86_Operand dst, x86_Operand src);
+x64_Instruction x64_sub(x86_Operand dst, x86_Operand src);
+x64_Instruction x64_imul(x86_Operand src);
+x64_Instruction x64_idiv(x86_Operand src);
 
 void x64_instruction_emit(x64_Instruction I,
                           String *restrict buffer,

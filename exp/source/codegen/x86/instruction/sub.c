@@ -42,17 +42,17 @@ static void x64_codegen_subtract_ssa(Instruction    I,
                 context, local, B, block_index);
 
             x86_context_append(
-                context, x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+                context, x64_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
             return;
         }
 
         x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
 
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
+                           x64_mov(x86_operand_alloc(A), x86_operand_alloc(B)));
 
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+                           x64_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
         break;
     }
 
@@ -64,8 +64,8 @@ static void x64_codegen_subtract_ssa(Instruction    I,
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.i64_)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -77,8 +77,8 @@ static void x64_codegen_subtract_ssa(Instruction    I,
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_constant(I.C_data.constant)));
         break;
     }
 
@@ -108,11 +108,11 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_immediate(I.B_data.i64_)));
 
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+                           x64_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
         break;
     }
 
@@ -122,11 +122,11 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.B_data.i64_)));
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.i64_)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -136,11 +136,11 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.B_data.i64_)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.B_data.i64_)));
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_constant(I.C_data.constant)));
         break;
     }
 
@@ -170,11 +170,11 @@ void x64_codegen_subtract_constant(Instruction    I,
         exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
-                           x64_mov(x64_operand_gpr(gpr),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_gpr(gpr),
+                                   x86_operand_constant(I.B_data.constant)));
 
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A), x64_operand_alloc(C)));
+                           x64_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
         break;
     }
 
@@ -184,11 +184,11 @@ void x64_codegen_subtract_constant(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_constant(I.B_data.constant)));
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_immediate(I.C_data.i64_)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_immediate(I.C_data.i64_)));
         break;
     }
 
@@ -198,11 +198,11 @@ void x64_codegen_subtract_constant(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x64_operand_alloc(A),
-                                   x64_operand_constant(I.B_data.constant)));
+                           x64_mov(x86_operand_alloc(A),
+                                   x86_operand_constant(I.B_data.constant)));
         x86_context_append(context,
-                           x64_sub(x64_operand_alloc(A),
-                                   x64_operand_constant(I.C_data.constant)));
+                           x64_sub(x86_operand_alloc(A),
+                                   x86_operand_constant(I.C_data.constant)));
         break;
     }
 
