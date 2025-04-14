@@ -1,7 +1,7 @@
 
 We only support 
 
-[[x86-64]]
+[[x86]]
 
 [[Linux]]
 

@@ -21,34 +21,6 @@
 #include "env/context.h"
 #include "support/string.h"
 
-/*
-  We want to model the x64 instructions we generate
-  in memory, so we can compare different instruction
-  sequences and choose the most efficient one.
-
-  this is for the future however. It is my hope that
-  by doing this it will be possible to design an
-  api for creating x64 instructions from bytecode
-  instructions which will allow us to reduce the
-  size and complexity of the codegen routines.
-  because we will separate generating x64 instructions
-  from emitting x64 instructions.
-
-  --
-
-  generally speaking x64 instructions use the opcode
-  and the first operand together to determine the
-  size of the operands.
-
-  so we are simplifying this for now, just to represent
-  what we need to. all operands are going to be 64 bit.
-
-  #TODO emiting instructions needs to take into account the size of
-  their operands, such that we can append the correct mnemonic
-  suffix to the x64 assembly instruction.
-
-*/
-
 typedef enum x64_Opcode : u8 {
     X64_OPCODE_RETURN,
     X64_OPCODE_CALL,
@@ -64,7 +36,7 @@ typedef enum x64_Opcode : u8 {
 } x64_Opcode;
 
 typedef struct x64_Instruction {
-    x64_Opcode opcode;
+    x64_Opcode  opcode;
     x64_Operand A;
     x64_Operand B;
 } x64_Instruction;
