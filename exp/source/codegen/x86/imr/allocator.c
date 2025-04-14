@@ -27,13 +27,13 @@
 #include "support/panic.h"
 #include "support/unreachable.h"
 
-static x64_GPRP x64_gprp_create() {
-    x64_GPRP gprp = {.bitset = 0,
+static x86_GPRP x86_gprp_create() {
+    x86_GPRP gprp = {.bitset = 0,
                      .buffer = callocate(16, sizeof(x86_Allocation *))};
     return gprp;
 }
 
-static void x64_gprp_destroy(x64_GPRP *restrict gprp) {
+static void x86_gprp_destroy(x86_GPRP *restrict gprp) {
     gprp->bitset = 0;
     deallocate(gprp->buffer);
 }
@@ -42,21 +42,21 @@ static void x64_gprp_destroy(x64_GPRP *restrict gprp) {
 #define CLR_BIT(B, r) ((B) &= (u16)(~(1 << r)))
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
-static void x64_gprp_aquire(x64_GPRP *restrict gprp, x86_64_GPR gpr) {
+static void x86_gprp_aquire(x86_GPRP *restrict gprp, x86_64_GPR gpr) {
     SET_BIT(gprp->bitset, x86_64_gpr_index(gpr));
 }
 
-static void x64_gprp_release(x64_GPRP *restrict gprp, x86_64_GPR gpr) {
+static void x86_gprp_release(x86_GPRP *restrict gprp, x86_64_GPR gpr) {
     CLR_BIT(gprp->bitset, x86_64_gpr_index(gpr));
     gprp->buffer[x86_64_gpr_index(gpr)] = NULL;
 }
 
-static void x64_gprp_release_index(x64_GPRP *restrict gprp, u8 gpr_index) {
+static void x86_gprp_release_index(x86_GPRP *restrict gprp, u8 gpr_index) {
     CLR_BIT(gprp->bitset, gpr_index);
     gprp->buffer[gpr_index] = NULL;
 }
 
-static bool x64_gprp_any_available(x64_GPRP *restrict gprp,
+static bool x86_gprp_any_available(x86_GPRP *restrict gprp,
                                    u8 *restrict gpr_index) {
     for (u8 i = 0; i < 16; ++i) {
         if (!CHK_BIT(gprp->bitset, i)) {
@@ -68,7 +68,7 @@ static bool x64_gprp_any_available(x64_GPRP *restrict gprp,
 }
 
 static void
-x64_gprp_allocate_to_gpr_index(x64_GPRP *restrict gprp,
+x86_gprp_allocate_to_gpr_index(x86_GPRP *restrict gprp,
                                u8 gpr_index,
                                x86_Allocation *restrict allocation) {
     u64 size = size_of(allocation->type);
@@ -79,7 +79,7 @@ x64_gprp_allocate_to_gpr_index(x64_GPRP *restrict gprp,
     allocation->location                = x64_location_gpr(gpr);
 }
 
-static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
+static void x86_gprp_allocate_to_gpr(x86_GPRP *restrict gprp,
                                      x86_64_GPR gpr,
                                      x86_Allocation *restrict allocation) {
     u64 size = size_of(allocation->type);
@@ -100,11 +100,11 @@ static void x64_gprp_allocate_to_gpr(x64_GPRP *restrict gprp,
  * @return true if able to allocate
  * @return false otherwise
  */
-static bool x64_gprp_allocate(x64_GPRP *restrict gprp,
+static bool x86_gprp_allocate(x86_GPRP *restrict gprp,
                               x86_Allocation *restrict allocation) {
     u8 gpr_index;
-    if (x64_gprp_any_available(gprp, &gpr_index)) {
-        x64_gprp_allocate_to_gpr_index(gprp, gpr_index, allocation);
+    if (x86_gprp_any_available(gprp, &gpr_index)) {
+        x86_gprp_allocate_to_gpr_index(gprp, gpr_index, allocation);
         return true;
     }
 
@@ -121,24 +121,24 @@ static bool x64_gprp_allocate(x64_GPRP *restrict gprp,
  * @return true if able to allocate
  * @return false otherwise
  */
-static bool x64_gprp_reallocate(x64_GPRP *restrict gprp,
+static bool x86_gprp_reallocate(x86_GPRP *restrict gprp,
                                 x86_Allocation *restrict allocation) {
     assert(allocation->location.kind == LOCATION_GPR);
     u8 gpr_index;
-    if (x64_gprp_any_available(gprp, &gpr_index)) {
-        x64_gprp_release(gprp, allocation->location.gpr);
-        x64_gprp_allocate_to_gpr_index(gprp, gpr_index, allocation);
+    if (x86_gprp_any_available(gprp, &gpr_index)) {
+        x86_gprp_release(gprp, allocation->location.gpr);
+        x86_gprp_allocate_to_gpr_index(gprp, gpr_index, allocation);
         return true;
     }
     return false;
 }
 
-static x86_Allocation *x64_gprp_allocation_at(x64_GPRP *restrict gprp,
+static x86_Allocation *x86_gprp_allocation_at(x86_GPRP *restrict gprp,
                                               x86_64_GPR gpr) {
     return gprp->buffer[x86_64_gpr_index(gpr)];
 }
 
-static x86_Allocation *x64_gprp_allocation_of(x64_GPRP *restrict gprp,
+static x86_Allocation *x86_gprp_allocation_of(x86_GPRP *restrict gprp,
                                               u64 ssa) {
     for (u8 i = 0; i < 16; ++i) {
         x86_Allocation *cursor = gprp->buffer[i];
@@ -149,7 +149,7 @@ static x86_Allocation *x64_gprp_allocation_of(x64_GPRP *restrict gprp,
     return NULL;
 }
 
-static x86_Allocation *x64_gprp_oldest_allocation(x64_GPRP *restrict gprp) {
+static x86_Allocation *x86_gprp_oldest_allocation(x86_GPRP *restrict gprp) {
     x86_Allocation *oldest = NULL;
 
     for (u8 i = 0; i < 16; ++i) {
@@ -164,14 +164,14 @@ static x86_Allocation *x64_gprp_oldest_allocation(x64_GPRP *restrict gprp) {
     return oldest;
 }
 
-static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
+static void x86_gprp_release_expired_allocations(x86_GPRP *restrict gprp,
                                                  u64 Idx) {
     for (u8 i = 0; i < 16; ++i) {
         x86_Allocation *cursor = gprp->buffer[i];
         if (cursor == NULL) { continue; }
 
         if (cursor->lifetime.last_use < Idx) {
-            x64_gprp_release_index(gprp, i);
+            x86_gprp_release_index(gprp, i);
         }
     }
 }
@@ -180,8 +180,8 @@ static void x64_gprp_release_expired_allocations(x64_GPRP *restrict gprp,
 #undef CLR_BIT
 #undef CHK_BIT
 
-static x64_StackAllocations x64_stack_allocations_create() {
-    x64_StackAllocations stack_allocations = {
+static x86_StackAllocations x86_stack_allocations_create() {
+    x86_StackAllocations stack_allocations = {
         .active_stack_size = 0,
         .total_stack_size  = 0,
         .count             = 0,
@@ -191,8 +191,8 @@ static x64_StackAllocations x64_stack_allocations_create() {
     return stack_allocations;
 }
 
-static void x64_stack_allocations_destroy(
-    x64_StackAllocations *restrict stack_allocations) {
+static void x86_stack_allocations_destroy(
+    x86_StackAllocations *restrict stack_allocations) {
     if (stack_allocations->buffer != NULL) {
         deallocate(stack_allocations->buffer);
     }
@@ -204,12 +204,12 @@ static void x64_stack_allocations_destroy(
 }
 
 static bool
-stack_allocations_full(x64_StackAllocations *restrict stack_allocations) {
+x86_stack_allocations_full(x86_StackAllocations *restrict stack_allocations) {
     return (stack_allocations->count + 1) >= stack_allocations->capacity;
 }
 
 static void
-stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
+x86_stack_allocations_grow(x86_StackAllocations *restrict stack_allocations) {
     Growth_u64 g =
         array_growth_u64(stack_allocations->capacity, sizeof(x86_Allocation *));
     stack_allocations->buffer =
@@ -218,10 +218,10 @@ stack_allocations_grow(x64_StackAllocations *restrict stack_allocations) {
 }
 
 static void
-x64_stack_allocations_append(x64_StackAllocations *restrict stack_allocations,
+x86_stack_allocations_append(x86_StackAllocations *restrict stack_allocations,
                              x86_Allocation *restrict allocation) {
-    if (stack_allocations_full(stack_allocations)) {
-        stack_allocations_grow(stack_allocations);
+    if (x86_stack_allocations_full(stack_allocations)) {
+        x86_stack_allocations_grow(stack_allocations);
     }
 
     stack_allocations->buffer[stack_allocations->count] = allocation;
@@ -229,7 +229,7 @@ x64_stack_allocations_append(x64_StackAllocations *restrict stack_allocations,
 }
 
 static void
-x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
+x86_stack_allocations_allocate(x86_StackAllocations *restrict stack_allocations,
                                x86_Allocation *restrict allocation) {
     if (__builtin_add_overflow(stack_allocations->total_stack_size,
                                size_of(allocation->type),
@@ -241,11 +241,11 @@ x64_stack_allocations_allocate(x64_StackAllocations *restrict stack_allocations,
 
     allocation->location = x64_location_address(X86_64_GPR_RBP, -offset);
 
-    x64_stack_allocations_append(stack_allocations, allocation);
+    x86_stack_allocations_append(stack_allocations, allocation);
 }
 
 static void
-x64_stack_allocations_erase(x64_StackAllocations *restrict stack_allocations,
+x86_stack_allocations_erase(x86_StackAllocations *restrict stack_allocations,
                             x86_Allocation *restrict allocation) {
     u64 i = 0;
     for (; i < stack_allocations->count; ++i) {
@@ -262,19 +262,19 @@ x64_stack_allocations_erase(x64_StackAllocations *restrict stack_allocations,
     stack_allocations->count -= 1;
 }
 
-static void x64_stack_allocations_release_expired_allocations(
-    x64_StackAllocations *restrict stack_allocations, u64 Idx) {
+static void x86_stack_allocations_release_expired_allocations(
+    x86_StackAllocations *restrict stack_allocations, u64 Idx) {
     for (u64 i = 0; i < stack_allocations->count; ++i) {
         x86_Allocation *cursor = stack_allocations->buffer[i];
         if (cursor->lifetime.last_use < Idx) {
-            x64_stack_allocations_erase(stack_allocations, cursor);
+            x86_stack_allocations_erase(stack_allocations, cursor);
             --i;
         }
     }
 }
 
 static x86_Allocation *
-x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
+x86_stack_allocations_of(x86_StackAllocations *restrict stack_allocations,
                          u64 ssa) {
     for (u64 i = 0; i < stack_allocations->count; ++i) {
         x86_Allocation *cursor = stack_allocations->buffer[i];
@@ -283,14 +283,14 @@ x64_stack_allocations_of(x64_StackAllocations *restrict stack_allocations,
     EXP_UNREACHABLE();
 }
 
-static x64_AllocationBuffer x64_allocation_buffer_create() {
-    x64_AllocationBuffer allocation_buffer = {
+static x86_AllocationBuffer x86_allocation_buffer_create() {
+    x86_AllocationBuffer allocation_buffer = {
         .count = 0, .capacity = 0, .buffer = NULL};
     return allocation_buffer;
 }
 
-static void x64_allocation_buffer_destroy(
-    x64_AllocationBuffer *restrict allocation_buffer) {
+static void x86_allocation_buffer_destroy(
+    x86_AllocationBuffer *restrict allocation_buffer) {
     assert(allocation_buffer != NULL);
     for (u64 i = 0; i < allocation_buffer->count; ++i) {
         x86_allocation_deallocate(allocation_buffer->buffer[i]);
@@ -303,12 +303,12 @@ static void x64_allocation_buffer_destroy(
 }
 
 static bool
-x64_allocation_buffer_full(x64_AllocationBuffer *restrict allocation_buffer) {
+x86_allocation_buffer_full(x86_AllocationBuffer *restrict allocation_buffer) {
     return (allocation_buffer->count + 1) >= allocation_buffer->capacity;
 }
 
 static void
-x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
+x86_allocation_buffer_grow(x86_AllocationBuffer *restrict allocation_buffer) {
     Growth_u64 g =
         array_growth_u64(allocation_buffer->capacity, sizeof(x86_Allocation *));
     allocation_buffer->buffer =
@@ -317,15 +317,15 @@ x64_allocation_buffer_grow(x64_AllocationBuffer *restrict allocation_buffer) {
 }
 
 static x86_Allocation *
-x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
+x86_allocation_buffer_append(x86_AllocationBuffer *restrict allocation_buffer,
                              u64         ssa,
                              Lifetime   *lifetime,
                              Type const *type) {
     assert(allocation_buffer != NULL);
     assert(type != NULL);
 
-    if (x64_allocation_buffer_full(allocation_buffer)) {
-        x64_allocation_buffer_grow(allocation_buffer);
+    if (x86_allocation_buffer_full(allocation_buffer)) {
+        x86_allocation_buffer_grow(allocation_buffer);
     }
 
     x86_Allocation **allocation =
@@ -342,131 +342,131 @@ x64_allocation_buffer_append(x64_AllocationBuffer *restrict allocation_buffer,
     return *allocation;
 }
 
-x64_Allocator x64_allocator_create(Function *restrict body,
+x86_Allocator x86_allocator_create(Function *restrict body,
                                    Context *restrict context) {
-    x64_Allocator allocator = {
-        .gprp              = x64_gprp_create(),
-        .stack_allocations = x64_stack_allocations_create(),
-        .allocations       = x64_allocation_buffer_create(),
+    x86_Allocator allocator = {
+        .gprp              = x86_gprp_create(),
+        .stack_allocations = x86_stack_allocations_create(),
+        .allocations       = x86_allocation_buffer_create(),
         .lifetimes         = lifetimes_compute(body, context),
     };
-    x64_gprp_aquire(&allocator.gprp, X86_64_GPR_RSP);
-    x64_gprp_aquire(&allocator.gprp, X86_64_GPR_RBP);
+    x86_gprp_aquire(&allocator.gprp, X86_64_GPR_RSP);
+    x86_gprp_aquire(&allocator.gprp, X86_64_GPR_RBP);
     return allocator;
 }
 
-void x64_allocator_destroy(x64_Allocator *restrict allocator) {
-    x64_gprp_destroy(&allocator->gprp);
-    x64_stack_allocations_destroy(&allocator->stack_allocations);
-    x64_allocation_buffer_destroy(&allocator->allocations);
+void x86_allocator_destroy(x86_Allocator *restrict allocator) {
+    x86_gprp_destroy(&allocator->gprp);
+    x86_stack_allocations_destroy(&allocator->stack_allocations);
+    x86_allocation_buffer_destroy(&allocator->allocations);
     lifetimes_destroy(&allocator->lifetimes);
 }
 
-bool x64_allocator_uses_stack(x64_Allocator *restrict allocator) {
+bool x86_allocator_uses_stack(x86_Allocator *restrict allocator) {
     return allocator->stack_allocations.total_stack_size > 0;
 }
 
-i64 x64_allocator_total_stack_size(x64_Allocator *restrict allocator) {
+i64 x86_allocator_total_stack_size(x86_Allocator *restrict allocator) {
     return allocator->stack_allocations.total_stack_size;
 }
 
 static void
-x64_allocator_release_expired_lifetimes(x64_Allocator *restrict allocator,
+x86_allocator_release_expired_lifetimes(x86_Allocator *restrict allocator,
                                         u64 Idx) {
-    x64_stack_allocations_release_expired_allocations(
+    x86_stack_allocations_release_expired_allocations(
         &allocator->stack_allocations, Idx);
-    x64_gprp_release_expired_allocations(&allocator->gprp, Idx);
+    x86_gprp_release_expired_allocations(&allocator->gprp, Idx);
 }
 
-static void x64_allocator_spill_allocation(x64_Allocator *restrict allocator,
+static void x86_allocator_spill_allocation(x86_Allocator *restrict allocator,
                                            x86_Allocation *restrict allocation,
                                            x64_Bytecode *restrict x64bc) {
     assert(allocation->location.kind == LOCATION_GPR);
     x86_64_GPR gpr = allocation->location.gpr;
-    x64_gprp_release(&allocator->gprp, gpr);
-    x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+    x86_gprp_release(&allocator->gprp, gpr);
+    x86_stack_allocations_allocate(&allocator->stack_allocations, allocation);
 
     x64_bytecode_append(
         x64bc, x64_mov(x64_operand_alloc(allocation), x64_operand_gpr(gpr)));
 }
 
-x86_Allocation *x64_allocator_allocation_of(x64_Allocator *restrict allocator,
+x86_Allocation *x86_allocator_allocation_of(x86_Allocator *restrict allocator,
                                             u64 ssa) {
-    x86_Allocation *allocation = x64_gprp_allocation_of(&allocator->gprp, ssa);
+    x86_Allocation *allocation = x86_gprp_allocation_of(&allocator->gprp, ssa);
     if (allocation != NULL) { return allocation; }
 
-    return x64_stack_allocations_of(&allocator->stack_allocations, ssa);
+    return x86_stack_allocations_of(&allocator->stack_allocations, ssa);
 }
 
-void x64_allocator_release_gpr(x64_Allocator *restrict allocator,
+void x86_allocator_release_gpr(x86_Allocator *restrict allocator,
                                x86_64_GPR gpr,
                                u64        Idx,
                                x64_Bytecode *restrict x64bc) {
-    x86_Allocation *active = x64_gprp_allocation_at(&allocator->gprp, gpr);
+    x86_Allocation *active = x86_gprp_allocation_at(&allocator->gprp, gpr);
     if ((active == NULL) || active->lifetime.last_use < Idx) {
-        x64_gprp_release(&allocator->gprp, gpr);
+        x86_gprp_release(&allocator->gprp, gpr);
         return;
     }
 
-    x64_allocator_reallocate_active(allocator, active, x64bc);
+    x86_allocator_reallocate_active(allocator, active, x64bc);
 }
 
-void x64_allocator_aquire_gpr(x64_Allocator *restrict allocator,
+void x86_allocator_aquire_gpr(x86_Allocator *restrict allocator,
                               x86_64_GPR gpr,
                               u64        Idx,
                               x64_Bytecode *restrict x64bc) {
-    x86_Allocation *active = x64_gprp_allocation_at(&allocator->gprp, gpr);
+    x86_Allocation *active = x86_gprp_allocation_at(&allocator->gprp, gpr);
     if (active == NULL) {
-        x64_gprp_aquire(&allocator->gprp, gpr);
+        x86_gprp_aquire(&allocator->gprp, gpr);
         return;
     }
 
     if (active->lifetime.last_use <= Idx) {
-        x64_gprp_release(&allocator->gprp, gpr);
-        x64_gprp_aquire(&allocator->gprp, gpr);
+        x86_gprp_release(&allocator->gprp, gpr);
+        x86_gprp_aquire(&allocator->gprp, gpr);
         return;
     }
 
-    x64_allocator_reallocate_active(allocator, active, x64bc);
+    x86_allocator_reallocate_active(allocator, active, x64bc);
 }
 
-static void x64_allocator_stack_allocate(x64_Allocator *restrict allocator,
+static void x86_allocator_stack_allocate(x86_Allocator *restrict allocator,
                                          x86_Allocation *restrict allocation) {
-    x64_stack_allocations_allocate(&allocator->stack_allocations, allocation);
+    x86_stack_allocations_allocate(&allocator->stack_allocations, allocation);
 }
 
-static void x64_allocator_register_allocate(x64_Allocator *restrict allocator,
+static void x86_allocator_register_allocate(x86_Allocator *restrict allocator,
                                             u64 Idx,
                                             x86_Allocation *restrict allocation,
                                             x64_Bytecode *restrict x64bc) {
-    x64_allocator_release_expired_lifetimes(allocator, Idx);
+    x86_allocator_release_expired_lifetimes(allocator, Idx);
 
-    if (x64_gprp_allocate(&allocator->gprp, allocation)) { return; }
+    if (x86_gprp_allocate(&allocator->gprp, allocation)) { return; }
 
     // otherwise spill the oldest active allocation to the stack.
     x86_Allocation *oldest_active =
-        x64_gprp_oldest_allocation(&allocator->gprp);
+        x86_gprp_oldest_allocation(&allocator->gprp);
 
     if (oldest_active->lifetime.last_use > allocation->lifetime.last_use) {
-        x64_allocator_spill_allocation(allocator, oldest_active, x64bc);
-        x64_gprp_allocate(&allocator->gprp, allocation);
+        x86_allocator_spill_allocation(allocator, oldest_active, x64bc);
+        x86_gprp_allocate(&allocator->gprp, allocation);
     } else {
-        x64_allocator_stack_allocate(allocator, allocation);
+        x86_allocator_stack_allocate(allocator, allocation);
     }
 }
 
-x86_Allocation *x64_allocator_allocate(x64_Allocator *restrict allocator,
+x86_Allocation *x86_allocator_allocate(x86_Allocator *restrict allocator,
                                        u64            Idx,
                                        LocalVariable *local,
                                        x64_Bytecode *restrict x64bc) {
     Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x64_allocation_buffer_append(
+    x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, local->ssa, lifetime, local->type);
 
     if (string_view_empty(local->name) && type_is_scalar(local->type)) {
-        x64_allocator_register_allocate(allocator, Idx, allocation, x64bc);
+        x86_allocator_register_allocate(allocator, Idx, allocation, x64bc);
     } else {
-        x64_allocator_stack_allocate(allocator, allocation);
+        x86_allocator_stack_allocate(allocator, allocation);
     }
 
     return allocation;
@@ -478,7 +478,7 @@ x86_Allocation *x64_allocator_allocate(x64_Allocator *restrict allocator,
  *
  */
 x86_Allocation *
-x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
+x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
                                    u64             Idx,
                                    LocalVariable  *local,
                                    x86_Allocation *active,
@@ -494,7 +494,7 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
     }
 
     // we have to keep the existing allocation around
-    x86_Allocation *new = x64_allocator_allocate(allocator, Idx, local, x64bc);
+    x86_Allocation *new = x86_allocator_allocate(allocator, Idx, local, x64bc);
 
     // initialize the new allocation
     if ((active->location.kind == LOCATION_ADDRESS) &&
@@ -502,7 +502,7 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
         u64 size = size_of(new->type);
         exp_assert(x86_64_gpr_valid_size(size));
         x86_64_GPR gpr =
-            x64_allocator_aquire_any_gpr(allocator, size, Idx, x64bc);
+            x86_allocator_aquire_any_gpr(allocator, size, Idx, x64bc);
         x64_bytecode_append(
             x64bc, x64_mov(x64_operand_gpr(gpr), x64_operand_alloc(active)));
         x64_bytecode_append(
@@ -516,50 +516,50 @@ x64_allocator_allocate_from_active(x64_Allocator *restrict allocator,
 }
 
 x86_Allocation *
-x64_allocator_allocate_to_any_gpr(x64_Allocator *restrict allocator,
+x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
                                   LocalVariable *local,
                                   x64_Bytecode *restrict x64bc) {
     Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x64_allocation_buffer_append(
+    x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, local->ssa, lifetime, local->type);
 
-    if (x64_gprp_allocate(&allocator->gprp, allocation)) { return allocation; }
+    if (x86_gprp_allocate(&allocator->gprp, allocation)) { return allocation; }
 
-    u8 gpr_index = x64_allocator_spill_oldest_active(allocator, x64bc);
-    x64_gprp_allocate_to_gpr_index(&allocator->gprp, gpr_index, allocation);
+    u8 gpr_index = x86_allocator_spill_oldest_active(allocator, x64bc);
+    x86_gprp_allocate_to_gpr_index(&allocator->gprp, gpr_index, allocation);
     return allocation;
 }
 
-x86_Allocation *x64_allocator_allocate_to_gpr(x64_Allocator *restrict allocator,
+x86_Allocation *x86_allocator_allocate_to_gpr(x86_Allocator *restrict allocator,
                                               LocalVariable *local,
                                               x86_64_GPR     gpr,
                                               u64            Idx,
                                               x64_Bytecode *restrict x64bc) {
     Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x64_allocation_buffer_append(
+    x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, local->ssa, lifetime, local->type);
 
-    x64_allocator_release_gpr(allocator, gpr, Idx, x64bc);
-    x64_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
+    x86_allocator_release_gpr(allocator, gpr, Idx, x64bc);
+    x86_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
     return allocation;
 }
 
-x86_Allocation *x64_allocator_allocate_to_stack(
-    x64_Allocator *restrict allocator, i64 offset, LocalVariable *local) {
+x86_Allocation *x86_allocator_allocate_to_stack(
+    x86_Allocator *restrict allocator, i64 offset, LocalVariable *local) {
     Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x64_allocation_buffer_append(
+    x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, local->ssa, lifetime, local->type);
 
     allocation->location = x64_location_address(X86_64_GPR_RBP, offset);
 
-    x64_stack_allocations_append(&allocator->stack_allocations, allocation);
+    x86_stack_allocations_append(&allocator->stack_allocations, allocation);
     return allocation;
 }
 
-x86_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
+x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
                                               x64_Location location,
                                               Type const  *type) {
-    x86_Allocation *allocation = x64_allocation_buffer_append(
+    x86_Allocation *allocation = x86_allocation_buffer_append(
         &allocator->allocations, u64_MAX, nullptr, type);
 
     // The gpr allocator of this function does not actually want the
@@ -574,49 +574,49 @@ x86_Allocation *x64_allocator_allocate_result(x64_Allocator *restrict allocator,
     return allocation;
 }
 
-void x64_allocator_reallocate_active(x64_Allocator *restrict allocator,
+void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,
                                      x86_Allocation *restrict active,
                                      x64_Bytecode *restrict x64bc) {
     if (active->location.kind == LOCATION_ADDRESS) { return; }
 
     x86_64_GPR prev_gpr = active->location.gpr;
-    if (x64_gprp_reallocate(&allocator->gprp, active)) {
+    if (x86_gprp_reallocate(&allocator->gprp, active)) {
         x64_bytecode_append(x64bc,
                             x64_mov(x64_operand_gpr(active->location.gpr),
                                     x64_operand_gpr(prev_gpr)));
     } else {
-        x64_allocator_spill_allocation(allocator, active, x64bc);
+        x86_allocator_spill_allocation(allocator, active, x64bc);
     }
 }
 
-u8 x64_allocator_spill_oldest_active(x64_Allocator *restrict allocator,
+u8 x86_allocator_spill_oldest_active(x86_Allocator *restrict allocator,
                                      x64_Bytecode *restrict x64bc) {
-    x86_Allocation *oldest = x64_gprp_oldest_allocation(&allocator->gprp);
+    x86_Allocation *oldest = x86_gprp_oldest_allocation(&allocator->gprp);
     if (oldest == NULL) {
         u8 gpr_index;
-        if (x64_gprp_any_available(&allocator->gprp, &gpr_index)) {
+        if (x86_gprp_any_available(&allocator->gprp, &gpr_index)) {
             return gpr_index;
         }
 
         EXP_UNREACHABLE();
     }
     x86_64_GPR gpr = oldest->location.gpr;
-    x64_allocator_spill_allocation(allocator, oldest, x64bc);
+    x86_allocator_spill_allocation(allocator, oldest, x64bc);
     return x86_64_gpr_index(gpr);
 }
 
-x86_64_GPR x64_allocator_aquire_any_gpr(x64_Allocator *restrict allocator,
+x86_64_GPR x86_allocator_aquire_any_gpr(x86_Allocator *restrict allocator,
                                         u64 size,
                                         u64 Idx,
                                         x64_Bytecode *restrict x64bc) {
     exp_assert(x86_64_gpr_valid_size(size));
-    x64_allocator_release_expired_lifetimes(allocator, Idx);
+    x86_allocator_release_expired_lifetimes(allocator, Idx);
 
     u8 gpr = 0;
-    if (x64_gprp_any_available(&allocator->gprp, &gpr)) {
+    if (x86_gprp_any_available(&allocator->gprp, &gpr)) {
         return x86_64_gpr_with_size(gpr, size);
     }
 
-    gpr = x64_allocator_spill_oldest_active(allocator, x64bc);
+    gpr = x86_allocator_spill_oldest_active(allocator, x64bc);
     return x86_64_gpr_with_size(gpr, size);
 }

@@ -52,7 +52,7 @@ Bytecode       *x86_context_current_bc(x86_Context *x86_context);
 LocalVariables *x86_context_current_locals(x86_Context *x86_context);
 x64_Function   *x86_context_current_x86_body(x86_Context *x86_context);
 x64_Bytecode   *x86_context_current_x86_bc(x86_Context *x86_context);
-x64_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
+x86_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
 
 u64  x86_context_current_offset(x86_Context *x86_context);
 void x86_context_insert(x86_Context    *x86_context,

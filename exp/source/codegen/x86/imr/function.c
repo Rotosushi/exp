@@ -50,18 +50,18 @@ x64_Function x64_function_create(Function *restrict body,
         .arguments = x64_formal_argument_list_create(body->arguments.size),
         .result    = NULL,
         .bc        = x64_bytecode_create(),
-        .allocator = x64_allocator_create(body, context->context)};
-    x64_Allocator  *allocator = &x64_body.allocator;
+        .allocator = x86_allocator_create(body, context->context)};
+    x86_Allocator  *allocator = &x64_body.allocator;
     x64_Bytecode   *bc        = &x64_body.bc;
     LocalVariables *locals    = &body->locals;
 
     u8 scalar_argument_count = 0;
 
     if (type_is_scalar(body->return_type)) {
-        x64_body.result = x64_allocator_allocate_result(
+        x64_body.result = x86_allocator_allocate_result(
             allocator, x64_location_gpr(X86_64_GPR_RAX), body->return_type);
     } else {
-        x64_body.result = x64_allocator_allocate_result(
+        x64_body.result = x86_allocator_allocate_result(
             allocator,
             x64_location_address(X86_64_GPR_RDI, 0),
             body->return_type);
@@ -77,12 +77,12 @@ x64_Function x64_function_create(Function *restrict body,
             u64        size = size_of(local->type);
             x86_64_GPR gpr =
                 x86_64_gpr_scalar_argument(scalar_argument_count++, size);
-            x64_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
+            x86_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
         } else {
             u64 argument_size = size_of(arg->type);
             assert(argument_size <= i64_MAX);
 
-            x64_allocator_allocate_to_stack(allocator, offset, local);
+            x86_allocator_allocate_to_stack(allocator, offset, local);
 
             if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
                 PANIC("argument offset overflow");
@@ -97,5 +97,5 @@ void x64_function_destroy(x64_Function *restrict body) {
     assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
     x64_bytecode_destroy(&body->bc);
-    x64_allocator_destroy(&body->allocator);
+    x86_allocator_destroy(&body->allocator);
 }

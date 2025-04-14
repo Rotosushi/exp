@@ -40,7 +40,7 @@ typedef struct x64_Function {
     x64_FormalArgumentList arguments;
     x86_Allocation        *result;
     x64_Bytecode           bc;
-    x64_Allocator          allocator;
+    x86_Allocator          allocator;
 } x64_Function;
 
 struct x86_Context;
