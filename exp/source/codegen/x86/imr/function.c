@@ -24,30 +24,30 @@
 #include "support/allocation.h"
 #include "support/panic.h"
 
-x64_FormalArgumentList x64_formal_argument_list_create(u8 size) {
-    x64_FormalArgumentList args = {
-        .size = size, .buffer = allocate(size * sizeof(x64_FormalArgument))};
+x86_FormalArgumentList x86_formal_argument_list_create(u8 size) {
+    x86_FormalArgumentList args = {
+        .size = size, .buffer = allocate(size * sizeof(x86_FormalArgument))};
     return args;
 }
 
 static void
-x64_formal_arguments_destroy(x64_FormalArgumentList *restrict args) {
+x86_formal_arguments_destroy(x86_FormalArgumentList *restrict args) {
     args->size = 0;
     deallocate(args->buffer);
     args->buffer = NULL;
 }
 
-x64_FormalArgument *
-x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx) {
+x86_FormalArgument *
+x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 idx) {
     assert(args != NULL);
     assert(idx < args->size);
     return args->buffer + idx;
 }
 
-x64_Function x64_function_create(Function *restrict body,
+x86_Function x86_function_create(Function *restrict body,
                                  x86_Context *restrict context) {
-    x64_Function x64_body = {
-        .arguments = x64_formal_argument_list_create(body->arguments.size),
+    x86_Function x64_body = {
+        .arguments = x86_formal_argument_list_create(body->arguments.size),
         .result    = NULL,
         .bc        = x86_bytecode_create(),
         .allocator = x86_allocator_create(body, context->context)};
@@ -93,9 +93,9 @@ x64_Function x64_function_create(Function *restrict body,
     return x64_body;
 }
 
-void x64_function_destroy(x64_Function *restrict body) {
+void x86_function_destroy(x86_Function *restrict body) {
     assert(body != NULL);
-    x64_formal_arguments_destroy(&body->arguments);
+    x86_formal_arguments_destroy(&body->arguments);
     x86_bytecode_destroy(&body->bc);
     x86_allocator_destroy(&body->allocator);
 }

@@ -28,7 +28,7 @@
 void x64_codegen_return(Instruction I,
                         u64         block_index,
                         x86_Context *restrict context) {
-    x64_Function *body = x86_context_current_x86_body(context);
+    x86_Function *body = x86_context_current_x86_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {

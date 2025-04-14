@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_FUNCTION_BODY_H
-#define EXP_BACKEND_X64_FUNCTION_BODY_H
+#ifndef EXP_BACKEND_X86_FUNCTION_BODY_H
+#define EXP_BACKEND_X86_FUNCTION_BODY_H
 
 #include "codegen/x86/imr/allocator.h"
 #include "codegen/x86/imr/bytecode.h"
@@ -25,27 +25,27 @@ typedef struct x64_FormalArgument {
     u8              index;
     x86_Allocation *allocation;
     Type           *type;
-} x64_FormalArgument;
+} x86_FormalArgument;
 
 typedef struct x64_FormalArgumentList {
     u8                  size;
-    x64_FormalArgument *buffer;
-} x64_FormalArgumentList;
+    x86_FormalArgument *buffer;
+} x86_FormalArgumentList;
 
-x64_FormalArgumentList x64_formal_argument_list_create(u8 size);
-x64_FormalArgument *
-x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
+x86_FormalArgumentList x86_formal_argument_list_create(u8 size);
+x86_FormalArgument *
+x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 idx);
 
-typedef struct x64_Function {
-    x64_FormalArgumentList arguments;
+typedef struct x86_Function {
+    x86_FormalArgumentList arguments;
     x86_Allocation        *result;
     x86_Bytecode           bc;
     x86_Allocator          allocator;
-} x64_Function;
+} x86_Function;
 
 struct x86_Context;
-x64_Function x64_function_create(Function *restrict body,
+x86_Function x86_function_create(Function *restrict body,
                                  struct x86_Context *restrict context);
-void         x64_function_destroy(x64_Function *restrict body);
+void         x86_function_destroy(x86_Function *restrict body);
 
-#endif // !EXP_BACKEND_X64_FUNCTION_BODY_H
+#endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

@@ -57,7 +57,7 @@ void x86_context_enter_function(x86_Context *x64_context, StringView name) {
     x86_Symbol *symbol    = x86_symbol_table_at(&x64_context->symbols, name);
     x64_context->x64_body = &symbol->body;
     *x64_context->x64_body =
-        x64_function_create(x64_context->body, x64_context);
+        x86_function_create(x64_context->body, x64_context);
 }
 
 void x86_context_leave_function(x86_Context *x64_context) {
@@ -85,7 +85,7 @@ LocalVariables *x86_context_current_locals(x86_Context *x64_context) {
     return &x86_context_current_body(x64_context)->locals;
 }
 
-x64_Function *x86_context_current_x86_body(x86_Context *x64_context) {
+x86_Function *x86_context_current_x86_body(x86_Context *x64_context) {
     assert(x64_context->x64_body != nullptr);
     return x64_context->x64_body;
 }

@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_BYTECODE_H
-#define EXP_BACKEND_X64_BYTECODE_H
+#ifndef EXP_BACKEND_X86_BYTECODE_H
+#define EXP_BACKEND_X86_BYTECODE_H
 
 #include "codegen/x86/imr/instruction.h"
 #include "support/string.h"
@@ -40,4 +40,4 @@ void x86_bytecode_append(x86_Bytecode *restrict bc, x64_Instruction I);
 void x86_bytecode_emit(x86_Bytecode *restrict bc,
                        String *restrict buffer,
                        Context *restrict context);
-#endif // !EXP_BACKEND_X64_BYTECODE_H
+#endif // !EXP_BACKEND_X86_BYTECODE_H

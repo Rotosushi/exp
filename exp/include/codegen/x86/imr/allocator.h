@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_ALLOCATOR_H
-#define EXP_BACKEND_X64_ALLOCATOR_H
+#ifndef EXP_BACKEND_X86_ALLOCATOR_H
+#define EXP_BACKEND_X86_ALLOCATOR_H
 
 #include "codegen/x86/imr/allocation.h"
 #include "codegen/x86/imr/bytecode.h"
@@ -117,4 +117,4 @@ x86_64_GPR x86_allocator_aquire_any_gpr(x86_Allocator *restrict allocator,
                                         u64 Idx,
                                         x86_Bytecode *restrict x64bc);
 
-#endif // !EXP_BACKEND_X64_ALLOCATOR_H
+#endif // !EXP_BACKEND_X86_ALLOCATOR_H

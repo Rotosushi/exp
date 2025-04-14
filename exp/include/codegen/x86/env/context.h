@@ -24,7 +24,7 @@ typedef struct x86_Context {
     x86_SymbolTable symbols;
     Context        *context;
     Function       *body;
-    x64_Function   *x64_body;
+    x86_Function   *x64_body;
 } x86_Context;
 
 // x64 context functions
@@ -50,7 +50,7 @@ FormalArgument *x86_context_argument_at(x86_Context *x86_context, u8 index);
 Function       *x86_context_current_body(x86_Context *x86_context);
 Bytecode       *x86_context_current_bc(x86_Context *x86_context);
 LocalVariables *x86_context_current_locals(x86_Context *x86_context);
-x64_Function   *x86_context_current_x86_body(x86_Context *x86_context);
+x86_Function   *x86_context_current_x86_body(x86_Context *x86_context);
 x86_Bytecode   *x86_context_current_x86_bc(x86_Context *x86_context);
 x86_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
 

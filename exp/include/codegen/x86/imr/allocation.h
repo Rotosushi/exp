@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_ALLOCATION_H
-#define EXP_BACKEND_X64_ALLOCATION_H
+#ifndef EXP_BACKEND_X86_ALLOCATION_H
+#define EXP_BACKEND_X86_ALLOCATION_H
 
 #include "codegen/lifetimes.h"
 #include "codegen/x86/imr/location.h"
@@ -34,4 +34,4 @@ void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
 bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
                                 x64_Location location);
 
-#endif // !EXP_BACKEND_X64_ALLOCATION_H
+#endif // !EXP_BACKEND_X86_ALLOCATION_H

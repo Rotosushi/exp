@@ -21,7 +21,7 @@
 
 typedef struct x86_Symbol {
     StringView   name;
-    x64_Function body;
+    x86_Function body;
 } x86_Symbol;
 
 void x86_symbol_destroy(x86_Symbol *restrict symbol);
