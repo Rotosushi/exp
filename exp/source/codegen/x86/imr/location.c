@@ -52,7 +52,7 @@ bool x64_location_eq(x64_Location A, x64_Location B) {
 
     switch (A.kind) {
     case LOCATION_GPR:     return A.gpr == B.gpr;
-    case LOCATION_ADDRESS: return x64_address_equality(A.address, B.address);
+    case LOCATION_ADDRESS: return x86_address_equality(A.address, B.address);
     default:               EXP_UNREACHABLE();
     }
 }

@@ -122,7 +122,7 @@ static void x64_emit_operand(x64_Operand operand,
     }
 
     case X64_OPERAND_KIND_ADDRESS: {
-        x64_Address *address = &operand.address;
+        x86_Address *address = &operand.address;
         string_append_i64(buffer, address->offset);
 
         string_append(buffer, SV("(%"));

@@ -4,17 +4,17 @@
 
 #include "codegen/x86/imr/registers.h"
 
-typedef struct x64_Address {
+typedef struct x86_Address {
     x86_64_GPR base;
     x86_64_GPR index;
     u8         scale;
     bool       has_index;
     i64        offset;
-} x64_Address;
+} x86_Address;
 
-x64_Address x64_address_create(x86_64_GPR base, i64 offset);
+x86_Address x86_address_create(x86_64_GPR base, i64 offset);
 
-x64_Address x64_address_create_indexed(x86_64_GPR base,
+x86_Address x86_address_create_indexed(x86_64_GPR base,
                                        x86_64_GPR index,
                                        u8         scale,
                                        i64        offset);
@@ -27,6 +27,6 @@ x64_Address x64_address_create_indexed(x86_64_GPR base,
  * (because we cannot) to confirm true equality. Thus this
  * method should be used with caution. if at all.
  */
-bool x64_address_equality(x64_Address A, x64_Address B);
+bool x86_address_equality(x86_Address A, x86_Address B);
 
 #endif // EXP_BACKEND_X64_ADDRESS_H

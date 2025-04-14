@@ -29,7 +29,7 @@ typedef enum x64_OperandKind : u8 {
 
 typedef union x64_OperandData {
     x86_64_GPR  gpr;
-    x64_Address address;
+    x86_Address address;
     u32         label;
     u32         constant;
     i64         immediate;
@@ -39,7 +39,7 @@ typedef struct x64_Operand {
     x64_OperandKind kind;
     union {
         x86_64_GPR  gpr;
-        x64_Address address;
+        x86_Address address;
         u32         label;
         u32         constant;
         i64         immediate;
@@ -47,7 +47,7 @@ typedef struct x64_Operand {
 } x64_Operand;
 
 x64_Operand x64_operand_gpr(x86_64_GPR gpr);
-x64_Operand x64_operand_address(x64_Address address);
+x64_Operand x64_operand_address(x86_Address address);
 x64_Operand x64_operand_location(x64_Location location);
 x64_Operand x64_operand_alloc(x64_Allocation *alloc);
 x64_Operand x64_operand_constant(u32 index);

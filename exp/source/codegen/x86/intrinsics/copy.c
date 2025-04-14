@@ -26,8 +26,8 @@
 #include "support/assert.h"
 #include "support/message.h"
 
-void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
-                                    x64_Address *restrict src,
+void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
+                                    x86_Address *restrict src,
                                     u64 size,
                                     u64 Idx,
                                     x86_Context *restrict context) {
@@ -45,8 +45,8 @@ void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
     x86_context_release_gpr(context, gpr, Idx);
 }
 
-void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
-                                       x64_Address *restrict src,
+void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
+                                       x86_Address *restrict src,
                                        Type const *type,
                                        u64         Idx,
                                        x86_Context *restrict context) {
@@ -56,8 +56,8 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
     assert(type->kind == TYPE_KIND_TUPLE);
     TupleType const *tuple_type = &type->tuple_type;
 
-    x64_Address dst_element_address = *dst;
-    x64_Address src_element_address = *src;
+    x86_Address dst_element_address = *dst;
+    x86_Address src_element_address = *src;
     for (u64 i = 0; i < tuple_type->size; ++i) {
         Type const *element_type = tuple_type->types[i];
         u64         element_size = size_of(element_type);
@@ -83,8 +83,8 @@ void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_copy_memory(x64_Address *restrict dst,
-                             x64_Address *restrict src,
+void x64_codegen_copy_memory(x86_Address *restrict dst,
+                             x86_Address *restrict src,
                              Type const *type,
                              u64         Idx,
                              x86_Context *restrict context) {
@@ -100,7 +100,7 @@ void x64_codegen_copy_memory(x64_Address *restrict dst,
 }
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
-                                             x64_Address *restrict src,
+                                             x86_Address *restrict src,
                                              Type const *restrict type,
                                              u64 Idx,
                                              x86_Context *restrict context) {

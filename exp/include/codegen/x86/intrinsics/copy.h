@@ -21,26 +21,26 @@
 
 #include "codegen/x86/env/context.h"
 
-void x64_codegen_copy_scalar_memory(x64_Address *restrict dst,
-                                    x64_Address *restrict src,
+void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
+                                    x86_Address *restrict src,
                                     u64 size,
                                     u64 Idx,
                                     x86_Context *restrict context);
 
-void x64_codegen_copy_composite_memory(x64_Address *restrict dst,
-                                       x64_Address *restrict src,
+void x64_codegen_copy_composite_memory(x86_Address *restrict dst,
+                                       x86_Address *restrict src,
                                        Type const *type,
                                        u64         Idx,
                                        x86_Context *restrict context);
 
-void x64_codegen_copy_memory(x64_Address *restrict dst,
-                             x64_Address *restrict src,
+void x64_codegen_copy_memory(x86_Address *restrict dst,
+                             x86_Address *restrict src,
                              Type const *type,
                              u64         Idx,
                              x86_Context *restrict context);
 
 void x64_codegen_copy_allocation_from_memory(x64_Allocation *restrict dst,
-                                             x64_Address *restrict src,
+                                             x86_Address *restrict src,
                                              Type const *restrict type,
                                              u64 Idx,
                                              x86_Context *restrict context);

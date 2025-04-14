@@ -44,8 +44,8 @@ void x64_codegen_dot(Instruction I,
         x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
-        x64_Address *tuple_address = &B->location.address;
-        x64_Address  element_address =
+        x86_Address *tuple_address = &B->location.address;
+        x86_Address  element_address =
             x64_get_element_address(tuple_address, B->type, index);
         TupleType const *tuple_type   = &B->type->tuple_type;
         Type const      *element_type = tuple_type->types[index];

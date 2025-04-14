@@ -29,7 +29,7 @@
 #include "support/unreachable.h"
 
 static void
-x64_codegen_load_i64(x64_Address *dst, i64 value, x86_Context *x64_context) {
+x64_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
     if (context_trace(x64_context->context)) {
         trace(SV("x64_codegen_load_i64"), stdout);
     }
@@ -49,7 +49,7 @@ x64_codegen_load_i64(x64_Address *dst, i64 value, x86_Context *x64_context) {
 }
 
 static void
-x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
+x64_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
                                            Value *restrict value,
                                            x86_Context *restrict context) {
     if (context_trace(context->context)) {
@@ -83,7 +83,7 @@ x64_codegen_load_address_from_scalar_value(x64_Address *restrict dst,
 }
 
 static void
-x64_codegen_load_address_from_scalar_operand(x64_Address *restrict dst,
+x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
                                              Operand src,
                                              Type const *restrict type,
                                              u64 Idx,
@@ -134,7 +134,7 @@ x64_codegen_load_address_from_scalar_operand(x64_Address *restrict dst,
 }
 
 static void
-x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
+x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
                                                 Operand src,
                                                 Type const *restrict type,
                                                 u64 Idx,
@@ -162,7 +162,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
         (void)type;
         Tuple *tuple = &value->tuple;
 
-        x64_Address dst_element_address = *dst;
+        x86_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
             Operand     element = tuple->elements[i];
             Type const *element_type =
@@ -191,7 +191,7 @@ x64_codegen_load_address_from_composite_operand(x64_Address *restrict dst,
     }
 }
 
-void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_address_from_operand(x86_Address *restrict dst,
                                            Operand src,
                                            Type const *restrict type,
                                            u64 Idx,
@@ -209,7 +209,7 @@ void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
 }
 
 static void
-x64_codegen_load_argument_from_scalar_operand(x64_Address *restrict dst,
+x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
                                               Operand src,
                                               Type const *restrict type,
                                               u64 Idx,
@@ -257,7 +257,7 @@ x64_codegen_load_argument_from_scalar_operand(x64_Address *restrict dst,
 }
 
 static void x64_codegen_load_argument_from_composite_operand(
-    x64_Address *restrict dst,
+    x86_Address *restrict dst,
     Operand src,
     Type const *restrict type,
     u64 Idx,
@@ -285,7 +285,7 @@ static void x64_codegen_load_argument_from_composite_operand(
         (void)type;
         Tuple *tuple = &value->tuple;
 
-        x64_Address dst_element_address = *dst;
+        x86_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
             Operand     element = tuple->elements[i];
             Type const *element_type =
@@ -314,7 +314,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
 }
 
-void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
                                             Operand src,
                                             Type const *restrict type,
                                             u64 Idx,
@@ -413,7 +413,7 @@ static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
         trace(SV("x64_codegen_load_allocation_from_tuple"), stdout);
     }
     assert(dst->location.kind == LOCATION_ADDRESS);
-    x64_Address dst_address = dst->location.address;
+    x86_Address dst_address = dst->location.address;
     for (u64 i = 0; i < tuple->size; ++i) {
         Operand     element      = tuple->elements[i];
         Type const *element_type = type_of_operand(element, context->context);

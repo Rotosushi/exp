@@ -22,7 +22,7 @@
 
 #include "codegen/x86/env/context.h"
 
-void x64_codegen_load_address_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_address_from_operand(x86_Address *restrict dst,
                                            Operand src,
                                            Type const *restrict type,
                                            u64 Idx,
@@ -33,7 +33,7 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR dst,
                                        u64        Idx,
                                        x86_Context *restrict context);
 
-void x64_codegen_load_argument_from_operand(x64_Address *restrict dst,
+void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
                                             Operand src,
                                             Type const *restrict type,
                                             u64 Idx,

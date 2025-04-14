@@ -153,7 +153,7 @@ void x64_codegen_call(Instruction I,
     }
 
     i64         stack_space = 0;
-    x64_Address arg_address = x64_address_create(X86_64_GPR_RSP, 0);
+    x86_Address arg_address = x86_address_create(X86_64_GPR_RSP, 0);
 
     for (u8 i = 0; i < stack_args.size; ++i) {
         Operand     arg      = stack_args.buffer[i];

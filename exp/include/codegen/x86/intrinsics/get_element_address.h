@@ -34,7 +34,7 @@
  * @param index The index of the element to get the address of.
  * @return The address of the element.
  */
-x64_Address
-x64_get_element_address(x64_Address *src, Type const *type, u64 index);
+x86_Address
+x64_get_element_address(x86_Address *src, Type const *type, u64 index);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H

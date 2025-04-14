@@ -22,10 +22,10 @@
 #include "intrinsics/size_of.h"
 #include "support/unreachable.h"
 
-x64_Address
-x64_get_element_address(x64_Address *src, Type const *type, u64 index) {
+x86_Address
+x64_get_element_address(x86_Address *src, Type const *type, u64 index) {
 
-    x64_Address result = *src;
+    x86_Address result = *src;
 
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {

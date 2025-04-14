@@ -29,7 +29,7 @@ typedef struct x64_Location {
     x64_LocationKind kind;
     union {
         x86_64_GPR  gpr;
-        x64_Address address;
+        x86_Address address;
     };
 } x64_Location;
 

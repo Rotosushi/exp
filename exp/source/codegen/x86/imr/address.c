@@ -9,26 +9,26 @@
     return (scale == 1) || (scale == 2) || (scale == 4) || (scale == 8);
 }
 
-x64_Address x64_address_create(x86_64_GPR base, i64 offset) {
+x86_Address x86_address_create(x86_64_GPR base, i64 offset) {
     exp_assert(x86_64_gpr_is_sized(base));
-    return (x64_Address){.base = base, .offset = offset};
+    return (x86_Address){.base = base, .offset = offset};
 }
 
-x64_Address x64_address_create_indexed(x86_64_GPR base,
+x86_Address x86_address_create_indexed(x86_64_GPR base,
                                        x86_64_GPR index,
                                        u8         scale,
                                        i64        offset) {
     exp_assert(x86_64_gpr_is_sized(base));
     exp_assert(x86_64_gpr_is_sized(index));
     exp_assert(validate_scale(scale));
-    return (x64_Address){.base      = base,
+    return (x86_Address){.base      = base,
                          .index     = index,
                          .scale     = scale,
                          .has_index = true,
                          .offset    = offset};
 }
 
-bool x64_address_equality(x64_Address A, x64_Address B) {
+bool x86_address_equality(x86_Address A, x86_Address B) {
     if (A.has_index && B.has_index) {
         return (A.base == B.base) && (A.index == B.index) &&
                (A.scale == B.scale) && (A.offset == B.offset);

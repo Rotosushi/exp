@@ -26,7 +26,7 @@ x64_Operand x64_operand_gpr(x86_64_GPR gpr) {
     return opr;
 }
 
-x64_Operand x64_operand_address(x64_Address address) {
+x64_Operand x64_operand_address(x86_Address address) {
     x64_Operand opr = {.kind = X64_OPERAND_KIND_ADDRESS, .address = address};
     return opr;
 }
