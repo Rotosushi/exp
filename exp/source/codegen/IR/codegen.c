@@ -34,7 +34,7 @@ i32 ir_codegen(Context *restrict context) {
         Symbol *symbol = symbol_table->elements[index];
         if (symbol == NULL) { continue; }
 
-        if (symbol->kind == STE_FUNCTION) {
+        if (symbol->kind == SYMBOL_KIND_FUNCTION) {
             ir_directive_function(symbol->name, &buffer);
             print_function(&buffer, &symbol->function_body, context);
             string_append(&buffer, SV("\n"));

@@ -123,27 +123,27 @@ bool context_cleanup_object_artifact(Context const *context) {
     return context->options.cleanup_object_artifact;
 }
 
-StringView context_source_path(Context *restrict context) {
+StringView context_source_path(Context const *restrict context) {
     assert(context != nullptr);
     return string_to_view(&(context->source_path));
 }
 
-StringView context_ir_path(Context *context) {
+StringView context_ir_path(Context const *context) {
     assert(context != nullptr);
     return string_to_view(&(context->ir_path));
 }
 
-StringView context_assembly_path(Context *context) {
+StringView context_assembly_path(Context const *context) {
     assert(context != nullptr);
     return string_to_view(&context->assembly_path);
 }
 
-StringView context_object_path(Context *context) {
+StringView context_object_path(Context const *context) {
     assert(context != nullptr);
     return string_to_view(&context->object_path);
 }
 
-StringView context_executable_path(Context *context) {
+StringView context_executable_path(Context const *context) {
     assert(context != nullptr);
     return string_to_view(&(context->executable_path));
 }
@@ -153,7 +153,7 @@ Error *context_current_error(Context *context) {
     return &context->current_error;
 }
 
-bool context_has_error(Context *context) {
+bool context_has_error(Context const *context) {
     assert(context != nullptr);
     return context->current_error.code != ERROR_NONE;
 }
@@ -241,15 +241,12 @@ Symbol *context_global_symbol_table_at(Context *context, StringView name) {
     return symbol_table_at(&context->global_symbol_table, name);
 }
 
-SymbolTableIterator context_global_symbol_table_iterator(Context *context) {
-    assert(context != nullptr);
-    return symbol_table_iterator_create(&context->global_symbol_table);
-}
-
 Function *context_enter_function(Context *c, StringView name) {
     assert(c != nullptr);
     Symbol *element = symbol_table_at(&c->global_symbol_table, name);
-    if (element->kind == STE_UNDEFINED) { element->kind = STE_FUNCTION; }
+    if (element->kind == SYMBOL_KIND_UNDEFINED) {
+        element->kind = SYMBOL_KIND_FUNCTION;
+    }
 
     c->current_function = &element->function_body;
     return c->current_function;

@@ -145,11 +145,11 @@ static void x64_codegen_symbol(Symbol *symbol, x64_Context *x64_context) {
     StringView name = symbol->name;
 
     switch (symbol->kind) {
-    case STE_UNDEFINED: {
+    case SYMBOL_KIND_UNDEFINED: {
         break;
     }
 
-    case STE_FUNCTION: {
+    case SYMBOL_KIND_FUNCTION: {
         x64_context_enter_function(x64_context, name);
         x64_codegen_function(x64_context);
         if (context_trace(x64_context->context) &&
@@ -175,13 +175,13 @@ i32 x64_codegen(Context *context) {
         trace(SV("x64_codegen"), stderr);
         trace(context_source_path(context), stderr);
     }
-    x64_Context         x64context = x64_context_create(context);
-    SymbolTableIterator iter = context_global_symbol_table_iterator(context);
+    x64_Context  x64context = x64_context_create(context);
+    SymbolTable *table      = &context->global_symbol_table;
 
-    while (!symbol_table_iterator_done(&iter)) {
-        x64_codegen_symbol((*iter.element), &x64context);
-
-        symbol_table_iterator_next(&iter);
+    for (u64 index = 0; index < table->capacity; ++index) {
+        Symbol *element = table->elements[index];
+        if (element == NULL) { continue; }
+        x64_codegen_symbol(element, &x64context);
     }
 
     x64_emit(&x64context);

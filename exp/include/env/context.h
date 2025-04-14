@@ -70,15 +70,15 @@ bool context_cleanup_ir_artifact(Context const *restrict context);
 bool context_cleanup_assembly_artifact(Context const *restrict context);
 bool context_cleanup_object_artifact(Context const *restrict context);
 
-StringView context_source_path(Context *restrict context);
-StringView context_ir_path(Context *restrict context);
-StringView context_assembly_path(Context *restrict context);
-StringView context_object_path(Context *restrict context);
-StringView context_executable_path(Context *restrict context);
+StringView context_source_path(Context const *restrict context);
+StringView context_ir_path(Context const *restrict context);
+StringView context_assembly_path(Context const *restrict context);
+StringView context_object_path(Context const *restrict context);
+StringView context_executable_path(Context const *restrict context);
 
 // current error functions
 Error *context_current_error(Context *restrict context);
-bool   context_has_error(Context *restrict context);
+bool   context_has_error(Context const *restrict context);
 
 // string interner functions
 StringView context_intern(Context *restrict context, StringView sv);
@@ -106,9 +106,6 @@ StringView context_labels_at(Context *restrict context, u32 index);
 // symbol table functions
 Symbol *context_global_symbol_table_at(Context *restrict context,
                                        StringView name);
-
-SymbolTableIterator
-context_global_symbol_table_iterator(Context *restrict context);
 
 // function functions
 Function *context_enter_function(Context *restrict context, StringView name);

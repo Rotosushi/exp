@@ -447,7 +447,7 @@ static bool typecheck_global(Type const **result,
     if (element->type != NULL) { return success(result, element->type); }
 
     switch (element->kind) {
-    case STE_UNDEFINED: {
+    case SYMBOL_KIND_UNDEFINED: {
         if (context_trace(c)) {
             trace(SV("typecheck_global: undefined"), stdout);
         }
@@ -456,7 +456,7 @@ static bool typecheck_global(Type const **result,
         return success(result, context_nil_type(c));
     }
 
-    case STE_FUNCTION: {
+    case SYMBOL_KIND_FUNCTION: {
         if (context_trace(c)) {
             trace(SV("typecheck_global: function:"), stdout);
             trace(element->name, stdout);
@@ -498,18 +498,18 @@ i32 typecheck(Context *restrict context) {
         trace(SV("typecheck:"), stdout);
         trace(context_source_path(context), stdout);
     }
-    i32                 result = EXIT_SUCCESS;
-    SymbolTableIterator iter   = context_global_symbol_table_iterator(context);
-    while (!symbol_table_iterator_done(&iter)) {
+    i32          result = EXIT_SUCCESS;
+    SymbolTable *table  = &context->global_symbol_table;
+    for (u64 index = 0; index < table->capacity; ++index) {
+        Symbol *element = table->elements[index];
+        if (element == NULL) { continue; }
         Type const *type = NULL;
-        if (!typecheck_global(&type, context, (*iter.element))) {
+        if (!typecheck_global(&type, context, element)) {
             Error *error = context_current_error(context);
             error_print(error, context_source_path(context), 0);
             error_destroy(error);
             result |= EXIT_FAILURE;
         }
-
-        symbol_table_iterator_next(&iter);
     }
 
     return result;

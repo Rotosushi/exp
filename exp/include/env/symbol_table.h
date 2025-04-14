@@ -22,8 +22,8 @@
 #include "support/string_view.h"
 
 typedef enum SymbolKind {
-    STE_UNDEFINED,
-    STE_FUNCTION,
+    SYMBOL_KIND_UNDEFINED,
+    SYMBOL_KIND_FUNCTION,
 } SymbolKind;
 
 typedef struct Symbol {
@@ -45,28 +45,6 @@ typedef struct SymbolTable {
 SymbolTable symbol_table_create();
 void        symbol_table_destroy(SymbolTable *restrict symbol_table);
 
-/**
- * @brief Return the entry associated with the given key in the
- * symbol table.
- *
- * @param symbol_table
- * @param name
- * @param type
- * @param value
- * @return SymbolTableElement *
- */
 Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
-
-typedef struct SymbolTableIterator {
-    Symbol **element;
-    Symbol **end;
-} SymbolTableIterator;
-
-SymbolTableIterator
-symbol_table_iterator_create(SymbolTable *restrict symbol_table);
-
-void symbol_table_iterator_next(SymbolTableIterator *restrict iter);
-
-bool symbol_table_iterator_done(SymbolTableIterator *restrict iter);
 
 #endif // !EXP_ENV_SYMBOL_TABLE_H

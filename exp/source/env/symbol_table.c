@@ -106,30 +106,3 @@ Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
 
     return *element;
 }
-
-SymbolTableIterator
-symbol_table_iterator_create(SymbolTable *restrict symbol_table) {
-    assert(symbol_table != NULL);
-
-    SymbolTableIterator iter = {symbol_table->elements,
-                                symbol_table->elements +
-                                    symbol_table->capacity};
-    if ((*iter.element) == NULL) { symbol_table_iterator_next(&iter); }
-    return iter;
-}
-
-void symbol_table_iterator_next(SymbolTableIterator *restrict iter) {
-    assert(iter != NULL);
-
-    if (iter->element != iter->end) {
-        do {
-            iter->element += 1;
-        } while ((iter->element != iter->end) && ((*iter->element) == NULL));
-    }
-}
-
-bool symbol_table_iterator_done(SymbolTableIterator *restrict iter) {
-    assert(iter != NULL);
-
-    return iter->element == iter->end;
-}
