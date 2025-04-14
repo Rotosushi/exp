@@ -21,17 +21,17 @@
 #include "codegen/x86/imr/location.h"
 #include "imr/type.h"
 
-typedef struct x64_Allocation {
+typedef struct x86_Allocation {
     u64          ssa;
     Lifetime     lifetime;
     x64_Location location;
     Type const  *type;
-} x64_Allocation;
+} x86_Allocation;
 
-x64_Allocation *x64_allocation_allocate();
-void            x64_allocation_deallocate(x64_Allocation *restrict allocation);
+x86_Allocation *x86_allocation_allocate();
+void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
 
-bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
+bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
                                 x64_Location location);
 
 #endif // !EXP_BACKEND_X64_ALLOCATION_H

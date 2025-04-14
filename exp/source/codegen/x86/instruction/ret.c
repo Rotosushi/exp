@@ -34,8 +34,8 @@ void x64_codegen_return(Instruction I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_return: ssa"), stdout);
         }
-        x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
-        if (x64_allocation_location_eq(B, body->result->location)) { break; }
+        x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+        if (x86_allocation_location_eq(B, body->result->location)) { break; }
         x64_codegen_copy_allocation(body->result, B, block_index, context);
         break;
     }

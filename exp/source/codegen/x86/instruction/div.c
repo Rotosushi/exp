@@ -51,13 +51,13 @@ static void x64_codegen_divide_ssa(Instruction    I,
                                    u64            block_index,
                                    LocalVariable *local,
                                    x86_Context   *context) {
-    x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+    x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_divide_ssa: ssa"), stdout);
         }
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(B->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
@@ -180,7 +180,7 @@ static void x64_codegen_divide_immediate(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }
@@ -206,7 +206,7 @@ static void x64_codegen_divide_immediate(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *A = x86_context_allocate_to_gpr(
+        x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -232,7 +232,7 @@ static void x64_codegen_divide_immediate(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *A = x86_context_allocate_to_gpr(
+        x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -268,7 +268,7 @@ void x64_codegen_divide_constant(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }
@@ -294,7 +294,7 @@ void x64_codegen_divide_constant(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *A = x86_context_allocate_to_gpr(
+        x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
@@ -320,7 +320,7 @@ void x64_codegen_divide_constant(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *A = x86_context_allocate_to_gpr(
+        x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_64_GPR_RAX, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),

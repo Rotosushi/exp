@@ -33,7 +33,7 @@ void x64_codegen_load(Instruction I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_load: ssa"), stdout);
         }
-        x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+        x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         x86_context_allocate_from_active(context, local, B, block_index);
         break;
     }
@@ -42,7 +42,7 @@ void x64_codegen_load(Instruction I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_load: constant"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         Value          *value =
             context_constants_at(context->context, I.B_data.constant);
         x64_codegen_load_allocation_from_value(A, value, block_index, context);
@@ -53,7 +53,7 @@ void x64_codegen_load(Instruction I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_load: i64"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_immediate(I.B_data.i64_)));

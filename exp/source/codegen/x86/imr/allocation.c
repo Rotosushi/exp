@@ -22,16 +22,16 @@
 #include "codegen/x86/imr/location.h"
 #include "support/allocation.h"
 
-x64_Allocation *x64_allocation_allocate() {
-    x64_Allocation *allocation = callocate(1, sizeof(x64_Allocation));
+x86_Allocation *x86_allocation_allocate() {
+    x86_Allocation *allocation = callocate(1, sizeof(x86_Allocation));
     return allocation;
 }
 
-void x64_allocation_deallocate(x64_Allocation *restrict allocation) {
+void x86_allocation_deallocate(x86_Allocation *restrict allocation) {
     deallocate(allocation);
 }
 
-bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
+bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
                                 x64_Location location) {
     return x64_location_eq(location, allocation->location);
 }

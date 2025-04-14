@@ -39,12 +39,12 @@ void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
                                             u64 Idx,
                                             x86_Context *restrict context);
 
-void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
                                               Operand src,
                                               u64     Idx,
                                               x86_Context *restrict context);
 
-void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
                                             Value *value,
                                             u64    Idx,
                                             x86_Context *restrict context);

@@ -45,7 +45,7 @@ x64_Operand x64_operand_location(x64_Location location) {
     }
 }
 
-x64_Operand x64_operand_alloc(x64_Allocation *alloc) {
+x64_Operand x64_operand_alloc(x86_Allocation *alloc) {
     return x64_operand_location(alloc->location);
 }
 

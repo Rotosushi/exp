@@ -95,7 +95,7 @@ x64_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
 
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *allocation =
+        x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
         if (allocation->location.kind == LOCATION_GPR) {
             x86_context_append(
@@ -144,7 +144,7 @@ x64_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
     }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *allocation =
+        x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
 
         assert(allocation->location.kind == LOCATION_ADDRESS);
@@ -219,7 +219,7 @@ x64_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
     }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *allocation =
+        x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
         if (allocation->location.kind == LOCATION_GPR) {
             x86_context_append(
@@ -267,7 +267,7 @@ static void x64_codegen_load_argument_from_composite_operand(
     }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *allocation =
+        x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
 
         assert(allocation->location.kind == LOCATION_ADDRESS);
@@ -340,7 +340,7 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
     }
     switch (src.kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *allocation =
+        x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
         u64 size = size_of(allocation->type);
         exp_assert_debug(x86_64_gpr_valid_size(size));
@@ -369,7 +369,7 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
     }
 }
 
-void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
                                               Operand src,
                                               u64     Idx,
                                               x86_Context *restrict context) {
@@ -384,7 +384,7 @@ void x64_codegen_load_allocation_from_operand(x64_Allocation *restrict dst,
     }
 }
 
-static void x64_codegen_load_allocation_from_i64(x64_Allocation *dst,
+static void x64_codegen_load_allocation_from_i64(x86_Allocation *dst,
                                                  i64             value,
                                                  x86_Context    *context) {
     if (context_trace(context->context)) {
@@ -405,7 +405,7 @@ static void x64_codegen_load_allocation_from_i64(x64_Allocation *dst,
     }
 }
 
-static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
+static void x64_codegen_load_allocation_from_tuple(x86_Allocation *dst,
                                                    Tuple          *tuple,
                                                    u64             Idx,
                                                    x86_Context    *context) {
@@ -428,7 +428,7 @@ static void x64_codegen_load_allocation_from_tuple(x64_Allocation *dst,
     }
 }
 
-void x64_codegen_load_allocation_from_value(x64_Allocation *restrict dst,
+void x64_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
                                             Value *value,
                                             u64    Idx,
                                             x86_Context *restrict x64_context) {

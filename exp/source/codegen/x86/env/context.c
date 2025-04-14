@@ -132,7 +132,7 @@ i64 x86_context_stack_size(x86_Context *x64_context) {
     return x64_allocator_total_stack_size(current_allocator(x64_context));
 }
 
-x64_Allocation *x86_context_allocation_of(x86_Context *x64_context, u32 ssa) {
+x86_Allocation *x86_context_allocation_of(x86_Context *x64_context, u32 ssa) {
     assert(x64_context != nullptr);
     return x64_allocator_allocation_of(current_allocator(x64_context), ssa);
 }
@@ -155,7 +155,7 @@ void x86_context_aquire_gpr(x86_Context *x64_context, x86_64_GPR gpr, u64 Idx) {
                              x86_context_current_x86_bc(x64_context));
 }
 
-x64_Allocation *
+x86_Allocation *
 x86_context_allocate(x86_Context *x64_context, LocalVariable *local, u64 Idx) {
     return x64_allocator_allocate(current_allocator(x64_context),
                                   Idx,
@@ -163,9 +163,9 @@ x86_context_allocate(x86_Context *x64_context, LocalVariable *local, u64 Idx) {
                                   x86_context_current_x86_bc(x64_context));
 }
 
-x64_Allocation *x86_context_allocate_from_active(x86_Context    *x64_context,
+x86_Allocation *x86_context_allocate_from_active(x86_Context    *x64_context,
                                                  LocalVariable  *local,
-                                                 x64_Allocation *active,
+                                                 x86_Allocation *active,
                                                  u64             Idx) {
     return x64_allocator_allocate_from_active(
         current_allocator(x64_context),
@@ -175,7 +175,7 @@ x64_Allocation *x86_context_allocate_from_active(x86_Context    *x64_context,
         x86_context_current_x86_bc(x64_context));
 }
 
-x64_Allocation *x86_context_allocate_to_any_gpr(x86_Context   *x64_context,
+x86_Allocation *x86_context_allocate_to_any_gpr(x86_Context   *x64_context,
                                                 LocalVariable *local) {
     assert(x64_context != nullptr);
     return x64_allocator_allocate_to_any_gpr(
@@ -184,7 +184,7 @@ x64_Allocation *x86_context_allocate_to_any_gpr(x86_Context   *x64_context,
         x86_context_current_x86_bc(x64_context));
 }
 
-x64_Allocation *x86_context_allocate_to_gpr(x86_Context *restrict x64_context,
+x86_Allocation *x86_context_allocate_to_gpr(x86_Context *restrict x64_context,
                                             LocalVariable *local,
                                             x86_64_GPR     gpr,
                                             u64            Idx) {
@@ -197,7 +197,7 @@ x64_Allocation *x86_context_allocate_to_gpr(x86_Context *restrict x64_context,
         x86_context_current_x86_bc(x64_context));
 }
 
-x64_Allocation *x86_context_allocate_to_stack(x86_Context   *x64_context,
+x86_Allocation *x86_context_allocate_to_stack(x86_Context   *x64_context,
                                               LocalVariable *local,
                                               i64            offset) {
     assert(x64_context != nullptr);
@@ -205,7 +205,7 @@ x64_Allocation *x86_context_allocate_to_stack(x86_Context   *x64_context,
         current_allocator(x64_context), offset, local);
 }
 
-x64_Allocation *x86_context_allocate_result(x86_Context *x64_context,
+x86_Allocation *x86_context_allocate_result(x86_Context *x64_context,
                                             x64_Location location,
                                             Type        *type) {
     assert(x64_context != nullptr);
@@ -214,7 +214,7 @@ x64_Allocation *x86_context_allocate_result(x86_Context *x64_context,
 }
 
 void x86_context_reallocate_active(x86_Context    *x64_context,
-                                   x64_Allocation *active) {
+                                   x86_Allocation *active) {
     x64_allocator_reallocate_active(current_allocator(x64_context),
                                     active,
                                     x86_context_current_x86_bc(x64_context));

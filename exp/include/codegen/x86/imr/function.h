@@ -23,7 +23,7 @@
 
 typedef struct x64_FormalArgument {
     u8              index;
-    x64_Allocation *allocation;
+    x86_Allocation *allocation;
     Type           *type;
 } x64_FormalArgument;
 
@@ -38,7 +38,7 @@ x64_formal_argument_list_at(x64_FormalArgumentList *restrict args, u8 idx);
 
 typedef struct x64_Function {
     x64_FormalArgumentList arguments;
-    x64_Allocation        *result;
+    x86_Allocation        *result;
     x64_Bytecode           bc;
     x64_Allocator          allocator;
 } x64_Function;

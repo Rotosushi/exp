@@ -27,13 +27,13 @@ static void x64_codegen_modulus_ssa(Instruction    I,
                                     u64            block_index,
                                     LocalVariable *local,
                                     x86_Context   *context) {
-    x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+    x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_modulus_ssa: ssa"), stdout);
         }
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(B->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_allocate_to_gpr(
                 context, local, X86_64_GPR_RDX, block_index);
@@ -131,7 +131,7 @@ static void x64_codegen_modulus_immediate(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }
@@ -213,7 +213,7 @@ void x64_codegen_modulus_constant(Instruction    I,
             context,
             x64_mov(x64_operand_gpr(X86_64_GPR_RDX), x64_operand_immediate(0)));
 
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x64_location_eq(C->location, x64_location_gpr(X86_64_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }

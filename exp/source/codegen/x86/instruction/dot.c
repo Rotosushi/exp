@@ -40,8 +40,8 @@ void x64_codegen_dot(Instruction I,
 
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
-        x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         assert(B->location.kind == LOCATION_ADDRESS);
         assert(B->type->kind == TYPE_KIND_TUPLE);
         x86_Address *tuple_address = &B->location.address;
@@ -56,7 +56,7 @@ void x64_codegen_dot(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         Value          *value =
             context_constants_at(context->context, I.B_data.constant);
         assert(value->kind == VALUE_KIND_TUPLE);

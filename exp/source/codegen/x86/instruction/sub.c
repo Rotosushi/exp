@@ -27,18 +27,18 @@ static void x64_codegen_subtract_ssa(Instruction    I,
                                      u64            block_index,
                                      LocalVariable *local,
                                      x86_Context   *context) {
-    x64_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
+    x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_ssa: ssa"), stdout);
         }
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         // #NOTE since subtraction is not commutative we have to allocate A from
         // B regardless of which of B or C is in a register.
         if ((B->location.kind == LOCATION_GPR) ||
             (C->location.kind == LOCATION_GPR)) {
-            x64_Allocation *A = x86_context_allocate_from_active(
+            x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, B, block_index);
 
             x86_context_append(
@@ -46,7 +46,7 @@ static void x64_codegen_subtract_ssa(Instruction    I,
             return;
         }
 
-        x64_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
+        x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
 
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A), x64_operand_alloc(B)));
@@ -60,7 +60,7 @@ static void x64_codegen_subtract_ssa(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_ssa: i64"), stdout);
         }
-        x64_Allocation *A =
+        x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
@@ -73,7 +73,7 @@ static void x64_codegen_subtract_ssa(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_ssa: constant"), stdout);
         }
-        x64_Allocation *A =
+        x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
@@ -102,9 +102,9 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_immediate: ssa"), stdout);
         }
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
-        x64_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
+        x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
         exp_assert_debug(A->location.kind == LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
@@ -120,7 +120,7 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_immediate: i64"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_immediate(I.B_data.i64_)));
@@ -134,7 +134,7 @@ static void x64_codegen_subtract_immediate(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_immediate: constant"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_immediate(I.B_data.i64_)));
@@ -164,9 +164,9 @@ void x64_codegen_subtract_constant(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_constant: ssa"), stdout);
         }
-        x64_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
-        x64_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
+        x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
         exp_assert_debug(A->location.kind == LOCATION_GPR);
         x86_64_GPR gpr = A->location.gpr;
         x86_context_append(context,
@@ -182,7 +182,7 @@ void x64_codegen_subtract_constant(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_constant: i64"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_constant(I.B_data.constant)));
@@ -196,7 +196,7 @@ void x64_codegen_subtract_constant(Instruction    I,
         if (context_trace(context->context)) {
             trace(SV("x64_codegen_subtract_constant: constant"), stdout);
         }
-        x64_Allocation *A = x86_context_allocate(context, local, block_index);
+        x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x64_mov(x64_operand_alloc(A),
                                    x64_operand_constant(I.B_data.constant)));
