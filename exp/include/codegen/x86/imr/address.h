@@ -21,19 +21,17 @@
 #include "codegen/x86/imr/registers.h"
 
 typedef struct x86_Address {
-    x86_64_GPR base;
-    x86_64_GPR index;
-    u8         scale;
-    bool       has_index;
-    i64        offset;
+    x86_GPR base;
+    x86_GPR index;
+    u8      scale;
+    bool    has_index;
+    i64     offset;
 } x86_Address;
 
-x86_Address x86_address_create(x86_64_GPR base, i64 offset);
+x86_Address x86_address_create(x86_GPR base, i64 offset);
 
-x86_Address x86_address_create_indexed(x86_64_GPR base,
-                                       x86_64_GPR index,
-                                       u8         scale,
-                                       i64        offset);
+x86_Address
+x86_address_create_indexed(x86_GPR base, x86_GPR index, u8 scale, i64 offset);
 
 /**
  * @brief compares two addresses for equality

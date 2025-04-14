@@ -65,7 +65,7 @@ static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
                                                            u64 block_index) {
     if (i64_in_range_i16(stack_space)) {
         x86_context_insert(context,
-                           x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+                           x64_sub(x86_operand_gpr(X86_GPR_RSP),
                                    x86_operand_immediate((i16)stack_space)),
                            block_index);
     } else {
@@ -73,7 +73,7 @@ static void x64_codegen_allocate_stack_space_for_arguments(x86_Context *context,
             context->context, value_create_i64(stack_space));
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_insert(context,
-                           x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+                           x64_sub(x86_operand_gpr(X86_GPR_RSP),
                                    x86_operand_constant(operand.data.constant)),
                            block_index);
     }
@@ -84,7 +84,7 @@ x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
                                                  i64          stack_space) {
     if (i64_in_range_i16(stack_space)) {
         x86_context_append(x64_context,
-                           x64_add(x86_operand_gpr(X86_64_GPR_RSP),
+                           x64_add(x86_operand_gpr(X86_GPR_RSP),
                                    x86_operand_immediate((i16)stack_space)));
     } else {
         Operand operand = context_constants_append(
@@ -92,7 +92,7 @@ x64_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_append(
             x64_context,
-            x64_add(x86_operand_gpr(X86_64_GPR_RSP),
+            x64_add(x86_operand_gpr(X86_GPR_RSP),
                     x86_operand_constant(operand.data.constant)));
     }
 }
@@ -112,8 +112,7 @@ void x64_codegen_call(Instruction I,
     // and the first argument to the function is used to store a pointer to said
     // stack allocation
     if (type_is_scalar(local->type)) {
-        x86_context_allocate_to_gpr(
-            context, local, X86_64_GPR_rAX, block_index);
+        x86_context_allocate_to_gpr(context, local, X86_GPR_rAX, block_index);
     } else {
         x86_Allocation *result =
             x86_context_allocate(context, local, block_index);
@@ -121,7 +120,7 @@ void x64_codegen_call(Instruction I,
         x86_context_append(
             context,
             x64_lea(x86_operand_gpr(
-                        x86_64_gpr_scalar_argument(scalar_argument_count++, 8)),
+                        x86_gpr_scalar_argument(scalar_argument_count++, 8)),
                     x86_operand_address(result->location.address)));
     }
 
@@ -137,9 +136,9 @@ void x64_codegen_call(Instruction I,
 
         if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
             u64 size = size_of(arg_type);
-            assert(x86_64_gpr_valid_size(size));
-            x86_64_GPR gpr =
-                x86_64_gpr_scalar_argument(scalar_argument_count++, size);
+            assert(x86_gpr_valid_size(size));
+            x86_GPR gpr =
+                x86_gpr_scalar_argument(scalar_argument_count++, size);
             x64_codegen_load_gpr_from_operand(gpr, arg, block_index, context);
         } else {
             operand_array_append(&stack_args, arg);
@@ -153,7 +152,7 @@ void x64_codegen_call(Instruction I,
     }
 
     i64         stack_space = 0;
-    x86_Address arg_address = x86_address_create(X86_64_GPR_RSP, 0);
+    x86_Address arg_address = x86_address_create(X86_GPR_RSP, 0);
 
     for (u8 i = 0; i < stack_args.size; ++i) {
         Operand     arg      = stack_args.buffer[i];

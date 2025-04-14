@@ -108,7 +108,7 @@ static void x64_codegen_allocate_stack_space(x86_Context *x64_context) {
     i64 stack_size = x86_context_stack_size(x64_context);
     if (i64_in_range_i16(stack_size)) {
         x86_context_prepend(x64_context,
-                            x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+                            x64_sub(x86_operand_gpr(X86_GPR_RSP),
                                     x86_operand_immediate((i16)stack_size)));
     } else {
         Operand operand = context_constants_append(
@@ -116,7 +116,7 @@ static void x64_codegen_allocate_stack_space(x86_Context *x64_context) {
         assert(operand.kind == OPERAND_KIND_CONSTANT);
         x86_context_prepend(
             x64_context,
-            x64_sub(x86_operand_gpr(X86_64_GPR_RSP),
+            x64_sub(x86_operand_gpr(X86_GPR_RSP),
                     x86_operand_constant(operand.data.constant)));
     }
 }
@@ -126,10 +126,10 @@ static void x64_codegen_prepend_function_header(x86_Context *x64_context) {
         x64_codegen_allocate_stack_space(x64_context);
     }
 
-    x86_context_prepend(x64_context,
-                        x64_mov(x86_operand_gpr(X86_64_GPR_RBP),
-                                x86_operand_gpr(X86_64_GPR_RSP)));
-    x86_context_prepend(x64_context, x64_push(x86_operand_gpr(X86_64_GPR_RBP)));
+    x86_context_prepend(
+        x64_context,
+        x64_mov(x86_operand_gpr(X86_GPR_RBP), x86_operand_gpr(X86_GPR_RSP)));
+    x86_context_prepend(x64_context, x64_push(x86_operand_gpr(X86_GPR_RBP)));
 }
 
 static void x64_codegen_function(x86_Context *x64_context) {

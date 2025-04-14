@@ -331,7 +331,7 @@ void x64_codegen_load_argument_from_operand(x86_Address *restrict dst,
     }
 }
 
-void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
+void x64_codegen_load_gpr_from_operand(x86_GPR              gpr,
                                        Operand              src,
                                        [[maybe_unused]] u64 Idx,
                                        x86_Context *restrict context) {
@@ -343,8 +343,8 @@ void x64_codegen_load_gpr_from_operand(x86_64_GPR           gpr,
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
         u64 size = size_of(allocation->type);
-        exp_assert_debug(x86_64_gpr_valid_size(size));
-        x86_64_GPR sized_gpr = x86_64_gpr_resize(gpr, size);
+        exp_assert_debug(x86_gpr_valid_size(size));
+        x86_GPR sized_gpr = x86_gpr_resize(gpr, size);
         x86_context_append(
             context,
             x64_mov(x86_operand_gpr(sized_gpr), x86_operand_alloc(allocation)));

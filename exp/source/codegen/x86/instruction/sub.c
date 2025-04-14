@@ -106,7 +106,7 @@ static void x64_codegen_subtract_immediate(Instruction    I,
 
         x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
         exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
-        x86_64_GPR gpr = A->location.gpr;
+        x86_GPR gpr = A->location.gpr;
         x86_context_append(context,
                            x64_mov(x86_operand_gpr(gpr),
                                    x86_operand_immediate(I.B_data.i64_)));
@@ -168,7 +168,7 @@ void x64_codegen_subtract_constant(Instruction    I,
 
         x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
         exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
-        x86_64_GPR gpr = A->location.gpr;
+        x86_GPR gpr = A->location.gpr;
         x86_context_append(context,
                            x64_mov(x86_operand_gpr(gpr),
                                    x86_operand_constant(I.B_data.constant)));

@@ -78,9 +78,9 @@ void x64_codegen_return(Instruction I,
     default: EXP_UNREACHABLE();
     }
 
-    x86_context_append(context,
-                       x64_mov(x86_operand_gpr(X86_64_GPR_RSP),
-                               x86_operand_gpr(X86_64_GPR_RBP)));
-    x86_context_append(context, x64_pop(x86_operand_gpr(X86_64_GPR_RBP)));
+    x86_context_append(
+        context,
+        x64_mov(x86_operand_gpr(X86_GPR_RSP), x86_operand_gpr(X86_GPR_RBP)));
+    x86_context_append(context, x64_pop(x86_operand_gpr(X86_GPR_RBP)));
     x86_context_append(context, x64_ret());
 }

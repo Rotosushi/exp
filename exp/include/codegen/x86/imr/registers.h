@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_GPR_H
-#define EXP_BACKEND_X64_GPR_H
+#ifndef EXP_BACKEND_X86_GPR_H
+#define EXP_BACKEND_X86_GPR_H
 
 #include "support/string_view.h"
 
@@ -37,106 +37,106 @@
  * currently supported.
  */
 typedef enum x86_64_GPR : u8 {
-    X86_64_GPR_rAX,
-    // X86_64_GPR_AH,
-    X86_64_GPR_AL,
-    X86_64_GPR_AX,
-    X86_64_GPR_EAX,
-    X86_64_GPR_RAX,
+    X86_GPR_rAX,
+    // X86_GPR_AH,
+    X86_GPR_AL,
+    X86_GPR_AX,
+    X86_GPR_EAX,
+    X86_GPR_RAX,
 
-    X86_64_GPR_rBX,
-    // X86_64_GPR_BH,
-    X86_64_GPR_BL,
-    X86_64_GPR_BX,
-    X86_64_GPR_EBX,
-    X86_64_GPR_RBX,
+    X86_GPR_rBX,
+    // X86_GPR_BH,
+    X86_GPR_BL,
+    X86_GPR_BX,
+    X86_GPR_EBX,
+    X86_GPR_RBX,
 
-    X86_64_GPR_rCX,
-    // X86_64_GPR_CH,
-    X86_64_GPR_CL,
-    X86_64_GPR_CX,
-    X86_64_GPR_ECX,
-    X86_64_GPR_RCX,
+    X86_GPR_rCX,
+    // X86_GPR_CH,
+    X86_GPR_CL,
+    X86_GPR_CX,
+    X86_GPR_ECX,
+    X86_GPR_RCX,
 
-    X86_64_GPR_rDX,
-    // X86_64_GPR_DH,
-    X86_64_GPR_DL,
-    X86_64_GPR_DX,
-    X86_64_GPR_EDX,
-    X86_64_GPR_RDX,
+    X86_GPR_rDX,
+    // X86_GPR_DH,
+    X86_GPR_DL,
+    X86_GPR_DX,
+    X86_GPR_EDX,
+    X86_GPR_RDX,
 
-    X86_64_GPR_rSI,
-    X86_64_GPR_SI,
-    X86_64_GPR_SIL,
-    X86_64_GPR_ESI,
-    X86_64_GPR_RSI,
+    X86_GPR_rSI,
+    X86_GPR_SI,
+    X86_GPR_SIL,
+    X86_GPR_ESI,
+    X86_GPR_RSI,
 
-    X86_64_GPR_rDI,
-    X86_64_GPR_DI,
-    X86_64_GPR_DIL,
-    X86_64_GPR_EDI,
-    X86_64_GPR_RDI,
+    X86_GPR_rDI,
+    X86_GPR_DI,
+    X86_GPR_DIL,
+    X86_GPR_EDI,
+    X86_GPR_RDI,
 
-    X86_64_GPR_rBP,
-    X86_64_GPR_BP,
-    X86_64_GPR_BPL,
-    X86_64_GPR_EBP,
-    X86_64_GPR_RBP,
+    X86_GPR_rBP,
+    X86_GPR_BP,
+    X86_GPR_BPL,
+    X86_GPR_EBP,
+    X86_GPR_RBP,
 
-    X86_64_GPR_rSP,
-    X86_64_GPR_SP,
-    X86_64_GPR_SPL,
-    X86_64_GPR_ESP,
-    X86_64_GPR_RSP,
+    X86_GPR_rSP,
+    X86_GPR_SP,
+    X86_GPR_SPL,
+    X86_GPR_ESP,
+    X86_GPR_RSP,
 
-    X86_64_GPR_r8,
-    X86_64_GPR_R8B,
-    X86_64_GPR_R8W,
-    X86_64_GPR_R8D,
-    X86_64_GPR_R8,
+    X86_GPR_r8,
+    X86_GPR_R8B,
+    X86_GPR_R8W,
+    X86_GPR_R8D,
+    X86_GPR_R8,
 
-    X86_64_GPR_r9,
-    X86_64_GPR_R9B,
-    X86_64_GPR_R9W,
-    X86_64_GPR_R9D,
-    X86_64_GPR_R9,
+    X86_GPR_r9,
+    X86_GPR_R9B,
+    X86_GPR_R9W,
+    X86_GPR_R9D,
+    X86_GPR_R9,
 
-    X86_64_GPR_r10,
-    X86_64_GPR_R10B,
-    X86_64_GPR_R10W,
-    X86_64_GPR_R10D,
-    X86_64_GPR_R10,
+    X86_GPR_r10,
+    X86_GPR_R10B,
+    X86_GPR_R10W,
+    X86_GPR_R10D,
+    X86_GPR_R10,
 
-    X86_64_GPR_r11,
-    X86_64_GPR_R11B,
-    X86_64_GPR_R11W,
-    X86_64_GPR_R11D,
-    X86_64_GPR_R11,
+    X86_GPR_r11,
+    X86_GPR_R11B,
+    X86_GPR_R11W,
+    X86_GPR_R11D,
+    X86_GPR_R11,
 
-    X86_64_GPR_r12,
-    X86_64_GPR_R12B,
-    X86_64_GPR_R12W,
-    X86_64_GPR_R12D,
-    X86_64_GPR_R12,
+    X86_GPR_r12,
+    X86_GPR_R12B,
+    X86_GPR_R12W,
+    X86_GPR_R12D,
+    X86_GPR_R12,
 
-    X86_64_GPR_r13,
-    X86_64_GPR_R13B,
-    X86_64_GPR_R13W,
-    X86_64_GPR_R13D,
-    X86_64_GPR_R13,
+    X86_GPR_r13,
+    X86_GPR_R13B,
+    X86_GPR_R13W,
+    X86_GPR_R13D,
+    X86_GPR_R13,
 
-    X86_64_GPR_r14,
-    X86_64_GPR_R14B,
-    X86_64_GPR_R14W,
-    X86_64_GPR_R14D,
-    X86_64_GPR_R14,
+    X86_GPR_r14,
+    X86_GPR_R14B,
+    X86_GPR_R14W,
+    X86_GPR_R14D,
+    X86_GPR_R14,
 
-    X86_64_GPR_r15,
-    X86_64_GPR_R15B,
-    X86_64_GPR_R15W,
-    X86_64_GPR_R15D,
-    X86_64_GPR_R15,
-} x86_64_GPR;
+    X86_GPR_r15,
+    X86_GPR_R15B,
+    X86_GPR_R15W,
+    X86_GPR_R15D,
+    X86_GPR_R15,
+} x86_GPR;
 
 /**
  * @brief convert a GPR to a string view of it's mnemonic
@@ -147,7 +147,7 @@ typedef enum x86_64_GPR : u8 {
  * @param gpr the GPR to convert
  * @return a string view of the mnemonic
  */
-StringView x86_64_gpr_mnemonic(x86_64_GPR gpr);
+StringView x86_gpr_mnemonic(x86_GPR gpr);
 
 /**
  * @brief given an index to a GPR, and a size, return the GPR
@@ -165,7 +165,7 @@ StringView x86_64_gpr_mnemonic(x86_64_GPR gpr);
  * @param size the size of the GPR
  * @return the GPR that corresponds to the index and size
  */
-x86_64_GPR x86_64_gpr_with_size(u8 gpr_index, u64 size);
+x86_GPR x86_gpr_with_size(u8 gpr_index, u64 size);
 
 /**
  * @brief resize a GPR to the given size
@@ -176,7 +176,7 @@ x86_64_GPR x86_64_gpr_with_size(u8 gpr_index, u64 size);
  * @param size the size to resize the GPR to
  * @return the resized GPR
  */
-x86_64_GPR x86_64_gpr_resize(x86_64_GPR gpr, u64 size);
+x86_GPR x86_gpr_resize(x86_GPR gpr, u64 size);
 
 /**
  * @brief Get the correct GPR for a scalar argument at position `argument_index`
@@ -192,7 +192,7 @@ x86_64_GPR x86_64_gpr_resize(x86_64_GPR gpr, u64 size);
  * @param size the size of the argument
  * @return the GPR that corresponds to the argument
  */
-x86_64_GPR x86_64_gpr_scalar_argument(u8 argument_index, u64 size);
+x86_GPR x86_gpr_scalar_argument(u8 argument_index, u64 size);
 
 /**
  * @brief check if a size is a valid size for a GPR
@@ -202,7 +202,7 @@ x86_64_GPR x86_64_gpr_scalar_argument(u8 argument_index, u64 size);
  * @param size the size to check
  * @return true if the size is valid, false otherwise
  */
-bool x86_64_gpr_valid_size(u64 size);
+bool x86_gpr_valid_size(u64 size);
 
 /**
  * @brief check if a GPR is a sized GPR
@@ -217,7 +217,7 @@ bool x86_64_gpr_valid_size(u64 size);
  * @param gpr the GPR to check
  * @return true if the GPR is sized, false otherwise
  */
-bool x86_64_gpr_is_sized(x86_64_GPR gpr);
+bool x86_gpr_is_sized(x86_GPR gpr);
 
 /**
  * @brief check if two GPRs refer to the same register.
@@ -231,7 +231,7 @@ bool x86_64_gpr_is_sized(x86_64_GPR gpr);
  * @param B the second GPR
  * @return true if the GPRs overlap, false otherwise
  */
-bool x86_64_gpr_overlap(x86_64_GPR A, x86_64_GPR B);
+bool x86_gpr_overlap(x86_GPR A, x86_GPR B);
 
 /**
  * @brief get the size of a GPR
@@ -242,7 +242,7 @@ bool x86_64_gpr_overlap(x86_64_GPR A, x86_64_GPR B);
  * @param gpr the GPR to get the size of
  * @return the size of the GPR
  */
-u8 x86_64_gpr_size(x86_64_GPR gpr);
+u8 x86_gpr_size(x86_GPR gpr);
 
 /**
  * @brief get the index of a GPR
@@ -252,6 +252,6 @@ u8 x86_64_gpr_size(x86_64_GPR gpr);
  * @param gpr the GPR to get the index of
  * @return the index of the GPR
  */
-u8 x86_64_gpr_index(x86_64_GPR gpr);
+u8 x86_gpr_index(x86_GPR gpr);
 
-#endif // !EXP_BACKEND_X64_GPR_H
+#endif // !EXP_BACKEND_X86_GPR_H

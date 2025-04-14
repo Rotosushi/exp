@@ -22,22 +22,22 @@
 #include "codegen/x86/imr/location.h"
 #include "support/unreachable.h"
 
-x86_Location x86_location_gpr(x86_64_GPR gpr) {
+x86_Location x86_location_gpr(x86_GPR gpr) {
     x86_Location location = {.kind = X86_LOCATION_GPR, .gpr = gpr};
     return location;
 }
 
-x86_Location x86_location_address(x86_64_GPR base, i64 offset) {
+x86_Location x86_location_address(x86_GPR base, i64 offset) {
     return (x86_Location){
         .kind    = X86_LOCATION_ADDRESS,
         .address = {.base = base, .offset = offset}
     };
 }
 
-x86_Location x86_location_address_indexed(x86_64_GPR base,
-                                          x86_64_GPR index,
-                                          u8         scale,
-                                          i64        offset) {
+x86_Location x86_location_address_indexed(x86_GPR base,
+                                          x86_GPR index,
+                                          u8      scale,
+                                          i64     offset) {
     return (x86_Location){
         .kind    = X86_LOCATION_ADDRESS,
         .address = {.base      = base,

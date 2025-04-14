@@ -9,17 +9,15 @@
     return (scale == 1) || (scale == 2) || (scale == 4) || (scale == 8);
 }
 
-x86_Address x86_address_create(x86_64_GPR base, i64 offset) {
-    exp_assert(x86_64_gpr_is_sized(base));
+x86_Address x86_address_create(x86_GPR base, i64 offset) {
+    exp_assert(x86_gpr_is_sized(base));
     return (x86_Address){.base = base, .offset = offset};
 }
 
-x86_Address x86_address_create_indexed(x86_64_GPR base,
-                                       x86_64_GPR index,
-                                       u8         scale,
-                                       i64        offset) {
-    exp_assert(x86_64_gpr_is_sized(base));
-    exp_assert(x86_64_gpr_is_sized(index));
+x86_Address
+x86_address_create_indexed(x86_GPR base, x86_GPR index, u8 scale, i64 offset) {
+    exp_assert(x86_gpr_is_sized(base));
+    exp_assert(x86_gpr_is_sized(index));
     exp_assert(validate_scale(scale));
     return (x86_Address){.base      = base,
                          .index     = index,

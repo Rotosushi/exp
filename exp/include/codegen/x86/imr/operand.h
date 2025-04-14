@@ -28,7 +28,7 @@ typedef enum x86_OperandKind : u8 {
 } x86_OperandKind;
 
 typedef union x86_OperandData {
-    x86_64_GPR  gpr;
+    x86_GPR     gpr;
     x86_Address address;
     u32         label;
     u32         constant;
@@ -38,7 +38,7 @@ typedef union x86_OperandData {
 typedef struct x86_Operand {
     x86_OperandKind kind;
     union {
-        x86_64_GPR  gpr;
+        x86_GPR     gpr;
         x86_Address address;
         u32         label;
         u32         constant;
@@ -46,7 +46,7 @@ typedef struct x86_Operand {
     };
 } x86_Operand;
 
-x86_Operand x86_operand_gpr(x86_64_GPR gpr);
+x86_Operand x86_operand_gpr(x86_GPR gpr);
 x86_Operand x86_operand_address(x86_Address address);
 x86_Operand x86_operand_location(x86_Location location);
 x86_Operand x86_operand_alloc(x86_Allocation *alloc);

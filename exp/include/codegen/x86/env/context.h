@@ -68,9 +68,9 @@ i64  x86_context_stack_size(x86_Context *x86_context);
 
 x86_Allocation *x86_context_allocation_of(x86_Context *x86_context, u32 ssa);
 
-void x86_context_release_gpr(x86_Context *x86_context, x86_64_GPR gpr, u64 Idx);
+void x86_context_release_gpr(x86_Context *x86_context, x86_GPR gpr, u64 Idx);
 
-void x86_context_aquire_gpr(x86_Context *x86_context, x86_64_GPR gpr, u64 Idx);
+void x86_context_aquire_gpr(x86_Context *x86_context, x86_GPR gpr, u64 Idx);
 
 x86_Allocation *
 x86_context_allocate(x86_Context *x86_context, LocalVariable *local, u64 Idx);
@@ -85,7 +85,7 @@ x86_Allocation *x86_context_allocate_to_any_gpr(x86_Context   *x86_context,
 
 x86_Allocation *x86_context_allocate_to_gpr(x86_Context *restrict x86_context,
                                             LocalVariable *local,
-                                            x86_64_GPR     gpr,
+                                            x86_GPR        gpr,
                                             u64            Idx);
 
 x86_Allocation *x86_context_allocate_to_stack(x86_Context   *x86_context,
@@ -99,7 +99,6 @@ x86_Allocation *x86_context_allocate_result(x86_Context *x86_context,
 void x86_context_reallocate_active(x86_Context    *x86_context,
                                    x86_Allocation *active);
 
-x86_64_GPR
-x86_context_aquire_any_gpr(x86_Context *x86_context, u64 size, u64 Idx);
+x86_GPR x86_context_aquire_any_gpr(x86_Context *x86_context, u64 size, u64 Idx);
 
 #endif // !EXP_BACKEND_X86_CONTEXT_H

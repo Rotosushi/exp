@@ -117,7 +117,7 @@ static void x64_emit_operand(x86_Operand operand,
     switch (operand.kind) {
     case X86_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
-        string_append(buffer, x86_64_gpr_mnemonic(operand.gpr));
+        string_append(buffer, x86_gpr_mnemonic(operand.gpr));
         break;
     }
 
@@ -126,11 +126,11 @@ static void x64_emit_operand(x86_Operand operand,
         string_append_i64(buffer, address->offset);
 
         string_append(buffer, SV("(%"));
-        string_append(buffer, x86_64_gpr_mnemonic(address->base));
+        string_append(buffer, x86_gpr_mnemonic(address->base));
 
         if (address->has_index) {
             string_append(buffer, SV(", "));
-            string_append(buffer, x86_64_gpr_mnemonic(address->index));
+            string_append(buffer, x86_gpr_mnemonic(address->index));
             string_append(buffer, SV(", "));
             string_append_u64(buffer, address->scale);
         }

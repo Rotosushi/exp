@@ -59,12 +59,10 @@ x86_Function x86_function_create(Function *restrict body,
 
     if (type_is_scalar(body->return_type)) {
         x64_body.result = x86_allocator_allocate_result(
-            allocator, x86_location_gpr(X86_64_GPR_RAX), body->return_type);
+            allocator, x86_location_gpr(X86_GPR_RAX), body->return_type);
     } else {
         x64_body.result = x86_allocator_allocate_result(
-            allocator,
-            x86_location_address(X86_64_GPR_RDI, 0),
-            body->return_type);
+            allocator, x86_location_address(X86_GPR_RDI, 0), body->return_type);
         scalar_argument_count += 1;
     }
 
@@ -74,9 +72,9 @@ x86_Function x86_function_create(Function *restrict body,
         LocalVariable  *local = local_variables_lookup_ssa(locals, arg->ssa);
 
         if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
-            u64        size = size_of(local->type);
-            x86_64_GPR gpr =
-                x86_64_gpr_scalar_argument(scalar_argument_count++, size);
+            u64     size = size_of(local->type);
+            x86_GPR gpr =
+                x86_gpr_scalar_argument(scalar_argument_count++, size);
             x86_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
         } else {
             u64 argument_size = size_of(arg->type);

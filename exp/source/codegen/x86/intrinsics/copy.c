@@ -31,11 +31,11 @@ void x64_codegen_copy_scalar_memory(x86_Address *restrict dst,
                                     u64 size,
                                     u64 Idx,
                                     x86_Context *restrict context) {
-    exp_assert(x86_64_gpr_valid_size(size));
+    exp_assert(x86_gpr_valid_size(size));
     if (context_trace(context->context)) {
         trace(SV("x64_codegen_copy_scalar_memory"), stdout);
     }
-    x86_64_GPR gpr = x86_context_aquire_any_gpr(context, size, Idx);
+    x86_GPR gpr = x86_context_aquire_any_gpr(context, size, Idx);
 
     x86_context_append(
         context, x64_mov(x86_operand_gpr(gpr), x86_operand_address(*src)));
