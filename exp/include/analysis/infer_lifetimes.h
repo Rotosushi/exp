@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 cade-weinberg
 //
 // This file is part of exp.
 //
@@ -14,24 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X86_ALLOCATION_H
-#define EXP_BACKEND_X86_ALLOCATION_H
 
-#include "codegen/x86/imr/location.h"
-#include "imr/lifetime.h"
-#include "imr/type.h"
+#ifndef EXP_ANALYSIS_INFER_LIFETIMES_H
+#define EXP_ANALYSIS_INFER_LIFETIMES_H
 
-typedef struct x86_Allocation {
-    u32          ssa;
-    Lifetime     lifetime;
-    x86_Location location;
-    Type const  *type;
-} x86_Allocation;
+#include "env/context.h"
 
-x86_Allocation *x86_allocation_allocate();
-void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
+i32 infer_lifetimes(Context *restrict context);
 
-bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x86_Location location);
-
-#endif // !EXP_BACKEND_X86_ALLOCATION_H
+#endif // !EXP_ANALYSIS_INFER_LIFETIMES_H

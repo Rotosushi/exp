@@ -43,9 +43,8 @@ typedef struct x86_Function {
     x86_Allocator          allocator;
 } x86_Function;
 
-struct x86_Context;
-x86_Function x86_function_create(Function *restrict body,
-                                 struct x86_Context *restrict context);
-void         x86_function_destroy(x86_Function *restrict body);
+void x86_function_create(x86_Function *restrict x86_body,
+                         Function *restrict body);
+void x86_function_destroy(x86_Function *restrict body);
 
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

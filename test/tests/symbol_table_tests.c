@@ -24,20 +24,20 @@
 bool test_symbol_table(SymbolTable *restrict symbol_table, char const *name) {
     bool failure = 0;
 
-    StringView sv   = string_view_from_cstring(name);
-    Symbol *element = symbol_table_at(symbol_table, sv);
+    StringView sv      = string_view_from_cstring(name);
+    Symbol    *element = symbol_table_at(symbol_table, sv);
 
     if (element == NULL) return 1;
 
-    failure |= !string_view_equality(element->name, sv);
+    failure |= !string_view_equal(element->name, sv);
 
     return failure;
 }
 
-i32 symbol_table_tests([[maybe_unused]] i32 argc,
+i32 symbol_table_tests([[maybe_unused]] i32   argc,
                        [[maybe_unused]] char *argv[]) {
     srand((unsigned)time(NULL));
-    bool failure             = 0;
+    bool        failure      = 0;
     SymbolTable symbol_table = symbol_table_create();
 
     failure |= test_symbol_table(&symbol_table, "foo");

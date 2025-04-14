@@ -115,16 +115,11 @@ Bytecode *context_active_bytecode(Context *restrict context);
 // CallPair context_new_call(Context * c);
 // ActualArgumentList *context_call_at(Context * c, u64 idx);
 
-void context_def_local_const(Context *restrict context,
-                             StringView name,
-                             Operand    value);
-
-LocalVariable *context_lookup_local(Context *restrict context, StringView name);
-LocalVariable *context_lookup_ssa(Context *restrict context, u32 ssa);
-
-FormalArgument *context_lookup_argument(Context *restrict context,
-                                        StringView name);
-FormalArgument *context_argument_at(Context *restrict context, u8 index);
+Local *context_declare_argument(Context *restrict context);
+Local *context_declare_local(Context *restrict context);
+Local *context_lookup_argument(Context *restrict context, u8 index);
+Local *context_lookup_local(Context *restrict context, u32 ssa);
+Local *context_lookup_local_name(Context *restrict context, StringView name);
 
 void context_leave_function(Context *restrict context);
 

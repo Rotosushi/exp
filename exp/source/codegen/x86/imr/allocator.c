@@ -156,8 +156,7 @@ static x86_Allocation *x86_gprp_oldest_allocation(x86_GPRP *restrict gprp) {
         x86_Allocation *cursor = gprp->buffer[i];
         if (cursor == NULL) { continue; }
 
-        if ((oldest == NULL) ||
-            (oldest->lifetime.last_use < cursor->lifetime.last_use)) {
+        if ((oldest == NULL) || (oldest->lifetime.end < cursor->lifetime.end)) {
             oldest = cursor;
         }
     }
@@ -170,9 +169,7 @@ static void x86_gprp_release_expired_allocations(x86_GPRP *restrict gprp,
         x86_Allocation *cursor = gprp->buffer[i];
         if (cursor == NULL) { continue; }
 
-        if (cursor->lifetime.last_use < Idx) {
-            x86_gprp_release_index(gprp, i);
-        }
+        if (cursor->lifetime.end < Idx) { x86_gprp_release_index(gprp, i); }
     }
 }
 
@@ -266,7 +263,7 @@ static void x86_stack_allocations_release_expired_allocations(
     x86_StackAllocations *restrict stack_allocations, u64 Idx) {
     for (u64 i = 0; i < stack_allocations->count; ++i) {
         x86_Allocation *cursor = stack_allocations->buffer[i];
-        if (cursor->lifetime.last_use < Idx) {
+        if (cursor->lifetime.end < Idx) {
             x86_stack_allocations_erase(stack_allocations, cursor);
             --i;
         }
@@ -318,11 +315,9 @@ x86_allocation_buffer_grow(x86_AllocationBuffer *restrict allocation_buffer) {
 
 static x86_Allocation *
 x86_allocation_buffer_append(x86_AllocationBuffer *restrict allocation_buffer,
-                             u64         ssa,
-                             Lifetime   *lifetime,
-                             Type const *type) {
+                             Local *restrict local) {
     assert(allocation_buffer != NULL);
-    assert(type != NULL);
+    assert(local != NULL);
 
     if (x86_allocation_buffer_full(allocation_buffer)) {
         x86_allocation_buffer_grow(allocation_buffer);
@@ -331,35 +326,26 @@ x86_allocation_buffer_append(x86_AllocationBuffer *restrict allocation_buffer,
     x86_Allocation **allocation =
         allocation_buffer->buffer + allocation_buffer->count;
     allocation_buffer->count += 1;
-    *allocation        = x86_allocation_allocate();
-    (*allocation)->ssa = ssa;
-    if (lifetime != NULL) {
-        (*allocation)->lifetime = *lifetime;
-    } else {
-        (*allocation)->lifetime = lifetime_immortal();
-    }
-    (*allocation)->type = type;
+    *allocation             = x86_allocation_allocate();
+    (*allocation)->ssa      = local->ssa;
+    (*allocation)->lifetime = local->lifetime;
+    (*allocation)->type     = local->type;
     return *allocation;
 }
 
-x86_Allocator x86_allocator_create(Function *restrict body,
-                                   Context *restrict context) {
-    x86_Allocator allocator = {
-        .gprp              = x86_gprp_create(),
-        .stack_allocations = x86_stack_allocations_create(),
-        .allocations       = x86_allocation_buffer_create(),
-        .lifetimes         = lifetimes_compute(body, context),
-    };
-    x86_gprp_aquire(&allocator.gprp, X86_GPR_RSP);
-    x86_gprp_aquire(&allocator.gprp, X86_GPR_RBP);
-    return allocator;
+void x86_allocator_create(x86_Allocator *restrict allocator) {
+    exp_assert(allocator != NULL);
+    allocator->gprp              = x86_gprp_create();
+    allocator->stack_allocations = x86_stack_allocations_create();
+    allocator->allocations       = x86_allocation_buffer_create();
+    x86_gprp_aquire(&allocator->gprp, X86_GPR_RSP);
+    x86_gprp_aquire(&allocator->gprp, X86_GPR_RBP);
 }
 
 void x86_allocator_destroy(x86_Allocator *restrict allocator) {
     x86_gprp_destroy(&allocator->gprp);
     x86_stack_allocations_destroy(&allocator->stack_allocations);
     x86_allocation_buffer_destroy(&allocator->allocations);
-    lifetimes_destroy(&allocator->lifetimes);
 }
 
 bool x86_allocator_uses_stack(x86_Allocator *restrict allocator) {
@@ -403,7 +389,7 @@ void x86_allocator_release_gpr(x86_Allocator *restrict allocator,
                                u64     Idx,
                                x86_Bytecode *restrict x64bc) {
     x86_Allocation *active = x86_gprp_allocation_at(&allocator->gprp, gpr);
-    if ((active == NULL) || active->lifetime.last_use < Idx) {
+    if ((active == NULL) || active->lifetime.end < Idx) {
         x86_gprp_release(&allocator->gprp, gpr);
         return;
     }
@@ -421,7 +407,7 @@ void x86_allocator_aquire_gpr(x86_Allocator *restrict allocator,
         return;
     }
 
-    if (active->lifetime.last_use <= Idx) {
+    if (active->lifetime.end <= Idx) {
         x86_gprp_release(&allocator->gprp, gpr);
         x86_gprp_aquire(&allocator->gprp, gpr);
         return;
@@ -447,7 +433,7 @@ static void x86_allocator_register_allocate(x86_Allocator *restrict allocator,
     x86_Allocation *oldest_active =
         x86_gprp_oldest_allocation(&allocator->gprp);
 
-    if (oldest_active->lifetime.last_use > allocation->lifetime.last_use) {
+    if (oldest_active->lifetime.end > allocation->lifetime.end) {
         x86_allocator_spill_allocation(allocator, oldest_active, x64bc);
         x86_gprp_allocate(&allocator->gprp, allocation);
     } else {
@@ -456,12 +442,11 @@ static void x86_allocator_register_allocate(x86_Allocator *restrict allocator,
 }
 
 x86_Allocation *x86_allocator_allocate(x86_Allocator *restrict allocator,
-                                       u64            Idx,
-                                       LocalVariable *local,
+                                       u64    Idx,
+                                       Local *local,
                                        x86_Bytecode *restrict x64bc) {
-    Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x86_allocation_buffer_append(
-        &allocator->allocations, local->ssa, lifetime, local->type);
+    x86_Allocation *allocation =
+        x86_allocation_buffer_append(&allocator->allocations, local);
 
     if (string_view_empty(local->name) && type_is_scalar(local->type)) {
         x86_allocator_register_allocate(allocator, Idx, allocation, x64bc);
@@ -480,16 +465,15 @@ x86_Allocation *x86_allocator_allocate(x86_Allocator *restrict allocator,
 x86_Allocation *
 x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
                                    u64             Idx,
-                                   LocalVariable  *local,
+                                   Local          *local,
                                    x86_Allocation *active,
                                    x86_Bytecode *restrict x64bc) {
-    Lifetime *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
 
-    if (active->lifetime.last_use <= Idx) {
+    if (active->lifetime.end <= Idx) {
         // we can reuse the existing allocation treating
         // it as the new ssa local allocation.
         active->ssa      = local->ssa;
-        active->lifetime = *lifetime;
+        active->lifetime = local->lifetime;
         return active;
     }
 
@@ -516,11 +500,10 @@ x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
 
 x86_Allocation *
 x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
-                                  LocalVariable *local,
+                                  Local *local,
                                   x86_Bytecode *restrict x64bc) {
-    Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x86_allocation_buffer_append(
-        &allocator->allocations, local->ssa, lifetime, local->type);
+    x86_Allocation *allocation =
+        x86_allocation_buffer_append(&allocator->allocations, local);
 
     if (x86_gprp_allocate(&allocator->gprp, allocation)) { return allocation; }
 
@@ -530,13 +513,12 @@ x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
 }
 
 x86_Allocation *x86_allocator_allocate_to_gpr(x86_Allocator *restrict allocator,
-                                              LocalVariable *local,
-                                              x86_GPR        gpr,
-                                              u64            Idx,
+                                              Local  *local,
+                                              x86_GPR gpr,
+                                              u64     Idx,
                                               x86_Bytecode *restrict x64bc) {
-    Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x86_allocation_buffer_append(
-        &allocator->allocations, local->ssa, lifetime, local->type);
+    x86_Allocation *allocation =
+        x86_allocation_buffer_append(&allocator->allocations, local);
 
     x86_allocator_release_gpr(allocator, gpr, Idx, x64bc);
     x86_gprp_allocate_to_gpr(&allocator->gprp, gpr, allocation);
@@ -544,10 +526,9 @@ x86_Allocation *x86_allocator_allocate_to_gpr(x86_Allocator *restrict allocator,
 }
 
 x86_Allocation *x86_allocator_allocate_to_stack(
-    x86_Allocator *restrict allocator, i64 offset, LocalVariable *local) {
-    Lifetime       *lifetime = lifetimes_at(&allocator->lifetimes, local->ssa);
-    x86_Allocation *allocation = x86_allocation_buffer_append(
-        &allocator->allocations, local->ssa, lifetime, local->type);
+    x86_Allocator *restrict allocator, i64 offset, Local *local) {
+    x86_Allocation *allocation =
+        x86_allocation_buffer_append(&allocator->allocations, local);
 
     allocation->location = x86_location_address(X86_GPR_RBP, offset);
 
@@ -558,8 +539,12 @@ x86_Allocation *x86_allocator_allocate_to_stack(
 x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
                                               x86_Location location,
                                               Type const  *type) {
-    x86_Allocation *allocation = x86_allocation_buffer_append(
-        &allocator->allocations, u64_MAX, nullptr, type);
+    Local fake = {
+        .ssa = u32_MAX, .lifetime = {0, u32_MAX},
+             .type = type
+    };
+    x86_Allocation *allocation =
+        x86_allocation_buffer_append(&allocator->allocations, &fake);
 
     // The gpr allocator of this function does not actually want the
     // location marked as used, so that instructions within the function

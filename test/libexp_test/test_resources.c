@@ -111,7 +111,7 @@ void test_resources_gather(TestResources *test_resources,
         if (S_ISREG(entry_stat.st_mode)) {
             // skip any files which are not source code (*.exp)
             StringView extension = string_extension(&full_path);
-            if (!string_view_equality(extension, SV(".exp"))) {
+            if (!string_view_equal(extension, SV(".exp"))) {
                 string_destroy(&full_path);
                 continue;
             }

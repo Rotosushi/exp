@@ -24,12 +24,11 @@
 #include "support/array_growth.h"
 #include "support/assert.h"
 
-Bytecode bytecode_create() {
-    Bytecode bc;
-    bc.length   = 0;
-    bc.capacity = 0;
-    bc.buffer   = NULL;
-    return bc;
+void bytecode_create(Bytecode *restrict bytecode) {
+    exp_assert(bytecode != NULL);
+    bytecode->length   = 0;
+    bytecode->capacity = 0;
+    bytecode->buffer   = NULL;
 }
 
 void bytecode_destroy(Bytecode *restrict bytecode) {
@@ -45,7 +44,7 @@ static bool bytecode_full(Bytecode *restrict bytecode) {
 }
 
 static void bytecode_grow(Bytecode *restrict bytecode) {
-    Growth_u64 g = array_growth_u64(bytecode->capacity, sizeof(Instruction));
+    Growth_u32 g = array_growth_u32(bytecode->capacity, sizeof(Instruction));
     bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
     bytecode->capacity = g.new_capacity;
 }
@@ -61,7 +60,7 @@ void print_bytecode(String *restrict string,
                     Bytecode const *restrict bc,
                     struct Context *restrict context) {
     // walk the entire buffer and print each instruction
-    for (u64 i = 0; i < bc->length; ++i) {
+    for (u32 i = 0; i < bc->length; ++i) {
         string_append(string, SV("  "));
         string_append_u64(string, i);
         string_append(string, SV(": "));

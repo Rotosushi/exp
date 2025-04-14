@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 cade-weinberg
 //
 // This file is part of exp.
 //
@@ -14,11 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_ANALYSIS_TYPECHECK_H
-#define EXP_ANALYSIS_TYPECHECK_H
 
-#include "env/context.h"
+#ifndef EXP_IMR_LIFETIME_H
+#define EXP_IMR_LIFETIME_H
 
-i32 typecheck(Context *restrict context);
+#include "support/scalar.h"
 
-#endif // !EXP_ANALYSIS_TYPECHECK_H
+typedef struct Lifetime {
+    u32 start;
+    u32 end;
+} Lifetime;
+
+#endif // !EXP_IMR_LIFETIME_H

@@ -32,7 +32,7 @@ void x86_codegen_dot(Instruction I,
         trace(SV("x64_codegen_dot"), stdout);
     }
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
 
     assert(I.C_kind == OPERAND_KIND_I64);
     assert(I.C_data.i64_ >= 0);

@@ -1,2 +1,0 @@
-/* This is a comment appearing before any code */
-fn main() { return 0; }

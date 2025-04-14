@@ -52,7 +52,7 @@ x86_Symbol *x86_symbol_table_at(x86_SymbolTable *restrict symbols,
             return sym;
         }
 
-        if (string_view_equality(sym->name, name)) { return sym; }
+        if (string_view_equal(sym->name, name)) { return sym; }
     }
     EXP_UNREACHABLE();
 }

@@ -14,24 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X86_ALLOCATION_H
-#define EXP_BACKEND_X86_ALLOCATION_H
+#ifndef EXP_ANALYSIS_INFER_TYPES_H
+#define EXP_ANALYSIS_INFER_TYPES_H
 
-#include "codegen/x86/imr/location.h"
-#include "imr/lifetime.h"
-#include "imr/type.h"
+#include "env/context.h"
 
-typedef struct x86_Allocation {
-    u32          ssa;
-    Lifetime     lifetime;
-    x86_Location location;
-    Type const  *type;
-} x86_Allocation;
+i32 infer_types(Context *restrict context);
 
-x86_Allocation *x86_allocation_allocate();
-void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
-
-bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x86_Location location);
-
-#endif // !EXP_BACKEND_X86_ALLOCATION_H
+#endif // !EXP_ANALYSIS_INFER_TYPES_H

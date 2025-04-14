@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 3.20)
 set(SOURCE_FILES 
   ${EXP_SOURCE_DIR}/adt/graph.c
 
-  ${EXP_SOURCE_DIR}/analysis/typecheck.c
+  ${EXP_SOURCE_DIR}/analysis/infer_types.c
+  ${EXP_SOURCE_DIR}/analysis/infer_lifetimes.c
   
   ${EXP_SOURCE_DIR}/codegen/GAS/directives.c
-  ${EXP_SOURCE_DIR}/codegen/lifetimes.c
   ${EXP_SOURCE_DIR}/codegen/IR/codegen.c
   ${EXP_SOURCE_DIR}/codegen/IR/directives.c
   ${EXP_SOURCE_DIR}/codegen/x86/codegen.c
@@ -58,6 +58,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function.c
   ${EXP_SOURCE_DIR}/imr/instruction.c
+  ${EXP_SOURCE_DIR}/imr/local.c
+  ${EXP_SOURCE_DIR}/imr/locals.c
   ${EXP_SOURCE_DIR}/imr/operand.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c

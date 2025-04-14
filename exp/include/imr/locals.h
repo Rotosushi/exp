@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 cade-weinberg
 //
 // This file is part of exp.
 //
@@ -14,24 +14,22 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X86_ALLOCATION_H
-#define EXP_BACKEND_X86_ALLOCATION_H
 
-#include "codegen/x86/imr/location.h"
-#include "imr/lifetime.h"
-#include "imr/type.h"
+#ifndef EXP_IMR_LOCALS_H
+#define EXP_IMR_LOCALS_H
 
-typedef struct x86_Allocation {
-    u32          ssa;
-    Lifetime     lifetime;
-    x86_Location location;
-    Type const  *type;
-} x86_Allocation;
+#include "imr/local.h"
 
-x86_Allocation *x86_allocation_allocate();
-void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
+typedef struct Locals {
+    u32     count;
+    u32     capacity;
+    Local **buffer;
+} Locals;
 
-bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x86_Location location);
+void   locals_create(Locals *restrict locals);
+void   locals_destroy(Locals *restrict locals);
+Local *locals_declare(Locals *restrict locals);
+Local *locals_lookup(Locals *restrict locals, u32 ssa);
+Local *locals_lookup_name(Locals *restrict locals, StringView name);
 
-#endif // !EXP_BACKEND_X86_ALLOCATION_H
+#endif // !EXP_IMR_LOCALS_H

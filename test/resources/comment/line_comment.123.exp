@@ -1,0 +1,7 @@
+
+// this is a single line comment before a block of code
+fn main() { // and another, at all possible locations
+    // this is a single line comment within a block of code
+    return 123; // this is a single line comment after a line of code
+} // this is another single line comment
+// this is a single line comment after a block of code

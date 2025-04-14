@@ -55,8 +55,8 @@ StringView error_code_to_view(ErrorCode code) {
         return SV("Expected an Identifier. Found: ");
     case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
 
-    case ERROR_TYPECHECK_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
-    case ERROR_TYPECHECK_TYPE_MISMATCH:
+    case ERROR_ANALYSIS_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
+    case ERROR_ANALYSIS_TYPE_MISMATCH:
         return SV("Expected Type does not match Actual Type: ");
 
     default: EXP_UNREACHABLE();

@@ -1,4 +1,0 @@
-fn main() {
-	/* this comment appears inside the block of code */
-	return 5;
-}

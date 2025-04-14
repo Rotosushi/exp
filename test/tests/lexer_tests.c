@@ -24,7 +24,8 @@
 
 // return true on failure
 static bool test_lexer_scans_token(const char *buffer, Token token) {
-    Lexer lexer = lexer_create();
+    Lexer lexer;
+    lexer_init(&lexer);
     lexer_set_view(&lexer, buffer, strlen(buffer));
 
     Token scanned = lexer_scan(&lexer);

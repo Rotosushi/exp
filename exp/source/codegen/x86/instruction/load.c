@@ -27,7 +27,7 @@ void x86_codegen_load(Instruction I,
                       u64         block_index,
                       x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {

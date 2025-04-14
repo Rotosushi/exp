@@ -54,7 +54,7 @@ symbol_table_find(Symbol **restrict elements, u64 capacity, StringView name) {
     while (1) {
         Symbol **element = elements + index;
         if (((*element) == nullptr) ||
-            string_view_equality(name, (*element)->name)) {
+            string_view_equal(name, (*element)->name)) {
             return element;
         }
 

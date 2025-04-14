@@ -51,7 +51,7 @@ u32 labels_insert(Labels *restrict symbols, StringView symbol) {
 
     for (u32 i = 0; i < symbols->count; ++i) {
         StringView s = symbols->buffer[i];
-        if (string_view_equality(s, symbol)) { return i; }
+        if (string_view_equal(s, symbol)) { return i; }
     }
 
     u32 index              = symbols->count;

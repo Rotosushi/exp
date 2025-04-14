@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
+ * Copyright (C) 2025 cade-weinberg
  *
  * This file is part of exp.
  *
@@ -17,14 +17,11 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
+#include "imr/local.h"
 
-#include "analysis/infer_lifetimes.h"
-#include "analysis/infer_types.h"
-#include "core/analyze.h"
-
-i32 analyze(Context *restrict context) {
-    if (infer_types(context) != EXIT_SUCCESS) { return EXIT_FAILURE; }
-    infer_lifetimes(context);
-    return EXIT_SUCCESS;
+void local_init(Local *restrict local, u32 ssa) {
+    local->ssa      = ssa;
+    local->name     = SV("");
+    local->type     = NULL;
+    local->lifetime = (Lifetime){.start = 0, .end = 0};
 }

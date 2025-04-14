@@ -20,23 +20,23 @@
 
 #include "env/string_interner.h"
 
-i32 string_interner_tests([[maybe_unused]] i32 argc,
+i32 string_interner_tests([[maybe_unused]] i32   argc,
                           [[maybe_unused]] char *argv[]) {
-  StringInterner si = string_interner_create();
-  bool failure      = 0;
+    StringInterner si      = string_interner_create();
+    bool           failure = 0;
 
-  StringView sv0 = string_interner_insert(&si, SV("hello"));
-  StringView sv1 = string_interner_insert(&si, SV("world"));
-  failure |= string_view_equality(sv0, sv1);
+    StringView sv0 = string_interner_insert(&si, SV("hello"));
+    StringView sv1 = string_interner_insert(&si, SV("world"));
+    failure |= string_view_equal(sv0, sv1);
 
-  StringView sv2 = string_interner_insert(&si, SV("hello"));
-  failure |= !string_view_equality(sv0, sv2);
-  failure |= string_view_equality(sv1, sv2);
+    StringView sv2 = string_interner_insert(&si, SV("hello"));
+    failure |= !string_view_equal(sv0, sv2);
+    failure |= string_view_equal(sv1, sv2);
 
-  string_interner_destroy(&si);
-  if (failure) {
-    return EXIT_FAILURE;
-  } else {
-    return EXIT_SUCCESS;
-  }
+    string_interner_destroy(&si);
+    if (failure) {
+        return EXIT_FAILURE;
+    } else {
+        return EXIT_SUCCESS;
+    }
 }

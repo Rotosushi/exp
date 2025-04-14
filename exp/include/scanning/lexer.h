@@ -26,17 +26,10 @@ typedef struct Lexer {
     const char *buffer;
     const char *token;
     const char *cursor;
-    u64 line;
-    u64 column;
-    u64 length;
+    u64         line;
+    u64         column;
+    u64         length;
 } Lexer;
-
-/**
- * @brief create a new lexer
- *
- * @return Lexer
- */
-Lexer lexer_create();
 
 /**
  * @brief initialize a new lexer
@@ -73,8 +66,8 @@ void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length);
 bool lexer_at_end(Lexer *restrict lexer);
 
 StringView lexer_current_text(Lexer const *restrict lexer);
-u64 lexer_current_line(Lexer const *restrict lexer);
-u64 lexer_current_column(Lexer const *restrict lexer);
+u64        lexer_current_line(Lexer const *restrict lexer);
+u64        lexer_current_column(Lexer const *restrict lexer);
 
 Token lexer_scan(Lexer *restrict lexer);
 

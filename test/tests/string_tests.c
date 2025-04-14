@@ -50,7 +50,7 @@ bool test_string_to_view(StringView sv) {
 
     StringView sv0 = string_to_view(&str);
 
-    if (!string_view_equality(sv0, sv)) {
+    if (!string_view_equal(sv0, sv)) {
         // fputs(str.buffer, stderr);
         failed |= 1;
     } else {
@@ -99,7 +99,7 @@ bool test_string_erase(StringView sv0, u64 offset, u64 length, StringView sv1) {
 }
 
 bool test_string_insert(StringView sv0,
-                        u64 offset,
+                        u64        offset,
                         StringView sv1,
                         StringView sv2) {
     String str = string_create();
@@ -125,7 +125,7 @@ bool test_string_extension(StringView view, StringView extension) {
 
     StringView ext = string_extension(&string);
 
-    bool failure = !string_view_equality(ext, extension);
+    bool failure = !string_view_equal(ext, extension);
 
     string_destroy(&string);
     return failure;

@@ -27,12 +27,12 @@
  * underlying implementation? Chunk? Instructions? Block?
  */
 typedef struct Bytecode {
-    u64 length;
-    u64 capacity;
+    u32          length;
+    u32          capacity;
     Instruction *buffer;
 } Bytecode;
 
-Bytecode bytecode_create();
+void bytecode_create(Bytecode *restrict bytecode);
 void bytecode_destroy(Bytecode *restrict bytecode);
 
 void bytecode_append(Bytecode *restrict bytecode, Instruction I);

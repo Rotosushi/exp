@@ -104,8 +104,8 @@ void x86_codegen_call(Instruction I,
         trace(SV("x64_codegen_call:"), stdout);
     }
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
-    u8             scalar_argument_count = 0;
+    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    u8     scalar_argument_count = 0;
 
     // #NOTE the result of a call expression is either stored in a register
     // (rAX) or on the stack. Iff it is on the stack, it is callee allocated,

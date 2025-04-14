@@ -27,10 +27,10 @@
 // never the memory location of a local variable. Since that would modify
 // the value of the local variable.
 
-static void x86_codegen_add_ssa(Instruction    I,
-                                u64            block_index,
-                                LocalVariable *local,
-                                x86_Context   *context) {
+static void x86_codegen_add_ssa(Instruction  I,
+                                u64          block_index,
+                                Local       *local,
+                                x86_Context *context) {
     x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
@@ -68,7 +68,7 @@ static void x86_codegen_add_ssa(Instruction    I,
 
         // we use the huristic of longest lifetime to choose
         // which of B and C to move into A's gpr.
-        if (B->lifetime.last_use <= C->lifetime.last_use) {
+        if (B->lifetime.end <= C->lifetime.end) {
             x86_context_append(
                 context, x86_mov(x86_operand_alloc(A), x86_operand_alloc(C)));
             x86_context_append(
@@ -113,10 +113,10 @@ static void x86_codegen_add_ssa(Instruction    I,
     }
 }
 
-static void x86_codegen_add_immediate(Instruction    I,
-                                      u64            block_index,
-                                      LocalVariable *local,
-                                      x86_Context   *context) {
+static void x86_codegen_add_immediate(Instruction  I,
+                                      u64          block_index,
+                                      Local       *local,
+                                      x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
@@ -166,10 +166,10 @@ static void x86_codegen_add_immediate(Instruction    I,
     }
 }
 
-static void x86_codegen_add_constant(Instruction    I,
-                                     u64            block_index,
-                                     LocalVariable *local,
-                                     x86_Context   *context) {
+static void x86_codegen_add_constant(Instruction  I,
+                                     u64          block_index,
+                                     Local       *local,
+                                     x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         if (context_trace(context->context)) {
@@ -224,7 +224,7 @@ void x86_codegen_add(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    LocalVariable *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x86_codegen_add_ssa(I, block_index, local, context);

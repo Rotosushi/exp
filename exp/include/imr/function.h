@@ -18,45 +18,15 @@
 #define EXP_IMR_FUNCTION_H
 
 #include "imr/bytecode.h"
+#include "imr/locals.h"
 #include "imr/type.h"
 #include "support/string_view.h"
 
-typedef struct FormalArgument {
-    StringView  name;
-    Type const *type;
-    u8          index;
-    u32         ssa;
-} FormalArgument;
-
 typedef struct FormalArgumentList {
-    FormalArgument *list;
-    u8              size;
-    u8              capacity;
+    Local **list;
+    u8      size;
+    u8      capacity;
 } FormalArgumentList;
-
-void            formal_argument_list_append(FormalArgumentList *restrict fal,
-                                            FormalArgument arg);
-FormalArgument *formal_argument_list_at(FormalArgumentList *restrict fal,
-                                        u8 index);
-FormalArgument *formal_argument_list_lookup(FormalArgumentList *restrict fal,
-                                            StringView name);
-
-typedef struct LocalVariable {
-    StringView  name;
-    Type const *type;
-    u32         ssa;
-} LocalVariable;
-
-typedef struct LocalVariables {
-    u64            size;
-    u64            capacity;
-    LocalVariable *buffer;
-} LocalVariables;
-
-void local_variables_append(LocalVariables *restrict lv, LocalVariable var);
-LocalVariable *local_variables_lookup(LocalVariables *restrict lv,
-                                      StringView name);
-LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u32 ssa);
 
 /*
  * #TODO: The body of a function is currently a single block of instructions.
@@ -67,18 +37,19 @@ LocalVariable *local_variables_lookup_ssa(LocalVariables *restrict lv, u32 ssa);
 
 typedef struct Function {
     FormalArgumentList arguments;
-    LocalVariables     locals;
-    Type const        *return_type;
-    u32                ssa_count;
+    Locals             locals;
     Bytecode           bc;
+    Type const        *return_type;
 } Function;
 
-Function function_create();
-void     function_destroy(Function *restrict function);
+void function_create(Function *restrict function);
+void function_destroy(Function *restrict function);
 
-void function_new_argument(Function *restrict function, FormalArgument arg);
-void function_new_local(Function *restrict function, StringView name, u32 ssa);
-Operand function_new_ssa(Function *restrict function);
+Local *function_declare_argument(Function *restrict function);
+Local *function_declare_local(Function *restrict function);
+Local *function_lookup_argument(Function *restrict function, u8 index);
+Local *function_lookup_local(Function *restrict function, u32 ssa);
+Local *function_lookup_local_name(Function *restrict function, StringView name);
 
 struct Context;
 void print_function(String *restrict string,

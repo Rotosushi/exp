@@ -1,3 +1,0 @@
-/* this comment is */
-fn main() { return 2; }
-/* interspersed with code */

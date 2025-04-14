@@ -52,12 +52,10 @@ typedef struct x64_Allocator {
     x86_GPRP             gprp;
     x86_StackAllocations stack_allocations;
     x86_AllocationBuffer allocations;
-    Lifetimes            lifetimes;
 } x86_Allocator;
 
-x86_Allocator x86_allocator_create(Function *restrict body,
-                                   Context *restrict context);
-void          x86_allocator_destroy(x86_Allocator *restrict allocator);
+void x86_allocator_create(x86_Allocator *restrict allocator);
+void x86_allocator_destroy(x86_Allocator *restrict allocator);
 
 bool x86_allocator_uses_stack(x86_Allocator *restrict allocator);
 i64  x86_allocator_total_stack_size(x86_Allocator *restrict allocator);
@@ -76,30 +74,30 @@ void x86_allocator_aquire_gpr(x86_Allocator *restrict allocator,
                               x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate(x86_Allocator *restrict allocator,
-                                       u64            Idx,
-                                       LocalVariable *local,
+                                       u64    Idx,
+                                       Local *local,
                                        x86_Bytecode *restrict x64bc);
 
 x86_Allocation *
 x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
                                    u64             Idx,
-                                   LocalVariable  *local,
+                                   Local          *local,
                                    x86_Allocation *active,
                                    x86_Bytecode *restrict x64bc);
 
 x86_Allocation *
 x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
-                                  LocalVariable *local,
+                                  Local *local,
                                   x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate_to_gpr(x86_Allocator *restrict allocator,
-                                              LocalVariable *local,
-                                              x86_GPR        gpr,
-                                              u64            Idx,
+                                              Local  *local,
+                                              x86_GPR gpr,
+                                              u64     Idx,
                                               x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate_to_stack(
-    x86_Allocator *restrict allocator, i64 offset, LocalVariable *local);
+    x86_Allocator *restrict allocator, i64 offset, Local *local);
 
 x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
                                               x86_Location location,

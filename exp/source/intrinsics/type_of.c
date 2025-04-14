@@ -49,8 +49,8 @@ Type const *type_of_function(Function *restrict body,
 
     TupleType argument_types = tuple_type_create();
     for (u64 i = 0; i < body->arguments.size; ++i) {
-        FormalArgument *formal_argument = &body->arguments.list[i];
-        Type const     *argument_type   = formal_argument->type;
+        Local      *formal_argument = body->arguments.list[i];
+        Type const *argument_type   = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);
     }
 
@@ -60,7 +60,7 @@ Type const *type_of_function(Function *restrict body,
 Type const *type_of_operand(Operand operand, Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
-        LocalVariable *local = context_lookup_ssa(context, operand.data.ssa);
+        Local *local = context_lookup_local(context, operand.data.ssa);
         return local->type;
         break;
     }
