@@ -50,7 +50,7 @@ static void x86_codegen_add_ssa(Instruction    I,
             x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, B, block_index);
             x86_context_append(
-                context, x64_add(x86_operand_alloc(A), x86_operand_alloc(C)));
+                context, x86_add(x86_operand_alloc(A), x86_operand_alloc(C)));
             return;
         }
 
@@ -58,7 +58,7 @@ static void x86_codegen_add_ssa(Instruction    I,
             x86_Allocation *A = x86_context_allocate_from_active(
                 context, local, C, block_index);
             x86_context_append(
-                context, x64_add(x86_operand_alloc(A), x86_operand_alloc(B)));
+                context, x86_add(x86_operand_alloc(A), x86_operand_alloc(B)));
             return;
         }
 
@@ -70,14 +70,14 @@ static void x86_codegen_add_ssa(Instruction    I,
         // which of B and C to move into A's gpr.
         if (B->lifetime.last_use <= C->lifetime.last_use) {
             x86_context_append(
-                context, x64_mov(x86_operand_alloc(A), x86_operand_alloc(C)));
+                context, x86_mov(x86_operand_alloc(A), x86_operand_alloc(C)));
             x86_context_append(
-                context, x64_add(x86_operand_alloc(A), x86_operand_alloc(B)));
+                context, x86_add(x86_operand_alloc(A), x86_operand_alloc(B)));
         } else {
             x86_context_append(
-                context, x64_mov(x86_operand_alloc(A), x86_operand_alloc(B)));
+                context, x86_mov(x86_operand_alloc(A), x86_operand_alloc(B)));
             x86_context_append(
-                context, x64_add(x86_operand_alloc(A), x86_operand_alloc(C)));
+                context, x86_add(x86_operand_alloc(A), x86_operand_alloc(C)));
         }
         break;
     }
@@ -90,7 +90,7 @@ static void x86_codegen_add_ssa(Instruction    I,
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_immediate(I.C_data.i64_)));
         break;
     }
@@ -103,7 +103,7 @@ static void x86_codegen_add_ssa(Instruction    I,
             x86_context_allocate_from_active(context, local, B, block_index);
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_constant(I.C_data.constant)));
         break;
     }
@@ -127,7 +127,7 @@ static void x86_codegen_add_immediate(Instruction    I,
             x86_context_allocate_from_active(context, local, C, block_index);
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_immediate(I.B_data.i64_)));
         break;
     }
@@ -138,10 +138,10 @@ static void x86_codegen_add_immediate(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_immediate(I.B_data.i64_)));
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_immediate(I.C_data.i64_)));
         break;
     }
@@ -152,11 +152,11 @@ static void x86_codegen_add_immediate(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_immediate(I.C_data.i64_)));
         break;
     }
@@ -180,7 +180,7 @@ static void x86_codegen_add_constant(Instruction    I,
             x86_context_allocate_from_active(context, local, C, block_index);
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
         break;
     }
@@ -191,11 +191,11 @@ static void x86_codegen_add_constant(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_immediate(I.C_data.i64_)));
         break;
     }
@@ -206,11 +206,11 @@ static void x86_codegen_add_constant(Instruction    I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
 
         x86_context_append(context,
-                           x64_add(x86_operand_alloc(A),
+                           x86_add(x86_operand_alloc(A),
                                    x86_operand_constant(I.C_data.constant)));
         break;
     }

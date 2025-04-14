@@ -23,7 +23,7 @@
 typedef struct x64_Bytecode {
     u64              length;
     u64              capacity;
-    x64_Instruction *buffer;
+    x86_Instruction *buffer;
 } x86_Bytecode;
 
 x86_Bytecode x86_bytecode_create();
@@ -32,10 +32,10 @@ void         x86_bytecode_destroy(x86_Bytecode *restrict bc);
 u64 x86_bytecode_current_offset(x86_Bytecode *restrict bc);
 
 void x86_bytecode_insert(x86_Bytecode *restrict bc,
-                         x64_Instruction I,
+                         x86_Instruction I,
                          u64             offset);
-void x86_bytecode_prepend(x86_Bytecode *restrict bc, x64_Instruction I);
-void x86_bytecode_append(x86_Bytecode *restrict bc, x64_Instruction I);
+void x86_bytecode_prepend(x86_Bytecode *restrict bc, x86_Instruction I);
+void x86_bytecode_append(x86_Bytecode *restrict bc, x86_Instruction I);
 
 void x86_bytecode_emit(x86_Bytecode *restrict bc,
                        String *restrict buffer,

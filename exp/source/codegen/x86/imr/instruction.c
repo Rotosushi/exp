@@ -23,66 +23,66 @@
 #include "codegen/x86/imr/registers.h"
 #include "support/unreachable.h"
 
-static x64_Instruction x64_instruction(x64_Opcode opcode) {
-    x64_Instruction I = {.opcode = opcode};
+static x86_Instruction x64_instruction(x86_Opcode opcode) {
+    x86_Instruction I = {.opcode = opcode};
     return I;
 }
 
-static x64_Instruction x64_instruction_A(x64_Opcode opcode, x86_Operand A) {
-    x64_Instruction I = {.opcode = opcode, .A = A};
+static x86_Instruction x64_instruction_A(x86_Opcode opcode, x86_Operand A) {
+    x86_Instruction I = {.opcode = opcode, .A = A};
     return I;
 }
 
-static x64_Instruction
-x64_instruction_AB(x64_Opcode opcode, x86_Operand A, x86_Operand B) {
-    x64_Instruction I = {.opcode = opcode, .A = A, .B = B};
+static x86_Instruction
+x64_instruction_AB(x86_Opcode opcode, x86_Operand A, x86_Operand B) {
+    x86_Instruction I = {.opcode = opcode, .A = A, .B = B};
     return I;
 }
 
-x64_Instruction x64_ret() { return x64_instruction(X64_OPCODE_RETURN); }
+x86_Instruction x86_ret() { return x64_instruction(X64_OPCODE_RETURN); }
 
-x64_Instruction x64_call(x86_Operand label) {
+x86_Instruction x86_call(x86_Operand label) {
     return x64_instruction_A(X64_OPCODE_CALL, label);
 }
 
-x64_Instruction x64_push(x86_Operand src) {
+x86_Instruction x86_push(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_PUSH, src);
 }
 
-x64_Instruction x64_pop(x86_Operand dst) {
+x86_Instruction x86_pop(x86_Operand dst) {
     return x64_instruction_A(X64_OPCODE_POP, dst);
 }
 
-x64_Instruction x64_mov(x86_Operand dst, x86_Operand src) {
+x86_Instruction x86_mov(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_MOV, dst, src);
 }
 
-x64_Instruction x64_lea(x86_Operand dst, x86_Operand src) {
+x86_Instruction x86_lea(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_LEA, dst, src);
 }
 
-x64_Instruction x64_neg(x86_Operand dst) {
+x86_Instruction x86_neg(x86_Operand dst) {
     return x64_instruction_A(X64_OPCODE_NEG, dst);
 }
 
-x64_Instruction x64_add(x86_Operand dst, x86_Operand src) {
+x86_Instruction x86_add(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_ADD, dst, src);
 }
 
-x64_Instruction x64_sub(x86_Operand dst, x86_Operand src) {
+x86_Instruction x86_sub(x86_Operand dst, x86_Operand src) {
     return x64_instruction_AB(X64_OPCODE_SUB, dst, src);
 }
 
-x64_Instruction x64_imul(x86_Operand src) {
+x86_Instruction x86_imul(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_IMUL, src);
 }
 
-x64_Instruction x64_idiv(x86_Operand src) {
+x86_Instruction x86_idiv(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_IDIV, src);
 }
 
 static void x64_emit_mnemonic(StringView                       mnemonic,
-                              [[maybe_unused]] x64_Instruction I,
+                              [[maybe_unused]] x86_Instruction I,
                               String *restrict buffer,
                               [[maybe_unused]] Context *restrict context) {
     string_append(buffer, mnemonic);
@@ -167,7 +167,7 @@ static void x64_emit_operand(x86_Operand operand,
     }
 }
 
-void x64_instruction_emit(x64_Instruction I,
+void x86_instruction_emit(x86_Instruction I,
                           String *restrict buffer,
                           Context *restrict context) {
     switch (I.opcode) {

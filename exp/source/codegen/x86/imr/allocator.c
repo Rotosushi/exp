@@ -387,7 +387,7 @@ static void x86_allocator_spill_allocation(x86_Allocator *restrict allocator,
     x86_stack_allocations_allocate(&allocator->stack_allocations, allocation);
 
     x86_bytecode_append(
-        x64bc, x64_mov(x86_operand_alloc(allocation), x86_operand_gpr(gpr)));
+        x64bc, x86_mov(x86_operand_alloc(allocation), x86_operand_gpr(gpr)));
 }
 
 x86_Allocation *x86_allocator_allocation_of(x86_Allocator *restrict allocator,
@@ -503,12 +503,12 @@ x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
         exp_assert(x86_gpr_valid_size(size));
         x86_GPR gpr = x86_allocator_aquire_any_gpr(allocator, size, Idx, x64bc);
         x86_bytecode_append(
-            x64bc, x64_mov(x86_operand_gpr(gpr), x86_operand_alloc(active)));
+            x64bc, x86_mov(x86_operand_gpr(gpr), x86_operand_alloc(active)));
         x86_bytecode_append(
-            x64bc, x64_mov(x86_operand_alloc(new), x86_operand_gpr(gpr)));
+            x64bc, x86_mov(x86_operand_alloc(new), x86_operand_gpr(gpr)));
     } else {
         x86_bytecode_append(
-            x64bc, x64_mov(x86_operand_alloc(new), x86_operand_alloc(active)));
+            x64bc, x86_mov(x86_operand_alloc(new), x86_operand_alloc(active)));
     }
 
     return new;
@@ -581,7 +581,7 @@ void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,
     x86_GPR prev_gpr = active->location.gpr;
     if (x86_gprp_reallocate(&allocator->gprp, active)) {
         x86_bytecode_append(x64bc,
-                            x64_mov(x86_operand_gpr(active->location.gpr),
+                            x86_mov(x86_operand_gpr(active->location.gpr),
                                     x86_operand_gpr(prev_gpr)));
     } else {
         x86_allocator_spill_allocation(allocator, active, x64bc);

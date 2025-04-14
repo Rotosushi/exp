@@ -104,15 +104,15 @@ u64 x86_context_current_offset(x86_Context *x64_context) {
 }
 
 void x86_context_insert(x86_Context    *x64_context,
-                        x64_Instruction I,
+                        x86_Instruction I,
                         u64             offset) {
     x86_bytecode_insert(x86_context_current_x86_bc(x64_context), I, offset);
 }
 
-void x86_context_prepend(x86_Context *x64_context, x64_Instruction I) {
+void x86_context_prepend(x86_Context *x64_context, x86_Instruction I) {
     x86_bytecode_prepend(x86_context_current_x86_bc(x64_context), I);
 }
-void x86_context_append(x86_Context *x64_context, x64_Instruction I) {
+void x86_context_append(x86_Context *x64_context, x86_Instruction I) {
     x86_bytecode_append(x86_context_current_x86_bc(x64_context), I);
 }
 

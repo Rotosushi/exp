@@ -38,9 +38,9 @@ void x86_codegen_copy_scalar_memory(x86_Address *restrict dst,
     x86_GPR gpr = x86_context_aquire_any_gpr(context, size, Idx);
 
     x86_context_append(
-        context, x64_mov(x86_operand_gpr(gpr), x86_operand_address(*src)));
+        context, x86_mov(x86_operand_gpr(gpr), x86_operand_address(*src)));
     x86_context_append(
-        context, x64_mov(x86_operand_address(*dst), x86_operand_gpr(gpr)));
+        context, x86_mov(x86_operand_address(*dst), x86_operand_gpr(gpr)));
 
     x86_context_release_gpr(context, gpr, Idx);
 }
@@ -112,7 +112,7 @@ void x86_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
             &dst->location.address, src, type, Idx, context);
     } else {
         x86_context_append(context,
-                           x64_mov(x86_operand_gpr(dst->location.gpr),
+                           x86_mov(x86_operand_gpr(dst->location.gpr),
                                    x86_operand_address(*src)));
     }
 }
@@ -127,7 +127,7 @@ static void x86_codegen_copy_scalar_allocation(x86_Allocation *restrict dst,
     if ((dst->location.kind == X86_LOCATION_GPR) ||
         (src->location.kind == X86_LOCATION_GPR)) {
         x86_context_append(
-            context, x64_mov(x86_operand_alloc(dst), x86_operand_alloc(src)));
+            context, x86_mov(x86_operand_alloc(dst), x86_operand_alloc(src)));
     } else {
         u64 size = size_of(dst->type);
         x86_codegen_copy_scalar_memory(

@@ -35,7 +35,7 @@ void x86_codegen_negate(Instruction I,
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
-        x86_context_append(context, x64_neg(x86_operand_alloc(A)));
+        x86_context_append(context, x86_neg(x86_operand_alloc(A)));
         break;
     }
 
@@ -45,9 +45,9 @@ void x86_codegen_negate(Instruction I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_immediate(I.B_data.i64_)));
-        x86_context_append(context, x64_neg(x86_operand_alloc(A)));
+        x86_context_append(context, x86_neg(x86_operand_alloc(A)));
         break;
     }
 
@@ -57,9 +57,9 @@ void x86_codegen_negate(Instruction I,
         }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
-                           x64_mov(x86_operand_alloc(A),
+                           x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
-        x86_context_append(context, x64_neg(x86_operand_alloc(A)));
+        x86_context_append(context, x86_neg(x86_operand_alloc(A)));
         break;
     }
 

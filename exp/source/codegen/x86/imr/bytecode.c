@@ -40,7 +40,7 @@ static bool x86_bytecode_full(x86_Bytecode *restrict bc) {
 }
 
 static void x86_bytecode_grow(x86_Bytecode *restrict bc) {
-    Growth_u64 g = array_growth_u64(bc->capacity, sizeof(x64_Instruction));
+    Growth_u64 g = array_growth_u64(bc->capacity, sizeof(x86_Instruction));
     bc->buffer   = reallocate(bc->buffer, g.alloc_size);
     bc->capacity = g.new_capacity;
 }
@@ -50,7 +50,7 @@ u64 x86_bytecode_current_offset(x86_Bytecode *restrict bc) {
 }
 
 void x86_bytecode_insert(x86_Bytecode *restrict bc,
-                         x64_Instruction I,
+                         x86_Instruction I,
                          u64             offset) {
     assert(bc != NULL);
     assert(offset < bc->capacity);
@@ -65,7 +65,7 @@ void x86_bytecode_insert(x86_Bytecode *restrict bc,
     bc->length += 1;
 }
 
-void x86_bytecode_append(x86_Bytecode *restrict bc, x64_Instruction I) {
+void x86_bytecode_append(x86_Bytecode *restrict bc, x86_Instruction I) {
     assert(bc != NULL);
     if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
 
@@ -73,7 +73,7 @@ void x86_bytecode_append(x86_Bytecode *restrict bc, x64_Instruction I) {
     bc->length += 1;
 }
 
-void x86_bytecode_prepend(x86_Bytecode *restrict bc, x64_Instruction I) {
+void x86_bytecode_prepend(x86_Bytecode *restrict bc, x86_Instruction I) {
     assert(bc != NULL);
     if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
 
@@ -91,7 +91,7 @@ void x86_bytecode_emit(x86_Bytecode *restrict bc,
                        Context *restrict context) {
     for (u16 i = 0; i < bc->length; ++i) {
         string_append(buffer, SV("\t"));
-        x64_instruction_emit(bc->buffer[i], buffer, context);
+        x86_instruction_emit(bc->buffer[i], buffer, context);
         string_append(buffer, SV("\n"));
     }
 }

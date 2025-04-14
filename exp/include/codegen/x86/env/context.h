@@ -56,10 +56,10 @@ x86_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
 
 u64  x86_context_current_offset(x86_Context *x86_context);
 void x86_context_insert(x86_Context    *x86_context,
-                        x64_Instruction I,
+                        x86_Instruction I,
                         u64             offset);
-void x86_context_prepend(x86_Context *x86_context, x64_Instruction I);
-void x86_context_append(x86_Context *x86_context, x64_Instruction I);
+void x86_context_prepend(x86_Context *x86_context, x86_Instruction I);
+void x86_context_append(x86_Context *x86_context, x86_Instruction I);
 
 LocalVariable *x86_context_lookup_ssa(x86_Context *x86_context, u32 ssa);
 

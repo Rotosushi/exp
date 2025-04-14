@@ -21,7 +21,7 @@
 #include "env/context.h"
 #include "support/string.h"
 
-typedef enum x64_Opcode : u8 {
+typedef enum x86_Opcode : u8 {
     X64_OPCODE_RETURN,
     X64_OPCODE_CALL,
     X64_OPCODE_PUSH,
@@ -33,28 +33,28 @@ typedef enum x64_Opcode : u8 {
     X64_OPCODE_SUB,
     X64_OPCODE_IMUL,
     X64_OPCODE_IDIV,
-} x64_Opcode;
+} x86_Opcode;
 
-typedef struct x64_Instruction {
-    x64_Opcode  opcode;
+typedef struct x86_Instruction {
+    x86_Opcode  opcode;
     x86_Operand A;
     x86_Operand B;
-} x64_Instruction;
+} x86_Instruction;
 
-x64_Instruction x64_ret();
-x64_Instruction x64_call(x86_Operand label);
-x64_Instruction x64_push(x86_Operand src);
-x64_Instruction x64_pop(x86_Operand dst);
-x64_Instruction x64_mov(x86_Operand dst, x86_Operand src);
-x64_Instruction x64_lea(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_ret();
+x86_Instruction x86_call(x86_Operand label);
+x86_Instruction x86_push(x86_Operand src);
+x86_Instruction x86_pop(x86_Operand dst);
+x86_Instruction x86_mov(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_lea(x86_Operand dst, x86_Operand src);
 
-x64_Instruction x64_neg(x86_Operand dst);
-x64_Instruction x64_add(x86_Operand dst, x86_Operand src);
-x64_Instruction x64_sub(x86_Operand dst, x86_Operand src);
-x64_Instruction x64_imul(x86_Operand src);
-x64_Instruction x64_idiv(x86_Operand src);
+x86_Instruction x86_neg(x86_Operand dst);
+x86_Instruction x86_add(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_sub(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_imul(x86_Operand src);
+x86_Instruction x86_idiv(x86_Operand src);
 
-void x64_instruction_emit(x64_Instruction I,
+void x86_instruction_emit(x86_Instruction I,
                           String *restrict buffer,
                           Context *restrict context);
 
