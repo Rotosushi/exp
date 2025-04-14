@@ -24,20 +24,20 @@ typedef struct x64_Bytecode {
     u64              length;
     u64              capacity;
     x64_Instruction *buffer;
-} x64_Bytecode;
+} x86_Bytecode;
 
-x64_Bytecode x64_bytecode_create();
-void         x64_bytecode_destroy(x64_Bytecode *restrict bc);
+x86_Bytecode x86_bytecode_create();
+void         x86_bytecode_destroy(x86_Bytecode *restrict bc);
 
-u64 x64_bytecode_current_offset(x64_Bytecode *restrict bc);
+u64 x86_bytecode_current_offset(x86_Bytecode *restrict bc);
 
-void x64_bytecode_insert(x64_Bytecode *restrict bc,
+void x86_bytecode_insert(x86_Bytecode *restrict bc,
                          x64_Instruction I,
                          u64             offset);
-void x64_bytecode_prepend(x64_Bytecode *restrict bc, x64_Instruction I);
-void x64_bytecode_append(x64_Bytecode *restrict bc, x64_Instruction I);
+void x86_bytecode_prepend(x86_Bytecode *restrict bc, x64_Instruction I);
+void x86_bytecode_append(x86_Bytecode *restrict bc, x64_Instruction I);
 
-void x64_bytecode_emit(x64_Bytecode *restrict bc,
+void x86_bytecode_emit(x86_Bytecode *restrict bc,
                        String *restrict buffer,
                        Context *restrict context);
 #endif // !EXP_BACKEND_X64_BYTECODE_H

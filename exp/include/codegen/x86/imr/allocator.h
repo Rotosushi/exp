@@ -68,35 +68,35 @@ x86_Allocation *x86_allocator_allocation_of(x86_Allocator *restrict allocator,
 void x86_allocator_release_gpr(x86_Allocator *restrict allocator,
                                x86_64_GPR gpr,
                                u64        Idx,
-                               x64_Bytecode *restrict x64bc);
+                               x86_Bytecode *restrict x64bc);
 
 void x86_allocator_aquire_gpr(x86_Allocator *restrict allocator,
                               x86_64_GPR gpr,
                               u64        Idx,
-                              x64_Bytecode *restrict x64bc);
+                              x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate(x86_Allocator *restrict allocator,
                                        u64            Idx,
                                        LocalVariable *local,
-                                       x64_Bytecode *restrict x64bc);
+                                       x86_Bytecode *restrict x64bc);
 
 x86_Allocation *
 x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
                                    u64             Idx,
                                    LocalVariable  *local,
                                    x86_Allocation *active,
-                                   x64_Bytecode *restrict x64bc);
+                                   x86_Bytecode *restrict x64bc);
 
 x86_Allocation *
 x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
                                   LocalVariable *local,
-                                  x64_Bytecode *restrict x64bc);
+                                  x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate_to_gpr(x86_Allocator *restrict allocator,
                                               LocalVariable *local,
                                               x86_64_GPR     gpr,
                                               u64            Idx,
-                                              x64_Bytecode *restrict x64bc);
+                                              x86_Bytecode *restrict x64bc);
 
 x86_Allocation *x86_allocator_allocate_to_stack(
     x86_Allocator *restrict allocator, i64 offset, LocalVariable *local);
@@ -107,14 +107,14 @@ x86_Allocation *x86_allocator_allocate_result(x86_Allocator *restrict allocator,
 
 void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,
                                      x86_Allocation *restrict active,
-                                     x64_Bytecode *restrict x64bc);
+                                     x86_Bytecode *restrict x64bc);
 
 u8 x86_allocator_spill_oldest_active(x86_Allocator *restrict allocator,
-                                     x64_Bytecode *restrict x64bc);
+                                     x86_Bytecode *restrict x64bc);
 
 x86_64_GPR x86_allocator_aquire_any_gpr(x86_Allocator *restrict allocator,
                                         u64 size,
                                         u64 Idx,
-                                        x64_Bytecode *restrict x64bc);
+                                        x86_Bytecode *restrict x64bc);
 
 #endif // !EXP_BACKEND_X64_ALLOCATOR_H

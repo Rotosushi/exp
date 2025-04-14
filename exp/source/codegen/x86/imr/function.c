@@ -49,10 +49,10 @@ x64_Function x64_function_create(Function *restrict body,
     x64_Function x64_body = {
         .arguments = x64_formal_argument_list_create(body->arguments.size),
         .result    = NULL,
-        .bc        = x64_bytecode_create(),
+        .bc        = x86_bytecode_create(),
         .allocator = x86_allocator_create(body, context->context)};
     x86_Allocator  *allocator = &x64_body.allocator;
-    x64_Bytecode   *bc        = &x64_body.bc;
+    x86_Bytecode   *bc        = &x64_body.bc;
     LocalVariables *locals    = &body->locals;
 
     u8 scalar_argument_count = 0;
@@ -96,6 +96,6 @@ x64_Function x64_function_create(Function *restrict body,
 void x64_function_destroy(x64_Function *restrict body) {
     assert(body != NULL);
     x64_formal_arguments_destroy(&body->arguments);
-    x64_bytecode_destroy(&body->bc);
+    x86_bytecode_destroy(&body->bc);
     x86_allocator_destroy(&body->allocator);
 }

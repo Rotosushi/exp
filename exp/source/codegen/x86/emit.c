@@ -30,7 +30,7 @@ static void x64_emit_symbol(x86_Symbol *restrict sym,
     directive_type(sym->name, STT_FUNC, buffer);
     directive_label(sym->name, buffer);
 
-    x64_bytecode_emit(&sym->body.bc, buffer, context);
+    x86_bytecode_emit(&sym->body.bc, buffer, context);
 
     directive_size_label_relative(sym->name, buffer);
     string_append(buffer, SV("\n"));

@@ -157,7 +157,7 @@ static void x64_codegen_symbol(Symbol *symbol, x86_Context *x64_context) {
             String buffer = string_create();
             string_append(&buffer, SV("Generated x86-64 function:"));
             string_append(&buffer, name);
-            x64_bytecode_emit(
+            x86_bytecode_emit(
                 &x64_context->x64_body->bc, &buffer, x64_context->context);
             trace(string_to_view(&buffer), stdout);
             string_destroy(&buffer);

@@ -90,7 +90,7 @@ x64_Function *x86_context_current_x86_body(x86_Context *x64_context) {
     return x64_context->x64_body;
 }
 
-x64_Bytecode *x86_context_current_x86_bc(x86_Context *x64_context) {
+x86_Bytecode *x86_context_current_x86_bc(x86_Context *x64_context) {
     assert(x64_context->x64_body != nullptr);
     return &x64_context->x64_body->bc;
 }
@@ -100,20 +100,20 @@ x86_Allocator *current_allocator(x86_Context *x64_context) {
 }
 
 u64 x86_context_current_offset(x86_Context *x64_context) {
-    return x64_bytecode_current_offset(x86_context_current_x86_bc(x64_context));
+    return x86_bytecode_current_offset(x86_context_current_x86_bc(x64_context));
 }
 
 void x86_context_insert(x86_Context    *x64_context,
                         x64_Instruction I,
                         u64             offset) {
-    x64_bytecode_insert(x86_context_current_x86_bc(x64_context), I, offset);
+    x86_bytecode_insert(x86_context_current_x86_bc(x64_context), I, offset);
 }
 
 void x86_context_prepend(x86_Context *x64_context, x64_Instruction I) {
-    x64_bytecode_prepend(x86_context_current_x86_bc(x64_context), I);
+    x86_bytecode_prepend(x86_context_current_x86_bc(x64_context), I);
 }
 void x86_context_append(x86_Context *x64_context, x64_Instruction I) {
-    x64_bytecode_append(x86_context_current_x86_bc(x64_context), I);
+    x86_bytecode_append(x86_context_current_x86_bc(x64_context), I);
 }
 
 LocalVariable *x86_context_lookup_ssa(x86_Context *x64_context, u32 ssa) {
