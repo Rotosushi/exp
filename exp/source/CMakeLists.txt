@@ -10,32 +10,32 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/lifetimes.c
   ${EXP_SOURCE_DIR}/codegen/IR/codegen.c
   ${EXP_SOURCE_DIR}/codegen/IR/directives.c
-  ${EXP_SOURCE_DIR}/codegen/x64/codegen.c
-  ${EXP_SOURCE_DIR}/codegen/x64/emit.c
-  ${EXP_SOURCE_DIR}/codegen/x64/env/context.c
-  ${EXP_SOURCE_DIR}/codegen/x64/env/symbols.c
-  ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/copy.c
-  ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/get_element_address.c
-  ${EXP_SOURCE_DIR}/codegen/x64/intrinsics/load.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/add.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/call.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/div.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/dot.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/load.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/mod.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/mul.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/neg.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/ret.c
-  ${EXP_SOURCE_DIR}/codegen/x64/instruction/sub.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/address.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/function.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/instruction.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/location.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/operand.c
-  ${EXP_SOURCE_DIR}/codegen/x64/imr/registers.c
+  ${EXP_SOURCE_DIR}/codegen/x86/codegen.c
+  ${EXP_SOURCE_DIR}/codegen/x86/emit.c
+  ${EXP_SOURCE_DIR}/codegen/x86/env/context.c
+  ${EXP_SOURCE_DIR}/codegen/x86/env/symbols.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/load.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/load.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/address.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/instruction.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
 
   ${EXP_SOURCE_DIR}/core/analyze.c
   ${EXP_SOURCE_DIR}/core/assemble.c

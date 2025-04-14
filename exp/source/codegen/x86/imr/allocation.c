@@ -16,10 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
-#include "codegen/IR/codegen.h"
-#include "codegen/x86/codegen.h"
+#include <stddef.h>
 
-i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
+#include "codegen/x86/imr/allocation.h"
+#include "codegen/x86/imr/location.h"
+#include "support/allocation.h"
 
-i32 codegen_assembly(Context *restrict context) { return x64_codegen(context); }
+x64_Allocation *x64_allocation_allocate() {
+    x64_Allocation *allocation = callocate(1, sizeof(x64_Allocation));
+    return allocation;
+}
+
+void x64_allocation_deallocate(x64_Allocation *restrict allocation) {
+    deallocate(allocation);
+}
+
+bool x64_allocation_location_eq(x64_Allocation *restrict allocation,
+                                x64_Location location) {
+    return x64_location_eq(location, allocation->location);
+}

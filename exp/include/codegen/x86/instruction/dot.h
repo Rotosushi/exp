@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
-#include "codegen/IR/codegen.h"
-#include "codegen/x86/codegen.h"
+#ifndef EXP_BACKEND_X64_CODEGEN_DOT_H
+#define EXP_BACKEND_X64_CODEGEN_DOT_H
 
-i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
+#include "codegen/x86/env/context.h"
 
-i32 codegen_assembly(Context *restrict context) { return x64_codegen(context); }
+void x64_codegen_dot(Instruction I, u64 Idx, x64_Context *restrict context);
+
+#endif // !EXP_BACKEND_X64_CODEGEN_DOT_H
