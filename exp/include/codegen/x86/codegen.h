@@ -14,11 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_CODEGEN_H
-#define EXP_BACKEND_X64_CODEGEN_H
+#ifndef EXP_BACKEND_X86_CODEGEN_H
+#define EXP_BACKEND_X86_CODEGEN_H
 
 #include "env/context.h"
 
-i32 x64_codegen(Context *context);
+i32 x86_codegen(Context *context);
 
-#endif // !EXP_BACKEND_X64_CODEGEN_H
+#endif // !EXP_BACKEND_X86_CODEGEN_H

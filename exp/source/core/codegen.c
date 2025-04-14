@@ -22,4 +22,4 @@
 
 i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
 
-i32 codegen_assembly(Context *restrict context) { return x64_codegen(context); }
+i32 codegen_assembly(Context *restrict context) { return x86_codegen(context); }
