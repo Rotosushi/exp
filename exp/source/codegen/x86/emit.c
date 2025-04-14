@@ -22,7 +22,7 @@
 #include "support/config.h"
 #include "support/io.h"
 
-static void x64_emit_symbol(x64_Symbol *restrict sym,
+static void x64_emit_symbol(x86_Symbol *restrict sym,
                             String *restrict buffer,
                             Context *restrict context) {
     directive_text(buffer);
@@ -53,9 +53,9 @@ void x64_emit(x86_Context *restrict x64context) {
 
     x64_emit_file_prolouge(x64context->context, &buffer);
 
-    x64_SymbolTable *symbols = &x64context->symbols;
+    x86_SymbolTable *symbols = &x64context->symbols;
     for (u64 i = 0; i < symbols->count; ++i) {
-        x64_Symbol *sym = symbols->buffer + i;
+        x86_Symbol *sym = symbols->buffer + i;
         x64_emit_symbol(sym, &buffer, x64context->context);
     }
 

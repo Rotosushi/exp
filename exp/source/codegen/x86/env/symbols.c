@@ -22,31 +22,31 @@
 #include "support/allocation.h"
 #include "support/unreachable.h"
 
-void x64_symbol_destroy(x64_Symbol *restrict symbol) {
+void x86_symbol_destroy(x86_Symbol *restrict symbol) {
     x64_function_destroy(&symbol->body);
 }
 
-x64_SymbolTable x64_symbol_table_create(u64 count) {
-    x64_SymbolTable symbols = {.count  = count,
-                               .buffer = callocate(count, sizeof(x64_Symbol))};
+x86_SymbolTable x86_symbol_table_create(u64 count) {
+    x86_SymbolTable symbols = {.count  = count,
+                               .buffer = callocate(count, sizeof(x86_Symbol))};
     return symbols;
 }
 
-void x64_symbol_table_destroy(x64_SymbolTable *restrict symbols) {
+void x86_symbol_table_destroy(x86_SymbolTable *restrict symbols) {
     assert(symbols != NULL);
     for (u64 i = 0; i < symbols->count; ++i) {
-        x64_symbol_destroy(symbols->buffer + i);
+        x86_symbol_destroy(symbols->buffer + i);
     }
     symbols->count = 0;
     deallocate(symbols->buffer);
     symbols->buffer = NULL;
 }
 
-x64_Symbol *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
+x86_Symbol *x86_symbol_table_at(x86_SymbolTable *restrict symbols,
                                 StringView name) {
     assert(symbols != NULL);
     for (u64 i = 0; i < symbols->count; ++i) {
-        x64_Symbol *sym = symbols->buffer + i;
+        x86_Symbol *sym = symbols->buffer + i;
         if (string_view_empty(sym->name)) {
             sym->name = name;
             return sym;

@@ -21,7 +21,7 @@
 #include "env/context.h"
 
 typedef struct x86_Context {
-    x64_SymbolTable symbols;
+    x86_SymbolTable symbols;
     Context        *context;
     Function       *body;
     x64_Function   *x64_body;
@@ -32,7 +32,7 @@ x86_Context x86_context_create(Context *context);
 void        x86_context_destroy(x86_Context *x64_context);
 
 // x64 symbol table functions
-x64_Symbol *x86_context_symbol(x86_Context *x86_context, StringView name);
+x86_Symbol *x86_context_symbol(x86_Context *x86_context, StringView name);
 
 // context functions
 // context constants functions

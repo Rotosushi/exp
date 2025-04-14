@@ -14,26 +14,26 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X64_SYMBOLS_H
-#define EXP_BACKEND_X64_SYMBOLS_H
+#ifndef EXP_BACKEND_X86_SYMBOLS_H
+#define EXP_BACKEND_X86_SYMBOLS_H
 
 #include "codegen/x86/imr/function.h"
 
-typedef struct x64_Symbol {
+typedef struct x86_Symbol {
     StringView   name;
     x64_Function body;
-} x64_Symbol;
+} x86_Symbol;
 
-void x64_symbol_destroy(x64_Symbol *restrict symbol);
+void x86_symbol_destroy(x86_Symbol *restrict symbol);
 
 typedef struct x64_SymbolTable {
     u64         count;
-    x64_Symbol *buffer;
-} x64_SymbolTable;
+    x86_Symbol *buffer;
+} x86_SymbolTable;
 
-x64_SymbolTable x64_symbol_table_create(u64 count);
-void            x64_symbol_table_destroy(x64_SymbolTable *restrict symbols);
-x64_Symbol     *x64_symbol_table_at(x64_SymbolTable *restrict symbols,
+x86_SymbolTable x86_symbol_table_create(u64 count);
+void            x86_symbol_table_destroy(x86_SymbolTable *restrict symbols);
+x86_Symbol     *x86_symbol_table_at(x86_SymbolTable *restrict symbols,
                                     StringView name);
 
-#endif // !EXP_BACKEND_X64_SYMBOLS_H
+#endif // !EXP_BACKEND_X86_SYMBOLS_H

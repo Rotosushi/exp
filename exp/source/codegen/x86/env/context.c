@@ -24,7 +24,7 @@
 x86_Context x86_context_create(Context *context) {
     assert(context != nullptr);
     x86_Context x64_context = {
-        .symbols  = x64_symbol_table_create(context->global_symbol_table.count),
+        .symbols  = x86_symbol_table_create(context->global_symbol_table.count),
         .context  = context,
         .body     = nullptr,
         .x64_body = nullptr};
@@ -33,12 +33,12 @@ x86_Context x86_context_create(Context *context) {
 
 void x86_context_destroy(x86_Context *x64_context) {
     assert(x64_context != nullptr);
-    x64_symbol_table_destroy(&x64_context->symbols);
+    x86_symbol_table_destroy(&x64_context->symbols);
 }
 
-x64_Symbol *x86_context_symbol(x86_Context *x64_context, StringView name) {
+x86_Symbol *x86_context_symbol(x86_Context *x64_context, StringView name) {
     assert(x64_context != nullptr);
-    return x64_symbol_table_at(&x64_context->symbols, name);
+    return x86_symbol_table_at(&x64_context->symbols, name);
 }
 
 Value *x86_context_value_at(x86_Context *context, u32 index) {
@@ -54,7 +54,7 @@ StringView x86_context_global_labels_at(x86_Context *x64_context, u32 idx) {
 void x86_context_enter_function(x86_Context *x64_context, StringView name) {
     assert(x64_context != nullptr);
     x64_context->body     = context_enter_function(x64_context->context, name);
-    x64_Symbol *symbol    = x64_symbol_table_at(&x64_context->symbols, name);
+    x86_Symbol *symbol    = x86_symbol_table_at(&x64_context->symbols, name);
     x64_context->x64_body = &symbol->body;
     *x64_context->x64_body =
         x64_function_create(x64_context->body, x64_context);
