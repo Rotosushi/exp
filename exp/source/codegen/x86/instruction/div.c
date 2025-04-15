@@ -54,9 +54,6 @@ static void x86_codegen_divide_ssa(Instruction  I,
     x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_ssa: ssa"), stdout);
-        }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         if (x86_location_eq(B->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
@@ -108,9 +105,6 @@ static void x86_codegen_divide_ssa(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_ssa: i64"), stdout);
-        }
         x86_context_allocate_to_gpr(context, local, X86_GPR_RAX, block_index);
         x86_context_append(
             context,
@@ -133,9 +127,6 @@ static void x86_codegen_divide_ssa(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_ssa: constant"), stdout);
-        }
         x86_context_allocate_to_gpr(context, local, X86_GPR_RAX, block_index);
         x86_context_append(
             context,
@@ -169,9 +160,6 @@ static void x86_codegen_divide_immediate(Instruction  I,
                                          x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_immediate: ssa"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,
@@ -194,9 +182,6 @@ static void x86_codegen_divide_immediate(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_immediate: i64"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,
@@ -220,9 +205,6 @@ static void x86_codegen_divide_immediate(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_immediate: constant"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,
@@ -256,9 +238,6 @@ void x86_codegen_divide_constant(Instruction  I,
                                  x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_constant: ssa"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,
@@ -281,9 +260,6 @@ void x86_codegen_divide_constant(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_constant: i64"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,
@@ -307,9 +283,6 @@ void x86_codegen_divide_constant(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_divide_constant: constant"), stdout);
-        }
         x86_context_aquire_gpr(context, X86_GPR_RDX, block_index);
         x86_context_append(
             context,

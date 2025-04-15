@@ -30,18 +30,12 @@ void x86_codegen_load(Instruction I,
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_load: ssa"), stdout);
-        }
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         x86_context_allocate_from_active(context, local, B, block_index);
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_load: constant"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         Value          *value =
             context_constants_at(context->context, I.B_data.constant);
@@ -50,9 +44,6 @@ void x86_codegen_load(Instruction I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_load: i64"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),

@@ -28,9 +28,6 @@ void x86_codegen_negate(Instruction I,
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_negate: ssa"), stdout);
-        }
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
@@ -40,9 +37,6 @@ void x86_codegen_negate(Instruction I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_negate: i64"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),
@@ -52,9 +46,6 @@ void x86_codegen_negate(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_negate: constant"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),

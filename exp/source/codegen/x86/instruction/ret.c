@@ -31,9 +31,6 @@ void x86_codegen_ret(Instruction I,
     x86_Function *body = x86_context_current_x86_body(context);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_return: ssa"), stdout);
-        }
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         if (x86_allocation_location_eq(B, body->result->location)) { break; }
         x86_codegen_copy_allocation(body->result, B, block_index, context);
@@ -41,9 +38,6 @@ void x86_codegen_ret(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_return: constant"), stdout);
-        }
         Value *value =
             context_constants_at(context->context, I.B_data.constant);
         x86_codegen_load_allocation_from_value(
@@ -52,9 +46,6 @@ void x86_codegen_ret(Instruction I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_return: i64"), stdout);
-        }
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(body->result),
                                    x86_operand_immediate(I.B_data.i64_)));

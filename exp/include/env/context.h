@@ -61,7 +61,6 @@ void context_destroy(Context *restrict context);
 
 // context options functions
 bool context_prolix(Context const *context);
-bool context_trace(Context const *restrict context);
 bool context_create_ir_artifact(Context const *restrict context);
 bool context_create_assembly_artifact(Context const *restrict context);
 bool context_create_object_artifact(Context const *restrict context);

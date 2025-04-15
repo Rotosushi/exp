@@ -42,11 +42,5 @@ i32 link(Context *restrict context) {
         NULL,
     };
 
-    if (context_trace(context)) {
-        trace(SV("link:"), stdout);
-        trace(obj_path, stdout);
-        trace_command(string_view_from_cstring("ld"), 7, args, stdout);
-    }
-
     return process("ld", 7, args);
 }

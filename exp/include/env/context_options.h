@@ -25,7 +25,6 @@
  */
 typedef struct ContextOptions {
     bool prolix                     : 1;
-    bool trace                      : 1;
     bool create_ir_artifact         : 1;
     bool create_assembly_artifact   : 1;
     bool create_object_artifact     : 1;

@@ -138,10 +138,6 @@ static void x86_codegen_function(x86_Context *x86_context) {
 }
 
 static void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
-    if (context_trace(x86_context->context)) {
-        trace(SV("x64_codegen_symbol:"), stdout);
-        trace(symbol->name, stdout);
-    }
     StringView name = symbol->name;
 
     switch (symbol->kind) {
@@ -152,16 +148,6 @@ static void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
     case SYMBOL_KIND_FUNCTION: {
         x86_context_enter_function(x86_context, name);
         x86_codegen_function(x86_context);
-        if (context_trace(x86_context->context) &&
-            context_prolix(x86_context->context)) {
-            String buffer = string_create();
-            string_append(&buffer, SV("Generated x86-64 function:"));
-            string_append(&buffer, name);
-            x86_bytecode_emit(
-                &x86_context->x86_body->bc, &buffer, x86_context->context);
-            trace(string_to_view(&buffer), stdout);
-            string_destroy(&buffer);
-        }
         x86_context_leave_function(x86_context);
         break;
     }
@@ -171,10 +157,6 @@ static void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
 }
 
 i32 x86_codegen(Context *context) {
-    if (context_trace(context)) {
-        trace(SV("x64_codegen"), stderr);
-        trace(context_source_path(context), stderr);
-    }
     x86_Context  x86_context = x86_context_create(context);
     SymbolTable *table       = &context->global_symbol_table;
 

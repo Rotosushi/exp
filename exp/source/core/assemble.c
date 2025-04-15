@@ -34,11 +34,5 @@ i32 assemble(Context *restrict context) {
         NULL,
     };
 
-    if (context_trace(context)) {
-        trace(SV("assemble:"), stdout);
-        trace(asm_path, stdout);
-        trace_command(string_view_from_cstring("as"), 4, args, stdout);
-    }
-
     return process("as", 4, args);
 }

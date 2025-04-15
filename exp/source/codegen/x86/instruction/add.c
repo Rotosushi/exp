@@ -34,9 +34,6 @@ static void x86_codegen_add_ssa(Instruction  I,
     x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_ssa: ssa"), stdout);
-        }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         // if B or C is in a gpr we use it as the allocation point of A
         // and the destination operand of the x64 add instruction.
@@ -83,9 +80,6 @@ static void x86_codegen_add_ssa(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_ssa: i64"), stdout);
-        }
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
@@ -96,9 +90,6 @@ static void x86_codegen_add_ssa(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_ssa: constant"), stdout);
-        }
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
@@ -119,9 +110,6 @@ static void x86_codegen_add_immediate(Instruction  I,
                                       x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_immediate: ssa"), stdout);
-        }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, C, block_index);
@@ -133,9 +121,6 @@ static void x86_codegen_add_immediate(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_immediate: i64"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),
@@ -147,9 +132,6 @@ static void x86_codegen_add_immediate(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_immediate: constant"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),
@@ -172,9 +154,6 @@ static void x86_codegen_add_constant(Instruction  I,
                                      x86_Context *context) {
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_constant: ssa"), stdout);
-        }
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, C, block_index);
@@ -186,9 +165,6 @@ static void x86_codegen_add_constant(Instruction  I,
     }
 
     case OPERAND_KIND_I64: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_constant: i64"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),
@@ -201,9 +177,6 @@ static void x86_codegen_add_constant(Instruction  I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        if (context_trace(context->context)) {
-            trace(SV("x64_codegen_add_constant: constant"), stdout);
-        }
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(A),

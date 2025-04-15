@@ -90,10 +90,6 @@ bool context_prolix(Context const *context) {
     return context->options.prolix;
 }
 
-bool context_trace(Context const *context) {
-    assert(context != nullptr);
-    return context->options.trace;
-}
 bool context_create_ir_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_ir_artifact;

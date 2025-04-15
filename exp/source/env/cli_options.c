@@ -27,7 +27,6 @@
 
 void cli_options_init(CLIOptions *restrict cli_options) {
     cli_options->context_options.prolix                     = false;
-    cli_options->context_options.trace                      = false;
     cli_options->context_options.create_ir_artifact         = false;
     cli_options->context_options.create_assembly_artifact   = true;
     cli_options->context_options.create_object_artifact     = true;
@@ -64,7 +63,7 @@ static void print_help(FILE *file) {
 void parse_cli_options(i32         argc,
                        char const *argv[],
                        CLIOptions *restrict cli_options) {
-    static char const *short_options = "hvptcs";
+    static char const *short_options = "hvpcs";
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -83,11 +82,6 @@ void parse_cli_options(i32         argc,
 
         case 'p': {
             cli_options->context_options.prolix = true;
-            break;
-        }
-
-        case 't': {
-            cli_options->context_options.trace = true;
             break;
         }
 

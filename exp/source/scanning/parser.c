@@ -140,10 +140,6 @@ static bool parse_type(Type const **restrict result,
 static bool parse_tuple_type(Type const **restrict result,
                              Parser *restrict parser,
                              Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_tuple_type:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     // an empty tuple type is equivalent to a nil type.
     switch (expect(parser, TOK_NIL)) {
@@ -200,10 +196,6 @@ static bool parse_tuple_type(Type const **restrict result,
 static bool parse_type(Type const **restrict result,
                        Parser *restrict parser,
                        Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_type:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     switch (parser->curtok) {
     // composite types
@@ -226,10 +218,6 @@ static bool parse_type(Type const **restrict result,
 static bool parse_formal_argument(Local *restrict arg,
                                   Parser *restrict parser,
                                   Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_formal_argument:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
@@ -259,10 +247,6 @@ static bool parse_formal_argument(Local *restrict arg,
 static bool parse_formal_argument_list(Function *restrict body,
                                        Parser *restrict parser,
                                        Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_formal_argument_list:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     // #note: the nil literal is spelled "()", which is
     // lexically identical to an empty argument list. so we parse it as such
     switch (expect(parser, TOK_NIL)) {
@@ -316,10 +300,6 @@ static bool parse_formal_argument_list(Function *restrict body,
 static bool return_(Operand *restrict result,
                     Parser *restrict parser,
                     Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("return_:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     if (!nexttok(parser)) { return false; } // eat "return"
 
@@ -341,10 +321,6 @@ static bool return_(Operand *restrict result,
 static bool constant(Operand *restrict result,
                      Parser *restrict parser,
                      Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("constant:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     if (!nexttok(parser)) { return false; } // eat 'const'
 
@@ -372,17 +348,6 @@ static bool constant(Operand *restrict result,
     default:                    EXP_UNREACHABLE();
     }
 
-    if (context_trace(context) && context_prolix(context)) {
-        String buffer = string_create();
-        string_append(&buffer, SV("parsed a constant definition: "));
-        string_append(&buffer, name);
-        string_append(&buffer, SV(" = "));
-        print_operand(&buffer, *result, context);
-        string_append(&buffer, SV("\n"));
-        trace(string_to_view(&buffer), stdout);
-        string_destroy(&buffer);
-    }
-
     Operand A = context_emit_load(context, *result);
     assert(A.kind == OPERAND_KIND_SSA);
     Local *local = context_lookup_local(context, A.data.ssa);
@@ -397,10 +362,6 @@ static bool constant(Operand *restrict result,
 static bool statement(Operand *restrict result,
                       Parser *restrict parser,
                       Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("statement:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     switch (parser->curtok) {
     case TOK_RETURN: return return_(result, parser, context);
@@ -425,10 +386,6 @@ static bool statement(Operand *restrict result,
 static bool parse_block(Operand *restrict result,
                         Parser *restrict parser,
                         Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_block:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     switch (expect(parser, TOK_BEGIN_BRACE)) {
     case EXPECT_RESULT_SUCCESS: break;
@@ -462,10 +419,6 @@ static bool parse_block(Operand *restrict result,
 static bool function(Operand *restrict result,
                      Parser *restrict parser,
                      Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("function:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     if (!nexttok(parser)) { return false; } // eat "fn"
 
@@ -490,16 +443,6 @@ static bool function(Operand *restrict result,
 
     if (!parse_block(result, parser, context)) { return false; }
 
-    if (context_trace(context) && context_prolix(context)) {
-        String buffer = string_create();
-        string_append(&buffer, SV("parsed a function definition: "));
-        string_append(&buffer, name);
-        print_function(&buffer, body, context);
-        string_append(&buffer, SV("\n"));
-        trace(string_to_view(&buffer), stdout);
-        string_destroy(&buffer);
-    }
-
     context_leave_function(context);
     return true;
 }
@@ -507,10 +450,6 @@ static bool function(Operand *restrict result,
 static bool definition(Operand *restrict result,
                        Parser *restrict parser,
                        Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("definition:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     switch (parser->curtok) {
     case TOK_FN: return function(result, parser, context);
@@ -522,10 +461,6 @@ static bool definition(Operand *restrict result,
 static bool parse_tuple(Tuple *restrict tuple,
                         Parser *restrict parser,
                         Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parse_tuple:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     switch (expect(parser, TOK_NIL)) {
     case EXPECT_RESULT_SUCCESS:         return true;
@@ -576,10 +511,6 @@ static bool parse_tuple(Tuple *restrict tuple,
 static bool parens(Operand *restrict result,
                    Parser *restrict parser,
                    Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("parens:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     Tuple tuple = tuple_create();
 
@@ -601,10 +532,6 @@ static bool parens(Operand *restrict result,
 static bool unop(Operand *restrict result,
                  Parser *restrict parser,
                  Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("unop:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     Token op = parser->curtok;
     if (!nexttok(parser)) { return false; }
 
@@ -623,10 +550,6 @@ static bool binop(Operand *restrict result,
                   Operand left,
                   Parser *restrict parser,
                   Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("binop:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     Token      op   = parser->curtok;
     ParseRule *rule = get_rule(op);
     if (!nexttok(parser)) { return false; } // eat the operator
@@ -658,10 +581,6 @@ static bool call(Operand *restrict result,
                  Operand left,
                  Parser *restrict parser,
                  Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("call:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     Tuple argument_list = tuple_create();
 
     if (!parse_tuple(&argument_list, parser, context)) { return false; }
@@ -677,10 +596,6 @@ static bool nil(Operand *restrict result,
                 Parser *restrict parser,
                 Context *restrict context) {
     assert(peek(parser, TOK_NIL));
-    if (context_trace(context)) {
-        trace(SV("nil:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     if (!nexttok(parser)) { return false; }
     *result = context_constants_append(context, value_create_nil());
     return true;
@@ -690,10 +605,6 @@ static bool boolean_true(Operand *restrict result,
                          Parser *restrict parser,
                          Context *restrict context) {
     assert(peek(parser, TOK_TRUE));
-    if (context_trace(context)) {
-        trace(SV("boolean_true:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     if (!nexttok(parser)) { return false; }
     *result = context_constants_append(context, value_create_boolean(true));
     return true;
@@ -703,10 +614,6 @@ static bool boolean_false(Operand *restrict result,
                           Parser *restrict parser,
                           Context *restrict context) {
     assert(peek(parser, TOK_FALSE));
-    if (context_trace(context)) {
-        trace(SV("boolean_false:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     if (!nexttok(parser)) { return false; }
     *result = context_constants_append(context, value_create_boolean(0));
     return true;
@@ -716,11 +623,6 @@ static bool integer(Operand *restrict result,
                     Parser *restrict parser,
                     Context *restrict context) {
     assert(peek(parser, TOK_INTEGER));
-    if (context_trace(context)) {
-        trace(SV("integer:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
-
     StringView sv      = curtxt(parser);
     u64        integer = 0;
 
@@ -743,10 +645,6 @@ static bool identifier(Operand *restrict result,
                        Parser *restrict parser,
                        Context *restrict context) {
     assert(peek(parser, TOK_IDENTIFIER));
-    if (context_trace(context)) {
-        trace(SV("identifier:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
 
     StringView name = context_intern(context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
@@ -770,10 +668,6 @@ static bool identifier(Operand *restrict result,
 static bool expression(Operand *restrict result,
                        Parser *restrict parser,
                        Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("expression:"), stderr);
-        trace(curtxt(parser), stderr);
-    }
     return parse_precedence(result, PREC_ASSIGNMENT, parser, context);
 }
 
@@ -785,25 +679,10 @@ static bool parse_precedence(Operand *restrict result,
     if (rule->prefix == NULL) {
         return error(parser, context, ERROR_PARSER_EXPECTED_EXPRESSION);
     }
-    if (context_trace(context)) {
-        trace(SV("parse_precedence:"), stderr);
-        trace(SV("precedence: "), stderr);
-        trace_u64(precedence, stderr);
-        trace(SV("prefix: "), stderr);
-        trace(curtxt(parser), stderr);
-    }
-
     // Parse the left hand side of the expression
     if (!rule->prefix(result, parser, context)) { return false; }
 
     while (1) {
-        if (context_trace(context)) {
-            trace(SV("parse_precedence: "), stderr);
-            trace(SV("precedence: "), stderr);
-            trace_u64(precedence, stderr);
-            trace(SV("infix: "), stderr);
-            trace(curtxt(parser), stderr);
-        }
 
         ParseRule *rule = get_rule(parser->curtok);
 
@@ -903,10 +782,6 @@ i32 parse_buffer(char const *restrict buffer,
 
 i32 parse_source(Context *restrict context) {
     assert(context != NULL);
-    if (context_prolix(context) || context_trace(context)) {
-        trace(SV("parsing source: "), stderr);
-        trace(context_source_path(context), stderr);
-    }
     StringView path   = context_source_path(context);
     FILE      *file   = file_open(path.ptr, "r");
     String     buffer = string_from_file(file);

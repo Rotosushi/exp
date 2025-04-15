@@ -21,6 +21,12 @@
 #include "imr/lifetime.h"
 #include "imr/type.h"
 
+/*
+ * #TODO: since the only unique piece of information here is the
+ * location, we may be able to use Local directly, along with
+ * an array of locations indexed by SSA.
+ */
+
 typedef struct x86_Allocation {
     u32          ssa;
     Lifetime     lifetime;

@@ -100,9 +100,6 @@ x86_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
 void x86_codegen_call(Instruction I,
                       u64         block_index,
                       x86_Context *restrict context) {
-    if (context_trace(context->context)) {
-        trace(SV("x64_codegen_call:"), stdout);
-    }
     assert(I.A_kind == OPERAND_KIND_SSA);
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     u8     scalar_argument_count = 0;

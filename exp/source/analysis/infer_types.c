@@ -118,7 +118,6 @@ static bool infer_types_operand(Type const **result,
                                 Context *restrict context,
                                 OperandKind kind,
                                 OperandData data) {
-    if (context_trace(context)) { trace(SV("infer_types_operand:"), stdout); }
     switch (kind) {
     case OPERAND_KIND_SSA: {
         Local      *local = context_lookup_local(context, data.ssa);
@@ -187,7 +186,6 @@ static bool infer_types_load(Type const **result,
                              Context *restrict context,
                              Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    if (context_trace(context)) { trace(SV("infer_types_load:"), stdout); }
     Local *local = context_lookup_local(context, I.A_data.ssa);
     if (!infer_types_operand(&local->type, context, I.B_kind, I.B_data)) {
         return false;
@@ -197,7 +195,6 @@ static bool infer_types_load(Type const **result,
 
 static bool
 infer_types_ret(Type const **result, Context *restrict context, Instruction I) {
-    if (context_trace(context)) { trace(SV("infer_types_ret:"), stdout); }
     return infer_types_operand(result, context, I.B_kind, I.B_data);
 }
 
@@ -205,7 +202,6 @@ static bool infer_types_call(Type const **result,
                              Context *restrict context,
                              Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    if (context_trace(context)) { trace(SV("infer_types_call:"), stdout); }
     Local      *local = context_lookup_local(context, I.A_data.ssa);
     Type const *Bty;
     if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
@@ -253,7 +249,6 @@ static bool tuple_index_out_of_bounds(u64 index, TupleType const *tuple) {
 static bool
 infer_types_dot(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    if (context_trace(context)) { trace(SV("infer_types_dot:"), stdout); }
     Local      *local = context_lookup_local(context, I.A_data.ssa);
     Type const *Bty;
     if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
@@ -301,7 +296,6 @@ static bool infer_types_unop(Type const **result,
 
 static bool
 infer_types_neg(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_neg:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_unop(result, c, I, type_i64, type_i64);
 }
@@ -330,35 +324,30 @@ static bool infer_types_binop(Type const **result,
 
 static bool
 infer_types_add(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_add:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 infer_types_sub(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_sub:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 infer_types_mul(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_mul:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 infer_types_div(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_div:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
 static bool
 infer_types_mod(Type const **result, Context *restrict c, Instruction I) {
-    if (context_trace(c)) { trace(SV("infer_types_mod:"), stdout); }
     Type const *type_i64 = context_i64_type(c);
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
@@ -448,26 +437,18 @@ static bool infer_types_function(Type const **result, Context *restrict c) {
 static bool infer_types_global(Type const **result,
                                Context *restrict c,
                                Symbol *restrict element) {
-    if (context_trace(c)) { trace(SV("infer_types_global:"), stdout); }
     assert(c != nullptr);
     assert(element != nullptr);
     if (element->type != NULL) { return success(result, element->type); }
 
     switch (element->kind) {
     case SYMBOL_KIND_UNDEFINED: {
-        if (context_trace(c)) {
-            trace(SV("infer_types_global: undefined"), stdout);
-        }
         // #TODO: this should be handled as a forward declaration
         // but only if the type exists.
         return success(result, context_nil_type(c));
     }
 
     case SYMBOL_KIND_FUNCTION: {
-        if (context_trace(c)) {
-            trace(SV("infer_types_global: function:"), stdout);
-            trace(element->name, stdout);
-        }
         // we want to avoid infinite recursion. but we also need to
         // handle the fact that functions are going to be infer_typesed
         // in an indeterminite order. the natural solution is to type
@@ -501,10 +482,6 @@ static bool infer_types_global(Type const **result,
 #undef try
 
 i32 infer_types(Context *restrict context) {
-    if (context_trace(context)) {
-        trace(SV("infer_types:"), stdout);
-        trace(context_source_path(context), stdout);
-    }
     i32          result = EXIT_SUCCESS;
     SymbolTable *table  = &context->global_symbol_table;
     for (u64 index = 0; index < table->capacity; ++index) {

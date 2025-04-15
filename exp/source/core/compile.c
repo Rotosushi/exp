@@ -85,10 +85,6 @@ i32 compile(i32 argc, char const *argv[]) {
         print_compile_actions(&context);
     }
 
-    if (context_trace(&context)) {
-        message(MESSAGE_STATUS, NULL, 0, SV("trace mode enabled"), stdout);
-    }
-
     i32 result = compile_context(&context);
 
     if ((result != EXIT_FAILURE) && context_create_ir_artifact(&context)) {

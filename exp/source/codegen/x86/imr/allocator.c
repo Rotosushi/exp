@@ -498,6 +498,22 @@ x86_allocator_allocate_from_active(x86_Allocator *restrict allocator,
     return new;
 }
 
+u8 x86_allocator_spill_oldest_active(x86_Allocator *restrict allocator,
+                                     x86_Bytecode *restrict x64bc) {
+    x86_Allocation *oldest = x86_gprp_oldest_allocation(&allocator->gprp);
+    if (oldest == NULL) {
+        u8 gpr_index;
+        if (x86_gprp_any_available(&allocator->gprp, &gpr_index)) {
+            return gpr_index;
+        }
+
+        EXP_UNREACHABLE();
+    }
+    x86_GPR gpr = oldest->location.gpr;
+    x86_allocator_spill_allocation(allocator, oldest, x64bc);
+    return x86_gpr_index(gpr);
+}
+
 x86_Allocation *
 x86_allocator_allocate_to_any_gpr(x86_Allocator *restrict allocator,
                                   Local *local,
@@ -571,22 +587,6 @@ void x86_allocator_reallocate_active(x86_Allocator *restrict allocator,
     } else {
         x86_allocator_spill_allocation(allocator, active, x64bc);
     }
-}
-
-u8 x86_allocator_spill_oldest_active(x86_Allocator *restrict allocator,
-                                     x86_Bytecode *restrict x64bc) {
-    x86_Allocation *oldest = x86_gprp_oldest_allocation(&allocator->gprp);
-    if (oldest == NULL) {
-        u8 gpr_index;
-        if (x86_gprp_any_available(&allocator->gprp, &gpr_index)) {
-            return gpr_index;
-        }
-
-        EXP_UNREACHABLE();
-    }
-    x86_GPR gpr = oldest->location.gpr;
-    x86_allocator_spill_allocation(allocator, oldest, x64bc);
-    return x86_gpr_index(gpr);
 }
 
 x86_GPR x86_allocator_aquire_any_gpr(x86_Allocator *restrict allocator,

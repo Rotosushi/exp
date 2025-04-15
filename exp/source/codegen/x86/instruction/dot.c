@@ -28,9 +28,6 @@
 void x86_codegen_dot(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
-    if (context_trace(context->context)) {
-        trace(SV("x64_codegen_dot"), stdout);
-    }
     assert(I.A_kind == OPERAND_KIND_SSA);
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
 
