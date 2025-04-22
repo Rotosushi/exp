@@ -30,35 +30,35 @@
 #include "support/message.h"
 
 static void print_compile_actions(Context *restrict context) {
-    if (context_create_ir_artifact(context)) {
+    if (context_shall_create_ir_artifact(context)) {
         trace(SV("create ir artifact:"), stdout);
         trace(context_ir_path(context), stdout);
     }
 
-    if (context_create_assembly_artifact(context)) {
+    if (context_shall_create_assembly_artifact(context)) {
         trace(SV("create assembly artifact:"), stdout);
         trace(context_assembly_path(context), stdout);
     }
 
-    if (context_create_object_artifact(context)) {
+    if (context_shall_create_object_artifact(context)) {
         trace(SV("create object artifact:"), stdout);
         trace(context_object_path(context), stdout);
     }
 
-    if (context_create_executable_artifact(context)) {
+    if (context_shall_create_executable_artifact(context)) {
         trace(SV("create executable artifact:"), stdout);
         trace(context_executable_path(context), stdout);
     }
 
-    if (context_cleanup_ir_artifact(context)) {
+    if (context_shall_cleanup_ir_artifact(context)) {
         trace(SV("cleanup ir artifact"), stdout);
     }
 
-    if (context_cleanup_assembly_artifact(context)) {
+    if (context_shall_cleanup_assembly_artifact(context)) {
         trace(SV("cleanup assembly artifact"), stdout);
     }
 
-    if (context_cleanup_object_artifact(context)) {
+    if (context_shall_cleanup_object_artifact(context)) {
         trace(SV("cleanup object artifact"), stdout);
     }
 }
@@ -80,38 +80,41 @@ i32 compile(i32 argc, char const *argv[]) {
                    &cli_options.context_options,
                    string_to_view(&cli_options.source));
 
-    if (context_prolix(&context)) {
+    if (context_shall_prolix(&context)) {
         message(MESSAGE_STATUS, NULL, 0, SV("prolix mode enabled"), stdout);
         print_compile_actions(&context);
     }
 
     i32 result = compile_context(&context);
 
-    if ((result != EXIT_FAILURE) && context_create_ir_artifact(&context)) {
+    if ((result != EXIT_FAILURE) &&
+        context_shall_create_ir_artifact(&context)) {
         result |= codegen_ir(&context);
     }
 
     if ((result != EXIT_FAILURE) &&
-        context_create_assembly_artifact(&context)) {
+        context_shall_create_assembly_artifact(&context)) {
         result |= codegen_assembly(&context);
     }
 
-    if ((result != EXIT_FAILURE) && context_create_object_artifact(&context)) {
+    if ((result != EXIT_FAILURE) &&
+        context_shall_create_object_artifact(&context)) {
         result |= assemble(&context);
     }
 
     if ((result != EXIT_FAILURE) &&
-        context_create_executable_artifact(&context)) {
+        context_shall_create_executable_artifact(&context)) {
         result |= link(&context);
     }
 
-    if (context_cleanup_assembly_artifact(&context) &&
+    if (context_shall_cleanup_assembly_artifact(&context) &&
         (result != EXIT_FAILURE)) {
         StringView asm_path = context_assembly_path(&context);
         file_remove(asm_path.ptr);
     }
 
-    if (context_cleanup_object_artifact(&context) && (result != EXIT_FAILURE)) {
+    if (context_shall_cleanup_object_artifact(&context) &&
+        (result != EXIT_FAILURE)) {
         StringView obj_path = context_object_path(&context);
         file_remove(obj_path.ptr);
     }

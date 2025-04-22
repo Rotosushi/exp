@@ -60,14 +60,22 @@ void context_create(Context *restrict context,
 void context_destroy(Context *restrict context);
 
 // context options functions
-bool context_prolix(Context const *context);
-bool context_create_ir_artifact(Context const *restrict context);
-bool context_create_assembly_artifact(Context const *restrict context);
-bool context_create_object_artifact(Context const *restrict context);
-bool context_create_executable_artifact(Context const *restrict context);
-bool context_cleanup_ir_artifact(Context const *restrict context);
-bool context_cleanup_assembly_artifact(Context const *restrict context);
-bool context_cleanup_object_artifact(Context const *restrict context);
+bool context_shall_prolix(Context const *context);
+bool context_shall_create_ir_artifact(Context const *restrict context);
+bool context_shall_create_assembly_artifact(Context const *restrict context);
+bool context_shall_create_object_artifact(Context const *restrict context);
+bool context_shall_create_executable_artifact(Context const *restrict context);
+bool context_shall_cleanup_ir_artifact(Context const *restrict context);
+bool context_shall_cleanup_assembly_artifact(Context const *restrict context);
+bool context_shall_cleanup_object_artifact(Context const *restrict context);
+
+void context_create_ir_artifact(Context *restrict context);
+void context_create_assembly_artifact(Context *restrict context);
+void context_create_object_artifact(Context *restrict context);
+void context_create_executable_artifact(Context *restrict context);
+void context_cleanup_ir_artifact(Context *restrict context);
+void context_cleanup_assembly_artifact(Context *restrict context);
+void context_cleanup_object_artifact(Context *restrict context);
 
 StringView context_source_path(Context const *restrict context);
 StringView context_ir_path(Context const *restrict context);

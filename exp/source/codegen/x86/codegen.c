@@ -40,7 +40,9 @@
  *  a popular replacement for this handrolled backend is to generate
  *  assembly based on some form of x86-64 specification language.
  *  which if done well, can allow other backends to be written only
- *  by adding a specification of them.
+ *  by adding a specification of them. this works in LLVM via TableGen,
+ *  Which to my understanding generates a generator. and the machanism 
+ *  for generation is some form of Graph Covering.
  */
 
 static void x86_codegen_bytecode(x86_Context *x86_context) {
@@ -137,7 +139,7 @@ static void x86_codegen_function(x86_Context *x86_context) {
     x86_codegen_prepend_function_header(x86_context);
 }
 
-static void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
+void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
     StringView name = symbol->name;
 
     switch (symbol->kind) {
@@ -170,3 +172,4 @@ i32 x86_codegen(Context *context) {
     x86_context_destroy(&x86_context);
     return 0;
 }
+

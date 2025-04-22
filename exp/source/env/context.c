@@ -18,8 +18,14 @@
  */
 #include <assert.h>
 
+#include "codegen/IR/directives.h"
+#include "codegen/x86/codegen.h"
+#include "codegen/x86/emit.h"
+#include "codegen/x86/env/context.h"
 #include "env/context.h"
 #include "env/context_options.h"
+#include "support/config.h"
+#include "support/io.h"
 #include "support/string_view.h"
 
 #define EXP_IR_EXTENSION  "eir"
@@ -85,39 +91,91 @@ void context_destroy(Context *context) {
     context->current_function = nullptr;
 }
 
-bool context_prolix(Context const *context) {
+bool context_shall_prolix(Context const *context) {
     assert(context != nullptr);
     return context->options.prolix;
 }
 
-bool context_create_ir_artifact(Context const *context) {
+bool context_shall_create_ir_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_ir_artifact;
 }
-bool context_create_assembly_artifact(Context const *context) {
+bool context_shall_create_assembly_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_assembly_artifact;
 }
-bool context_create_object_artifact(Context const *context) {
+bool context_shall_create_object_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_object_artifact;
 }
-bool context_create_executable_artifact(Context const *context) {
+bool context_shall_create_executable_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_executable_artifact;
 }
-bool context_cleanup_ir_artifact(Context const *context) {
+bool context_shall_cleanup_ir_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_ir_artifact;
 }
-bool context_cleanup_assembly_artifact(Context const *context) {
+bool context_shall_cleanup_assembly_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_assembly_artifact;
 }
-bool context_cleanup_object_artifact(Context const *context) {
+bool context_shall_cleanup_object_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_object_artifact;
 }
+
+void context_create_ir_artifact(Context *restrict context) {
+    assert(context != NULL);
+
+    String ir_path;
+    string_initialize(&ir_path);
+    generate_path_from_source(
+        &ir_path, string_to_view(&context->source_path), SV(EXP_IR_EXTENSION));
+
+    String contents;
+    string_initialize(&contents);
+    ir_directive_version(SV(EXP_VERSION_STRING), &contents);
+    ir_directive_file(string_to_view(&context->source_path), &contents);
+
+    SymbolTable *symbol_table = &context->global_symbol_table;
+    for (u64 index = 0; index < symbol_table->capacity; ++index) {
+        Symbol *symbol = symbol_table->elements[index];
+        if (symbol == NULL) { continue; }
+
+        if (symbol->kind == SYMBOL_KIND_FUNCTION) {
+            ir_directive_function(symbol->name, &contents);
+            print_function(&contents, &symbol->function_body, context);
+            string_append(&contents, SV("\n"));
+        }
+    }
+
+    FILE *ir_file = file_open(string_to_cstring(&ir_path), "w");
+    file_write(string_to_view(&contents), ir_file);
+    file_close(ir_file);
+    string_destroy(&contents);
+    string_destroy(&ir_path);
+}
+
+void context_create_assembly_artifact(Context *restrict context) {
+    x86_Context  x86_context = x86_context_create(context);
+    SymbolTable *table       = &context->global_symbol_table;
+
+    for (u64 index = 0; index < table->capacity; ++index) {
+        Symbol *element = table->elements[index];
+        if (element == NULL) { continue; }
+        x86_codegen_symbol(element, &x86_context);
+    }
+
+    x86_emit(&x86_context);
+    x86_context_destroy(&x86_context);
+}
+
+void context_create_object_artifact(Context *restrict context);
+void context_create_executable_artifact(Context *restrict context);
+void context_cleanup_ir_artifact(Context *restrict context);
+void context_cleanup_assembly_artifact(Context *restrict context);
+void context_cleanup_object_artifact(Context *restrict context);
 
 StringView context_source_path(Context const *restrict context) {
     assert(context != nullptr);

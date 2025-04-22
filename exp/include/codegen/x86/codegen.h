@@ -17,8 +17,12 @@
 #ifndef EXP_BACKEND_X86_CODEGEN_H
 #define EXP_BACKEND_X86_CODEGEN_H
 
+#include "codegen/x86/env/context.h"
 #include "env/context.h"
 
 i32 x86_codegen(Context *context);
+
+void x86_codegen_symbol(Symbol *restrict symbol,
+                        x86_Context *restrict x86_context);
 
 #endif // !EXP_BACKEND_X86_CODEGEN_H

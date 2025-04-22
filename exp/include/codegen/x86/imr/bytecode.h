@@ -20,7 +20,7 @@
 #include "codegen/x86/imr/instruction.h"
 #include "support/string.h"
 
-typedef struct x64_Bytecode {
+typedef struct x86_Bytecode {
     u64              length;
     u64              capacity;
     x86_Instruction *buffer;
@@ -40,4 +40,6 @@ void x86_bytecode_append(x86_Bytecode *restrict bc, x86_Instruction I);
 void x86_bytecode_emit(x86_Bytecode *restrict bc,
                        String *restrict buffer,
                        Context *restrict context);
+
 #endif // !EXP_BACKEND_X86_BYTECODE_H
+
