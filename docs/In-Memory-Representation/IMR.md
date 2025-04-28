@@ -101,14 +101,76 @@ consider together. For instance, how many registers are there?
 We could go with the LLVM approach of "infinite" but due to the IMR we are actually limited to 65535. however it is expensive to allocate that many registers if we are going to be 
 using significantly fewer than that. Especially if the layout of a register itself is significantly greater than 8 bytes. 
 
+So, as it stands now, the actual form of our IMR is:
+
+```
+typedef enum OperandKind : u8 {
+	OPERAND_KIND_SSA,
+	OPERAND_KIND_CONSTANT,
+	OPERAND_KIND_LABEL,
+	OPERAND_KIND_U8,
+	OPERAND_KIND_U16,
+	OPERAND_KIND_U32,
+	OPERAND_KIND_U64,
+	OPERAND_KIND_I8,
+	OPERAND_KIND_I16,
+	OPERAND_KIND_I32,
+	OPERAND_KIND_I64,
+} OperandKind;
+
+typedef union OperandData {
+	u32 ssa;
+	u32 constant;
+	 label;
+	u8 u8_;
+	u16 u16_;
+	u32 u32_;
+	u64 u64_;
+	i8 i8_;
+	i16 i16_;
+	i32 i32_;
+	i64 i64_;
+} OperandData;
+
+typedef enum Opcode : u16 {
+	OPCODE_RET,
+	OPCODE_CALL,
+	OPCODE_DOT,
+	OPCODE_LOAD,
+	OPCODE_NEG,
+	OPCODE_ADD,
+	OPCODE_SUB,
+	OPCODE_MUL,
+	OPCODE_DIV,
+	OPCODE_MOD,
+} Opcode;
+
+typedef struct Instruction {
+	Opcode opcode;
+	OperandKind A_kind;
+	OperandKind B_kind;
+	OperandKind C_kind;
+	OperandData A_data;
+	OperandData B_data;
+	OperandData C_data;
+} Instruction;
+
+```
+This is a slight expansion in terms of the memory footprint, we use 32 bytes for a single instruction, which is 4 times larger. The main rationale behind this is that when we are expressing arithmetic expressions from user code, we very often use integers, so it makes sense to allow for each kind of integer to be present directly within the Instruction. This makes it very simple to add two i64's within a hypothetical evaluator. or, as it is now, to know which two i64 values are being added when we emit the x86-64 add operation, between them. additionally it can be seen that any datum which is 64 bits large can be fit into a Operand, which expands the breadth to include floats and doubles, as well as C pointers directly Which allows for a speedup in other areas, Labels used in operands can be a pointer to a ConstantString
+
+. I think that the trade-off is worth it. We aren't bloating the instruction size 
+by too much, and given that production quality representations of instructions are regulary 
+much larger. I am specifically thinking of the zydis x86 disassembler where a single 
+x86 instruction along with it's operands are collectively hundreds of bytes large, and this library is very performant, and not all that memory intensive either. Computers are simply very fast at moving data around these days, and while it is noble to attempt to push the representation to its absolute limit, it simply isn't necessary to allow for performance and ease development difficulty.
+
 We still use a classic Environment for global declarations. Currently I have a open addressing linear-probed hash-table, with a load factor of 0.75. My thoughts on this are to somehow allow for a single hash table to be filled with all of the symbols visible to a single translation unit. While allowing for use-before-definition across separate modules defined across multiple files. This is because my plan is to have a separate thread (or process) each with it's own environment for multi-threading compiling multiple source files. 
 The alternative would be to somehow have all the threads share a single environment and compile only the symbols defined within a given source file. I don't know which would be faster, given that resource sharing is such a difficult problem, but with multiple environments we have to process the same files over and over again. 
 
 And then we have the backend to consider. Which from my beginners understanding. 
 ([register allocation](http://compilers.cs.ucla.edu/fernando/publications/drafts/survey.pdf) [instruction selection](https://link.springer.com/book/10.1007/978-3-319-34019-7) [combinatorial techniques](https://arxiv.org/abs/1409.7628) [compiler design](https://link.springer.com/book/10.1007/978-1-4612-5192-7))
 There is a lot. like, a lot a lot to understand. it seems that the central data structure used to represent the flow of the program at both micro and macro levels is the Graph. There is the Call Flow Graph which details which functions call each other. (Given recursion this is a Directed Graph, without recursion it can be a Directed Acyclic Graph) There is the Control Flow Graph that details how control flows through the body of a procedure. (Given loops, this is a Directed Graph. if you somehow special case loops, you might be able to make it 
-Directed Acyclic. But it's natural form is cyclic, so that seems more appropriate.)
-There is the Data-Flow Graph that details how data flows between the instructions within a block of bytecode. (If you are using SSA form, then this is Directed Acyclic.)
+Directed Acyclic. But it's natural form is cyclic, so that seems more appropriate.) It can be argued that the control flow graph should include function calls, in which case it becomes a global control flow graph, and can be used for inter-procedural optimizations.
+There is the Data-Flow Graph that details how data flows between the instructions within a block of bytecode. (If you are using SSA form, then this is Directed Acyclic.) ((or, between the representation of operations, such as binary operators, calls, and looping constructs, within whatever IR is being used))
 There may be more that I am unaware of as well.
 Then, since we want a modern, optimizing compiler, there are all of the data structures and algorithms for combinatorial instruction selection, register allocation, and instruction scheduling. Which are three algorithms all interdependent on one another.
 

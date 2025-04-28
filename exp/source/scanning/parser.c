@@ -223,7 +223,7 @@ static bool parse_formal_argument(Local *restrict arg,
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    StringView name = context_intern(context, curtxt(parser));
+    ConstantString *name = context_intern(context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_COLON)) {
@@ -238,7 +238,7 @@ static bool parse_formal_argument(Local *restrict arg,
     if (!parse_type(&type, parser, context)) { return false; }
     assert(type != NULL);
 
-    arg->name = name;
+    arg->name = constant_string_to_view(name);
     arg->type = type;
     return true;
 }
@@ -327,7 +327,7 @@ static bool constant(Operand *restrict result,
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
-    StringView name = context_intern(context, curtxt(parser));
+    ConstantString *name = context_intern(context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_EQUAL)) {
@@ -351,7 +351,7 @@ static bool constant(Operand *restrict result,
     Operand A = context_emit_load(context, *result);
     assert(A.kind == OPERAND_KIND_SSA);
     Local *local = context_lookup_local(context, A.data.ssa);
-    local->name  = name;
+    local->name  = constant_string_to_view(name);
 
     return true;
 }
@@ -426,10 +426,11 @@ static bool function(Operand *restrict result,
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
     }
 
-    StringView name = context_intern(context, curtxt(parser));
+    ConstantString *name = context_intern(context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
-    Function *body = context_enter_function(context, name);
+    Function *body =
+        context_enter_function(context, constant_string_to_view(name));
 
     if (!parse_formal_argument_list(body, parser, context)) { return false; }
 
@@ -646,22 +647,23 @@ static bool identifier(Operand *restrict result,
                        Context *restrict context) {
     assert(peek(parser, TOK_IDENTIFIER));
 
-    StringView name = context_intern(context, curtxt(parser));
+    ConstantString *name = context_intern(context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
 
-    Local *local = context_lookup_local_name(context, name);
+    Local *local =
+        context_lookup_local_name(context, constant_string_to_view(name));
     if (local != NULL) {
         *result = operand_ssa(local->ssa);
         return true;
     }
 
-    Symbol *global = context_global_symbol_table_at(context, name);
+    Symbol *global =
+        context_global_symbol_table_at(context, constant_string_to_view(name));
     if (string_view_empty(global->name)) {
         return error(parser, context, ERROR_ANALYSIS_UNDEFINED_SYMBOL);
     }
 
-    u32 index = context_labels_insert(context, name);
-    *result   = operand_label(index);
+    *result = operand_label(name);
     return true;
 }
 

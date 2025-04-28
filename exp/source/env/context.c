@@ -68,10 +68,10 @@ void context_create(Context *restrict context,
     context->current_function    = nullptr;
     context->current_error       = error_create();
     context->global_symbol_table = symbol_table_create();
-    context->global_labels       = labels_create();
-    context->constants           = constants_create();
-    context->string_interner     = string_interner_create();
-    context->type_interner       = type_interner_create();
+    // context->global_labels       = labels_create();
+    context->constants       = constants_create();
+    context->string_interner = string_interner_create();
+    context->type_interner   = type_interner_create();
 }
 
 void context_destroy(Context *context) {
@@ -85,7 +85,7 @@ void context_destroy(Context *context) {
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->global_symbol_table));
-    labels_destroy(&(context->global_labels));
+    // labels_destroy(&(context->global_labels));
     constants_destroy(&(context->constants));
     error_destroy(&context->current_error);
     context->current_function = nullptr;
@@ -212,7 +212,7 @@ bool context_has_error(Context const *context) {
     return context->current_error.code != ERROR_NONE;
 }
 
-StringView context_intern(Context *context, StringView sv) {
+ConstantString *context_intern(Context *context, StringView sv) {
     assert(context != nullptr);
     return string_interner_insert(&(context->string_interner), sv);
 }
@@ -280,15 +280,15 @@ Type const *context_function_type(Context    *context,
         &context->type_interner, return_type, argument_types);
 }
 
-u32 context_labels_insert(Context *context, StringView symbol) {
-    assert(context != nullptr);
-    return labels_insert(&context->global_labels, symbol);
-}
+// u32 context_labels_insert(Context *context, StringView symbol) {
+//     assert(context != nullptr);
+//     return labels_insert(&context->global_labels, symbol);
+// }
 
-StringView context_labels_at(Context *context, u32 index) {
-    assert(context != nullptr);
-    return labels_at(&context->global_labels, index);
-}
+// StringView context_labels_at(Context *context, u32 index) {
+//     assert(context != nullptr);
+//     return labels_at(&context->global_labels, index);
+// }
 
 Symbol *context_global_symbol_table_at(Context *context, StringView name) {
     assert(context != nullptr);

@@ -33,7 +33,14 @@ void constant_string_destroy(ConstantString *restrict str) {
     deallocate(str);
 }
 
+bool constant_string_equal(ConstantString const *restrict string,
+                           StringView view) {
+    exp_assert(string != NULL);
+
+    return string_view_equal(string_view(string->data, string->length), view);
+}
+
 StringView constant_string_to_view(ConstantString const *restrict str) {
     exp_assert(str != NULL);
-    return string_view_from_str(str->data, str->length);
+    return string_view(str->data, str->length);
 }

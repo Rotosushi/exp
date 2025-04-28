@@ -26,6 +26,9 @@ typedef struct ConstantString {
 ConstantString *constant_string_create(StringView view);
 void            constant_string_destroy(ConstantString *restrict str);
 
+bool constant_string_equal(ConstantString const *restrict string,
+                           StringView view);
+
 StringView constant_string_to_view(ConstantString const *restrict str);
 
 #endif // !EXP_SUPPORT_CONSTANT_STRING_H

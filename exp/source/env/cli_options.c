@@ -101,7 +101,7 @@ void parse_cli_options(i32         argc,
 
         default: {
             char       buf[2]      = {(char)option, '\0'};
-            StringView option_view = string_view_from_str(buf, 1);
+            StringView option_view = string_view(buf, 1);
             String     string      = string_create();
             string_append(&string, SV("unknown option ["));
             string_append(&string, option_view);

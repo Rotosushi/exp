@@ -60,7 +60,7 @@ void string_destroy(String *restrict str) {
 StringView string_to_view(String const *restrict str) {
     assert(str != NULL);
     StringView sv = string_view_create();
-    sv            = string_view_from_str(string_to_cstring(str), str->length);
+    sv            = string_view(string_to_cstring(str), str->length);
     return sv;
 }
 
@@ -183,7 +183,7 @@ void string_append_i64(String *restrict str, i64 i) {
     char *r = i64_to_str(i, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
-    string_append(str, string_view_from_str(buf, len));
+    string_append(str, string_view(buf, len));
 }
 
 void string_append_u64(String *restrict str, u64 u) {
@@ -192,7 +192,7 @@ void string_append_u64(String *restrict str, u64 u) {
     char *r = u64_to_str(u, buf);
     if (r == NULL) { PANIC("conversion failed"); }
     buf[len] = '\0';
-    string_append(str, string_view_from_str(buf, len));
+    string_append(str, string_view(buf, len));
 }
 
 /*
@@ -342,7 +342,7 @@ StringView string_extension(String const *restrict str) {
         --cursor;
     }
 
-    return string_view_from_str(buffer + cursor, length - cursor);
+    return string_view(buffer + cursor, length - cursor);
 }
 
 // void print_string(String *restrict s, FILE *restrict file) {

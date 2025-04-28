@@ -39,11 +39,8 @@
     offset += msg.length;
     memcpy(msgbuf + offset, ANSI_COLOR_RESET, rstlen);
     msgbuf[msglen] = '\0';
-    message(MESSAGE_FATAL,
-            file,
-            (u64)line,
-            string_view_from_str(msgbuf, msglen),
-            stderr);
+    message(
+        MESSAGE_FATAL, file, (u64)line, string_view(msgbuf, msglen), stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }
@@ -76,11 +73,8 @@
     offset += rstlen;
     msgbuf[buflen] = '\0';
 
-    message(MESSAGE_FATAL,
-            file,
-            (u64)line,
-            string_view_from_str(msgbuf, buflen),
-            stderr);
+    message(
+        MESSAGE_FATAL, file, (u64)line, string_view(msgbuf, buflen), stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }

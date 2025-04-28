@@ -19,6 +19,25 @@
 
 #include "env/context.h"
 
+/*
+ * This applies to both infer_types and infer_lifetimes.
+ * I want to add in an `evaluate(expr, context);` function
+ * which is able to evaluate bytecode and return a result.
+ * I think that as a part of that, infer_types and infer_lifetimes
+ * need to have the API broken up into infer_types(expr, context);
+ * and infer_lifetimes(expr, context);
+ * But, what is an expression? I think, it can be an implicit lambda,
+ * which captures the context. The thing is we need to rearchitect
+ * the way that functions are defined. Namely function definitions
+ * must be expressable within the bytecode itself. As const variables
+ * already are.
+ */
+
+/**
+ * @brief Iterates through each defined function in the given
+ * context, and fills in the type information for the function
+ * and each SSA local.
+ */
 i32 infer_types(Context *restrict context);
 
 #endif // !EXP_ANALYSIS_INFER_TYPES_H

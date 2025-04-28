@@ -48,17 +48,17 @@ void file_write(StringView view, FILE *restrict stream) {
 }
 
 void file_write_i64(i64 value, FILE *restrict stream) {
-    u64 buflen           = i64_safe_strlen(value);
+    u64  buflen          = i64_safe_strlen(value);
     char buf[buflen + 1] = {};
     if (i64_to_str(value, buf) == NULL) { PANIC("i64_to_str failed"); }
-    file_write(string_view_from_str(buf, buflen), stream);
+    file_write(string_view(buf, buflen), stream);
 }
 
 void file_write_u64(u64 value, FILE *restrict stream) {
-    u64 buflen                           = u64_safe_strlen(value);
+    u64  buflen                          = u64_safe_strlen(value);
     char buf[u64_safe_strlen(value) + 1] = {};
     if (u64_to_str(value, buf) == NULL) { PANIC("u64_to_str failed"); }
-    file_write(string_view_from_str(buf, buflen), stream);
+    file_write(string_view(buf, buflen), stream);
 }
 
 u64 file_read(char *restrict buffer, u64 length, FILE *restrict stream) {

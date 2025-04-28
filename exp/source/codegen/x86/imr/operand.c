@@ -22,12 +22,13 @@
 #include "support/unreachable.h"
 
 x86_Operand x86_operand_gpr(x86_GPR gpr) {
-    x86_Operand opr = {.kind = X86_OPERAND_KIND_GPR, .gpr = gpr};
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_GPR, .data.gpr = gpr};
     return opr;
 }
 
 x86_Operand x86_operand_address(x86_Address address) {
-    x86_Operand opr = {.kind = X86_OPERAND_KIND_ADDRESS, .address = address};
+    x86_Operand opr = {.kind         = X86_OPERAND_KIND_ADDRESS,
+                       .data.address = address};
     return opr;
 }
 
@@ -50,16 +51,18 @@ x86_Operand x86_operand_alloc(x86_Allocation *alloc) {
 }
 
 x86_Operand x86_operand_constant(u32 index) {
-    x86_Operand opr = {.kind = X86_OPERAND_KIND_CONSTANT, .constant = index};
+    x86_Operand opr = {.kind          = X86_OPERAND_KIND_CONSTANT,
+                       .data.constant = index};
     return opr;
 }
 
-x86_Operand x86_operand_label(u32 index) {
-    x86_Operand opr = {.kind = X86_OPERAND_KIND_LABEL, .label = index};
+x86_Operand x86_operand_label(ConstantString *label) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_LABEL, .data.label = label};
     return opr;
 }
 
 x86_Operand x86_operand_immediate(i64 value) {
-    x86_Operand opr = {.kind = X86_OPERAND_KIND_IMMEDIATE, .immediate = value};
+    x86_Operand opr = {.kind           = X86_OPERAND_KIND_IMMEDIATE,
+                       .data.immediate = value};
     return opr;
 }
