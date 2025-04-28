@@ -25,7 +25,6 @@
 #include "env/error.h"
 #include "imr/type.h"
 #include "intrinsics/type_of.h"
-#include "support/message.h"
 #include "support/string.h"
 #include "support/unreachable.h"
 

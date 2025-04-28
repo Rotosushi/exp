@@ -512,7 +512,8 @@ static bool parens(Operand *restrict result,
                    Parser *restrict parser,
                    Context *restrict context) {
 
-    Tuple tuple = tuple_create();
+    Tuple tuple;
+    tuple_create(&tuple);
 
     if (!parse_tuple(&tuple, parser, context)) { return false; };
 
@@ -581,7 +582,8 @@ static bool call(Operand *restrict result,
                  Operand left,
                  Parser *restrict parser,
                  Context *restrict context) {
-    Tuple argument_list = tuple_create();
+    Tuple argument_list;
+    tuple_create(&argument_list);
 
     if (!parse_tuple(&argument_list, parser, context)) { return false; }
 

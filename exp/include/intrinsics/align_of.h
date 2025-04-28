@@ -26,7 +26,10 @@
  * @note this is the number of bytes to align a <value> with <type> to.
  *
  * @todo Take into account the target architecture. When we support more than
- * x86-64
+ * x86-64, my guess is we need a target triple kind of deal held in the context.
+ * And the target needs to provide maybe a function pointer to an
+ * implementation, and we can store a set of these pointers in the context, so
+ * different targets can override the implementations with their own valid ones.
  *
  * @param type
  * @return u64

@@ -18,7 +18,7 @@
 #define EXP_IMR_VALUE_H
 #include <stdbool.h>
 
-#include "imr/operand.h"
+#include "imr/tuple.h"
 #include "support/string.h"
 
 typedef enum ValueKind {
@@ -40,12 +40,6 @@ typedef enum ValueKind {
 
 struct Value;
 
-typedef struct Tuple {
-    u64      size;
-    u64      capacity;
-    Operand *elements;
-} Tuple;
-
 /**
  * @brief represents Values in the compiler
  *
@@ -66,12 +60,6 @@ typedef struct Value {
         Tuple tuple;
     };
 } Value;
-
-Tuple tuple_create();
-void  tuple_destroy(Tuple *restrict tuple);
-void  tuple_assign(Tuple *restrict A, Tuple *restrict B);
-bool  tuple_equal(Tuple *A, Tuple *B);
-void  tuple_append(Tuple *restrict tuple, Operand element);
 
 /**
  * @brief create an uninitialized value
@@ -168,14 +156,6 @@ Value value_create_i64(i64 i);
  * @return Value
  */
 Value value_create_tuple(Tuple tuple);
-
-/**
- * @brief assign dest the value of source
- *
- * @param dest
- * @param source
- */
-void value_assign(Value *dest, Value *source);
 
 /**
  * @brief equality compares values
