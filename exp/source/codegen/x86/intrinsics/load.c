@@ -24,45 +24,33 @@
 #include "intrinsics/size_of.h"
 #include "intrinsics/type_of.h"
 #include "support/assert.h"
-#include "support/message.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
 static void
 x86_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {
-    if (i64_in_range_i16(value)) {
-        x86_context_append(x64_context,
-                           x86_mov(x86_operand_address(*dst),
-                                   x86_operand_immediate((i16)value)));
-    } else {
-        Operand operand = context_constants_append(x64_context->context,
-                                                   value_create_i64(value));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x86_context_append(
-            x64_context,
-            x86_mov(x86_operand_address(*dst),
-                    x86_operand_constant(operand.data.constant)));
-    }
+    x86_context_append(
+        x64_context,
+        x86_mov(x86_operand_address(*dst), x86_operand_i64(value)));
 }
 
 static void
 x86_codegen_load_address_from_scalar_value(x86_Address *restrict dst,
-                                           Value *restrict value,
+                                           Value const *restrict value,
                                            x86_Context *restrict context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: break; // don't initialize the uninitialized
 
     case VALUE_KIND_NIL: {
         x86_context_append(
-            context,
-            x86_mov(x86_operand_address(*dst), x86_operand_immediate(0)));
+            context, x86_mov(x86_operand_address(*dst), x86_operand_i64(0)));
         break;
     }
 
     case VALUE_KIND_BOOLEAN: {
         x86_context_append(context,
                            x86_mov(x86_operand_address(*dst),
-                                   x86_operand_immediate((i16)value->boolean)));
+                                   x86_operand_i64(value->boolean)));
         break;
     }
 
@@ -102,9 +90,9 @@ x86_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
     }
 
     case OPERAND_KIND_I64: {
-        x86_context_append(context,
-                           x86_mov(x86_operand_address(*dst),
-                                   x86_operand_immediate(src.data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_address(*dst), x86_operand_i64(src.data.i64_)));
         break;
     }
 
@@ -114,7 +102,7 @@ x86_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x86_context_value_at(context, src.data.constant);
+        Value const *value = src.data.constant;
         assert(type_equality(type, type_of_value(value, context->context)));
         x86_codegen_load_address_from_scalar_value(dst, value, context);
         break;
@@ -143,12 +131,12 @@ x86_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value      *value = x86_context_value_at(context, src.data.constant);
-        Type const *type  = type_of_value(value, context->context);
+        Value const *value = src.data.constant;
+        Type const  *type  = type_of_value(value, context->context);
         assert(value->kind == VALUE_KIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
-        Tuple *tuple = &value->tuple;
+        Tuple const *tuple = &value->tuple;
 
         x86_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
@@ -217,9 +205,9 @@ x86_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
     }
 
     case OPERAND_KIND_I64: {
-        x86_context_append(context,
-                           x86_mov(x86_operand_address(*dst),
-                                   x86_operand_immediate(src.data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_address(*dst), x86_operand_i64(src.data.i64_)));
         break;
     }
 
@@ -229,7 +217,7 @@ x86_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = x86_context_value_at(context, src.data.constant);
+        Value const *value = src.data.constant;
         x86_codegen_load_address_from_scalar_value(dst, value, context);
         break;
     }
@@ -257,12 +245,12 @@ static void x86_codegen_load_argument_from_composite_operand(
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value      *value = x86_context_value_at(context, src.data.constant);
-        Type const *type  = type_of_value(value, context->context);
+        Value const *value = src.data.constant;
+        Type const  *type  = type_of_value(value, context->context);
         assert(value->kind == VALUE_KIND_TUPLE);
         assert(!type_is_scalar(type));
         (void)type;
-        Tuple *tuple = &value->tuple;
+        Tuple const *tuple = &value->tuple;
 
         x86_Address dst_element_address = *dst;
         for (u64 i = 0; i < tuple->size; ++i) {
@@ -325,9 +313,9 @@ void x86_codegen_load_gpr_from_operand(x86_GPR              gpr,
     }
 
     case OPERAND_KIND_I64: {
-        x86_context_append(context,
-                           x86_mov(x86_operand_gpr(gpr),
-                                   x86_operand_immediate(src.data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_gpr(gpr), x86_operand_i64(src.data.i64_)));
         break;
     }
 
@@ -357,23 +345,12 @@ void x86_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
 static void x86_codegen_load_allocation_from_i64(x86_Allocation *dst,
                                                  i64             value,
                                                  x86_Context    *context) {
-    if (i64_in_range_i16(value)) {
-        x86_context_append(
-            context,
-            x86_mov(x86_operand_alloc(dst), x86_operand_immediate((i16)value)));
-    } else {
-        Operand operand =
-            context_constants_append(context->context, value_create_i64(value));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x86_context_append(
-            context,
-            x86_mov(x86_operand_alloc(dst),
-                    x86_operand_constant(operand.data.constant)));
-    }
+    x86_context_append(context,
+                       x86_mov(x86_operand_alloc(dst), x86_operand_i64(value)));
 }
 
 static void x86_codegen_load_allocation_from_tuple(x86_Allocation *dst,
-                                                   Tuple          *tuple,
+                                                   Tuple const    *tuple,
                                                    u64             Idx,
                                                    x86_Context    *context) {
     assert(dst->location.kind == X86_LOCATION_ADDRESS);
@@ -392,10 +369,11 @@ static void x86_codegen_load_allocation_from_tuple(x86_Allocation *dst,
     }
 }
 
-void x86_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
-                                            Value *value,
-                                            u64    Idx,
-                                            x86_Context *restrict x64_context) {
+void x86_codegen_load_allocation_from_constant(
+    x86_Allocation *restrict dst,
+    Value const *value,
+    u64          Idx,
+    x86_Context *restrict x64_context) {
     Type const *type = type_of_value(value, x64_context->context);
     assert(type_equality(dst->type, type));
     (void)type;
@@ -404,16 +382,15 @@ void x86_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
     case VALUE_KIND_UNINITIALIZED: break;
 
     case VALUE_KIND_NIL: {
-        x86_context_append(
-            x64_context,
-            x86_mov(x86_operand_alloc(dst), x86_operand_immediate(0)));
+        x86_context_append(x64_context,
+                           x86_mov(x86_operand_alloc(dst), x86_operand_i64(0)));
         break;
     }
 
     case VALUE_KIND_BOOLEAN: {
         x86_context_append(x64_context,
                            x86_mov(x86_operand_alloc(dst),
-                                   x86_operand_immediate((i16)value->boolean)));
+                                   x86_operand_i64((i16)value->boolean)));
         break;
     }
 

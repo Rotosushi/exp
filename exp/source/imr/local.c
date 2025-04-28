@@ -18,10 +18,19 @@
  */
 
 #include "imr/local.h"
+#include "support/allocation.h"
+#include "support/assert.h"
 
-void local_init(Local *restrict local, u32 ssa) {
+Local *local_allocate(u32 ssa) {
+    Local *local    = callocate(1, sizeof(Local));
     local->ssa      = ssa;
     local->name     = SV("");
     local->type     = NULL;
     local->lifetime = (Lifetime){.start = 0, .end = 0};
+    return local;
+}
+
+void local_deallocate(Local *restrict local) {
+    exp_assert(local != NULL);
+    deallocate(local);
 }

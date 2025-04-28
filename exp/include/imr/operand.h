@@ -25,6 +25,8 @@ typedef enum OperandKind : u8 {
     OPERAND_KIND_SSA,
     OPERAND_KIND_CONSTANT,
     OPERAND_KIND_LABEL,
+    OPERAND_KIND_NIL,
+    OPERAND_KIND_BOOL,
     OPERAND_KIND_U8,
     OPERAND_KIND_U16,
     OPERAND_KIND_U32,
@@ -35,18 +37,23 @@ typedef enum OperandKind : u8 {
     OPERAND_KIND_I64,
 } OperandKind;
 
+struct Local;
+struct Value;
+
 typedef union OperandData {
-    u32             ssa;
-    u32             constant;
-    ConstantString *label;
-    u8              u8_;
-    u16             u16_;
-    u32             u32_;
-    u64             u64_;
-    i8              i8_;
-    i16             i16_;
-    i32             i32_;
-    i64             i64_;
+    struct Local         *ssa;
+    struct Value const   *constant;
+    ConstantString const *label;
+    u8                    nil;
+    bool                  bool_;
+    u8                    u8_;
+    u16                   u16_;
+    u32                   u32_;
+    u64                   u64_;
+    i8                    i8_;
+    i16                   i16_;
+    i32                   i32_;
+    i64                   i64_;
 } OperandData;
 
 typedef struct Operand {
@@ -57,9 +64,11 @@ typedef struct Operand {
 struct Context;
 
 Operand operand(OperandKind kind, OperandData data);
-Operand operand_ssa(u32 ssa);
-Operand operand_constant(u32 index);
-Operand operand_label(ConstantString *cs);
+Operand operand_ssa(struct Local *local);
+Operand operand_constant(struct Value const *constant);
+Operand operand_label(ConstantString const *label);
+Operand operand_nil();
+Operand operand_bool(bool bool_);
 Operand operand_u8(u8 u8_);
 Operand operand_u16(u16 u16_);
 Operand operand_u32(u32 u32_);

@@ -119,7 +119,7 @@ static bool infer_types_operand(Type const **result,
                                 OperandData data) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local      *local = context_lookup_local(context, data.ssa);
+        Local      *local = data.ssa;
         Type const *type  = local->type;
         if (type == NULL) {
             return failure(
@@ -130,7 +130,7 @@ static bool infer_types_operand(Type const **result,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value = context_constants_at(context, data.constant);
+        Value const *value = data.constant;
         return success(result, type_of_value(value, context));
     }
 
@@ -184,7 +184,7 @@ static bool infer_types_operand(Type const **result,
 static bool
 infer_types_let(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = context_lookup_local(context, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
     if (!infer_types_operand(&local->type, context, I.B_kind, I.B_data)) {
         return false;
     }
@@ -200,7 +200,7 @@ static bool infer_types_call(Type const **result,
                              Context *restrict context,
                              Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = context_lookup_local(context, I.A_data.ssa);
+    Local      *local = I.A_data.ssa;
     Type const *Bty;
     if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
         return false;
@@ -213,9 +213,9 @@ static bool infer_types_call(Type const **result,
     FunctionType const *function_type = &Bty->function_type;
     TupleType const    *formal_types  = &function_type->argument_types;
     assert(I.C_kind == OPERAND_KIND_CONSTANT);
-    Value *value = context_constants_at(context, I.C_data.constant);
+    Value const *value = I.C_data.constant;
     assert(value->kind == VALUE_KIND_TUPLE);
-    Tuple *actual_args = &value->tuple;
+    Tuple const *actual_args = &value->tuple;
 
     if (formal_types->size != actual_args->size) {
         return failure_mismatch_argument_count(
@@ -247,7 +247,7 @@ static bool tuple_index_out_of_bounds(u64 index, TupleType const *tuple) {
 static bool
 infer_types_dot(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = context_lookup_local(context, I.A_data.ssa);
+    Local      *local = I.A_data.ssa;
     Type const *Bty;
     if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
         return false;
@@ -280,7 +280,7 @@ static bool infer_types_unop(Type const **result,
                              Type const *result_type,
                              Type const *argument_type) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = context_lookup_local(c, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
     if (!infer_types_operand(&local->type, c, I.B_kind, I.B_data)) {
         return false;
     }
@@ -305,7 +305,7 @@ static bool infer_types_binop(Type const **result,
                               Type const *lhs_type,
                               Type const *rhs_type) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = context_lookup_local(c, I.A_data.ssa);
+    Local      *local = I.A_data.ssa;
     Type const *Bty;
     if (!infer_types_operand(&Bty, c, I.B_kind, I.B_data)) { return false; }
     if (!type_equality(lhs_type, Bty)) {

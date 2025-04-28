@@ -22,14 +22,13 @@
 #include "codegen/x86/intrinsics/copy.h"
 #include "codegen/x86/intrinsics/get_element_address.h"
 #include "codegen/x86/intrinsics/load.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
 void x86_codegen_dot(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
 
     assert(I.C_kind == OPERAND_KIND_I64);
     assert(I.C_data.i64_ >= 0);
@@ -54,10 +53,9 @@ void x86_codegen_dot(Instruction I,
 
     case OPERAND_KIND_CONSTANT: {
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
-        Value          *value =
-            context_constants_at(context->context, I.B_data.constant);
+        Value const    *value = I.B_data.constant;
         assert(value->kind == VALUE_KIND_TUPLE);
-        Tuple *tuple = &value->tuple;
+        Tuple const *tuple = &value->tuple;
         assert(index < tuple->size);
         Operand operand = tuple->elements[index];
         x86_codegen_load_allocation_from_operand(

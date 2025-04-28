@@ -18,6 +18,7 @@
 #define EXP_BACKEND_X86_OPERAND_H
 
 #include "codegen/x86/imr/allocation.h"
+#include "imr/value.h"
 #include "support/constant_string.h"
 
 typedef enum x86_OperandKind : u8 {
@@ -29,11 +30,11 @@ typedef enum x86_OperandKind : u8 {
 } x86_OperandKind;
 
 typedef union x86_OperandData {
-    x86_GPR         gpr;
-    x86_Address     address;
-    ConstantString *label;
-    u32             constant;
-    i64             immediate;
+    x86_GPR               gpr;
+    x86_Address           address;
+    ConstantString const *label;
+    Value const          *constant;
+    i64                   i64_;
 } x86_OperandData;
 
 typedef struct x86_Operand {
@@ -45,8 +46,8 @@ x86_Operand x86_operand_gpr(x86_GPR gpr);
 x86_Operand x86_operand_address(x86_Address address);
 x86_Operand x86_operand_location(x86_Location location);
 x86_Operand x86_operand_alloc(x86_Allocation *alloc);
-x86_Operand x86_operand_constant(u32 index);
-x86_Operand x86_operand_label(ConstantString *cs);
-x86_Operand x86_operand_immediate(i64 value);
+x86_Operand x86_operand_constant(Value const *constant);
+x86_Operand x86_operand_label(ConstantString const *cs);
+x86_Operand x86_operand_i64(i64 value);
 
 #endif // !EXP_BACKEND_X86_OPERAND_H

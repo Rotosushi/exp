@@ -36,7 +36,7 @@ x86_Symbol *x86_context_symbol(x86_Context *x86_context, StringView name);
 
 // context functions
 // context constants functions
-Value *x86_context_value_at(x86_Context *x86_context, u32 index);
+Value const *x86_context_value_at(x86_Context *x86_context, u32 index);
 
 // context global symbol table functions
 // StringView x86_context_global_labels_at(x86_Context *x86_context, u32 index);
@@ -66,7 +66,8 @@ Local *x86_context_lookup_ssa(x86_Context *x86_context, u32 ssa);
 bool x86_context_uses_stack(x86_Context *x86_context);
 i64  x86_context_stack_size(x86_Context *x86_context);
 
-x86_Allocation *x86_context_allocation_of(x86_Context *x86_context, u32 ssa);
+x86_Allocation *x86_context_allocation_of(x86_Context *x86_context,
+                                          Local       *local);
 
 void x86_context_release_gpr(x86_Context *x86_context, x86_GPR gpr, u64 Idx);
 

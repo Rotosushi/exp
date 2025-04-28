@@ -21,13 +21,17 @@
 #include "imr/lifetime.h"
 #include "imr/type.h"
 
+struct Value;
+
 typedef struct Local {
-    u32         ssa;
-    StringView  name;
-    Type const *type;
-    Lifetime    lifetime;
+    u32           ssa;
+    StringView    name;
+    Lifetime      lifetime;
+    Type const   *type;
+    struct Value *value;
 } Local;
 
-void local_init(Local *restrict local, u32 ssa);
+Local *local_allocate(u32 ssa);
+void   local_deallocate(Local *restrict local);
 
 #endif // !EXP_IMR_LOCAL_H

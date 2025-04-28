@@ -19,65 +19,120 @@
 
 #include "imr/value.h"
 #include "env/context.h"
+#include "support/allocation.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-Value value_create() {
-    Value value = {.kind = VALUE_KIND_UNINITIALIZED, .nil = 0};
+Value *value_allocate() {
+    Value *value = callocate(1, sizeof(Value));
     return value;
 }
 
-void value_destroy(Value *restrict value) {
+void value_deallocate(Value *restrict value) {
     switch (value->kind) {
     case VALUE_KIND_TUPLE: {
         tuple_destroy(&value->tuple);
         break;
     }
 
-    // values without dynamic storage
-    default: return;
+    case VALUE_KIND_FUNCTION: {
+        function_destroy(&value->function);
     }
+
+    // values without dynamic storage
+    default: break;
+    }
+
+    deallocate(value);
 }
 
-Value value_create_nil() { return (Value){.kind = VALUE_KIND_NIL, .nil = 0}; }
-
-Value value_create_boolean(bool b) {
-    return (Value){.kind = VALUE_KIND_BOOLEAN, .boolean = b};
+Value *value_allocate_nil() {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_NIL;
+    value->nil   = 0;
+    return value;
 }
 
-Value value_create_u8(u8 u) { return (Value){.kind = VALUE_KIND_U8, .u8_ = u}; }
-
-Value value_create_u16(u16 u) {
-    return (Value){.kind = VALUE_KIND_U16, .u16_ = u};
+Value *value_allocate_boolean(bool b) {
+    Value *value   = value_allocate();
+    value->kind    = VALUE_KIND_BOOLEAN;
+    value->boolean = b;
+    return value;
 }
 
-Value value_create_u32(u32 u) {
-    return (Value){.kind = VALUE_KIND_U32, .u32_ = u};
+Value *value_allocate_u8(u8 u) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_U8;
+    value->u8_   = u;
+    return value;
 }
 
-Value value_create_u64(u64 u) {
-    return (Value){.kind = VALUE_KIND_U64, .u64_ = u};
+Value *value_allocate_u16(u16 u) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_U16;
+    value->u16_  = u;
+    return value;
 }
 
-Value value_create_i8(i8 i) { return (Value){.kind = VALUE_KIND_I8, .i8_ = i}; }
-
-Value value_create_i16(i16 i) {
-    return (Value){.kind = VALUE_KIND_I16, .i16_ = i};
+Value *value_allocate_u32(u32 u) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_U32;
+    value->u32_  = u;
+    return value;
 }
 
-Value value_create_i32(i32 i) {
-    return (Value){.kind = VALUE_KIND_I32, .i32_ = i};
+Value *value_allocate_u64(u64 u) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_U64;
+    value->u64_  = u;
+    return value;
 }
 
-Value value_create_i64(i64 i) {
-    return (Value){.kind = VALUE_KIND_I64, .i64_ = i};
+Value *value_allocate_i8(i8 i) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_I8;
+    value->i8_   = i;
+    return value;
 }
 
-Value value_create_tuple(Tuple tuple) {
-    return (Value){.kind = VALUE_KIND_TUPLE, .tuple = tuple};
+Value *value_allocate_i16(i16 i) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_I16;
+    value->i16_  = i;
+    return value;
 }
 
-bool value_equality(Value *A, Value *B) {
+Value *value_allocate_i32(i32 i) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_I32;
+    value->i32_  = i;
+    return value;
+}
+
+Value *value_allocate_i64(i64 i) {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_I64;
+    value->i64_  = i;
+    return value;
+}
+
+Value *value_allocate_tuple() {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_TUPLE;
+    tuple_create(&value->tuple);
+    return value;
+}
+
+Value *value_allocate_function() {
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_FUNCTION;
+    function_create(&value->function);
+    return value;
+}
+
+bool value_equal(Value const *A, Value const *B) {
+    exp_assert(A != NULL);
+    exp_assert(B != NULL);
     if (A == B) { return true; }
     if (A->kind != B->kind) { return false; }
 

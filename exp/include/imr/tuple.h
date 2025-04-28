@@ -32,7 +32,7 @@ typedef struct Tuple {
 
 void tuple_create(Tuple *restrict tuple);
 void tuple_destroy(Tuple *restrict tuple);
-bool tuple_equal(Tuple *A, Tuple *B);
+bool tuple_equal(Tuple const *A, Tuple const *B);
 void tuple_append(Tuple *restrict tuple, Operand element);
 
 #endif // !EXP_IMR_TUPLE_H

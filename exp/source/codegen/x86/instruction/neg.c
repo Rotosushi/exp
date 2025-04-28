@@ -19,13 +19,12 @@
 #include <assert.h>
 
 #include "codegen/x86/instruction/neg.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
 void x86_codegen_neg(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
-    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
@@ -38,9 +37,9 @@ void x86_codegen_neg(Instruction I,
 
     case OPERAND_KIND_I64: {
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
-        x86_context_append(context,
-                           x86_mov(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
         x86_context_append(context, x86_neg(x86_operand_alloc(A)));
         break;
     }

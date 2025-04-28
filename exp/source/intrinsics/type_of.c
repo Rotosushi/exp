@@ -22,15 +22,16 @@
 #include "support/panic.h"
 #include "support/unreachable.h"
 
-Type const *type_of_value(Value *restrict value, Context *restrict context) {
+Type const *type_of_value(Value const *restrict value,
+                          Context *restrict context) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
     case VALUE_KIND_NIL:           return context_nil_type(context);
     case VALUE_KIND_BOOLEAN:       return context_boolean_type(context);
     case VALUE_KIND_I64:           return context_i64_type(context);
     case VALUE_KIND_TUPLE:         {
-        Tuple    *tuple      = &value->tuple;
-        TupleType tuple_type = tuple_type_create();
+        Tuple const *tuple      = &value->tuple;
+        TupleType    tuple_type = tuple_type_create();
         for (u64 i = 0; i < tuple->size; ++i) {
             Type const *T = type_of_operand(tuple->elements[i], context);
             tuple_type_append(&tuple_type, T);
@@ -60,14 +61,12 @@ Type const *type_of_function(Function *restrict body,
 Type const *type_of_operand(Operand operand, Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = context_lookup_local(context, operand.data.ssa);
-        return local->type;
+        return operand.data.ssa->type;
         break;
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, operand.data.constant);
-        return type_of_value(constant, context);
+        return type_of_value(operand.data.constant, context);
         break;
     }
 

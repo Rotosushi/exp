@@ -24,7 +24,6 @@
 #include "intrinsics/type_of.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
-#include "support/message.h"
 
 typedef struct OperandArray {
     u8       size;
@@ -63,45 +62,25 @@ static void operand_array_append(OperandArray *restrict array,
 static void x86_codegen_allocate_stack_space_for_arguments(x86_Context *context,
                                                            i64 stack_space,
                                                            u64 block_index) {
-    if (i64_in_range_i16(stack_space)) {
-        x86_context_insert(context,
-                           x86_sub(x86_operand_gpr(X86_GPR_RSP),
-                                   x86_operand_immediate((i16)stack_space)),
-                           block_index);
-    } else {
-        Operand operand = context_constants_append(
-            context->context, value_create_i64(stack_space));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x86_context_insert(context,
-                           x86_sub(x86_operand_gpr(X86_GPR_RSP),
-                                   x86_operand_constant(operand.data.constant)),
-                           block_index);
-    }
+    x86_context_insert(
+        context,
+        x86_sub(x86_operand_gpr(X86_GPR_RSP), x86_operand_i64(stack_space)),
+        block_index);
 }
 
 static void
 x86_codegen_deallocate_stack_space_for_arguments(x86_Context *x64_context,
                                                  i64          stack_space) {
-    if (i64_in_range_i16(stack_space)) {
-        x86_context_append(x64_context,
-                           x86_add(x86_operand_gpr(X86_GPR_RSP),
-                                   x86_operand_immediate((i16)stack_space)));
-    } else {
-        Operand operand = context_constants_append(
-            x64_context->context, value_create_i64(stack_space));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x86_context_append(
-            x64_context,
-            x86_add(x86_operand_gpr(X86_GPR_RSP),
-                    x86_operand_constant(operand.data.constant)));
-    }
+    x86_context_append(
+        x64_context,
+        x86_add(x86_operand_gpr(X86_GPR_RSP), x86_operand_i64(stack_space)));
 }
 
 void x86_codegen_call(Instruction I,
                       u64         block_index,
                       x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local                 = I.A_data.ssa;
     u8     scalar_argument_count = 0;
 
     // #NOTE the result of a call expression is either stored in a register
@@ -121,9 +100,9 @@ void x86_codegen_call(Instruction I,
                     x86_operand_address(result->location.address)));
     }
 
-    Value *value = x86_context_value_at(context, I.C_data.constant);
+    Value const *value = I.C_data.constant;
     assert(value->kind == VALUE_KIND_TUPLE);
-    Tuple       *args       = &value->tuple;
+    Tuple const *args       = &value->tuple;
     u64          call_start = x86_context_current_offset(context);
     OperandArray stack_args = operand_array_create();
 

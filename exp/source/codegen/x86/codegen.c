@@ -107,19 +107,9 @@ static void x86_codegen_bytecode(x86_Context *x86_context) {
 
 static void x86_codegen_allocate_stack_space(x86_Context *x86_context) {
     i64 stack_size = x86_context_stack_size(x86_context);
-    if (i64_in_range_i16(stack_size)) {
-        x86_context_prepend(x86_context,
-                            x86_sub(x86_operand_gpr(X86_GPR_RSP),
-                                    x86_operand_immediate((i16)stack_size)));
-    } else {
-        Operand operand = context_constants_append(
-            x86_context->context, value_create_i64(stack_size));
-        assert(operand.kind == OPERAND_KIND_CONSTANT);
-        x86_context_prepend(
-            x86_context,
-            x86_sub(x86_operand_gpr(X86_GPR_RSP),
-                    x86_operand_constant(operand.data.constant)));
-    }
+    x86_context_prepend(
+        x86_context,
+        x86_sub(x86_operand_gpr(X86_GPR_RSP), x86_operand_i64(stack_size)));
 }
 
 static void x86_codegen_prepend_function_header(x86_Context *x86_context) {

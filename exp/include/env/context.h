@@ -104,6 +104,12 @@ Type const *context_function_type(Context *restrict context,
                                   Type const *return_type,
                                   TupleType   argument_types);
 
+// Values functions
+// what we actually want is a family of functions which look like:
+// Operand context_nil_value(Context *restrict context);
+Operand      context_constants_append(Context *restrict context, Value *value);
+Value const *context_constants_at(Context *restrict context, u32 index);
+
 // labels functions
 // u32        context_labels_insert(Context *restrict context, StringView
 // symbol); StringView context_labels_at(Context *restrict context, u32 index);
@@ -127,10 +133,6 @@ Local *context_lookup_local(Context *restrict context, u32 ssa);
 Local *context_lookup_local_name(Context *restrict context, StringView name);
 
 void context_leave_function(Context *restrict context);
-
-// Values functions
-Operand context_constants_append(Context *restrict context, Value value);
-Value  *context_constants_at(Context *restrict context, u32 index);
 
 // Bytecode functions
 void    context_emit_return(Context *restrict context, Operand B);

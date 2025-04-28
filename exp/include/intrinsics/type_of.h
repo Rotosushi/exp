@@ -28,7 +28,8 @@
  * @param context
  * @return Type*
  */
-Type const *type_of_value(Value *restrict value, Context *restrict context);
+Type const *type_of_value(Value const *restrict value,
+                          Context *restrict context);
 
 /**
  * @brief return the type of the given function

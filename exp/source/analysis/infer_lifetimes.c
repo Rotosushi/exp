@@ -23,13 +23,11 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-static void infer_lifetime_operand_A(OperandKind kind,
-                                     OperandData data,
-                                     u32         block_index,
-                                     Context *restrict context) {
+static void
+infer_lifetime_operand_A(OperandKind kind, OperandData data, u32 block_index) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local          = context_lookup_local(context, data.ssa);
+        Local *local          = data.ssa;
         local->lifetime.start = block_index;
         break;
     }
@@ -38,13 +36,11 @@ static void infer_lifetime_operand_A(OperandKind kind,
     }
 }
 
-static void infer_lifetime_operand(OperandKind kind,
-                                   OperandData data,
-                                   u32         block_index,
-                                   Context *restrict context) {
+static void
+infer_lifetime_operand(OperandKind kind, OperandData data, u32 block_index) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = context_lookup_local(context, data.ssa);
+        Local *local = data.ssa;
         if (block_index > local->lifetime.end) {
             local->lifetime.end = block_index;
         }
@@ -52,14 +48,13 @@ static void infer_lifetime_operand(OperandKind kind,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, data.constant);
+        Value const *constant = data.constant;
         if (constant->kind == VALUE_KIND_TUPLE) {
-            Tuple *tuple = &constant->tuple;
+            Tuple const *tuple = &constant->tuple;
 
             for (u64 i = 0; i < tuple->size; ++i) {
                 Operand element = tuple->elements[i];
-                infer_lifetime_operand(
-                    element.kind, element.data, block_index, context);
+                infer_lifetime_operand(element.kind, element.data, block_index);
             }
         }
         break;
@@ -69,26 +64,22 @@ static void infer_lifetime_operand(OperandKind kind,
     }
 }
 
-static void
-infer_lifetime_B(Instruction I, u32 block_index, Context *restrict context) {
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index, context);
+static void infer_lifetime_B(Instruction I, u32 block_index) {
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
 }
 
-static void
-infer_lifetime_AB(Instruction I, u32 block_index, Context *restrict context) {
-    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index, context);
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index, context);
+static void infer_lifetime_AB(Instruction I, u32 block_index) {
+    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index);
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
 }
 
-static void
-infer_lifetime_ABC(Instruction I, u32 block_index, Context *restrict context) {
-    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index, context);
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index, context);
-    infer_lifetime_operand(I.C_kind, I.C_data, block_index, context);
+static void infer_lifetime_ABC(Instruction I, u32 block_index) {
+    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index);
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
+    infer_lifetime_operand(I.C_kind, I.C_data, block_index);
 }
 
-static void infer_lifetime_function(Function *restrict body,
-                                    Context *restrict context) {
+static void infer_lifetime_function(Function *restrict body) {
     for (u8 i = 0; i < body->arguments.size; ++i) {
         Local *arg          = body->arguments.list[i];
         arg->lifetime.start = 0;
@@ -102,52 +93,52 @@ static void infer_lifetime_function(Function *restrict body,
         Instruction I           = bc->buffer[block_index];
         switch (I.opcode) {
         case OPCODE_RET: {
-            infer_lifetime_B(I, block_index, context);
+            infer_lifetime_B(I, block_index);
             break;
         }
 
         case OPCODE_CALL: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_DOT: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_LET: {
-            infer_lifetime_AB(I, block_index, context);
+            infer_lifetime_AB(I, block_index);
             break;
         }
 
         case OPCODE_NEG: {
-            infer_lifetime_AB(I, block_index, context);
+            infer_lifetime_AB(I, block_index);
             break;
         }
 
         case OPCODE_ADD: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_SUB: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_MUL: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_DIV: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
 
         case OPCODE_MOD: {
-            infer_lifetime_ABC(I, block_index, context);
+            infer_lifetime_ABC(I, block_index);
             break;
         }
         default: EXP_UNREACHABLE();
@@ -159,7 +150,7 @@ static void infer_lifetime_global(Symbol *restrict element,
                                   Context *restrict context) {
     if (element->kind == SYMBOL_KIND_FUNCTION) {
         Function *body = context_enter_function(context, element->name);
-        infer_lifetime_function(body, context);
+        infer_lifetime_function(body);
         context_leave_function(context);
     }
 }

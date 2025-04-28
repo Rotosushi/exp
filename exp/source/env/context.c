@@ -69,7 +69,7 @@ void context_create(Context *restrict context,
     context->current_error       = error_create();
     context->global_symbol_table = symbol_table_create();
     // context->global_labels       = labels_create();
-    context->constants       = constants_create();
+    constants_create(&context->constants);
     context->string_interner = string_interner_create();
     context->type_interner   = type_interner_create();
 }
@@ -272,6 +272,16 @@ Type const *context_tuple_type(Context *context, TupleType tuple) {
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
+Operand context_constants_append(Context *context, Value *value) {
+    assert(context != nullptr);
+    return constants_append(&(context->constants), value);
+}
+
+Value const *context_constants_at(Context *context, u32 index) {
+    assert(context != nullptr);
+    return constants_at(&(context->constants), index);
+}
+
 Type const *context_function_type(Context    *context,
                                   Type const *return_type,
                                   TupleType   argument_types) {
@@ -351,16 +361,6 @@ void context_leave_function(Context *c) {
     c->current_function = nullptr;
 }
 
-Operand context_constants_append(Context *context, Value value) {
-    assert(context != nullptr);
-    return constants_append(&(context->constants), value);
-}
-
-Value *context_constants_at(Context *context, u32 index) {
-    assert(context != nullptr);
-    return constants_at(&(context->constants), index);
-}
-
 void context_emit_return(Context *c, Operand B) {
     assert(c != nullptr);
     bytecode_append(context_active_bytecode(c), instruction_return(B));
@@ -368,63 +368,63 @@ void context_emit_return(Context *c, Operand B) {
 
 Operand context_emit_call(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_call(A, B, C));
     return A;
 }
 
 Operand context_emit_dot(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_dot(A, B, C));
     return A;
 }
 
 Operand context_emit_load(Context *c, Operand B) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_let(A, B));
     return A;
 }
 
 Operand context_emit_negate(Context *c, Operand B) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_neg(A, B));
     return A;
 }
 
 Operand context_emit_add(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_add(A, B, C));
     return A;
 }
 
 Operand context_emit_subtract(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_sub(A, B, C));
     return A;
 }
 
 Operand context_emit_multiply(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_mul(A, B, C));
     return A;
 }
 
 Operand context_emit_divide(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_div(A, B, C));
     return A;
 }
 
 Operand context_emit_modulus(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
-    Operand A = operand_ssa(context_declare_local(c)->ssa);
+    Operand A = operand_ssa(context_declare_local(c));
     bytecode_append(context_active_bytecode(c), instruction_mod(A, B, C));
     return A;
 }

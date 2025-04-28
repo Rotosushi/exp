@@ -48,6 +48,16 @@
  *   it comes 'within' the context, this evaluation is what defines
  *   global names in the context, not the parser directly, as is done
  *   currently.
+ *
+ * - refactor the parser and context:
+ *   - modify the parser such that it appends to a newly created
+ *     chunk of bytecode for each full top level expression.
+ *   - add an evaluate function which evaluates this chunk of bytecode.
+ *   - extend the functionality of bytecode to allow it to represent
+ *     the definition of functions
+ *   - The evaluation of the bytecode is what defines global symbols
+ *     in the current evaluation context.
+ *
  */
 
 /**

@@ -111,9 +111,7 @@ static void x64_emit_mnemonic(StringView                       mnemonic,
     string_append(buffer, SV("q\t"));
 }
 
-static void x64_emit_operand(x86_Operand operand,
-                             String *restrict buffer,
-                             Context *restrict context) {
+static void x64_emit_operand(x86_Operand operand, String *restrict buffer) {
     switch (operand.kind) {
     case X86_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
@@ -141,12 +139,12 @@ static void x64_emit_operand(x86_Operand operand,
 
     case X86_OPERAND_KIND_IMMEDIATE: {
         string_append(buffer, SV("$"));
-        string_append_i64(buffer, operand.data.immediate);
+        string_append_i64(buffer, operand.data.i64_);
         break;
     }
 
     case X86_OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, operand.data.constant);
+        Value const *constant = operand.data.constant;
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
         //  can validly appear here.
@@ -177,69 +175,69 @@ void x86_instruction_emit(x86_Instruction I,
 
     case X64_OPCODE_CALL: {
         string_append(buffer, SV("call\t"));
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_PUSH: {
         x64_emit_mnemonic(SV("push"), I, buffer, context);
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_POP: {
         x64_emit_mnemonic(SV("pop"), I, buffer, context);
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_MOV: {
         x64_emit_mnemonic(SV("mov"), I, buffer, context);
-        x64_emit_operand(I.B, buffer, context);
+        x64_emit_operand(I.B, buffer);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_LEA: {
         x64_emit_mnemonic(SV("lea"), I, buffer, context);
-        x64_emit_operand(I.B, buffer, context);
+        x64_emit_operand(I.B, buffer);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_NEG: {
         x64_emit_mnemonic(SV("neg"), I, buffer, context);
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_ADD: {
         x64_emit_mnemonic(SV("add"), I, buffer, context);
-        x64_emit_operand(I.B, buffer, context);
+        x64_emit_operand(I.B, buffer);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_SUB: {
         x64_emit_mnemonic(SV("sub"), I, buffer, context);
-        x64_emit_operand(I.B, buffer, context);
+        x64_emit_operand(I.B, buffer);
         string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_IMUL: {
         x64_emit_mnemonic(SV("imul"), I, buffer, context);
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 
     case X64_OPCODE_IDIV: {
         x64_emit_mnemonic(SV("idiv"), I, buffer, context);
-        x64_emit_operand(I.A, buffer, context);
+        x64_emit_operand(I.A, buffer);
         break;
     }
 

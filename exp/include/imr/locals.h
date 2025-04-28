@@ -21,7 +21,7 @@
 #include "imr/local.h"
 
 typedef struct Locals {
-    u32     count;
+    u32     size;
     u32     capacity;
     Local **buffer;
 } Locals;

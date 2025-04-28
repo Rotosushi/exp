@@ -348,8 +348,7 @@ static bool let(Operand *restrict result,
 
     Operand A = context_emit_load(context, *result);
     assert(A.kind == OPERAND_KIND_SSA);
-    Local *local = context_lookup_local(context, A.data.ssa);
-    local->name  = constant_string_to_view(name);
+    A.data.ssa->name = constant_string_to_view(name);
 
     return true;
 }
@@ -511,19 +510,19 @@ static bool parens(Operand *restrict result,
                    Parser *restrict parser,
                    Context *restrict context) {
 
-    Tuple tuple;
-    tuple_create(&tuple);
+    Value *value = value_allocate_tuple();
+    Tuple *tuple = &value->tuple;
 
-    if (!parse_tuple(&tuple, parser, context)) { return false; };
+    if (!parse_tuple(tuple, parser, context)) { return false; };
 
-    if (tuple.size == 0) {
-        *result = context_constants_append(context, value_create_nil());
-        tuple_destroy(&tuple);
-    } else if (tuple.size == 1) {
-        *result = tuple.elements[0];
-        tuple_destroy(&tuple);
+    if (tuple->size == 0) {
+        *result = context_constants_append(context, value_allocate_nil());
+        value_deallocate(value);
+    } else if (tuple->size == 1) {
+        *result = tuple->elements[0];
+        value_deallocate(value);
     } else {
-        *result = context_constants_append(context, value_create_tuple(tuple));
+        *result = context_constants_append(context, value);
     }
 
     return true;
@@ -581,13 +580,12 @@ static bool call(Operand *restrict result,
                  Operand left,
                  Parser *restrict parser,
                  Context *restrict context) {
-    Tuple argument_list;
-    tuple_create(&argument_list);
+    Value *value         = value_allocate_tuple();
+    Tuple *argument_list = &value->tuple;
 
-    if (!parse_tuple(&argument_list, parser, context)) { return false; }
+    if (!parse_tuple(argument_list, parser, context)) { return false; }
 
-    Operand actual_arguments =
-        context_constants_append(context, value_create_tuple(argument_list));
+    Operand actual_arguments = context_constants_append(context, value);
 
     *result = context_emit_call(context, left, actual_arguments);
     return true;
@@ -595,28 +593,28 @@ static bool call(Operand *restrict result,
 
 static bool nil(Operand *restrict result,
                 Parser *restrict parser,
-                Context *restrict context) {
+                [[maybe_unused]] Context *restrict context) {
     assert(peek(parser, TOK_NIL));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(context, value_create_nil());
+    *result = operand_nil();
     return true;
 }
 
 static bool boolean_true(Operand *restrict result,
                          Parser *restrict parser,
-                         Context *restrict context) {
+                         [[maybe_unused]] Context *restrict context) {
     assert(peek(parser, TOK_TRUE));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(context, value_create_boolean(true));
+    *result = operand_bool(true);
     return true;
 }
 
 static bool boolean_false(Operand *restrict result,
                           Parser *restrict parser,
-                          Context *restrict context) {
+                          [[maybe_unused]] Context *restrict context) {
     assert(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
-    *result = context_constants_append(context, value_create_boolean(0));
+    *result = operand_bool(false);
     return true;
 }
 
@@ -653,7 +651,7 @@ static bool identifier(Operand *restrict result,
     Local *local =
         context_lookup_local_name(context, constant_string_to_view(name));
     if (local != NULL) {
-        *result = operand_ssa(local->ssa);
+        *result = operand_ssa(local);
         return true;
     }
 

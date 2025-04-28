@@ -18,6 +18,7 @@
 #define EXP_IMR_VALUE_H
 #include <stdbool.h>
 
+#include "imr/function.h"
 #include "imr/tuple.h"
 #include "support/string.h"
 
@@ -36,136 +37,49 @@ typedef enum ValueKind {
     VALUE_KIND_I64,
 
     VALUE_KIND_TUPLE,
+    VALUE_KIND_FUNCTION,
 } ValueKind;
 
 struct Value;
 
 /**
  * @brief represents Values in the compiler
- *
  */
 typedef struct Value {
     ValueKind kind;
     union {
-        bool  nil;
-        bool  boolean;
-        u8    u8_;
-        u16   u16_;
-        u32   u32_;
-        u64   u64_;
-        i8    i8_;
-        i16   i16_;
-        i32   i32_;
-        i64   i64_;
-        Tuple tuple;
+        bool     nil;
+        bool     boolean;
+        u8       u8_;
+        u16      u16_;
+        u32      u32_;
+        u64      u64_;
+        i8       i8_;
+        i16      i16_;
+        i32      i32_;
+        i64      i64_;
+        Tuple    tuple;
+        Function function;
     };
 } Value;
 
-/**
- * @brief create an uninitialized value
- *
- * @return Value
- */
-Value value_create();
+Value *value_allocate();
+void   value_deallocate(Value *restrict value);
 
-void value_destroy(Value *restrict value);
+Value *value_allocate_nil();
+Value *value_allocate_boolean(bool b);
+Value *value_allocate_u8(u8 u);
+Value *value_allocate_u16(u16 u);
+Value *value_allocate_u32(u32 u);
+Value *value_allocate_u64(u64 u);
+Value *value_allocate_i8(i8 i);
+Value *value_allocate_i16(i16 i);
+Value *value_allocate_i32(i32 i);
+Value *value_allocate_i64(i64 i);
+Value *value_allocate_tuple();
+Value *value_allocate_function();
 
-/**
- * @brief create a nil value
- *
- * @return Value
- */
-Value value_create_nil();
-
-/**
- * @brief create a boolean value
- *
- * @param b
- * @return Value
- */
-Value value_create_boolean(bool b);
-
-/**
- * @brief create an Unsigned 8 bit value
- *
- * @param u
- * @return Value
- */
-Value value_create_u8(u8 u);
-
-/**
- * @brief create an Unsigned 16 bit value
- *
- * @param u
- * @return Value
- */
-Value value_create_u16(u16 u);
-
-/**
- * @brief create an Unsigned 32 bit value
- *
- * @param u
- * @return Value
- */
-Value value_create_u32(u32 u);
-
-/**
- * @brief create an Unsigned 64 bit value
- *
- * @param u
- * @return Value
- */
-Value value_create_u64(u64 u);
-
-/**
- * @brief create a Signed 8 bit value
- *
- * @param i
- * @return Value
- */
-Value value_create_i8(i8 i);
-
-/**
- * @brief create a Signed 16 bit value
- *
- * @param i
- * @return Value
- */
-Value value_create_i16(i16 i);
-
-/**
- * @brief create a Signed 32 bit value
- *
- * @param i
- * @return Value
- */
-Value value_create_i32(i32 i);
-
-/**
- * @brief create an Signed 64 bit value
- *
- * @param i
- * @return Value
- */
-Value value_create_i64(i64 i);
-
-/**
- * @brief create a Tuple value
- *
- * @param tuple
- * @return Value
- */
-Value value_create_tuple(Tuple tuple);
-
-/**
- * @brief equality compares values
- *
- * @param v1
- * @param v2
- * @return true
- * @return false
- */
-bool value_equality(Value *v1, Value *v2);
+bool value_equal(Value const *v1, Value const *v2);
 
 bool value_is_index(Value const *v);
 u64  value_as_index(Value const *v);

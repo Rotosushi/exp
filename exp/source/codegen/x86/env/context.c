@@ -41,7 +41,7 @@ x86_Symbol *x86_context_symbol(x86_Context *x64_context, StringView name) {
     return x86_symbol_table_at(&x64_context->symbols, name);
 }
 
-Value *x86_context_value_at(x86_Context *context, u32 index) {
+Value const *x86_context_value_at(x86_Context *context, u32 index) {
     assert(context != nullptr);
     return context_constants_at(context->context, index);
 }
@@ -130,9 +130,11 @@ i64 x86_context_stack_size(x86_Context *x64_context) {
     return x86_allocator_total_stack_size(current_allocator(x64_context));
 }
 
-x86_Allocation *x86_context_allocation_of(x86_Context *x64_context, u32 ssa) {
+x86_Allocation *x86_context_allocation_of(x86_Context *x64_context,
+                                          Local       *local) {
     assert(x64_context != nullptr);
-    return x86_allocator_allocation_of(current_allocator(x64_context), ssa);
+    return x86_allocator_allocation_of(current_allocator(x64_context),
+                                       local->ssa);
 }
 
 void x86_context_release_gpr(x86_Context *x64_context, x86_GPR gpr, u64 Idx) {

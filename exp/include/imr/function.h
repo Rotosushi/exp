@@ -23,9 +23,9 @@
 #include "support/string_view.h"
 
 typedef struct FormalArgumentList {
-    Local **list;
     u8      size;
     u8      capacity;
+    Local **list;
 } FormalArgumentList;
 
 /*
@@ -33,6 +33,13 @@ typedef struct FormalArgumentList {
  * This will need to be changed to a list of blocks, with the addition of
  * instructions to jump between blocks. This will allow for structured control
  * flow.
+ *
+ * something like
+ * typedef struct Body {
+ *  u32 size;
+ *  u32 capacity;
+ *  Bytecode *buffer;
+ * } Body;
  */
 
 typedef struct Function {

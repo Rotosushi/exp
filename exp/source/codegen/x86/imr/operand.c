@@ -50,19 +50,18 @@ x86_Operand x86_operand_alloc(x86_Allocation *alloc) {
     return x86_operand_location(alloc->location);
 }
 
-x86_Operand x86_operand_constant(u32 index) {
+x86_Operand x86_operand_constant(Value const *constant) {
     x86_Operand opr = {.kind          = X86_OPERAND_KIND_CONSTANT,
-                       .data.constant = index};
+                       .data.constant = constant};
     return opr;
 }
 
-x86_Operand x86_operand_label(ConstantString *label) {
+x86_Operand x86_operand_label(ConstantString const *label) {
     x86_Operand opr = {.kind = X86_OPERAND_KIND_LABEL, .data.label = label};
     return opr;
 }
 
-x86_Operand x86_operand_immediate(i64 value) {
-    x86_Operand opr = {.kind           = X86_OPERAND_KIND_IMMEDIATE,
-                       .data.immediate = value};
+x86_Operand x86_operand_i64(i64 value) {
+    x86_Operand opr = {.kind = X86_OPERAND_KIND_IMMEDIATE, .data.i64_ = value};
     return opr;
 }

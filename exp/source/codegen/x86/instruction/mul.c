@@ -19,7 +19,6 @@
 #include <assert.h>
 
 #include "codegen/x86/instruction/mul.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
 static void x86_codegen_multiply_ssa(Instruction  I,
@@ -81,7 +80,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
             x86_context_release_gpr(context, X86_GPR_RDX, block_index);
             x86_context_append(context,
                                x86_mov(x86_operand_gpr(X86_GPR_RDX),
-                                       x86_operand_immediate(I.C_data.i64_)));
+                                       x86_operand_i64(I.C_data.i64_)));
             x86_context_append(context, x86_imul(x86_operand_gpr(X86_GPR_RDX)));
             break;
         }
@@ -89,7 +88,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
         x86_context_allocate_to_gpr(context, local, X86_GPR_RAX, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_gpr(X86_GPR_RAX),
-                                   x86_operand_immediate(I.C_data.i64_)));
+                                   x86_operand_i64(I.C_data.i64_)));
         x86_context_append(context, x86_imul(x86_operand_alloc(B)));
         break;
     }
@@ -133,7 +132,7 @@ static void x86_codegen_multiply_immediate(Instruction  I,
             x86_context_release_gpr(context, X86_GPR_RDX, block_index);
             x86_context_append(context,
                                x86_mov(x86_operand_gpr(X86_GPR_RDX),
-                                       x86_operand_immediate(I.B_data.i64_)));
+                                       x86_operand_i64(I.B_data.i64_)));
             x86_context_append(context, x86_imul(x86_operand_gpr(X86_GPR_RDX)));
             break;
         }
@@ -141,7 +140,7 @@ static void x86_codegen_multiply_immediate(Instruction  I,
         x86_context_allocate_to_gpr(context, local, X86_GPR_RAX, block_index);
         x86_context_append(context,
                            x86_mov(x86_operand_gpr(X86_GPR_RAX),
-                                   x86_operand_immediate(I.B_data.i64_)));
+                                   x86_operand_i64(I.B_data.i64_)));
         x86_context_append(context, x86_imul(x86_operand_alloc(C)));
         break;
     }
@@ -150,12 +149,12 @@ static void x86_codegen_multiply_immediate(Instruction  I,
         x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_GPR_RDX, block_index);
-        x86_context_append(context,
-                           x86_mov(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
         x86_context_append(context,
                            x86_mov(x86_operand_gpr(X86_GPR_RDX),
-                                   x86_operand_immediate(I.C_data.i64_)));
+                                   x86_operand_i64(I.C_data.i64_)));
         x86_context_append(context, x86_imul(x86_operand_gpr(X86_GPR_RDX)));
         break;
     }
@@ -164,9 +163,9 @@ static void x86_codegen_multiply_immediate(Instruction  I,
         x86_Allocation *A = x86_context_allocate_to_gpr(
             context, local, X86_GPR_RAX, block_index);
         x86_context_release_gpr(context, X86_GPR_RDX, block_index);
-        x86_context_append(context,
-                           x86_mov(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
         x86_context_append(context,
                            x86_mov(x86_operand_gpr(X86_GPR_RDX),
                                    x86_operand_constant(I.C_data.constant)));
@@ -216,7 +215,7 @@ void x86_codegen_multiply_constant(Instruction  I,
                                    x86_operand_constant(I.B_data.constant)));
         x86_context_append(context,
                            x86_mov(x86_operand_gpr(X86_GPR_RDX),
-                                   x86_operand_immediate(I.C_data.i64_)));
+                                   x86_operand_i64(I.C_data.i64_)));
         x86_context_append(context, x86_imul(x86_operand_gpr(X86_GPR_RDX)));
         break;
     }
@@ -250,7 +249,7 @@ void x86_codegen_mul(Instruction I,
       and stores the result in %rdx:%rax.
     */
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x86_codegen_multiply_ssa(I, block_index, local, context);

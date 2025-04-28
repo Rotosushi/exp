@@ -19,7 +19,6 @@
 #include <assert.h>
 
 #include "codegen/x86/instruction/add.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
 // #TODO: I think I discovered a bug in the codegen for all arithemtic
@@ -83,9 +82,9 @@ static void x86_codegen_add_ssa(Instruction  I,
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, B, block_index);
 
-        x86_context_append(context,
-                           x86_add(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(
+            context,
+            x86_add(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
         break;
     }
 
@@ -114,20 +113,20 @@ static void x86_codegen_add_immediate(Instruction  I,
         x86_Allocation *A =
             x86_context_allocate_from_active(context, local, C, block_index);
 
-        x86_context_append(context,
-                           x86_add(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.B_data.i64_)));
+        x86_context_append(
+            context,
+            x86_add(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
         break;
     }
 
     case OPERAND_KIND_I64: {
         x86_Allocation *A = x86_context_allocate(context, local, block_index);
-        x86_context_append(context,
-                           x86_mov(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.B_data.i64_)));
-        x86_context_append(context,
-                           x86_add(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(
+            context,
+            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
+        x86_context_append(
+            context,
+            x86_add(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
         break;
     }
 
@@ -137,9 +136,9 @@ static void x86_codegen_add_immediate(Instruction  I,
                            x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
 
-        x86_context_append(context,
-                           x86_add(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(
+            context,
+            x86_add(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
         break;
     }
 
@@ -170,9 +169,9 @@ static void x86_codegen_add_constant(Instruction  I,
                            x86_mov(x86_operand_alloc(A),
                                    x86_operand_constant(I.B_data.constant)));
 
-        x86_context_append(context,
-                           x86_add(x86_operand_alloc(A),
-                                   x86_operand_immediate(I.C_data.i64_)));
+        x86_context_append(
+            context,
+            x86_add(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
         break;
     }
 
@@ -197,7 +196,7 @@ void x86_codegen_add(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
+    Local *local = I.A_data.ssa;
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {
         x86_codegen_add_ssa(I, block_index, local, context);

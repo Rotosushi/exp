@@ -44,9 +44,9 @@ void x86_codegen_load_allocation_from_operand(x86_Allocation *restrict dst,
                                               u64     Idx,
                                               x86_Context *restrict context);
 
-void x86_codegen_load_allocation_from_value(x86_Allocation *restrict dst,
-                                            Value *value,
-                                            u64    Idx,
-                                            x86_Context *restrict context);
+void x86_codegen_load_allocation_from_constant(x86_Allocation *restrict dst,
+                                               Value const *value,
+                                               u64          Idx,
+                                               x86_Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_INTRINSICS_LOAD_H

@@ -19,7 +19,9 @@
 #include <stddef.h>
 
 #include "env/context.h"
+#include "imr/local.h"
 #include "imr/operand.h"
+#include "imr/value.h"
 #include "support/assert.h"
 #include "support/string.h"
 #include "support/unreachable.h"
@@ -28,16 +30,24 @@ Operand operand(OperandKind kind, OperandData data) {
     return (Operand){.kind = kind, .data = data};
 }
 
-Operand operand_ssa(u32 ssa) {
-    return (Operand){.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
+Operand operand_ssa(Local *local) {
+    return (Operand){.kind = OPERAND_KIND_SSA, .data.ssa = local};
 }
 
-Operand operand_constant(u32 index) {
-    return (Operand){.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
+Operand operand_constant(Value const *constant) {
+    return (Operand){.kind = OPERAND_KIND_CONSTANT, .data.constant = constant};
 }
 
-Operand operand_label(ConstantString *cs) {
-    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = cs};
+Operand operand_label(ConstantString const *label) {
+    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = label};
+}
+
+Operand operand_nil() {
+    return (Operand){.kind = OPERAND_KIND_NIL, .data.nil = 0};
+}
+
+Operand operand_bool(bool bool_) {
+    return (Operand){.kind = OPERAND_KIND_BOOL, .data.bool_ = bool_};
 }
 
 Operand operand_u8(u8 u8_) {
@@ -78,6 +88,8 @@ bool operand_equality(Operand A, Operand B) {
     switch (A.kind) {
     case OPERAND_KIND_SSA:      return A.data.ssa == B.data.ssa;
     case OPERAND_KIND_CONSTANT: return A.data.constant == B.data.constant;
+    case OPERAND_KIND_NIL:      return true;
+    case OPERAND_KIND_BOOL:     return A.data.bool_ == B.data.bool_;
     case OPERAND_KIND_U8:       return A.data.u8_ == B.data.u8_;
     case OPERAND_KIND_U16:      return A.data.u16_ == B.data.u16_;
     case OPERAND_KIND_U32:      return A.data.u32_ == B.data.u32_;
@@ -121,16 +133,15 @@ u64 operand_as_index(Operand A) {
     }
 }
 
-static void print_operand_ssa(String *restrict string, u32 ssa) {
+static void print_operand_ssa(String *restrict string, Local *local) {
     string_append(string, SV("%"));
-    string_append_u64(string, ssa);
+    string_append_u64(string, local->ssa);
 }
 
 static void print_operand_value(String *restrict string,
-                                u32 index,
+                                Value const *constant,
                                 Context *restrict context) {
-    Value *value = context_constants_at(context, index);
-    print_value(string, value, context);
+    print_value(string, constant, context);
 }
 
 static void print_operand_label(String *restrict string,

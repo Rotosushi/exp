@@ -16,37 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
 #include <time.h>
 
 #include "env/constants.h"
+#include "support/random.h"
 
-bool test_constant(Constants *restrict values, Value value) {
-    Operand index   = constants_append(values, value);
-    Value *constant = constants_at(values, index.data.constant);
+i32 test_constant(Constants *restrict values, Value *value) {
+    Operand operand = constants_append(values, value);
 
-    if (value_equality(constant, &value)) {
-        return 0;
-    } else {
-        return 1;
-    }
+    return value_equal(operand.data.constant, value) ? 0 : 1;
 }
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
-    srand((unsigned)time(NULL));
-    Constants values = constants_create();
-    bool failure     = 0;
+    XorShiftR128PlusState rng;
+    xorshiftr128plus_seed(&rng, (u64)time(NULL));
+    Constants constants;
+    constants_create(&constants);
+    i32 result = 0;
 
     // #TODO:
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
-    failure |= test_constant(&values, value_create_i64(rand()));
+    result += test_constant(
+        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
+    result += test_constant(
+        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
+    result += test_constant(
+        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
+    result += test_constant(
+        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
 
-    constants_destroy(&values);
-    if (failure) {
-        return EXIT_FAILURE;
-    } else {
-        return EXIT_SUCCESS;
-    }
+    constants_destroy(&constants);
+    return result;
 }

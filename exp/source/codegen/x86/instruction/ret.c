@@ -21,7 +21,6 @@
 #include "codegen/x86/instruction/ret.h"
 #include "codegen/x86/intrinsics/copy.h"
 #include "codegen/x86/intrinsics/load.h"
-#include "support/message.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 
@@ -38,9 +37,8 @@ void x86_codegen_ret(Instruction I,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value *value =
-            context_constants_at(context->context, I.B_data.constant);
-        x86_codegen_load_allocation_from_value(
+        Value const *value = I.B_data.constant;
+        x86_codegen_load_allocation_from_constant(
             body->result, value, block_index, context);
         break;
     }
@@ -48,7 +46,7 @@ void x86_codegen_ret(Instruction I,
     case OPERAND_KIND_I64: {
         x86_context_append(context,
                            x86_mov(x86_operand_alloc(body->result),
-                                   x86_operand_immediate(I.B_data.i64_)));
+                                   x86_operand_i64(I.B_data.i64_)));
         break;
     }
 

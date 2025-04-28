@@ -35,7 +35,7 @@ void tuple_destroy(Tuple *restrict tuple) {
     tuple_create(tuple);
 }
 
-bool tuple_equal(Tuple *A, Tuple *B) {
+bool tuple_equal(Tuple const *A, Tuple const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
     if (A == B) { return true; }
