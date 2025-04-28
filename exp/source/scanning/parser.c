@@ -26,7 +26,6 @@
 #include "scanning/parser.h"
 #include "scanning/token.h"
 #include "support/io.h"
-#include "support/message.h"
 #include "support/numeric_conversions.h"
 #include "support/unreachable.h"
 
