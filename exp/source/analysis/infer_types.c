@@ -182,9 +182,8 @@ static bool infer_types_operand(Type const **result,
     }
 }
 
-static bool infer_types_load(Type const **result,
-                             Context *restrict context,
-                             Instruction I) {
+static bool
+infer_types_let(Type const **result, Context *restrict context, Instruction I) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     Local *local = context_lookup_local(context, I.A_data.ssa);
     if (!infer_types_operand(&local->type, context, I.B_kind, I.B_data)) {
@@ -379,9 +378,9 @@ static bool infer_types_function(Type const **result, Context *restrict c) {
             break;
         }
 
-        case OPCODE_LOAD: {
+        case OPCODE_LET: {
             Type const *Aty;
-            if (!infer_types_load(&Aty, c, I)) { return false; }
+            if (!infer_types_let(&Aty, c, I)) { return false; }
             break;
         }
 

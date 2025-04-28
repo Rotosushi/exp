@@ -39,13 +39,15 @@
  * constants array. and we can have a unified 'const' instruction.
  *
  * approximate series of steps:
- * - rename 'const' instructions to 'let' instructions.
+ * - rename 'const' instructions to 'let' instructions. (This aligns with the
+ *   goal of making the language more 'functional')
  * - modify Value to store a Function.
  * - refactor the parser and the context, we need to generate
  *   a single chunk of bytecode for each "unit" of input, call
  *   that an 'expression'. we then evaluate each expression as
- *   it comes into the context, this evaluation is what defines
- *   global names within the context, not the parser directly.
+ *   it comes 'within' the context, this evaluation is what defines
+ *   global names in the context, not the parser directly, as is done
+ *   currently.
  */
 
 /**

@@ -21,6 +21,6 @@
 
 #include "codegen/x86/env/context.h"
 
-void x86_codegen_negate(Instruction I, u64 Idx, x86_Context *restrict context);
+void x86_codegen_neg(Instruction I, u64 Idx, x86_Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_CODEGEN_NEG_H

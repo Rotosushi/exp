@@ -116,7 +116,7 @@ static void infer_lifetime_function(Function *restrict body,
             break;
         }
 
-        case OPCODE_LOAD: {
+        case OPCODE_LET: {
             infer_lifetime_AB(I, block_index, context);
             break;
         }

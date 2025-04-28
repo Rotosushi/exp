@@ -18,14 +18,13 @@
  */
 #include <assert.h>
 
-#include "codegen/x86/instruction/load.h"
+#include "codegen/x86/instruction/let.h"
 #include "codegen/x86/intrinsics/load.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
-void x86_codegen_load(Instruction I,
-                      u64         block_index,
-                      x86_Context *restrict context) {
+void x86_codegen_let(Instruction I,
+                     u64         block_index,
+                     x86_Context *restrict context) {
     assert(I.A_kind == OPERAND_KIND_SSA);
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {

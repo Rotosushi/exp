@@ -383,14 +383,14 @@ Operand context_emit_dot(Context *c, Operand B, Operand C) {
 Operand context_emit_load(Context *c, Operand B) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_load(A, B));
+    bytecode_append(context_active_bytecode(c), instruction_let(A, B));
     return A;
 }
 
 Operand context_emit_negate(Context *c, Operand B) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_negate(A, B));
+    bytecode_append(context_active_bytecode(c), instruction_neg(A, B));
     return A;
 }
 
@@ -404,27 +404,27 @@ Operand context_emit_add(Context *c, Operand B, Operand C) {
 Operand context_emit_subtract(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_subtract(A, B, C));
+    bytecode_append(context_active_bytecode(c), instruction_sub(A, B, C));
     return A;
 }
 
 Operand context_emit_multiply(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_multiply(A, B, C));
+    bytecode_append(context_active_bytecode(c), instruction_mul(A, B, C));
     return A;
 }
 
 Operand context_emit_divide(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_divide(A, B, C));
+    bytecode_append(context_active_bytecode(c), instruction_div(A, B, C));
     return A;
 }
 
 Operand context_emit_modulus(Context *c, Operand B, Operand C) {
     assert(c != nullptr);
     Operand A = operand_ssa(context_declare_local(c)->ssa);
-    bytecode_append(context_active_bytecode(c), instruction_modulus(A, B, C));
+    bytecode_append(context_active_bytecode(c), instruction_mod(A, B, C));
     return A;
 }

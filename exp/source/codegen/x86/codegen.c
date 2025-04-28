@@ -26,13 +26,12 @@
 #include "codegen/x86/instruction/call.h"
 #include "codegen/x86/instruction/div.h"
 #include "codegen/x86/instruction/dot.h"
-#include "codegen/x86/instruction/load.h"
+#include "codegen/x86/instruction/let.h"
 #include "codegen/x86/instruction/mod.h"
 #include "codegen/x86/instruction/mul.h"
 #include "codegen/x86/instruction/neg.h"
 #include "codegen/x86/instruction/ret.h"
 #include "codegen/x86/instruction/sub.h"
-#include "support/message.h"
 #include "support/unreachable.h"
 
 /*
@@ -41,7 +40,7 @@
  *  assembly based on some form of x86-64 specification language.
  *  which if done well, can allow other backends to be written only
  *  by adding a specification of them. this works in LLVM via TableGen,
- *  Which to my understanding generates a generator. and the machanism 
+ *  Which to my understanding generates a generator. and the machanism
  *  for generation is some form of Graph Covering.
  */
 
@@ -66,13 +65,13 @@ static void x86_codegen_bytecode(x86_Context *x86_context) {
             break;
         }
 
-        case OPCODE_LOAD: {
-            x86_codegen_load(I, idx, x86_context);
+        case OPCODE_LET: {
+            x86_codegen_let(I, idx, x86_context);
             break;
         }
 
         case OPCODE_NEG: {
-            x86_codegen_negate(I, idx, x86_context);
+            x86_codegen_neg(I, idx, x86_context);
             break;
         }
 
@@ -172,4 +171,3 @@ i32 x86_codegen(Context *context) {
     x86_context_destroy(&x86_context);
     return 0;
 }
-

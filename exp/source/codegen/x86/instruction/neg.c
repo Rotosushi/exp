@@ -22,9 +22,9 @@
 #include "support/message.h"
 #include "support/unreachable.h"
 
-void x86_codegen_negate(Instruction I,
-                        u64         block_index,
-                        x86_Context *restrict context) {
+void x86_codegen_neg(Instruction I,
+                     u64         block_index,
+                     x86_Context *restrict context) {
     Local *local = x86_context_lookup_ssa(context, I.A_data.ssa);
     switch (I.B_kind) {
     case OPERAND_KIND_SSA: {

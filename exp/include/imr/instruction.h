@@ -20,60 +20,18 @@
 
 /**
  * @brief the valid opcodes for instructions
- *
  */
-typedef enum Opcode : u16 {
-    /*
-     * <...> -> side effect
-     * ip    -> the instruction pointer
-     * R     -> the return value location
-     * A|B|C -> an operand
-     * SSA[*]           -> indexing the locals array.
-     * Values[*]     -> indexing the constants array.
-     * GlobalSymbol[*]  -> indexing the global names array followed by
-     *          indexing the global symbol table.
-     * Calls[*]         -> indexing the actual argument lists array.
-     */
-    OPCODE_RET, // B -- R = B,    <return>
-                // B -- R = Values[B], <return>
-                // B -- R = SSA[B], <return>
-
-    OPCODE_CALL, // ABC -- SSA[A] = GlobalSymbol[B](Calls[C])
-
-    OPCODE_DOT, // ABC -- SSA[A] = SSA[B].C
-                // ABC -- SSA[A] = Values[B].C
-
-    OPCODE_LOAD, // AB  -- SSA[A] = B
-                 // AB  -- SSA[A] = Values[B]
-                 // AB  -- SSA[A] = SSA[B]
-
-    OPCODE_NEG, // AB  -- SSA[A] = -(B)
-                // AB  -- SSA[A] = -(SSA[B])
-
-    OPCODE_ADD, // ABC -- SSA[A] = SSA[B] + SSA[C]
-                // ABC -- SSA[A] = SSA[B] + C
-                // ABC -- SSA[A] = B    + SSA[C]
-                // ABC -- SSA[A] = B    + C
-
-    OPCODE_SUB, // ABC -- SSA[A] = SSA[B] - SSA[C]
-                // ABC -- SSA[A] = SSA[B] - C
-                // ABC -- SSA[A] = B    - SSA[C]
-                // ABC -- SSA[A] = B    - C
-
-    OPCODE_MUL, // ABC -- SSA[A] = SSA[B] * SSA[C]
-                // ABC -- SSA[A] = SSA[B] * C
-                // ABC -- SSA[A] = B    * SSA[C]
-                // ABC -- SSA[A] = B    * C
-
-    OPCODE_DIV, // ABC -- SSA[A] = SSA[B] / SSA[C]
-                // ABC -- SSA[A] = SSA[B] / C
-                // ABC -- SSA[A] = B    / SSA[C]
-                // ABC -- SSA[A] = B    / C
-
-    OPCODE_MOD, // ABC -- SSA[A] = SSA[B] % SSA[C]
-                // ABC -- SSA[A] = SSA[B] % C
-                // ABC -- SSA[A] = B    % SSA[C]
-                // ABC -- SSA[A] = B    % C
+typedef enum Opcode : u8 {
+    OPCODE_RET,
+    OPCODE_CALL,
+    OPCODE_LET,
+    OPCODE_NEG,
+    OPCODE_DOT,
+    OPCODE_ADD,
+    OPCODE_SUB,
+    OPCODE_MUL,
+    OPCODE_DIV,
+    OPCODE_MOD,
 } Opcode;
 
 typedef struct Instruction {
@@ -88,14 +46,14 @@ typedef struct Instruction {
 
 Instruction instruction_return(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
+Instruction instruction_let(Operand dst, Operand src);
+Instruction instruction_neg(Operand dst, Operand src);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);
-Instruction instruction_load(Operand dst, Operand src);
-Instruction instruction_negate(Operand dst, Operand src);
 Instruction instruction_add(Operand dst, Operand left, Operand right);
-Instruction instruction_subtract(Operand dst, Operand left, Operand right);
-Instruction instruction_multiply(Operand dst, Operand left, Operand right);
-Instruction instruction_divide(Operand dst, Operand left, Operand right);
-Instruction instruction_modulus(Operand dst, Operand left, Operand right);
+Instruction instruction_sub(Operand dst, Operand left, Operand right);
+Instruction instruction_mul(Operand dst, Operand left, Operand right);
+Instruction instruction_div(Operand dst, Operand left, Operand right);
+Instruction instruction_mod(Operand dst, Operand left, Operand right);
 
 struct Context;
 void print_instruction(String *restrict string,

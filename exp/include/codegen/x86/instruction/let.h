@@ -21,6 +21,6 @@
 
 #include "codegen/x86/env/context.h"
 
-void x86_codegen_load(Instruction I, u64 Idx, x86_Context *restrict context);
+void x86_codegen_let(Instruction I, u64 Idx, x86_Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_CODEGEN_LOAD_H

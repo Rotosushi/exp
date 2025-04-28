@@ -21,7 +21,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/load.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/let.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
