@@ -168,7 +168,7 @@ static bool infer_types_operand(Type const **result,
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView  name   = context_labels_at(context, data.label);
+        StringView  name   = constant_string_to_view(data.label);
         Symbol     *global = context_global_symbol_table_at(context, name);
         Type const *type   = global->type;
         if (type == NULL) {

@@ -27,7 +27,7 @@ StringView string_view_create() {
     return sv;
 }
 
-StringView string_view_from_str(char const *string, u64 length) {
+StringView string_view(char const *string, u64 length) {
     StringView sv = {length, string};
     return sv;
 }

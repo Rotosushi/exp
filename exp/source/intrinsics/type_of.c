@@ -79,7 +79,7 @@ Type const *type_of_operand(Operand operand, Context *restrict context) {
     }
 
     case OPERAND_KIND_LABEL: {
-        StringView label  = context_labels_at(context, operand.data.label);
+        StringView label  = constant_string_to_view(operand.data.label);
         Symbol    *symbol = context_global_symbol_table_at(context, label);
         assert(!string_view_empty(symbol->name));
         assert(symbol->type != NULL);

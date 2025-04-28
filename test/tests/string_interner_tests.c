@@ -25,11 +25,14 @@ i32 string_interner_tests([[maybe_unused]] i32   argc,
     StringInterner si      = string_interner_create();
     bool           failure = 0;
 
-    StringView sv0 = string_interner_insert(&si, SV("hello"));
-    StringView sv1 = string_interner_insert(&si, SV("world"));
+    StringView sv0 =
+        constant_string_to_view(string_interner_insert(&si, SV("hello")));
+    StringView sv1 =
+        constant_string_to_view(string_interner_insert(&si, SV("world")));
     failure |= string_view_equal(sv0, sv1);
 
-    StringView sv2 = string_interner_insert(&si, SV("hello"));
+    StringView sv2 =
+        constant_string_to_view(string_interner_insert(&si, SV("hello")));
     failure |= !string_view_equal(sv0, sv2);
     failure |= string_view_equal(sv1, sv2);
 

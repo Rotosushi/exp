@@ -58,7 +58,7 @@ static u64 lexer_current_text_length(Lexer const *restrict lexer) {
 StringView lexer_current_text(Lexer const *restrict lexer) {
     assert(lexer != NULL);
     StringView result =
-        string_view_from_str(lexer->token, lexer_current_text_length(lexer));
+        string_view(lexer->token, lexer_current_text_length(lexer));
     return result;
 }
 

@@ -36,8 +36,8 @@ Operand operand_constant(u32 index) {
     return (Operand){.kind = OPERAND_KIND_CONSTANT, .data.constant = index};
 }
 
-Operand operand_label(u32 index) {
-    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = index};
+Operand operand_label(ConstantString *cs) {
+    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = cs};
 }
 
 Operand operand_u8(u8 u8_) {
@@ -134,11 +134,9 @@ static void print_operand_value(String *restrict string,
 }
 
 static void print_operand_label(String *restrict string,
-                                u32 index,
-                                Context *restrict context) {
+                                ConstantString const *restrict cs) {
     string_append(string, SV("%"));
-    StringView name = context_labels_at(context, index);
-    string_append(string, name);
+    string_append(string, constant_string_to_view(cs));
 }
 
 void print_operand(String *restrict string,
@@ -150,7 +148,7 @@ void print_operand(String *restrict string,
         print_operand_value(string, operand.data.constant, context);
         break;
     case OPERAND_KIND_LABEL:
-        print_operand_label(string, operand.data.label, context);
+        print_operand_label(string, operand.data.label);
         break;
     case OPERAND_KIND_U8:  string_append_u64(string, operand.data.u8_); break;
     case OPERAND_KIND_U16: string_append_u64(string, operand.data.u16_); break;

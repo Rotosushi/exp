@@ -20,17 +20,25 @@
 
 #include "imr/type.h"
 
-typedef struct FunctionTypes {
-    u64   size;
-    u64   capacity;
-    Type *types;
-} FunctionTypes;
-
-typedef struct TupleTypes {
-    u64   size;
-    u64   capacity;
-    Type *types;
-} TupleTypes;
+/**
+ * @brief Type TypeList is a simple dynamic array of pointers
+ * to dynamically allocated types.
+ *
+ * used for types that all follow the same pattern,
+ * but each individual type has a fixed form.
+ * like a function type, each function type has any return type, and
+ * zero or more argument types, but any individual function has a
+ * known return type, and a fixed number of argument types.
+ * This is identical to user defined polymorphic types, it's just
+ * the syntax is not expressive enough to allow for saying them.
+ * (plus we would need to make TypeList a possible type.)
+ *
+ */
+typedef struct TypeList {
+    u32    size;
+    u32    capacity;
+    Type **buffer;
+} TypeList;
 
 /**
  * @brief The TypeInterner holds unique instances of
@@ -41,18 +49,18 @@ typedef struct TupleTypes {
  *
  */
 typedef struct TypeInterner {
-    Type          nil_type;
-    Type          boolean_type;
-    Type          u8_type;
-    Type          u16_type;
-    Type          u32_type;
-    Type          u64_type;
-    Type          i8_type;
-    Type          i16_type;
-    Type          i32_type;
-    Type          i64_type;
-    TupleTypes    tuple_types;
-    FunctionTypes function_types;
+    Type     nil_type;
+    Type     boolean_type;
+    Type     u8_type;
+    Type     u16_type;
+    Type     u32_type;
+    Type     u64_type;
+    Type     i8_type;
+    Type     i16_type;
+    Type     i32_type;
+    Type     i64_type;
+    TypeList tuple_types;
+    TypeList function_types;
 } TypeInterner;
 
 /**

@@ -41,6 +41,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/core/assemble.c
   ${EXP_SOURCE_DIR}/core/codegen.c
   ${EXP_SOURCE_DIR}/core/compile.c
+  ${EXP_SOURCE_DIR}/core/evaluate.c
   ${EXP_SOURCE_DIR}/core/link.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c

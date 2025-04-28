@@ -117,12 +117,12 @@ static void x64_emit_operand(x86_Operand operand,
     switch (operand.kind) {
     case X86_OPERAND_KIND_GPR: {
         string_append(buffer, SV("%"));
-        string_append(buffer, x86_gpr_mnemonic(operand.gpr));
+        string_append(buffer, x86_gpr_mnemonic(operand.data.gpr));
         break;
     }
 
     case X86_OPERAND_KIND_ADDRESS: {
-        x86_Address *address = &operand.address;
+        x86_Address *address = &operand.data.address;
         string_append_i64(buffer, address->offset);
 
         string_append(buffer, SV("(%"));
@@ -141,12 +141,12 @@ static void x64_emit_operand(x86_Operand operand,
 
     case X86_OPERAND_KIND_IMMEDIATE: {
         string_append(buffer, SV("$"));
-        string_append_i64(buffer, operand.immediate);
+        string_append_i64(buffer, operand.data.immediate);
         break;
     }
 
     case X86_OPERAND_KIND_CONSTANT: {
-        Value *constant = context_constants_at(context, operand.constant);
+        Value *constant = context_constants_at(context, operand.data.constant);
         // #TODO: this needs to robustly handle all scalar constants.
         //  and it is important to note that only scalar constants
         //  can validly appear here.
@@ -157,8 +157,7 @@ static void x64_emit_operand(x86_Operand operand,
     }
 
     case X86_OPERAND_KIND_LABEL: {
-        assert(operand.label <= u16_MAX);
-        StringView name = context_labels_at(context, operand.label);
+        StringView name = constant_string_to_view(operand.data.label);
         string_append(buffer, name);
         break;
     }

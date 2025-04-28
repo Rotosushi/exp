@@ -73,7 +73,7 @@ void trace_u64(u64 value, FILE *restrict stream) {
     char buf[len + 1];
     u64_to_str(value, buf);
     buf[len] = '\0';
-    message(MESSAGE_TRACE, NULL, 0, string_view_from_str(buf, len), stream);
+    message(MESSAGE_TRACE, NULL, 0, string_view(buf, len), stream);
 }
 
 void trace_i64(i64 value, FILE *restrict stream) {
@@ -81,7 +81,7 @@ void trace_i64(i64 value, FILE *restrict stream) {
     char buf[len + 1];
     i64_to_str(value, buf);
     buf[len] = '\0';
-    message(MESSAGE_TRACE, NULL, 0, string_view_from_str(buf, len), stream);
+    message(MESSAGE_TRACE, NULL, 0, string_view(buf, len), stream);
 }
 
 void trace_command(StringView   cmd,

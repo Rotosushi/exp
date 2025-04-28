@@ -46,10 +46,10 @@ Value *x86_context_value_at(x86_Context *context, u32 index) {
     return context_constants_at(context->context, index);
 }
 
-StringView x86_context_global_labels_at(x86_Context *x64_context, u32 idx) {
-    assert(x64_context != nullptr);
-    return context_labels_at(x64_context->context, idx);
-}
+// StringView x86_context_global_labels_at(x86_Context *x64_context, u32 idx) {
+//     assert(x64_context != nullptr);
+//     return context_labels_at(x64_context->context, idx);
+// }
 
 void x86_context_enter_function(x86_Context *x64_context, StringView name) {
     assert(x64_context != nullptr);

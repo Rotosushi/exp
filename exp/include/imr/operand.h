@@ -17,6 +17,7 @@
 #ifndef EXP_IMR_OPERAND_H
 #define EXP_IMR_OPERAND_H
 
+#include "support/constant_string.h"
 #include "support/scalar.h"
 #include "support/string.h"
 
@@ -34,18 +35,18 @@ typedef enum OperandKind : u8 {
     OPERAND_KIND_I64,
 } OperandKind;
 
-typedef union OperandPayload {
-    u32 ssa;
-    u32 constant;
-    u32 label;
-    u8  u8_;
-    u16 u16_;
-    u32 u32_;
-    u64 u64_;
-    i8  i8_;
-    i16 i16_;
-    i32 i32_;
-    i64 i64_;
+typedef union OperandData {
+    u32             ssa;
+    u32             constant;
+    ConstantString *label;
+    u8              u8_;
+    u16             u16_;
+    u32             u32_;
+    u64             u64_;
+    i8              i8_;
+    i16             i16_;
+    i32             i32_;
+    i64             i64_;
 } OperandData;
 
 typedef struct Operand {
@@ -58,7 +59,7 @@ struct Context;
 Operand operand(OperandKind kind, OperandData data);
 Operand operand_ssa(u32 ssa);
 Operand operand_constant(u32 index);
-Operand operand_label(u32 index);
+Operand operand_label(ConstantString *cs);
 Operand operand_u8(u8 u8_);
 Operand operand_u16(u16 u16_);
 Operand operand_u32(u32 u32_);

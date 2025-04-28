@@ -26,24 +26,6 @@
 #include "support/array_growth.h"
 #include "support/hash.h"
 
-static SimpleString *simple_string_create(u64 length, char const *data) {
-    SimpleString *string = callocate(1, sizeof(SimpleString) + length + 1);
-    string->length       = length;
-    memcpy(string->data, data, length);
-    return string;
-}
-
-static StringView simple_string_to_view(SimpleString *restrict string) {
-    StringView view = {.length = string->length, .ptr = string->data};
-    return view;
-}
-
-static bool simple_string_eq(SimpleString *restrict string, StringView view) {
-    if (string->length != view.length) { return 0; }
-
-    return (memcmp(string->data, view.ptr, string->length) == 0);
-}
-
 #define STRING_INTERNER_MAX_LOAD 0.75
 
 StringInterner string_interner_create() {
@@ -74,13 +56,13 @@ void string_interner_destroy(StringInterner *restrict string_interner) {
     string_interner->buffer = NULL;
 }
 
-static SimpleString **string_interner_find(SimpleString **restrict strings,
-                                           u64        capacity,
-                                           StringView sv) {
+static ConstantString **string_interner_find(ConstantString **restrict strings,
+                                             u64        capacity,
+                                             StringView sv) {
     u64 index = hash_cstring(sv.ptr, sv.length) % capacity;
     while (1) {
-        SimpleString **element = &(strings[index]);
-        if ((*element == NULL) || (simple_string_eq(*element, sv))) {
+        ConstantString **element = &(strings[index]);
+        if ((*element == NULL) || (constant_string_equal(*element, sv))) {
             return element;
         }
 
@@ -89,20 +71,20 @@ static SimpleString **string_interner_find(SimpleString **restrict strings,
 }
 
 static void string_interner_grow(StringInterner *restrict string_interner) {
-    Growth_u64     g = array_growth_u64(string_interner->capacity,
+    Growth_u64       g = array_growth_u64(string_interner->capacity,
                                     sizeof(*string_interner->buffer));
-    SimpleString **elements =
+    ConstantString **elements =
         callocate(g.new_capacity, sizeof(*string_interner->buffer));
 
     // if the buffer isn't empty, we need to reinsert
     // all existing elements into the new buffer.
     if (string_interner->buffer != NULL) {
         for (u64 i = 0; i < string_interner->capacity; ++i) {
-            SimpleString **element = &(string_interner->buffer[i]);
+            ConstantString **element = &(string_interner->buffer[i]);
             if (*element == NULL) { continue; }
 
-            SimpleString **dest = string_interner_find(
-                elements, g.new_capacity, simple_string_to_view(*element));
+            ConstantString **dest = string_interner_find(
+                elements, g.new_capacity, constant_string_to_view(*element));
 
             *dest = *element;
         }
@@ -120,18 +102,18 @@ static bool string_interner_full(StringInterner *restrict string_interner) {
     return (string_interner->count + 1) >= load_limit;
 }
 
-StringView string_interner_insert(StringInterner *restrict string_interner,
-                                  StringView sv) {
+ConstantString *string_interner_insert(StringInterner *restrict string_interner,
+                                       StringView sv) {
     assert(string_interner != NULL);
     if (string_interner_full(string_interner)) {
         string_interner_grow(string_interner);
     }
 
-    SimpleString **element = string_interner_find(
+    ConstantString **element = string_interner_find(
         string_interner->buffer, string_interner->capacity, sv);
-    if (*element != NULL) { return simple_string_to_view(*element); }
+    if (*element != NULL) { return *element; }
 
     string_interner->count++;
-    *element = simple_string_create(sv.length, sv.ptr);
-    return simple_string_to_view(*element);
+    *element = constant_string_create(sv);
+    return *element;
 }

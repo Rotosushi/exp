@@ -1,4 +1,4 @@
-// Copyright (C) 2025 cade-weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -15,17 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef EXP_ANALYSIS_INFER_LIFETIMES_H
-#define EXP_ANALYSIS_INFER_LIFETIMES_H
-
-#include "env/context.h"
-
 /**
- * @brief iterates through each defined function within
- * the given context and fills in the lifetime information
- * of the SSA locals. That is, the instruction when the SSA
- * is defined, and the last instruction which it is used.
+ * @file core/evaluate.h
  */
-i32 infer_lifetimes(Context *restrict context);
 
-#endif // !EXP_ANALYSIS_INFER_LIFETIMES_H
+#ifndef EXP_CORE_EVALUATE_H
+#define EXP_CORE_EVALUATE_H
+
+#include "support/scalar.h"
+
+i32 evaluate();
+
+#endif // !EXP_CORE_EVALUATE_H

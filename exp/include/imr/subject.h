@@ -1,4 +1,4 @@
-// Copyright (C) 2025 cade-weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -15,17 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef EXP_ANALYSIS_INFER_LIFETIMES_H
-#define EXP_ANALYSIS_INFER_LIFETIMES_H
+/**
+ * @file imr/subject.h
+ * @brief defines a struct which is simple a function, context
+ * pointer pair. Useful whenever we need a context pointer and a
+ * function pointer togther, such as when we are inferring types,
+ * or validating bytecode.
+ */
+
+#ifndef EXP_IMR_SUBJECT_H
+#define EXP_IMR_SUBJECT_H
 
 #include "env/context.h"
+#include "imr/function.h"
 
-/**
- * @brief iterates through each defined function within
- * the given context and fills in the lifetime information
- * of the SSA locals. That is, the instruction when the SSA
- * is defined, and the last instruction which it is used.
- */
-i32 infer_lifetimes(Context *restrict context);
+typedef struct Subject {
+    Function *function;
+    Context  *context;
+} Subject;
 
-#endif // !EXP_ANALYSIS_INFER_LIFETIMES_H
+#endif // EXP_IMR_SUBJECT_H

@@ -39,7 +39,7 @@ x86_Symbol *x86_context_symbol(x86_Context *x86_context, StringView name);
 Value *x86_context_value_at(x86_Context *x86_context, u32 index);
 
 // context global symbol table functions
-StringView x86_context_global_labels_at(x86_Context *x86_context, u32 index);
+// StringView x86_context_global_labels_at(x86_Context *x86_context, u32 index);
 
 // context x64 function functions
 void x86_context_enter_function(x86_Context *x86_context, StringView name);
