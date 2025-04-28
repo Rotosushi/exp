@@ -39,9 +39,8 @@
  * constants array. and we can have a unified 'const' instruction.
  *
  * approximate series of steps:
- * - rename 'const' instructions to 'let' instructions. (This aligns with the
- *   goal of making the language more 'functional')
- * - modify Value to store a Function.
+ * - rename 'const' instructions to 'let' instructions. (done!)
+ * - modify Value to store a Function. (done! plust some extra)
  * - refactor the parser and the context, we need to generate
  *   a single chunk of bytecode for each "unit" of input, call
  *   that an 'expression'. we then evaluate each expression as
