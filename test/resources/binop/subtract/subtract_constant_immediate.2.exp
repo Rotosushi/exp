@@ -1,4 +1,4 @@
 fn main () {
-	const x = 3;
+	let x = 3;
 	return x - 1;
 }

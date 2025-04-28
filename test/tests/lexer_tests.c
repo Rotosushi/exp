@@ -75,6 +75,10 @@ i32 lexer_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     failed |= test_lexer_scans_token("va", TOK_IDENTIFIER);
     failed |= test_lexer_scans_token("varl", TOK_IDENTIFIER);
 
+    failed |= test_lexer_scans_token("let", TOK_LET);
+    failed |= test_lexer_scans_token("le", TOK_IDENTIFIER);
+    failed |= test_lexer_scans_token("letter", TOK_IDENTIFIER);
+
     failed |= test_lexer_scans_token("return", TOK_RETURN);
     failed |= test_lexer_scans_token("relurn", TOK_IDENTIFIER);
     failed |= test_lexer_scans_token("returnl", TOK_IDENTIFIER);

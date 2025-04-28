@@ -1,4 +1,4 @@
 fn main () {
-	const x = 9;
+	let x = 9;
 	return 27 / x;
 }

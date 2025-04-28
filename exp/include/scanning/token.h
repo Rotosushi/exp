@@ -56,7 +56,7 @@ typedef enum Token {
 
     TOK_FN,
     TOK_VAR,
-    TOK_CONST,
+    TOK_LET,
     TOK_RETURN,
 
     TOK_NIL,

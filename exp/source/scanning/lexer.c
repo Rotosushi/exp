@@ -149,7 +149,6 @@ static Token lexer_check_keyword(Lexer *restrict lexer,
 static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
     switch (lexer->token[0]) {
     case 'b': return lexer_check_keyword(lexer, 1, 3, "ool", TOK_TYPE_BOOL);
-    case 'c': return lexer_check_keyword(lexer, 1, 4, "onst", TOK_CONST);
     case 'f':
         if (lexer_current_text_length(lexer) > 1) {
             switch (lexer->token[1]) {
@@ -175,6 +174,7 @@ static Token lexer_identifier_or_keyword(Lexer *restrict lexer) {
         }
         break;
 
+    case 'l': return lexer_check_keyword(lexer, 1, 2, "et", TOK_LET);
     case 'n': return lexer_check_keyword(lexer, 1, 2, "il", TOK_TYPE_NIL);
     case 'r': return lexer_check_keyword(lexer, 1, 5, "eturn", TOK_RETURN);
     case 't': return lexer_check_keyword(lexer, 1, 3, "rue", TOK_TRUE);

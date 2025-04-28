@@ -1,6 +1,6 @@
 
 fn main () { 
-	const x = (8, 4);
+	let x = (8, 4);
 	return x.0;
 }
 

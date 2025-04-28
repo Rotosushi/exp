@@ -318,11 +318,10 @@ static bool return_(Operand *restrict result,
 }
 
 // constant = "const" identifier "=" expression ";"
-static bool constant(Operand *restrict result,
-                     Parser *restrict parser,
-                     Context *restrict context) {
-
-    if (!nexttok(parser)) { return false; } // eat 'const'
+static bool let(Operand *restrict result,
+                Parser *restrict parser,
+                Context *restrict context) {
+    if (!nexttok(parser)) { return false; } // eat 'let'
 
     if (!peek(parser, TOK_IDENTIFIER)) {
         return error(parser, context, ERROR_PARSER_EXPECTED_IDENTIFIER);
@@ -357,7 +356,7 @@ static bool constant(Operand *restrict result,
 }
 
 // statement = return
-//           | constant
+//           | let
 //           | expression
 static bool statement(Operand *restrict result,
                       Parser *restrict parser,
@@ -365,7 +364,7 @@ static bool statement(Operand *restrict result,
 
     switch (parser->curtok) {
     case TOK_RETURN: return return_(result, parser, context);
-    case TOK_CONST:  return constant(result, parser, context);
+    case TOK_LET:    return let(result, parser, context);
 
     default: {
         if (!expression(result, parser, context)) { return false; }
@@ -734,7 +733,7 @@ static ParseRule *get_rule(Token token) {
 
         [TOK_FN]     = {         NULL,  NULL,   PREC_NONE},
         [TOK_VAR]    = {         NULL,  NULL,   PREC_NONE},
-        [TOK_CONST]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_LET]    = {         NULL,  NULL,   PREC_NONE},
         [TOK_RETURN] = {         NULL,  NULL,   PREC_NONE},
 
         [TOK_NIL]            = {          nil,  call,   PREC_CALL},

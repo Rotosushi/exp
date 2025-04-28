@@ -30,7 +30,22 @@
  * which captures the context. The thing is we need to rearchitect
  * the way that functions are defined. Namely function definitions
  * must be expressable within the bytecode itself. As const variables
- * already are.
+ * already are. Then, we can pass a chunk of bytecode to the eval statement
+ * as an expression, and that expression can be evaluated, one of the side
+ * effects can then be, define a function, or define a global constant,
+ * So what does that look like in practice though?
+ * What is the memory layout of an operand that defines a function?
+ * IF a Value can store a lambda, Then it can simply be a Constant in the
+ * constants array. and we can have a unified 'const' instruction.
+ *
+ * approximate series of steps:
+ * - rename 'const' instructions to 'let' instructions.
+ * - modify Value to store a Function.
+ * - refactor the parser and the context, we need to generate
+ *   a single chunk of bytecode for each "unit" of input, call
+ *   that an 'expression'. we then evaluate each expression as
+ *   it comes into the context, this evaluation is what defines
+ *   global names within the context, not the parser directly.
  */
 
 /**

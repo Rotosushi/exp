@@ -1,5 +1,5 @@
 fn main () {
-	const x = 5;
-	const y = 2;
+	let x = 5;
+	let y = 2;
 	return x - y;
 }
