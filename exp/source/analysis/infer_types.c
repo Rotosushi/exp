@@ -69,8 +69,7 @@ static bool failure_operand_is_not_index(Context *restrict context,
     string_append(&buf, SV("Operand is not an index ["));
     print_operand(&buf, operand, context);
     string_append(&buf, SV("]"));
-    return failure_string(
-        context, ERROR_ANALYSIS_TUPLE_INDEX_NOT_IMMEDIATE, buf);
+    return failure_string(context, ERROR_ANALYSIS_OPERAND_IS_NOT_AN_INDEX, buf);
 }
 
 static bool failure_tuple_index_out_of_bounds(Context *restrict context,
@@ -82,8 +81,7 @@ static bool failure_tuple_index_out_of_bounds(Context *restrict context,
     string_append(&buf, SV("] out of range [0.."));
     string_append_u64(&buf, max);
     string_append(&buf, SV("]"));
-    return failure_string(
-        context, ERROR_ANALYSIS_TUPLE_INDEX_OUT_OF_BOUNDS, buf);
+    return failure_string(context, ERROR_ANALYSIS_INDEX_OUT_OF_BOUNDS, buf);
 }
 
 static bool failure_mismatch_argument_count(Context *restrict context,
@@ -109,9 +107,8 @@ static bool failure_mismatch_type(Context *restrict context,
     return failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
 }
 
-static bool infer_types_global(Type const **result,
-                               Context *restrict context,
-                               Symbol *restrict element);
+static bool infer_types_global(Symbol *restrict element,
+                               Context *restrict context);
 
 static bool infer_types_operand(Type const **result,
                                 Context *restrict context,
@@ -168,10 +165,11 @@ static bool infer_types_operand(Type const **result,
 
     case OPERAND_KIND_LABEL: {
         StringView  name   = constant_string_to_view(data.label);
-        Symbol     *global = context_global_symbol_table_at(context, name);
+        Symbol     *global = context_global_symbol_lookup(context, name);
         Type const *type   = global->type;
         if (type == NULL) {
-            if (!infer_types_global(&type, context, global)) { return false; }
+            if (!infer_types_global(global, context)) { return false; }
+            type = global->type;
         }
 
         return success(result, type);
@@ -350,78 +348,80 @@ infer_types_mod(Type const **result, Context *restrict c, Instruction I) {
     return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
 }
 
-static bool infer_types_function(Type const **result, Context *restrict c) {
-    Type const *return_type = NULL;
-    Function   *body        = context_current_function(c);
-    Bytecode   *bc          = &body->bc;
+static bool infer_types_function(Type const **restrict result,
+                                 Function *restrict function,
+                                 Context *restrict context) {
+    Bytecode *body = &function->body;
 
-    Instruction *ip = bc->buffer;
-    for (u32 idx = 0; idx < bc->length; ++idx) {
+    Instruction *ip = body->buffer;
+    for (u32 idx = 0; idx < body->length; ++idx) {
         Instruction I = ip[idx];
         switch (I.opcode) {
         case OPCODE_RET: {
             Type const *Bty;
-            if (!infer_types_ret(&Bty, c, I)) { return false; }
+            if (!infer_types_ret(&Bty, context, I)) { return false; }
 
-            if ((return_type != NULL) && (!type_equality(return_type, Bty))) {
-                return failure_mismatch_type(c, return_type, Bty);
+            if ((function->return_type != NULL) &&
+                (!type_equality(function->return_type, Bty))) {
+                return failure_mismatch_type(
+                    context, function->return_type, Bty);
             }
 
-            return_type = Bty;
+            function->return_type = Bty;
             break;
         }
 
         case OPCODE_CALL: {
             Type const *Aty;
-            if (!infer_types_call(&Aty, c, I)) { return false; }
+            if (!infer_types_call(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_LET: {
             Type const *Aty;
-            if (!infer_types_let(&Aty, c, I)) { return false; }
+            if (!infer_types_let(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_DOT: {
             Type const *Aty;
-            if (!infer_types_dot(&Aty, c, I)) { return false; }
+            if (!infer_types_dot(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_NEG: {
             Type const *Aty;
-            if (!infer_types_neg(&Aty, c, I)) { return false; }
+            if (!infer_types_neg(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_ADD: {
             Type const *Aty;
-            if (!infer_types_add(&Aty, c, I)) { return false; }
+            if (!infer_types_add(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_SUB: {
             Type const *Aty;
-            if (!infer_types_sub(&Aty, c, I)) { return false; }
+            if (!infer_types_sub(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_MUL: {
             Type const *Aty;
-            if (!infer_types_mul(&Aty, c, I)) { return false; }
+            if (!infer_types_mul(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_DIV: {
             Type const *Aty;
-            if (!infer_types_div(&Aty, c, I)) { return false; }
+            if (!infer_types_div(&Aty, context, I)) { return false; }
             break;
         }
 
         case OPCODE_MOD: {
             Type const *Aty;
-            if (!infer_types_mod(&Aty, c, I)) { return false; }
+            if (!infer_types_mod(&Aty, context, I)) { return false; }
             break;
         }
 
@@ -429,70 +429,21 @@ static bool infer_types_function(Type const **result, Context *restrict c) {
         }
     }
 
-    return success(result, return_type);
+    return success(result, type_of_function(function, context));
 }
 
-static bool infer_types_global(Type const **result,
-                               Context *restrict c,
-                               Symbol *restrict element) {
-    assert(c != nullptr);
-    assert(element != nullptr);
-    if (element->type != NULL) { return success(result, element->type); }
-
-    switch (element->kind) {
-    case SYMBOL_KIND_UNDEFINED: {
-        // #TODO: this should be handled as a forward declaration
-        // but only if the type exists.
-        return success(result, context_nil_type(c));
+static bool infer_types_global(Symbol *restrict element,
+                               Context *restrict context) {
+    assert(element->value->kind == VALUE_KIND_FUNCTION);
+    Type const *result = NULL;
+    if (!infer_types_function(
+            &result, (Function *)&element->value->function, context)) {
+        return false;
     }
-
-    case SYMBOL_KIND_FUNCTION: {
-        // we want to avoid infinite recursion. but we also need to
-        // handle the fact that functions are going to be infer_typesed
-        // in an indeterminite order. the natural solution is to type
-        // the dependencies of a function body as those are used within
-        // the function body. This only breaks when we have mutual recursion,
-        // otherwise, when the global is successfully typed.
-        // the question is, how do we accomplish this?
-        Function   *body = context_enter_function(c, element->name);
-        Type const *Rty;
-        if (!infer_types_function(&Rty, c)) {
-            context_leave_function(c);
-            return false;
-        }
-        context_leave_function(c);
-
-        if ((body->return_type != NULL) &&
-            (!type_equality(Rty, body->return_type))) {
-            return failure_mismatch_type(c, body->return_type, Rty);
-        }
-
-        body->return_type         = Rty;
-        Type const *function_type = type_of_function(body, c);
-        element->type             = function_type;
-        return success(result, function_type);
-    }
-
-    default: EXP_UNREACHABLE();
-    }
+    return true;
 }
 
-#undef try
-
-i32 infer_types(Context *restrict context) {
-    i32          result = EXIT_SUCCESS;
-    SymbolTable *table  = &context->global_symbol_table;
-    for (u64 index = 0; index < table->capacity; ++index) {
-        Symbol *element = table->elements[index];
-        if (element == NULL) { continue; }
-        Type const *type = NULL;
-        if (!infer_types_global(&type, context, element)) {
-            Error *error = context_current_error(context);
-            error_print(error, context_source_path(context), 0);
-            error_destroy(error);
-            result |= EXIT_FAILURE;
-        }
-    }
-
-    return result;
+bool infer_types(Function *restrict function, Context *restrict context) {
+    Type const *result = NULL;
+    return infer_types_function(&result, function, context);
 }

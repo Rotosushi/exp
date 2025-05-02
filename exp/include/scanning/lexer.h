@@ -53,7 +53,7 @@ void lexer_reset(Lexer *restrict lexer);
  * @param lexer
  * @param buffer
  */
-void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length);
+void lexer_set_view(Lexer *restrict lexer, StringView view);
 
 /**
  * @brief returns true when the <lexer> has scanned all

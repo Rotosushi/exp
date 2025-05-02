@@ -45,18 +45,19 @@ typedef struct FormalArgumentList {
 typedef struct Function {
     FormalArgumentList arguments;
     Locals             locals;
-    Bytecode           bc;
+    Bytecode           body;
     Type const        *return_type;
 } Function;
 
 void function_create(Function *restrict function);
 void function_destroy(Function *restrict function);
 
-Local *function_declare_argument(Function *restrict function);
-Local *function_declare_local(Function *restrict function);
-Local *function_lookup_argument(Function *restrict function, u8 index);
-Local *function_lookup_local(Function *restrict function, u32 ssa);
-Local *function_lookup_local_name(Function *restrict function, StringView name);
+u32    function_declare_argument(Function *restrict function);
+u32    function_declare_local(Function *restrict function);
+Local *function_lookup_argument(Function const *restrict function, u8 index);
+Local *function_lookup_local(Function const *restrict function, u32 ssa);
+Local *function_lookup_local_name(Function const *restrict function,
+                                  StringView name);
 
 struct Context;
 void print_function(String *restrict string,

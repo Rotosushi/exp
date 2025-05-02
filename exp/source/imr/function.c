@@ -65,7 +65,7 @@ void function_create(Function *restrict function) {
     assert(function != NULL);
     formal_argument_list_create(&function->arguments);
     locals_create(&function->locals);
-    bytecode_create(&function->bc);
+    bytecode_create(&function->body);
     function->return_type = NULL;
 }
 
@@ -73,43 +73,36 @@ void function_destroy(Function *restrict function) {
     assert(function != NULL);
     formal_argument_list_destroy(&function->arguments);
     locals_destroy(&function->locals);
-    bytecode_destroy(&function->bc);
+    bytecode_destroy(&function->body);
     function->return_type = NULL;
 }
 
-Local *function_declare_argument(Function *restrict function) {
+u32 function_declare_argument(Function *restrict function) {
     assert(function != NULL);
-
-    Local *arg = locals_declare(&function->locals);
-    assert(arg != NULL);
-    formal_argument_list_append(&function->arguments, arg);
-
-    return arg;
+    u32    ssa   = locals_declare(&function->locals);
+    Local *local = locals_lookup(&function->locals, ssa);
+    formal_argument_list_append(&function->arguments, local);
+    return ssa;
 }
 
-Local *function_lookup_argument(Function *restrict function, u8 index) {
+Local *function_lookup_argument(Function const *restrict function, u8 index) {
     assert(function != NULL);
     assert(index < function->arguments.size);
-
     return function->arguments.list[index];
 }
 
-Local *function_declare_local(Function *restrict function) {
+u32 function_declare_local(Function *restrict function) {
     assert(function != NULL);
-
-    Local *local = locals_declare(&function->locals);
-    assert(local != NULL);
-
-    return local;
+    return locals_declare(&function->locals);
 }
 
-Local *function_lookup_local(Function *restrict function, u32 ssa) {
+Local *function_lookup_local(Function const *restrict function, u32 ssa) {
     assert(function != NULL);
 
     return locals_lookup(&function->locals, ssa);
 }
 
-Local *function_lookup_local_name(Function *restrict function,
+Local *function_lookup_local_name(Function const *restrict function,
                                   StringView name) {
     assert(function != NULL);
 
@@ -134,5 +127,5 @@ void print_function(String *restrict string,
         if (i < (u8)(args->size - 1)) { string_append(string, SV(", ")); }
     }
     string_append(string, SV(")\n"));
-    print_bytecode(string, &f->bc, context);
+    print_bytecode(string, &f->body, context);
 }

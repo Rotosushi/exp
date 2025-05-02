@@ -44,7 +44,7 @@ typedef struct x86_Function {
 } x86_Function;
 
 void x86_function_create(x86_Function *restrict x86_body,
-                         Function *restrict body);
+                         Function const *restrict body);
 void x86_function_destroy(x86_Function *restrict body);
 
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

@@ -21,15 +21,15 @@
 #include "imr/local.h"
 
 typedef struct Locals {
-    u32     size;
-    u32     capacity;
-    Local **buffer;
+    u32    size;
+    u32    capacity;
+    Local *buffer;
 } Locals;
 
 void   locals_create(Locals *restrict locals);
 void   locals_destroy(Locals *restrict locals);
-Local *locals_declare(Locals *restrict locals);
-Local *locals_lookup(Locals *restrict locals, u32 ssa);
-Local *locals_lookup_name(Locals *restrict locals, StringView name);
+u32    locals_declare(Locals *restrict locals);
+Local *locals_lookup(Locals const *restrict locals, u32 ssa);
+Local *locals_lookup_name(Locals const *restrict locals, StringView name);
 
 #endif // !EXP_IMR_LOCALS_H

@@ -22,8 +22,8 @@
 #ifndef EXP_CORE_EVALUATE_H
 #define EXP_CORE_EVALUATE_H
 
-#include "support/scalar.h"
+#include "env/context.h"
 
-i32 evaluate();
+bool evaluate(Function *restrict expression, Context *restrict context);
 
 #endif // !EXP_CORE_EVALUATE_H

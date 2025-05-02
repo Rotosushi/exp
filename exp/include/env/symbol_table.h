@@ -17,23 +17,14 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/function.h"
 #include "imr/type.h"
+#include "imr/value.h"
 #include "support/string_view.h"
 
-typedef enum SymbolKind {
-    SYMBOL_KIND_UNDEFINED,
-    SYMBOL_KIND_FUNCTION,
-} SymbolKind;
-
 typedef struct Symbol {
-    StringView  name;
-    Type const *type;
-    SymbolKind  kind;
-    union {
-        u8       empty;
-        Function function_body;
-    };
+    StringView   name;
+    Type const  *type;
+    Value const *value;
 } Symbol;
 
 typedef struct SymbolTable {

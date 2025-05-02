@@ -19,7 +19,6 @@
 #include <stddef.h>
 
 #include "env/context.h"
-#include "imr/local.h"
 #include "imr/operand.h"
 #include "imr/value.h"
 #include "support/assert.h"
@@ -30,8 +29,8 @@ Operand operand(OperandKind kind, OperandData data) {
     return (Operand){.kind = kind, .data = data};
 }
 
-Operand operand_ssa(Local *local) {
-    return (Operand){.kind = OPERAND_KIND_SSA, .data.ssa = local};
+Operand operand_ssa(u32 ssa) {
+    return (Operand){.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
 }
 
 Operand operand_constant(Value const *constant) {
@@ -133,9 +132,9 @@ u64 operand_as_index(Operand A) {
     }
 }
 
-static void print_operand_ssa(String *restrict string, Local *local) {
+static void print_operand_ssa(String *restrict string, u32 ssa) {
     string_append(string, SV("%"));
-    string_append_u64(string, local->ssa);
+    string_append_u64(string, ssa);
 }
 
 static void print_operand_value(String *restrict string,

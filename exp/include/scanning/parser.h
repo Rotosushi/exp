@@ -18,6 +18,7 @@
 #define EXP_FRONTEND_PARSER_H
 
 #include "env/context.h"
+#include "scanning/lexer.h"
 
 /*
   definition = "fn" identifier formal-args "->" type body
@@ -47,21 +48,19 @@
           | "()"
 */
 
-/**
- * @brief Parse the buffer
- *
- * @param buffer the buffer to parse
- * @param length the length of the buffer
- * @param context the context to parse within
- * @return i32 EXIT_FAILURE or EXIT_SUCCESS
- */
-i32 parse_buffer(char const *restrict buffer,
-                 u64 length,
-                 Context *restrict context);
+typedef struct Parser {
+    Context  *context;
+    Function *function;
+    Lexer     lexer;
+    Token     curtok;
+} Parser;
 
-/**
- * @brief Parse the source file associated with the context
- */
-i32 parse_source(Context *restrict context);
+void parser_create(Parser *restrict parser, Context *restrict context);
+
+bool parser_setup(Parser *restrict parser, StringView view);
+bool parser_done(Parser const *restrict parser);
+
+bool parser_parse_expression(Parser *restrict parser,
+                             Function *restrict expression);
 
 #endif // !EXP_FRONTEND_PARSER_H

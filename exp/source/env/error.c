@@ -53,11 +53,23 @@ StringView error_code_to_view(ErrorCode code) {
         return SV("Expected a Statement. Found: ");
     case ERROR_PARSER_EXPECTED_IDENTIFIER:
         return SV("Expected an Identifier. Found: ");
+    case ERROR_PARSER_EXPECTED_TYPE: return SV("Expected a Type. Found: ");
+    case ERROR_PARSER_EXPECTED_TOP_LEVEL_DECLARATION:
+        return SV("Expected a Symbol Declaration. Found: ");
     case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
 
-    case ERROR_ANALYSIS_UNDEFINED_SYMBOL: return SV("Symbol Undefined: ");
+    case ERROR_ANALYSIS_UNDEFINED_SYMBOL:    return SV("Symbol Undefined: ");
+    case ERROR_ANALYSIS_UNSUPPORTED_OPERAND: return SV("Operand Unsupported: ");
+    case ERROR_ANALYSIS_OPERAND_IS_NOT_AN_INDEX:
+        return SV("Operand is not an index: ");
+    case ERROR_ANALYSIS_INDEX_OUT_OF_BOUNDS: return SV("Index out of bounds: ");
     case ERROR_ANALYSIS_TYPE_MISMATCH:
         return SV("Expected Type does not match Actual Type: ");
+
+    case ERROR_EVALUATION_UNSIGNED_OVERFLOW:
+        return SV("Unsigned Overflow/Underflow: ");
+    case ERROR_EVALUATION_SIGNED_OVERFLOW:
+        return SV("Signed Overflow/Underflow: ");
 
     default: EXP_UNREACHABLE();
     }
@@ -97,7 +109,7 @@ void error_assign_string(Error *restrict error, ErrorCode code, String str) {
     error->message = str;
 }
 
-void error_print(Error *restrict error, StringView file, u64 line) {
+void error_print(Error const *restrict error, StringView file, u64 line) {
     String msg = string_create();
     string_append(&msg, SV(ANSI_COLOR_RED));
     string_append(&msg, error_code_to_view(error->code));

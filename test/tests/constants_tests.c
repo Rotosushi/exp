@@ -21,10 +21,10 @@
 #include "env/constants.h"
 #include "support/random.h"
 
-i32 test_constant(Constants *restrict values, Value *value) {
-    Operand operand = constants_append(values, value);
+i32 test_constant_i64(Constants *restrict values, i64 i64_) {
+    Value const *value = constants_i64(values, i64_);
 
-    return value_equal(operand.data.constant, value) ? 0 : 1;
+    return ((value->kind == VALUE_KIND_I64) && (value->i64_ == i64_)) ? 0 : 1;
 }
 
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
@@ -35,14 +35,10 @@ i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     i32 result = 0;
 
     // #TODO:
-    result += test_constant(
-        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
-    result += test_constant(
-        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
-    result += test_constant(
-        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
-    result += test_constant(
-        &constants, value_allocate_i64((i64)xorshiftr128plus_next(&rng)));
+    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
 
     constants_destroy(&constants);
     return result;

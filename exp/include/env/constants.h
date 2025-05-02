@@ -20,47 +20,43 @@
 
 #include "imr/value.h"
 
-typedef struct Constants {
-    u32     count;
+typedef struct ConstantList {
+    u32     size;
     u32     capacity;
     Value **buffer;
+} ConstantList;
+
+typedef struct Constants {
+    Value       *nil;
+    Value       *true_;
+    Value       *false_;
+    ConstantList u8_list;
+    ConstantList u16_list;
+    ConstantList u32_list;
+    ConstantList u64_list;
+    ConstantList i8_list;
+    ConstantList i16_list;
+    ConstantList i32_list;
+    ConstantList i64_list;
+    ConstantList tuple_list;
+    ConstantList function_list;
 } Constants;
 
-/**
- * @brief create a Values buffer
- *
- * @return Values
- */
 void constants_create(Constants *restrict constants);
+void constants_destroy(Constants *restrict constants);
 
-/**
- * @brief destroy a Values buffer
- *
- * @param values
- */
-void constants_destroy(Constants *restrict values);
-
-/**
- * @brief add a new Value to the Values buffer
- *
- * @param values
- * @param value
- * @return Value*
- */
-Operand constants_append(Constants *restrict values, Value *value);
-
-/**
- * @brief return the constant at the given index in the buffer
- *
- * @param constants
- * @param index
- * @return Value*
- */
-Value const *constants_at(Constants *restrict values, u32 index);
-
-struct Context;
-void print_constants(String *restrict string,
-                     Constants const *restrict values,
-                     struct Context *restrict context);
+Value const *constants_nil(Constants *restrict constants);
+Value const *constants_true(Constants *restrict constants);
+Value const *constants_false(Constants *restrict constants);
+Value const *constants_u8(Constants *restrict constants, u8 u8_);
+Value const *constants_u16(Constants *restrict constants, u16 u16_);
+Value const *constants_u32(Constants *restrict constants, u32 u32_);
+Value const *constants_u64(Constants *restrict constants, u64 u64_);
+Value const *constants_i8(Constants *restrict constants, i8 i8_);
+Value const *constants_i16(Constants *restrict constants, i16 i16_);
+Value const *constants_i32(Constants *restrict constants, i32 i32_);
+Value const *constants_i64(Constants *restrict constants, i64 i64_);
+Value const *constants_tuple(Constants *restrict constants, Value *tuple);
+Value const *constants_function(Constants *restrict constants, Value *function);
 
 #endif // !EXP_IMR_CONSTANTS_H

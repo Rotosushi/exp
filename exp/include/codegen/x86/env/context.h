@@ -23,7 +23,7 @@
 typedef struct x86_Context {
     x86_SymbolTable symbols;
     Context        *context;
-    Function       *body;
+    Function const *body;
     x86_Function   *x86_body;
 } x86_Context;
 
@@ -42,17 +42,18 @@ Value const *x86_context_value_at(x86_Context *x86_context, u32 index);
 // StringView x86_context_global_labels_at(x86_Context *x86_context, u32 index);
 
 // context x64 function functions
-void x86_context_enter_function(x86_Context *x86_context, StringView name);
+void x86_context_enter_function(x86_Context *x86_context,
+                                Function const *restrict function);
 void x86_context_leave_function(x86_Context *context);
 
 Local *x86_context_argument_at(x86_Context *x86_context, u8 index);
 
-Function      *x86_context_current_body(x86_Context *x86_context);
-Bytecode      *x86_context_current_bc(x86_Context *x86_context);
-Locals        *x86_context_current_locals(x86_Context *x86_context);
-x86_Function  *x86_context_current_x86_body(x86_Context *x86_context);
-x86_Bytecode  *x86_context_current_x86_bc(x86_Context *x86_context);
-x86_Allocator *x86_context_current_x86_allocator(x86_Context *x86_context);
+Function const *x86_context_current_body(x86_Context *x86_context);
+Bytecode const *x86_context_current_bc(x86_Context *x86_context);
+Locals const   *x86_context_current_locals(x86_Context *x86_context);
+x86_Function   *x86_context_current_x86_body(x86_Context *x86_context);
+x86_Bytecode   *x86_context_current_x86_bc(x86_Context *x86_context);
+x86_Allocator  *x86_context_current_x86_allocator(x86_Context *x86_context);
 
 u64  x86_context_current_offset(x86_Context *x86_context);
 void x86_context_insert(x86_Context    *x86_context,

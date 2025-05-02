@@ -48,6 +48,11 @@ bool tuple_equal(Tuple const *A, Tuple const *B) {
     return true;
 }
 
+bool tuple_index_in_bounds(Tuple const *restrict tuple, u32 index) {
+    exp_assert(tuple != NULL);
+    return index < tuple->size;
+}
+
 static bool tuple_full(Tuple *restrict tuple) {
     return (tuple->size + 1) >= tuple->capacity;
 }
@@ -62,4 +67,10 @@ void tuple_append(Tuple *restrict tuple, Operand element) {
     if (tuple_full(tuple)) { tuple_grow(tuple); }
 
     tuple->elements[tuple->size++] = element;
+}
+
+Operand tuple_at(Tuple const *restrict tuple, u32 index) {
+    exp_assert(tuple != NULL);
+    exp_assert(tuple_index_in_bounds(tuple, index));
+    return tuple->elements[index];
 }

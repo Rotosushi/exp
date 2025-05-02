@@ -34,11 +34,10 @@ i32 ir_codegen(Context *restrict context) {
         Symbol *symbol = symbol_table->elements[index];
         if (symbol == NULL) { continue; }
 
-        if (symbol->kind == SYMBOL_KIND_FUNCTION) {
-            ir_directive_function(symbol->name, &buffer);
-            print_function(&buffer, &symbol->function_body, context);
-            string_append(&buffer, SV("\n"));
-        }
+        ir_directive_function(symbol->name, &buffer);
+        exp_assert(symbol->value->kind == VALUE_KIND_FUNCTION);
+        print_value(&buffer, symbol->value, context);
+        string_append(&buffer, SV("\n"));
     }
 
     StringView ir_path = context_ir_path(context);

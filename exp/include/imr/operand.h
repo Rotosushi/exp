@@ -37,11 +37,10 @@ typedef enum OperandKind : u8 {
     OPERAND_KIND_I64,
 } OperandKind;
 
-struct Local;
 struct Value;
 
 typedef union OperandData {
-    struct Local         *ssa;
+    u32                   ssa;
     struct Value const   *constant;
     ConstantString const *label;
     u8                    nil;
@@ -64,7 +63,7 @@ typedef struct Operand {
 struct Context;
 
 Operand operand(OperandKind kind, OperandData data);
-Operand operand_ssa(struct Local *local);
+Operand operand_ssa(u32 local);
 Operand operand_constant(struct Value const *constant);
 Operand operand_label(ConstantString const *label);
 Operand operand_nil();

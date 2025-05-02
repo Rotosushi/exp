@@ -16,78 +16,149 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
 
 #include "env/constants.h"
-#include "env/context.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
 
+static void constant_list_create(ConstantList *restrict list) {
+    list->size     = 0;
+    list->capacity = 0;
+    list->buffer   = NULL;
+}
+
+static void constant_list_destroy(ConstantList *restrict list) {
+    for (u32 index = 0; index < list->size; ++index) {
+        value_deallocate(list->buffer[index]);
+    }
+
+    deallocate(list->buffer);
+    constant_list_create(list);
+}
+
+static bool constant_list_full(ConstantList const *restrict list) {
+    return (list->size + 1) >= list->capacity;
+}
+
+static void constant_list_grow(ConstantList *restrict list) {
+    Growth_u32 g   = array_growth_u32(list->capacity, sizeof(*list->buffer));
+    list->buffer   = reallocate(list->buffer, g.alloc_size);
+    list->capacity = g.new_capacity;
+}
+
+static Value const *constant_list_append(ConstantList *restrict list,
+                                         Value *value) {
+    for (u32 index = 0; index < list->size; index++) {
+        Value *existing = list->buffer[index];
+        if (value_equal(existing, value)) {
+            value_deallocate(value);
+            return existing;
+        }
+    }
+
+    if (constant_list_full(list)) { constant_list_grow(list); }
+
+    list->buffer[list->size++] = value;
+    return value;
+}
+
 void constants_create(Constants *restrict constants) {
     exp_assert(constants != NULL);
-    constants->count    = 0;
-    constants->capacity = 0;
-    constants->buffer   = NULL;
+    constants->nil    = value_allocate_nil();
+    constants->true_  = value_allocate_bool(true);
+    constants->false_ = value_allocate_bool(false);
+    constant_list_create(&constants->u8_list);
+    constant_list_create(&constants->u16_list);
+    constant_list_create(&constants->u32_list);
+    constant_list_create(&constants->u64_list);
+    constant_list_create(&constants->i8_list);
+    constant_list_create(&constants->i16_list);
+    constant_list_create(&constants->i32_list);
+    constant_list_create(&constants->i64_list);
+    constant_list_create(&constants->tuple_list);
+    constant_list_create(&constants->function_list);
 }
 
 void constants_destroy(Constants *restrict constants) {
     exp_assert(constants != NULL);
-
-    for (u64 i = 0; i < constants->count; ++i) {
-        value_deallocate(constants->buffer[i]);
-    }
-
-    deallocate(constants->buffer);
-    constants_create(constants);
+    value_deallocate(constants->nil);
+    value_deallocate(constants->true_);
+    value_deallocate(constants->false_);
+    constant_list_destroy(&constants->u8_list);
+    constant_list_destroy(&constants->u16_list);
+    constant_list_destroy(&constants->u32_list);
+    constant_list_destroy(&constants->u64_list);
+    constant_list_destroy(&constants->i8_list);
+    constant_list_destroy(&constants->i16_list);
+    constant_list_destroy(&constants->i32_list);
+    constant_list_destroy(&constants->i64_list);
+    constant_list_destroy(&constants->tuple_list);
+    constant_list_destroy(&constants->function_list);
 }
 
-static bool constants_full(Constants *restrict constants) {
+Value const *constants_nil(Constants *restrict constants) {
     exp_assert(constants != NULL);
-    return (constants->count + 1) >= constants->capacity;
+    return constants->nil;
 }
 
-static void constants_grow(Constants *restrict constants) {
+Value const *constants_true(Constants *restrict constants) {
     exp_assert(constants != NULL);
-    Growth_u32 g        = array_growth_u32(constants->capacity, sizeof(Value));
-    constants->buffer   = reallocate(constants->buffer, g.alloc_size);
-    constants->capacity = g.new_capacity;
+    return constants->true_;
 }
 
-Operand constants_append(Constants *restrict constants, Value *value) {
+Value const *constants_false(Constants *restrict constants) {
     exp_assert(constants != NULL);
-
-    // search for an existing constant of the same value,
-    // so we don't allocate a ton of redundant Constants.
-    for (u32 i = 0; i < constants->count; ++i) {
-        Value *existing = constants->buffer[i];
-        if (value_equal(existing, value)) {
-            value_deallocate(value);
-            return operand_constant(existing);
-        }
-    }
-
-    if (constants_full(constants)) { constants_grow(constants); }
-
-    constants->buffer[constants->count++] = value;
-
-    return operand_constant(value);
+    return constants->false_;
 }
 
-Value const *constants_at(Constants *restrict constants, u32 index) {
+Value const *constants_u8(Constants *restrict constants, u8 u8_) {
     exp_assert(constants != NULL);
-    exp_assert(index < constants->count);
-    return constants->buffer[index];
+    return constant_list_append(&constants->u8_list, value_allocate_u8(u8_));
 }
 
-void print_constants(String *restrict string,
-                     Constants const *restrict constants,
-                     Context *restrict context) {
-    for (u16 i = 0; i < constants->count; ++i) {
-        string_append_u64(string, i);
-        string_append(string, SV(": "));
-        string_append(string, SV("["));
-        print_value(string, constants->buffer[i], context);
-        string_append(string, SV("]\n"));
-    }
+Value const *constants_u16(Constants *restrict constants, u16 u16_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->u16_list, value_allocate_u16(u16_));
+}
+
+Value const *constants_u32(Constants *restrict constants, u32 u32_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->u32_list, value_allocate_u32(u32_));
+}
+
+Value const *constants_u64(Constants *restrict constants, u64 u64_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->u64_list, value_allocate_u64(u64_));
+}
+
+Value const *constants_i8(Constants *restrict constants, i8 i8_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->i8_list, value_allocate_i8(i8_));
+}
+
+Value const *constants_i16(Constants *restrict constants, i16 i16_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->i16_list, value_allocate_i16(i16_));
+}
+
+Value const *constants_i32(Constants *restrict constants, i32 i32_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->i32_list, value_allocate_i32(i32_));
+}
+
+Value const *constants_i64(Constants *restrict constants, i64 i64_) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->i64_list, value_allocate_i64(i64_));
+}
+
+Value const *constants_tuple(Constants *restrict constants, Value *tuple) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->tuple_list, tuple);
+}
+
+Value const *constants_function(Constants *restrict constants,
+                                Value *function) {
+    exp_assert(constants != NULL);
+    return constant_list_append(&constants->u8_list, function);
 }

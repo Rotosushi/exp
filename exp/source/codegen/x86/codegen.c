@@ -45,7 +45,7 @@
  */
 
 static void x86_codegen_bytecode(x86_Context *x86_context) {
-    Bytecode *bc = x86_context_current_bc(x86_context);
+    Bytecode const *bc = x86_context_current_bc(x86_context);
     for (u32 idx = 0; idx < bc->length; ++idx) {
         Instruction I = bc->buffer[idx];
 
@@ -129,22 +129,11 @@ static void x86_codegen_function(x86_Context *x86_context) {
 }
 
 void x86_codegen_symbol(Symbol *symbol, x86_Context *x86_context) {
-    StringView name = symbol->name;
-
-    switch (symbol->kind) {
-    case SYMBOL_KIND_UNDEFINED: {
-        break;
-    }
-
-    case SYMBOL_KIND_FUNCTION: {
-        x86_context_enter_function(x86_context, name);
-        x86_codegen_function(x86_context);
-        x86_context_leave_function(x86_context);
-        break;
-    }
-
-    default: EXP_UNREACHABLE();
-    }
+    assert(symbol->value->kind == VALUE_KIND_FUNCTION);
+    Function const *function = &symbol->value->function;
+    x86_context_enter_function(x86_context, function);
+    x86_codegen_function(x86_context);
+    x86_context_leave_function(x86_context);
 }
 
 i32 x86_codegen(Context *context) {

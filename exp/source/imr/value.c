@@ -19,6 +19,7 @@
 
 #include "imr/value.h"
 #include "env/context.h"
+#include "imr/operand.h"
 #include "support/allocation.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
@@ -53,7 +54,7 @@ Value *value_allocate_nil() {
     return value;
 }
 
-Value *value_allocate_boolean(bool b) {
+Value *value_allocate_bool(bool b) {
     Value *value   = value_allocate();
     value->kind    = VALUE_KIND_BOOLEAN;
     value->boolean = b;
@@ -214,6 +215,259 @@ u64 value_as_index(const Value *v) {
     default: EXP_UNREACHABLE();
     }
 }
+
+bool value_sub(Value const **restrict result,
+               Value const *restrict A,
+               Value const *restrict B,
+               struct Context *restrict context) {
+    exp_assert_debug(result != NULL);
+    exp_assert_debug(A != NULL);
+    exp_assert_debug(B != NULL);
+    exp_assert_debug(context != NULL);
+
+    // #TODO: Integer Promotion rules
+    exp_assert_always(A->kind == B->kind);
+
+    switch (A->kind) {
+    case VALUE_KIND_U8: {
+        u8 u8_;
+        if (__builtin_sub_overflow(A->u8_, B->u8_, &u8_)) {
+            return context_failure_unsigned_overflow(
+                context, SV("-"), context_u8_type(context), A->u8_, B->u8_);
+        }
+        *result = context_constant_u8(context, u8_);
+        break;
+    }
+
+    case VALUE_KIND_U16: {
+        u16 u16_;
+        if (__builtin_sub_overflow(A->u16_, B->u16_, &u16_)) {
+            return context_failure_unsigned_overflow(
+                context, SV("-"), context_u16_type(context), A->u16_, B->u16_);
+        }
+        *result = context_constant_u16(context, u16_);
+        break;
+    }
+
+    case VALUE_KIND_U32: {
+        u32 u32_;
+        if (__builtin_sub_overflow(A->u32_, B->u32_, &u32_)) {
+            return context_failure_unsigned_overflow(
+                context, SV("-"), context_u32_type(context), A->u32_, B->u32_);
+        }
+        *result = context_constant_u32(context, u32_);
+        break;
+    }
+
+    case VALUE_KIND_U64: {
+        u64 u64_;
+        if (__builtin_sub_overflow(A->u64_, B->u64_, &u64_)) {
+            return context_failure_unsigned_overflow(
+                context, SV("-"), context_u64_type(context), A->u64_, B->u64_);
+        }
+        *result = context_constant_u64(context, u64_);
+        break;
+    }
+
+    case VALUE_KIND_I8: {
+        i8 i8_;
+        if (__builtin_sub_overflow(A->i8_, B->i8_, &i8_)) {
+            return context_failure_signed_overflow(
+                context, SV("-"), context_i8_type(context), A->i8_, B->i8_);
+        }
+        *result = context_constant_i8(context, i8_);
+        break;
+    }
+
+    case VALUE_KIND_I16: {
+        i16 i16_;
+        if (__builtin_sub_overflow(A->i16_, B->i16_, &i16_)) {
+            return context_failure_signed_overflow(
+                context, SV("-"), context_i16_type(context), A->i16_, B->i16_);
+        }
+        *result = context_constant_i16(context, i16_);
+        break;
+    }
+
+    case VALUE_KIND_I32: {
+        i32 i32_;
+        if (__builtin_sub_overflow(A->i32_, B->i32_, &i32_)) {
+            return context_failure_signed_overflow(
+                context, SV("-"), context_i32_type(context), A->i32_, B->i32_);
+        }
+        *result = context_constant_i32(context, i32_);
+        break;
+    }
+
+    case VALUE_KIND_I64: {
+        i64 i64_;
+        if (__builtin_sub_overflow(A->i64_, B->i64_, &i64_)) {
+            return context_failure_signed_overflow(
+                context, SV("-"), context_i64_type(context), A->i64_, B->i64_);
+        }
+        *result = context_constant_i64(context, i64_);
+        break;
+    }
+
+    // we don't support subtraction for other types
+    default:
+        return context_failure_unsupported_operand_value(context, SV("-"), A);
+    }
+
+    return true;
+}
+
+bool value_sub_operand(Value const **restrict result,
+                       Value const *restrict A,
+                       Operand B,
+                       struct Context *restrict context) {
+    exp_assert_debug(result != NULL);
+    exp_assert_debug(A != NULL);
+    exp_assert_debug(context != NULL);
+
+    // #TODO: Integer Promotion rules
+
+    switch (A->kind) {
+    case VALUE_KIND_U8: {
+        exp_assert_always(B.kind == OPERAND_KIND_U8);
+        u8 u8_;
+        if (__builtin_sub_overflow(A->u8_, B.data.u8_, &u8_)) {
+            return context_failure_unsigned_overflow(
+                context, SV("-"), context_u8_type(context), A->u8_, B.data.u8_);
+        }
+        *result = context_constant_u8(context, u8_);
+        break;
+    }
+
+    case VALUE_KIND_U16: {
+        exp_assert_always(B.kind == OPERAND_KIND_U16);
+        u16 u16_;
+        if (__builtin_sub_overflow(A->u16_, B.data.u16_, &u16_)) {
+            return context_failure_unsigned_overflow(context,
+                                                     SV("-"),
+                                                     context_u16_type(context),
+                                                     A->u16_,
+                                                     B.data.u16_);
+        }
+        *result = context_constant_u16(context, u16_);
+        break;
+    }
+
+    case VALUE_KIND_U32: {
+        exp_assert_always(B.kind == OPERAND_KIND_U32);
+        u32 u32_;
+        if (__builtin_sub_overflow(A->u32_, B.data.u32_, &u32_)) {
+            return context_failure_unsigned_overflow(context,
+                                                     SV("-"),
+                                                     context_u32_type(context),
+                                                     A->u32_,
+                                                     B.data.u32_);
+        }
+        *result = context_constant_u32(context, u32_);
+        break;
+    }
+
+    case VALUE_KIND_U64: {
+        exp_assert_always(B.kind == OPERAND_KIND_U64);
+        u64 u64_;
+        if (__builtin_sub_overflow(A->u64_, B.data.u64_, &u64_)) {
+            return context_failure_unsigned_overflow(context,
+                                                     SV("-"),
+                                                     context_u64_type(context),
+                                                     A->u64_,
+                                                     B.data.u64_);
+        }
+        *result = context_constant_u64(context, u64_);
+        break;
+    }
+
+    case VALUE_KIND_I8: {
+        exp_assert_always(B.kind == OPERAND_KIND_I8);
+        i8 i8_;
+        if (__builtin_sub_overflow(A->i8_, B.data.i8_, &i8_)) {
+            return context_failure_signed_overflow(
+                context, SV("-"), context_i8_type(context), A->i8_, B.data.i8_);
+        }
+        *result = context_constant_i8(context, i8_);
+        break;
+    }
+
+    case VALUE_KIND_I16: {
+        exp_assert_always(B.kind == OPERAND_KIND_I16);
+        i16 i16_;
+        if (__builtin_sub_overflow(A->i16_, B.data.i16_, &i16_)) {
+            return context_failure_signed_overflow(context,
+                                                   SV("-"),
+                                                   context_i16_type(context),
+                                                   A->i16_,
+                                                   B.data.i16_);
+        }
+        *result = context_constant_i16(context, i16_);
+        break;
+    }
+
+    case VALUE_KIND_I32: {
+        exp_assert_always(B.kind == OPERAND_KIND_I32);
+        i32 i32_;
+        if (__builtin_sub_overflow(A->i32_, B.data.i32_, &i32_)) {
+            return context_failure_signed_overflow(context,
+                                                   SV("-"),
+                                                   context_i32_type(context),
+                                                   A->i32_,
+                                                   B.data.i32_);
+        }
+        *result = context_constant_i32(context, i32_);
+        break;
+    }
+
+    case VALUE_KIND_I64: {
+        exp_assert_always(B.kind == OPERAND_KIND_I64);
+        i64 i64_;
+        if (__builtin_sub_overflow(A->i64_, B.data.i64_, &i64_)) {
+            return context_failure_signed_overflow(context,
+                                                   SV("-"),
+                                                   context_i64_type(context),
+                                                   A->i64_,
+                                                   B.data.i64_);
+        }
+        *result = context_constant_i64(context, i64_);
+        break;
+    }
+
+    // we don't support addition for other types
+    default:
+        return context_failure_unsupported_operand_value(context, SV("-"), A);
+    }
+
+    return true;
+}
+
+bool value_mul(Value const **restrict result,
+               Value const *restrict A,
+               Value const *restrict B,
+               struct Context *restrict context);
+bool value_mul_operand(Value const **restrict result,
+                       Value const *restrict A,
+                       Operand B,
+                       struct Context *restrict context);
+
+bool value_div(Value const **restrict result,
+               Value const *restrict A,
+               Value const *restrict B,
+               struct Context *restrict context);
+bool value_div_operand(Value const **restrict result,
+                       Value const *restrict A,
+                       Operand B,
+                       struct Context *restrict context);
+
+bool value_mod(Value const **restrict result,
+               Value const *restrict A,
+               Value const *restrict B,
+               struct Context *restrict context);
+bool value_div_operand(Value const **restrict result,
+                       Value const *restrict A,
+                       Operand B,
+                       struct Context *restrict context);
 
 static void print_tuple(String *restrict string,
                         Tuple const *restrict tuple,

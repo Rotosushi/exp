@@ -40,10 +40,10 @@ void lexer_reset(Lexer *restrict lexer) {
     lexer_init(lexer);
 }
 
-void lexer_set_view(Lexer *restrict lexer, char const *buffer, u64 length) {
+void lexer_set_view(Lexer *restrict lexer, StringView view) {
     assert(lexer != NULL);
-    lexer->buffer = lexer->cursor = lexer->token = buffer;
-    lexer->length                                = length;
+    lexer->buffer = lexer->cursor = lexer->token = view.ptr;
+    lexer->length                                = view.length;
 }
 
 bool lexer_at_end(Lexer *restrict lexer) {

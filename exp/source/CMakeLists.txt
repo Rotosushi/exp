@@ -53,8 +53,19 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/type_interner.c
   ${EXP_SOURCE_DIR}/env/constants.c
 
-  ${EXP_SOURCE_DIR}/scanning/lexer.c
-  ${EXP_SOURCE_DIR}/scanning/parser.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/add.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/call.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/div.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/dot.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/fn.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/let.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/mod.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/mul.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/neg.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/ret.c
+  ${EXP_SOURCE_DIR}/evaluate/instruction/sub.c
+  ${EXP_SOURCE_DIR}/evaluate/utility/common.c
+  ${EXP_SOURCE_DIR}/evaluate/top.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
   ${EXP_SOURCE_DIR}/imr/function.c
@@ -69,6 +80,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/intrinsics/align_of.c
   ${EXP_SOURCE_DIR}/intrinsics/size_of.c
   ${EXP_SOURCE_DIR}/intrinsics/type_of.c
+
+  ${EXP_SOURCE_DIR}/scanning/lexer.c
+  ${EXP_SOURCE_DIR}/scanning/parser.c
 )
 
 add_library(exp_common

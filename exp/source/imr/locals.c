@@ -32,11 +32,6 @@ void locals_create(Locals *restrict locals) {
 
 void locals_destroy(Locals *restrict locals) {
     exp_assert(locals != NULL);
-
-    for (u32 index = 0; index < locals->size; index++) {
-        local_deallocate(locals->buffer[index]);
-    }
-
     deallocate(locals->buffer);
     locals_create(locals);
 }
@@ -46,29 +41,28 @@ static bool locals_full(Locals const *restrict locals) {
 }
 
 static void locals_grow(Locals *restrict locals) {
-    Growth_u32 g     = array_growth_u32(locals->capacity, sizeof(Local *));
+    Growth_u32 g = array_growth_u32(locals->capacity, sizeof(*locals->buffer));
     locals->buffer   = reallocate(locals->buffer, g.alloc_size);
     locals->capacity = g.new_capacity;
 }
 
-Local *locals_declare(Locals *restrict locals) {
+u32 locals_declare(Locals *restrict locals) {
     if (locals_full(locals)) { locals_grow(locals); }
-    Local **local = locals->buffer + locals->size;
-    *local        = local_allocate(locals->size);
-    locals->size += 1;
-    return *local;
+    Local *local = locals->buffer + locals->size;
+    local_create(local, locals->size++);
+    return local->ssa;
 }
 
-Local *locals_lookup(Locals *restrict locals, u32 ssa) {
+Local *locals_lookup(Locals const *restrict locals, u32 ssa) {
     exp_assert(locals != NULL);
     exp_assert(ssa < locals->size);
-    return locals->buffer[ssa];
+    return locals->buffer + ssa;
 }
 
-Local *locals_lookup_name(Locals *restrict locals, StringView name) {
-    for (u32 i = 0; i < locals->size; ++i) {
-        if (string_view_equal(locals->buffer[i]->name, name)) {
-            return locals->buffer[i];
+Local *locals_lookup_name(Locals const *restrict locals, StringView name) {
+    for (u32 index = 0; index < locals->size; ++index) {
+        if (string_view_equal(locals->buffer[index].name, name)) {
+            return locals->buffer + index;
         }
     }
     return NULL;

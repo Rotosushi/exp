@@ -60,10 +60,9 @@
  */
 
 /**
- * @brief Iterates through each defined function in the given
- * context, and fills in the type information for the function
- * and each SSA local.
+ * @brief fills in the type information for the given function,
+ * and all its locals.
  */
-i32 infer_types(Context *restrict context);
+bool infer_types(Function *restrict function, Context *restrict context);
 
 #endif // !EXP_ANALYSIS_INFER_TYPES_H

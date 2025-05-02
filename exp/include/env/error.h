@@ -44,13 +44,18 @@ typedef enum ErrorCode : u8 {
     ERROR_PARSER_EXPECTED_STATEMENT,
     ERROR_PARSER_EXPECTED_IDENTIFIER,
     ERROR_PARSER_EXPECTED_TYPE,
+    ERROR_PARSER_EXPECTED_TOP_LEVEL_DECLARATION,
 
     ERROR_PARSER_UNEXPECTED_TOKEN,
 
     ERROR_ANALYSIS_UNDEFINED_SYMBOL,
+    ERROR_ANALYSIS_UNSUPPORTED_OPERAND,
     ERROR_ANALYSIS_TYPE_MISMATCH,
-    ERROR_ANALYSIS_TUPLE_INDEX_NOT_IMMEDIATE,
-    ERROR_ANALYSIS_TUPLE_INDEX_OUT_OF_BOUNDS,
+    ERROR_ANALYSIS_OPERAND_IS_NOT_AN_INDEX,
+    ERROR_ANALYSIS_INDEX_OUT_OF_BOUNDS,
+
+    ERROR_EVALUATION_UNSIGNED_OVERFLOW,
+    ERROR_EVALUATION_SIGNED_OVERFLOW,
 } ErrorCode;
 
 StringView error_code_to_view(ErrorCode code);
@@ -78,6 +83,6 @@ void  error_destroy(Error *restrict error);
 void error_assign(Error *restrict error, ErrorCode code, StringView sv);
 void error_assign_string(Error *restrict error, ErrorCode code, String str);
 
-void error_print(Error *restrict error, StringView file, u64 line);
+void error_print(Error const *restrict error, StringView file, u64 line);
 
 #endif // !EXP_ENV_ERROR_H

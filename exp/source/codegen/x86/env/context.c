@@ -41,46 +41,47 @@ x86_Symbol *x86_context_symbol(x86_Context *x64_context, StringView name) {
     return x86_symbol_table_at(&x64_context->symbols, name);
 }
 
-Value const *x86_context_value_at(x86_Context *context, u32 index) {
-    assert(context != nullptr);
-    return context_constants_at(context->context, index);
-}
+// Value const *x86_context_value_at(x86_Context *context, u32 index) {
+//     assert(context != nullptr);
+//     return context_constants_at(context->context, index);
+// }
 
 // StringView x86_context_global_labels_at(x86_Context *x64_context, u32 idx) {
 //     assert(x64_context != nullptr);
 //     return context_labels_at(x64_context->context, idx);
 // }
 
-void x86_context_enter_function(x86_Context *x64_context, StringView name) {
+void x86_context_enter_function(x86_Context *x64_context,
+                                Function const *restrict function) {
     assert(x64_context != nullptr);
-    x64_context->body     = context_enter_function(x64_context->context, name);
-    x86_Symbol *symbol    = x86_symbol_table_at(&x64_context->symbols, name);
+    x64_context->body = function;
+    x86_Symbol *symbol =
+        x86_symbol_table_at(&x64_context->symbols, function->name);
     x64_context->x86_body = &symbol->body;
     x86_function_create(x64_context->x86_body, x64_context->body);
 }
 
 void x86_context_leave_function(x86_Context *x64_context) {
     assert(x64_context != nullptr);
-    context_leave_function(x64_context->context);
     x64_context->body     = nullptr;
     x64_context->x86_body = nullptr;
 }
 
 Local *x86_context_argument_at(x86_Context *x64_context, u8 index) {
     assert(x64_context != nullptr);
-    return context_lookup_argument(x64_context->context, index);
+    return function_lookup_argument(x64_context->body, index);
 }
 
-Function *x86_context_current_body(x86_Context *x64_context) {
+Function const *x86_context_current_body(x86_Context *x64_context) {
     assert(x64_context->body != nullptr);
     return x64_context->body;
 }
 
-Bytecode *x86_context_current_bc(x86_Context *x64_context) {
-    return &x86_context_current_body(x64_context)->bc;
+Bytecode const *x86_context_current_bc(x86_Context *x64_context) {
+    return &x86_context_current_body(x64_context)->body;
 }
 
-Locals *x86_context_current_locals(x86_Context *x64_context) {
+Locals const *x86_context_current_locals(x86_Context *x64_context) {
     return &x86_context_current_body(x64_context)->locals;
 }
 

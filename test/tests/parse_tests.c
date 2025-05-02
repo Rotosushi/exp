@@ -17,7 +17,6 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdlib.h>
-#include <string.h>
 
 #include "scanning/parser.h"
 #include "support/io.h"
@@ -28,7 +27,7 @@ i32 test_parse(StringView path, StringView contents) {
     Context        context;
     context_create(&context, &options, path);
 
-    i32 result = parse_buffer(contents.ptr, contents.length, &context);
+    i32 result = parse_string_view(contents, &context);
 
     context_destroy(&context);
 

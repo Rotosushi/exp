@@ -44,7 +44,7 @@ x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 idx) {
 }
 
 void x86_function_create(x86_Function *restrict x86_body,
-                         Function *restrict body) {
+                         Function const *restrict body) {
     assert(x86_body != NULL);
     assert(body != NULL);
     x86_body->arguments = x86_formal_argument_list_create(body->arguments.size);

@@ -17,7 +17,6 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
-#include <string.h>
 
 #include "scanning/lexer.h"
 #include "scanning/token.h"
@@ -26,7 +25,7 @@
 static bool test_lexer_scans_token(const char *buffer, Token token) {
     Lexer lexer;
     lexer_init(&lexer);
-    lexer_set_view(&lexer, buffer, strlen(buffer));
+    lexer_set_view(&lexer, string_view_from_cstring(buffer));
 
     Token scanned = lexer_scan(&lexer);
     if (scanned != token) {

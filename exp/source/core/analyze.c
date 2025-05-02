@@ -17,11 +17,9 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-
+#include "core/analyze.h"
 #include "analysis/infer_lifetimes.h"
 #include "analysis/infer_types.h"
-#include "core/analyze.h"
 
 i32 analyze(Context *restrict context) {
     if (infer_types(context) != EXIT_SUCCESS) { return EXIT_FAILURE; }

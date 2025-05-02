@@ -18,14 +18,13 @@
 #ifndef EXP_ANALYSIS_INFER_LIFETIMES_H
 #define EXP_ANALYSIS_INFER_LIFETIMES_H
 
-#include "env/context.h"
+#include "imr/function.h"
 
 /**
- * @brief iterates through each defined function within
- * the given context and fills in the lifetime information
- * of the SSA locals. That is, the instruction when the SSA
- * is defined, and the last instruction which it is used.
+ * @brief fills in the lifetime information of the SSA locals.
+ * That is, the instruction when the SSA is defined, and the
+ * last instruction which it is used.
  */
-i32 infer_lifetimes(Context *restrict context);
+bool infer_lifetimes(Function *restrict function);
 
 #endif // !EXP_ANALYSIS_INFER_LIFETIMES_H

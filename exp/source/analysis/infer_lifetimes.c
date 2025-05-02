@@ -18,8 +18,8 @@
  */
 
 #include "analysis/infer_lifetimes.h"
-#include "env/symbol_table.h"
 #include "imr/instruction.h"
+#include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
@@ -79,18 +79,19 @@ static void infer_lifetime_ABC(Instruction I, u32 block_index) {
     infer_lifetime_operand(I.C_kind, I.C_data, block_index);
 }
 
-static void infer_lifetime_function(Function *restrict body) {
-    for (u8 i = 0; i < body->arguments.size; ++i) {
-        Local *arg          = body->arguments.list[i];
+bool infer_lifetimes(Function *restrict function) {
+    exp_assert(function != NULL);
+    Bytecode *body = &function->body;
+
+    for (u8 i = 0; i < function->arguments.size; ++i) {
+        Local *arg          = function->arguments.list[i];
         arg->lifetime.start = 0;
-        arg->lifetime.end   = u32_MAX;
+        arg->lifetime.end   = body->length;
     }
 
-    Bytecode *bc = &body->bc;
-
-    for (u32 i = bc->length; i > 0; --i) {
+    for (u32 i = body->length; i > 0; --i) {
         u32         block_index = i - 1;
-        Instruction I           = bc->buffer[block_index];
+        Instruction I           = body->buffer[block_index];
         switch (I.opcode) {
         case OPCODE_RET: {
             infer_lifetime_B(I, block_index);
@@ -144,24 +145,5 @@ static void infer_lifetime_function(Function *restrict body) {
         default: EXP_UNREACHABLE();
         }
     }
-}
-
-static void infer_lifetime_global(Symbol *restrict element,
-                                  Context *restrict context) {
-    if (element->kind == SYMBOL_KIND_FUNCTION) {
-        Function *body = context_enter_function(context, element->name);
-        infer_lifetime_function(body);
-        context_leave_function(context);
-    }
-}
-
-i32 infer_lifetimes(Context *restrict context) {
-    exp_assert(context != NULL);
-    SymbolTable *table = &context->global_symbol_table;
-    for (u64 index = 0; index < table->capacity; ++index) {
-        Symbol *element = table->elements[index];
-        if (element == NULL) { continue; }
-        infer_lifetime_global(element, context);
-    }
-    return 0;
+    return true;
 }

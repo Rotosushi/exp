@@ -67,7 +67,7 @@ Value *value_allocate();
 void   value_deallocate(Value *restrict value);
 
 Value *value_allocate_nil();
-Value *value_allocate_boolean(bool b);
+Value *value_allocate_bool(bool b);
 Value *value_allocate_u8(u8 u);
 Value *value_allocate_u16(u16 u);
 Value *value_allocate_u32(u32 u);
