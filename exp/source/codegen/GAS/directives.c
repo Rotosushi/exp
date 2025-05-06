@@ -116,7 +116,7 @@ void gas_directive_quad(i64 value, String *restrict str) {
     string_append(str, SV("\n"));
 }
 
-void gas_directive_byte(unsigned char value, String *restrict str) {
+void gas_directive_byte_u8(unsigned char value, String *restrict str) {
     string_append(str, SV("\t.byte "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));

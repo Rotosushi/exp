@@ -19,13 +19,12 @@
 #include <assert.h>
 
 #include "codegen/x86/intrinsics/get_element_address.h"
-#include "intrinsics/size_of.h"
+#include "codegen/x86/intrinsics/size_of.h"
 #include "support/unreachable.h"
 
-x86_Address
-x86_get_element_address(x86_Address *src, Type const *type, u64 index) {
-
-    x86_Address result = *src;
+x86_Location
+x86_get_element_address(x86_Location *src, Type const *type, u64 index) {
+    x86_Location result = *src;
 
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
@@ -34,7 +33,7 @@ x86_get_element_address(x86_Address *src, Type const *type, u64 index) {
 
         for (u64 i = 0; i < index; ++i) {
             Type const *element_type = tuple->types[i];
-            u64         element_size = size_of(element_type);
+            u64         element_size = x86_size_of(element_type);
             assert(element_size <= i64_MAX);
             i64 offset = (i64)element_size;
 

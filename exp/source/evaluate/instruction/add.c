@@ -18,7 +18,6 @@
  */
 
 #include "evaluate/instruction/add.h"
-#include "env/context.h"
 #include "evaluate/utility/common.h"
 #include "support/assert.h"
 #include "support/constant_string.h"

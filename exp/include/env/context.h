@@ -33,11 +33,6 @@
 typedef struct Context {
     ContextOptions options;
     String         source_path;
-    String         ir_path;
-    String         assembly_path;
-    String         object_path;
-    String         executable_path;
-    String         library_path;
     StringInterner string_interner;
     TypeInterner   type_interner;
     SymbolTable    global_symbol_table;
@@ -45,7 +40,6 @@ typedef struct Context {
     Stack          stack;
     Frames         frames;
     Error          current_error;
-    // Function      *current_function;
 } Context;
 
 /**
@@ -57,33 +51,29 @@ typedef struct Context {
  * @return Context
  */
 void context_create(Context *restrict context,
-                    ContextOptions *restrict options,
-                    StringView source_path);
+                    ContextOptions *restrict options);
 void context_destroy(Context *restrict context);
 
 // context options functions
-bool context_shall_prolix(Context const *context);
-bool context_shall_create_ir_artifact(Context const *restrict context);
+bool context_shall_prolix(Context const *restrict context);
 bool context_shall_create_assembly_artifact(Context const *restrict context);
 bool context_shall_create_object_artifact(Context const *restrict context);
 bool context_shall_create_executable_artifact(Context const *restrict context);
-bool context_shall_cleanup_ir_artifact(Context const *restrict context);
 bool context_shall_cleanup_assembly_artifact(Context const *restrict context);
 bool context_shall_cleanup_object_artifact(Context const *restrict context);
 
-void context_create_ir_artifact(Context *restrict context);
-void context_create_assembly_artifact(Context *restrict context);
-void context_create_object_artifact(Context *restrict context);
-void context_create_executable_artifact(Context *restrict context);
-void context_cleanup_ir_artifact(Context *restrict context);
+void context_print_compile_actions(Context const *restrict context);
+
+// Compilation Helpers
+i32 context_compile_source(Context *restrict context, StringView source);
+// #TODO: i32  context_repl(Context *restrict context);
+i32  context_create_assembly_artifact(Context *restrict context);
+i32  context_create_object_artifact(Context *restrict context);
+i32  context_create_executable_artifact(Context *restrict context);
 void context_cleanup_assembly_artifact(Context *restrict context);
 void context_cleanup_object_artifact(Context *restrict context);
 
 StringView context_source_path(Context const *restrict context);
-StringView context_ir_path(Context const *restrict context);
-StringView context_assembly_path(Context const *restrict context);
-StringView context_object_path(Context const *restrict context);
-StringView context_executable_path(Context const *restrict context);
 
 // Failure functions
 void context_print_error(Context const *restrict context,
@@ -105,8 +95,8 @@ bool context_failure_index_out_of_bounds(Context *restrict context,
                                          u64 bound,
                                          u64 index);
 bool context_failure_mismatch_argument_count(Context *restrict context,
-                                             u8 expected,
-                                             u8 actual);
+                                             u64 expected,
+                                             u64 actual);
 bool context_failure_mismatch_type(Context *restrict context,
                                    Type const *expected,
                                    Type const *actual);
@@ -179,6 +169,26 @@ void   context_frames_push(Context *restrict context, Frame frame);
 Frame *context_frames_top(Context const *restrict context);
 void   context_frames_pop(Context *restrict context);
 
+// symbol table functions
+Symbol *context_global_symbol_lookup(Context *restrict context,
+                                     StringView name);
+
+// Type checking helpers
+Type const *context_type_of_value(Context *restrict context,
+                                  Function const *restrict function,
+                                  Value const *restrict value);
+
+Type const *context_type_of_function(Context *restrict context,
+                                     Function const *restrict function);
+
+Type const *context_type_of_tuple(Context *restrict context,
+                                  Function const *restrict function,
+                                  Tuple const *restrict tuple);
+
+Type const *context_type_of_operand(Context *restrict context,
+                                    Function const *restrict function,
+                                    Operand operand);
+
 // Evaluation helpers
 bool context_at_top_level(Context const *restrict context);
 
@@ -210,10 +220,6 @@ void context_push_local_value(Context *restrict context,
 //                             Local *restrict local,
 //                             Value const *value);
 // void context_destroy_frame(Context *restrict context);
-
-// symbol table functions
-Symbol *context_global_symbol_lookup(Context *restrict context,
-                                     StringView name);
 
 // function functions
 // Function *context_enter_function(Context *restrict context, StringView name);

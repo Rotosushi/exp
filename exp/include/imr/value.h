@@ -26,7 +26,7 @@ typedef enum ValueKind {
     VALUE_KIND_UNINITIALIZED,
 
     VALUE_KIND_NIL,
-    VALUE_KIND_BOOLEAN,
+    VALUE_KIND_BOOL,
     VALUE_KIND_U8,
     VALUE_KIND_U16,
     VALUE_KIND_U32,
@@ -49,7 +49,7 @@ typedef struct Value {
     ValueKind kind;
     union {
         bool     nil;
-        bool     boolean;
+        bool     bool_;
         u8       u8_;
         u16      u16_;
         u32      u32_;

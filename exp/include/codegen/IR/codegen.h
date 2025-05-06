@@ -20,6 +20,10 @@
 
 #include "env/context.h"
 
-i32 ir_codegen(Context *restrict context);
+i32 ir_header(String *restrict buffer, Context *restrict context);
+i32 ir_codegen(String *restrict buffer,
+               Symbol const *restrict symbol,
+               Context *restrict context);
+i32 ir_footer(String *restrict buffer, Context *restrict context);
 
 #endif // !EXP_CODEGEN_IR_CODEGEN_H

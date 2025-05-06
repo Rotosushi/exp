@@ -30,7 +30,7 @@ static void x86_emit_symbol(x86_Symbol *restrict sym,
     gas_directive_type(sym->name, STT_FUNC, buffer);
     gas_directive_label(sym->name, buffer);
 
-    x86_bytecode_emit(&sym->body.bc, buffer, context);
+    print_x86_bytecode(&sym->body.bc, buffer, context);
 
     gas_directive_size_label_relative(sym->name, buffer);
     string_append(buffer, SV("\n"));

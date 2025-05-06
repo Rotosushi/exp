@@ -14,15 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_BACKEND_X86_CODEGEN_H
-#define EXP_BACKEND_X86_CODEGEN_H
+#ifndef EXP_CODEGEN_X86_CODEGEN_H
+#define EXP_CODEGEN_X86_CODEGEN_H
 
-#include "codegen/x86/env/context.h"
 #include "env/context.h"
 
-i32 x86_codegen(Context *context);
+i32 x86_header(String *restrict buffer, Context *restrict context);
+i32 x86_codegen(String *restrict buffer,
+                Symbol const *restrict symbol,
+                Context *restrict context);
+i32 x86_footer(String *restrict buffer, Context *restrict context);
 
-void x86_codegen_symbol(Symbol *restrict symbol,
-                        x86_Context *restrict x86_context);
-
-#endif // !EXP_BACKEND_X86_CODEGEN_H
+#endif // !EXP_CODEGEN_X86_CODEGEN_H

@@ -252,6 +252,6 @@ u8 x86_gpr_size(x86_GPR gpr);
  * @param gpr the GPR to get the index of
  * @return the index of the GPR
  */
-u8 x86_gpr_index(x86_GPR gpr);
+u8 x86_gpr_to_index(x86_GPR gpr);
 
 #endif // !EXP_BACKEND_X86_GPR_H

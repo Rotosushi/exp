@@ -34,6 +34,6 @@
  * @param type
  * @return u64
  */
-u64 align_of(Type const *restrict type);
+u64 x86_align_of(Type const *restrict type);
 
 #endif // !EXP_INTRINSICS_ALIGNOF_H

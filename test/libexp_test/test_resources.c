@@ -19,7 +19,7 @@ void test_resources_initialize(TestResources *test_resources) {
     test_resources->count    = 0;
     test_resources->capacity = 0;
     test_resources->buffer   = nullptr;
-    test_resources_gather(test_resources, EXP_TEST_RESOURCES_DIR);
+    test_resources_gather(test_resources, EXP_TEST_RESOURCES_DIR "/return");
 }
 
 void test_resources_terminate(TestResources *test_resources) {

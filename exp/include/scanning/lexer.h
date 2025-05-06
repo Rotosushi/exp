@@ -20,15 +20,15 @@
 #include <stddef.h>
 
 #include "scanning/token.h"
+#include "support/source_location.h"
 #include "support/string_view.h"
 
 typedef struct Lexer {
-    const char *buffer;
-    const char *token;
-    const char *cursor;
-    u64         line;
-    u64         column;
-    u64         length;
+    const char    *buffer;
+    const char    *token;
+    const char    *cursor;
+    u64            length;
+    SourceLocation source_location;
 } Lexer;
 
 /**
@@ -39,7 +39,7 @@ typedef struct Lexer {
 void lexer_init(Lexer *restrict lexer);
 
 /**
- * @brief reset a lexer to is initialized state
+ * @brief reset a lexer to its initialized state
  *
  * @param lexer
  */
@@ -55,6 +55,8 @@ void lexer_reset(Lexer *restrict lexer);
  */
 void lexer_set_view(Lexer *restrict lexer, StringView view);
 
+void lexer_set_file(Lexer *restrict lexer, StringView file);
+
 /**
  * @brief returns true when the <lexer> has scanned all
  * of it's buffer
@@ -68,7 +70,10 @@ bool lexer_at_end(Lexer *restrict lexer);
 StringView lexer_current_text(Lexer const *restrict lexer);
 u64        lexer_current_line(Lexer const *restrict lexer);
 u64        lexer_current_column(Lexer const *restrict lexer);
+void       lexer_current_source_location(Lexer const *restrict lexer,
+                                         SourceLocation *restrict source_location);
 
+/// advance the lexer to the next token
 Token lexer_scan(Lexer *restrict lexer);
 
 #endif // !EXP_FRONTEND_LEXER_H

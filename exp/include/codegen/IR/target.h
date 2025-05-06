@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,10 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CORE_ASSEMBLE_H
-#define EXP_CORE_ASSEMBLE_H
-#include "env/context.h"
 
-i32 assemble(Context *restrict context);
+#ifndef EXP_CODEGEN_IR_TARGET_H
+#define EXP_CODEGEN_IR_TARGET_H
 
-#endif // !EXP_CORE_ASSEMBLE_H
+#include "codegen/target.h"
+
+extern Target *ir_target;
+
+#endif // !EXP_CODEGEN_IR_TARGET_H

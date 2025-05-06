@@ -58,6 +58,7 @@ Local *function_lookup_argument(Function const *restrict function, u8 index);
 Local *function_lookup_local(Function const *restrict function, u32 ssa);
 Local *function_lookup_local_name(Function const *restrict function,
                                   StringView name);
+u32    function_locals_count(Function const *restrict function);
 
 struct Context;
 void print_function(String *restrict string,

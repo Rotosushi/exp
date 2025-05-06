@@ -16,16 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
 
 #include "analysis/infer_types.h"
 #include "env/context.h"
-#include "env/error.h"
 #include "imr/type.h"
 #include "intrinsics/type_of.h"
-#include "support/string.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 static bool success(Type const **result, Type const *type) {
@@ -33,102 +31,49 @@ static bool success(Type const **result, Type const *type) {
     return true;
 }
 
-static bool
-failure(Context *restrict context, ErrorCode code, StringView message) {
-    error_assign(context_current_error(context), code, message);
-    return false;
-}
-
-static bool
-failure_string(Context *restrict context, ErrorCode code, String message) {
-    error_assign_string(context_current_error(context), code, message);
-    return false;
-}
-
-static bool failure_type_is_not_callable(Context *restrict context,
-                                         Type const *type) {
-    String buf = string_create();
-    string_append(&buf, SV("Type is not callable ["));
-    print_type(&buf, type);
-    string_append(&buf, SV("]"));
-    return failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
-}
-
-static bool failure_type_is_not_indexable(Context *restrict context,
-                                          Type const *type) {
-    String buf = string_create();
-    string_append(&buf, SV("Type is not indexable ["));
-    print_type(&buf, type);
-    string_append(&buf, SV("]"));
-    return failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
-}
-
-static bool failure_operand_is_not_index(Context *restrict context,
-                                         Operand operand) {
-    String buf = string_create();
-    string_append(&buf, SV("Operand is not an index ["));
-    print_operand(&buf, operand, context);
-    string_append(&buf, SV("]"));
-    return failure_string(context, ERROR_ANALYSIS_OPERAND_IS_NOT_AN_INDEX, buf);
-}
-
-static bool failure_tuple_index_out_of_bounds(Context *restrict context,
-                                              u64 max,
-                                              u64 index) {
-    String buf = string_create();
-    string_append(&buf, SV("Index ["));
-    string_append_u64(&buf, index);
-    string_append(&buf, SV("] out of range [0.."));
-    string_append_u64(&buf, max);
-    string_append(&buf, SV("]"));
-    return failure_string(context, ERROR_ANALYSIS_INDEX_OUT_OF_BOUNDS, buf);
-}
-
-static bool failure_mismatch_argument_count(Context *restrict context,
-                                            u64 expected,
-                                            u64 actual) {
-    String buf = string_create();
-    string_append(&buf, SV("Expected "));
-    string_append_u64(&buf, expected);
-    string_append(&buf, SV(" arguments, have "));
-    string_append_u64(&buf, actual);
-    return failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
-}
-
-static bool failure_mismatch_type(Context *restrict context,
-                                  Type const *expected,
-                                  Type const *actual) {
-    String buf = string_create();
-    string_append(&buf, SV("Expected ["));
-    print_type(&buf, expected);
-    string_append(&buf, SV("] Actual ["));
-    print_type(&buf, actual);
-    string_append(&buf, SV("]"));
-    return failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
-}
-
-static bool infer_types_global(Symbol *restrict element,
-                               Context *restrict context);
-
 static bool infer_types_operand(Type const **result,
+                                Function *restrict function,
                                 Context *restrict context,
                                 OperandKind kind,
                                 OperandData data) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local      *local = data.ssa;
+        Local      *local = function_lookup_local(function, data.ssa);
         Type const *type  = local->type;
-        if (type == NULL) {
-            return failure(
-                context, ERROR_ANALYSIS_UNDEFINED_SYMBOL, local->name);
-        }
-
+        // #NOTE: since we are looking up a local, already defined,
+        // by definition we must have inferred the type of it already.
+        // the let instruction must come before this usage of the name.
+        // therefore if the type is not filled in, this is a bug in
+        // our implementation
+        exp_assert_debug(type != NULL);
         return success(result, type);
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value const *value = data.constant;
-        return success(result, type_of_value(value, context));
+        return success(result, context_type_of_value(context, function, value));
+    }
+
+    case OPERAND_KIND_LABEL: {
+        StringView   label  = constant_string_to_view(data.label);
+        LookupResult lookup = context_lookup_label(context, function, label);
+
+        Type const *type = NULL;
+        switch (lookup.kind) {
+        case LOOKUP_RESULT_NONE:
+            return context_failure_undefined_symbol(context, label);
+        case LOOKUP_RESULT_LOCAL: {
+            type = lookup.local->type;
+            break;
+        }
+        case LOOKUP_RESULT_GLOBAL: {
+            type = lookup.global->type;
+            break;
+        }
+        }
+        exp_assert_debug(type != NULL);
+
+        return success(result, type);
     }
 
     case OPERAND_KIND_U8: {
@@ -163,60 +108,54 @@ static bool infer_types_operand(Type const **result,
         return success(result, context_i64_type(context));
     }
 
-    case OPERAND_KIND_LABEL: {
-        StringView  name   = constant_string_to_view(data.label);
-        Symbol     *global = context_global_symbol_lookup(context, name);
-        Type const *type   = global->type;
-        if (type == NULL) {
-            if (!infer_types_global(global, context)) { return false; }
-            type = global->type;
-        }
-
-        return success(result, type);
-    }
-
     default: EXP_UNREACHABLE();
     }
 }
 
-static bool
-infer_types_let(Type const **result, Context *restrict context, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = I.A_data.ssa;
-    if (!infer_types_operand(&local->type, context, I.B_kind, I.B_data)) {
+static bool infer_types_let(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    exp_assert_debug(I.A_kind == OPERAND_KIND_SSA);
+    Local *local = function_lookup_local(function, I.A_data.ssa);
+    if (!infer_types_operand(
+            &local->type, function, context, I.B_kind, I.B_data)) {
         return false;
     }
     return success(result, local->type);
 }
 
-static bool
-infer_types_ret(Type const **result, Context *restrict context, Instruction I) {
-    return infer_types_operand(result, context, I.B_kind, I.B_data);
+static bool infer_types_ret(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    return infer_types_operand(result, function, context, I.B_kind, I.B_data);
 }
 
 static bool infer_types_call(Type const **result,
+                             Function *restrict function,
                              Context *restrict context,
                              Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = I.A_data.ssa;
+    exp_assert_debug(I.A_kind == OPERAND_KIND_SSA);
+    Local      *local = function_lookup_local(function, I.A_data.ssa);
     Type const *Bty;
-    if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
+    if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
         return false;
     }
 
     if (!type_is_callable(Bty)) {
-        return failure_type_is_not_callable(context, Bty);
+        return context_failure_type_is_not_callable(context, Bty);
     }
 
     FunctionType const *function_type = &Bty->function_type;
     TupleType const    *formal_types  = &function_type->argument_types;
-    assert(I.C_kind == OPERAND_KIND_CONSTANT);
+    exp_assert_debug(I.C_kind == OPERAND_KIND_CONSTANT);
     Value const *value = I.C_data.constant;
-    assert(value->kind == VALUE_KIND_TUPLE);
+    exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
     Tuple const *actual_args = &value->tuple;
 
     if (formal_types->size != actual_args->size) {
-        return failure_mismatch_argument_count(
+        return context_failure_mismatch_argument_count(
             context, formal_types->size, actual_args->size);
     }
 
@@ -225,12 +164,13 @@ static bool infer_types_call(Type const **result,
         Operand     operand     = actual_args->elements[i];
         Type const *actual_type;
         if (!infer_types_operand(
-                &actual_type, context, operand.kind, operand.data)) {
+                &actual_type, function, context, operand.kind, operand.data)) {
             return false;
         }
 
         if (!type_equality(actual_type, formal_type)) {
-            return failure_mismatch_type(context, formal_type, actual_type);
+            return context_failure_mismatch_type(
+                context, formal_type, actual_type);
         }
     }
 
@@ -238,34 +178,32 @@ static bool infer_types_call(Type const **result,
     return success(result, function_type->return_type);
 }
 
-static bool tuple_index_out_of_bounds(u64 index, TupleType const *tuple) {
-    return index >= tuple->size;
-}
-
-static bool
-infer_types_dot(Type const **result, Context *restrict context, Instruction I) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = I.A_data.ssa;
+static bool infer_types_dot(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    exp_assert(I.A_kind == OPERAND_KIND_SSA);
+    Local      *local = function_lookup_local(function, I.A_data.ssa);
     Type const *Bty;
-    if (!infer_types_operand(&Bty, context, I.B_kind, I.B_data)) {
+    if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
         return false;
     }
 
     if (!type_is_indexable(Bty)) {
-        return failure_type_is_not_indexable(context, Bty);
+        return context_failure_type_is_not_indexable(context, Bty);
     }
 
     TupleType const *tuple = &Bty->tuple_type;
     Operand          C     = operand(I.C_kind, I.C_data);
 
     if (!operand_is_index(C)) {
-        return failure_operand_is_not_index(context, C);
+        return context_failure_operand_is_not_an_index(context, C);
     }
 
     u64 index = operand_as_index(C);
-
-    if (tuple_index_out_of_bounds(index, tuple)) {
-        return failure_tuple_index_out_of_bounds(context, tuple->size, index);
+    exp_assert(index < u32_MAX);
+    if (!tuple_type_index_in_bounds(tuple, (u32)index)) {
+        return context_failure_index_out_of_bounds(context, tuple->size, index);
     }
 
     local->type = tuple->types[index];
@@ -273,79 +211,105 @@ infer_types_dot(Type const **result, Context *restrict context, Instruction I) {
 }
 
 static bool infer_types_unop(Type const **result,
-                             Context *restrict c,
+                             Function *restrict function,
+                             Context *restrict context,
                              Instruction I,
                              Type const *result_type,
                              Type const *argument_type) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = I.A_data.ssa;
-    if (!infer_types_operand(&local->type, c, I.B_kind, I.B_data)) {
+    exp_assert(I.A_kind == OPERAND_KIND_SSA);
+    Local *local = function_lookup_local(function, I.A_data.ssa);
+    if (!infer_types_operand(
+            &local->type, function, context, I.B_kind, I.B_data)) {
         return false;
     }
 
     if (!type_equality(argument_type, local->type)) {
-        return failure_mismatch_type(c, argument_type, local->type);
+        return context_failure_mismatch_type(
+            context, argument_type, local->type);
     }
 
     return success(result, result_type);
 }
 
-static bool
-infer_types_neg(Type const **result, Context *restrict c, Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
-    return infer_types_unop(result, c, I, type_i64, type_i64);
+static bool infer_types_neg(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    Type const *type_i64 = context_i64_type(context);
+    return infer_types_unop(result, function, context, I, type_i64, type_i64);
 }
 
 static bool infer_types_binop(Type const **result,
-                              Context *restrict c,
+                              Function *restrict function,
+                              Context *restrict context,
                               Instruction I,
                               Type const *result_type,
                               Type const *lhs_type,
                               Type const *rhs_type) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = I.A_data.ssa;
+    // #TODO: Integer promotion rules
+    exp_assert(I.A_kind == OPERAND_KIND_SSA);
+    Local      *local = function_lookup_local(function, I.A_data.ssa);
     Type const *Bty;
-    if (!infer_types_operand(&Bty, c, I.B_kind, I.B_data)) { return false; }
+    if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
+        return false;
+    }
     if (!type_equality(lhs_type, Bty)) {
-        return failure_mismatch_type(c, lhs_type, Bty);
+        return context_failure_mismatch_type(context, lhs_type, Bty);
     }
     Type const *Cty;
-    if (!infer_types_operand(&Cty, c, I.C_kind, I.C_data)) { return false; }
+    if (!infer_types_operand(&Cty, function, context, I.C_kind, I.C_data)) {
+        return false;
+    }
     if (!type_equality(rhs_type, Cty)) {
-        return failure_mismatch_type(c, rhs_type, Cty);
+        return context_failure_mismatch_type(context, rhs_type, Cty);
     }
     local->type = result_type;
     return success(result, result_type);
 }
 
-static bool
-infer_types_add(Type const **result, Context *restrict c, Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
-    return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
+static bool infer_types_add(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    Type const *type_i64 = context_i64_type(context);
+    return infer_types_binop(
+        result, function, context, I, type_i64, type_i64, type_i64);
 }
 
-static bool
-infer_types_sub(Type const **result, Context *restrict c, Instruction I) {
+static bool infer_types_sub(Type const **result,
+                            Function *restrict function,
+                            Context *restrict c,
+                            Instruction I) {
     Type const *type_i64 = context_i64_type(c);
-    return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
+    return infer_types_binop(
+        result, function, c, I, type_i64, type_i64, type_i64);
 }
 
-static bool
-infer_types_mul(Type const **result, Context *restrict c, Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
-    return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
+static bool infer_types_mul(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    Type const *type_i64 = context_i64_type(context);
+    return infer_types_binop(
+        result, function, context, I, type_i64, type_i64, type_i64);
 }
 
-static bool
-infer_types_div(Type const **result, Context *restrict c, Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
-    return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
+static bool infer_types_div(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    Type const *type_i64 = context_i64_type(context);
+    return infer_types_binop(
+        result, function, context, I, type_i64, type_i64, type_i64);
 }
 
-static bool
-infer_types_mod(Type const **result, Context *restrict c, Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
-    return infer_types_binop(result, c, I, type_i64, type_i64, type_i64);
+static bool infer_types_mod(Type const **result,
+                            Function *restrict function,
+                            Context *restrict context,
+                            Instruction I) {
+    Type const *type_i64 = context_i64_type(context);
+    return infer_types_binop(
+        result, function, context, I, type_i64, type_i64, type_i64);
 }
 
 static bool infer_types_function(Type const **restrict result,
@@ -359,11 +323,11 @@ static bool infer_types_function(Type const **restrict result,
         switch (I.opcode) {
         case OPCODE_RET: {
             Type const *Bty;
-            if (!infer_types_ret(&Bty, context, I)) { return false; }
+            if (!infer_types_ret(&Bty, function, context, I)) { return false; }
 
             if ((function->return_type != NULL) &&
                 (!type_equality(function->return_type, Bty))) {
-                return failure_mismatch_type(
+                return context_failure_mismatch_type(
                     context, function->return_type, Bty);
             }
 
@@ -373,55 +337,55 @@ static bool infer_types_function(Type const **restrict result,
 
         case OPCODE_CALL: {
             Type const *Aty;
-            if (!infer_types_call(&Aty, context, I)) { return false; }
+            if (!infer_types_call(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_LET: {
             Type const *Aty;
-            if (!infer_types_let(&Aty, context, I)) { return false; }
+            if (!infer_types_let(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_DOT: {
             Type const *Aty;
-            if (!infer_types_dot(&Aty, context, I)) { return false; }
+            if (!infer_types_dot(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_NEG: {
             Type const *Aty;
-            if (!infer_types_neg(&Aty, context, I)) { return false; }
+            if (!infer_types_neg(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_ADD: {
             Type const *Aty;
-            if (!infer_types_add(&Aty, context, I)) { return false; }
+            if (!infer_types_add(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_SUB: {
             Type const *Aty;
-            if (!infer_types_sub(&Aty, context, I)) { return false; }
+            if (!infer_types_sub(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_MUL: {
             Type const *Aty;
-            if (!infer_types_mul(&Aty, context, I)) { return false; }
+            if (!infer_types_mul(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_DIV: {
             Type const *Aty;
-            if (!infer_types_div(&Aty, context, I)) { return false; }
+            if (!infer_types_div(&Aty, function, context, I)) { return false; }
             break;
         }
 
         case OPCODE_MOD: {
             Type const *Aty;
-            if (!infer_types_mod(&Aty, context, I)) { return false; }
+            if (!infer_types_mod(&Aty, function, context, I)) { return false; }
             break;
         }
 
@@ -430,17 +394,6 @@ static bool infer_types_function(Type const **restrict result,
     }
 
     return success(result, type_of_function(function, context));
-}
-
-static bool infer_types_global(Symbol *restrict element,
-                               Context *restrict context) {
-    assert(element->value->kind == VALUE_KIND_FUNCTION);
-    Type const *result = NULL;
-    if (!infer_types_function(
-            &result, (Function *)&element->value->function, context)) {
-        return false;
-    }
-    return true;
 }
 
 bool infer_types(Function *restrict function, Context *restrict context) {

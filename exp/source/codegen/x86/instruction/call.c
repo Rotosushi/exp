@@ -111,7 +111,7 @@ void x86_codegen_call(Instruction I,
         Type const *arg_type = type_of_operand(arg, context->context);
 
         if (type_is_scalar(arg_type) && (scalar_argument_count < 6)) {
-            u64 size = size_of(arg_type);
+            u64 size = x86_size_of(arg_type);
             assert(x86_gpr_valid_size(size));
             x86_GPR gpr =
                 x86_gpr_scalar_argument(scalar_argument_count++, size);
@@ -133,7 +133,7 @@ void x86_codegen_call(Instruction I,
     for (u8 i = 0; i < stack_args.size; ++i) {
         Operand     arg      = stack_args.buffer[i];
         Type const *arg_type = type_of_operand(arg, context->context);
-        u64         arg_size = size_of(arg_type);
+        u64         arg_size = x86_size_of(arg_type);
         assert(arg_size <= i64_MAX);
         i64 offset = (i64)(arg_size);
         stack_space += offset;

@@ -63,6 +63,18 @@ void parser_create(Parser *restrict parser, Context *restrict context) {
     parser->curtok = TOK_END;
 }
 
+void parser_set_file(Parser *restrict parser, StringView file) {
+    assert(parser != NULL);
+    lexer_set_file(&parser->lexer, file);
+}
+
+void parser_current_source_location(Parser const *restrict parser,
+                                    SourceLocation *restrict source_location) {
+    assert(parser != NULL);
+    assert(source_location != NULL);
+    lexer_current_source_location(&parser->lexer, source_location);
+}
+
 bool parser_done(Parser const *restrict parser) {
     return parser->curtok == TOK_END;
 }
@@ -575,8 +587,9 @@ static bool parens(Operand *restrict result, Parser *restrict parser) {
         *result = tuple->elements[0];
         value_deallocate(value);
     } else {
-        *result =
-            operand_constant(context_constant_tuple(parser->context, value));
+        PANIC("#TODO: Add support for Tuples");
+        //*result =
+        //    operand_constant(context_constant_tuple(parser->context, value));
     }
 
     return true;

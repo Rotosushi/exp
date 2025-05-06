@@ -48,6 +48,41 @@
           | "()"
 */
 
+/* #TODO: I want to change the language again. (I know):
+
+  top = let
+      | expression ";"
+
+  let = "let" (":" type)? "=" expression ";"
+
+  expression = basic (binop precedece-parser)*
+
+  basic = literal
+        | unop basic
+        | "(" expression ("," expression)* ")"
+        | "\" formal-args ("->" type) body
+        | identifier
+
+  literal = integer
+          | "true"
+          | "false"
+          | "()"
+
+  formal-args = "(" formal-arg-list? ")"
+
+  formal-arg-list = formal-arg ("," formal-arg)*
+
+  formal-arg = identifier ":" type
+
+  body = "{" statement* "}"
+
+  statement = return
+            | let
+            | expression ";"
+
+  return = "return" expression ";"
+*/
+
 typedef struct Parser {
     Context  *context;
     Function *function;
@@ -58,6 +93,11 @@ typedef struct Parser {
 void parser_create(Parser *restrict parser, Context *restrict context);
 
 bool parser_setup(Parser *restrict parser, StringView view);
+
+void parser_set_file(Parser *restrict parser, StringView file);
+void parser_current_source_location(Parser const *restrict parser,
+                                    SourceLocation *restrict source_location);
+
 bool parser_done(Parser const *restrict parser);
 
 bool parser_parse_expression(Parser *restrict parser,

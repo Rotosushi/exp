@@ -22,11 +22,14 @@
 /**
  * @brief this directive is used to tell as about the
  * start of a new logical file.
- *
- * @param path
- * @param file
  */
-void gas_directive_file(StringView path, String *restrict str);
+void gas_directive_file(StringView path, String *restrict buffer);
+
+/**
+ * @brief this directive informs the assembler that the following
+ * assembly instructions use the Intel x86 syntax.
+ */
+void gas_directive_intel_syntax(String *restrict buffer);
 
 /**
  * @brief This directive specifies the specific
@@ -34,66 +37,49 @@ void gas_directive_file(StringView path, String *restrict str);
  * letting as produce more efficient bytecode for the given
  * assembly and causes as produce diagnostics about the usage of
  * features which are not available on the chip.
- *
- * @param cpu_type
- * @param file
  */
-void gas_directive_arch(StringView cpu_type, String *restrict file);
+void gas_directive_arch(StringView cpu_type, String *restrict buffer);
 
 /**
  * @brief tells as to place comments/tags into the
  * produced object files.
  *
  * @note only works on ELF
- *
- * @param comment
- * @param file
  */
-void gas_directive_ident(StringView comment, String *restrict file);
+void gas_directive_ident(StringView comment, String *restrict buffer);
 
 /**
  * @brief tells as to mark the stack as noexec,
  *
  * @note only works on GNU systems.
- *
- * @param file
  */
-void gas_directive_noexecstack(String *restrict file);
+void gas_directive_noexecstack(String *restrict buffer);
 
 /**
  * @brief defines a new symbol visible to ld for linking,
  * where the definition comes from a label (as far as I can tell.)
  * this means that .global is used for both forward declarations
  * and definitions.
- *
- * @param name
- * @param file
  */
-void gas_directive_globl(StringView name, String *restrict file);
+void gas_directive_globl(StringView name, String *restrict buffer);
 
 /**
  * @brief tells as to assemble the following statements into
  * the data section.
- *
- * @param file
  */
-void gas_directive_data(String *restrict file);
+void gas_directive_data(String *restrict buffer);
 
 /**
  * @brief tells as to assemble the following statements into
  * the bss section.
- *
- * @param file
  */
-void gas_directive_bss(String *restrict file);
+void gas_directive_bss(String *restrict buffer);
 
 /**
  * @brief tells as to assemble the following statements into
  * the text section.
- *
- * @param file
  */
-void gas_directive_text(String *restrict file);
+void gas_directive_text(String *restrict buffer);
 
 /**
  * @brief pads the location counter to a particular storage boundary.
@@ -101,20 +87,18 @@ void gas_directive_text(String *restrict file);
  * emitted at that particular storage boundary.
  *
  * @note balign is specific to GNU as
- *
- * @param type
- * @param file
  */
-void gas_directive_balign(u64 bytes, String *restrict file);
+void gas_directive_balign(u64 bytes, String *restrict buffer);
 
 /**
  * @brief emits the .size <name>, <expression> directive
- *
- * @param name the name of the symbol to associate with the size
- * @param size the size to place in <expression>
- * @param file
  */
-void gas_directive_size(StringView name, u64 size, String *restrict file);
+void gas_directive_size(StringView name, u64 size, String *restrict buffer);
+
+/**
+ * @brief emits the .align <name>, <expression> directive
+ */
+void gas_directive_align(StringView name, u64 align, String *restrict buffer);
 
 /**
  * @brief emits a .size directive with a value equal to the
@@ -124,11 +108,9 @@ void gas_directive_size(StringView name, u64 size, String *restrict file);
  * @warning assumes the label is emitted before the .size directive,
  * and that the label appears immediately before the addresses allocated
  * for the data the label refers to.
- *
- * @param name
- * @param file
  */
-void gas_directive_size_label_relative(StringView name, String *restrict file);
+void gas_directive_size_label_relative(StringView name,
+                                       String *restrict buffer);
 
 typedef enum STT_Type {
     STT_FUNC,
@@ -137,16 +119,23 @@ typedef enum STT_Type {
     STT_COMMON,
 } STT_Type;
 
-void gas_directive_type(StringView name, STT_Type kind, String *restrict file);
+void gas_directive_type(StringView name,
+                        STT_Type   kind,
+                        String *restrict buffer);
 
-void gas_directive_quad(i64 value, String *restrict file);
+void gas_directive_u8(u8 value, String *restrict buffer);
+void gas_directive_i8(i8 value, String *restrict buffer);
+void gas_directive_u16(u16 value, String *restrict buffer);
+void gas_directive_i16(i16 value, String *restrict buffer);
+void gas_directive_u32(u32 value, String *restrict buffer);
+void gas_directive_i32(i32 value, String *restrict buffer);
+void gas_directive_u64(u64 value, String *restrict buffer);
+void gas_directive_i64(i64 value, String *restrict buffer);
 
-void gas_directive_byte(unsigned char value, String *restrict file);
+void gas_directive_zero(u64 bytes, String *restrict buffer);
 
-void gas_directive_zero(u64 bytes, String *restrict file);
+void gas_directive_string(StringView sv, String *restrict buffer);
 
-void gas_directive_string(StringView sv, String *restrict file);
-
-void gas_directive_label(StringView name, String *restrict file);
+void gas_directive_label(StringView name, String *restrict buffer);
 
 #endif // !EXP_BACKEND_GAS_DIRECTIVES_H

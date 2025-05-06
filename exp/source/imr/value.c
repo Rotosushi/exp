@@ -55,9 +55,9 @@ Value *value_allocate_nil() {
 }
 
 Value *value_allocate_bool(bool b) {
-    Value *value   = value_allocate();
-    value->kind    = VALUE_KIND_BOOLEAN;
-    value->boolean = b;
+    Value *value = value_allocate();
+    value->kind  = VALUE_KIND_BOOL;
+    value->bool_ = b;
     return value;
 }
 
@@ -141,8 +141,8 @@ bool value_equal(Value const *A, Value const *B) {
     case VALUE_KIND_UNINITIALIZED: return true;
     case VALUE_KIND_NIL:           return true;
 
-    case VALUE_KIND_BOOLEAN: {
-        return A->boolean == B->boolean;
+    case VALUE_KIND_BOOL: {
+        return A->bool_ == B->bool_;
     }
 
     case VALUE_KIND_U8: {
@@ -491,8 +491,8 @@ void print_value(String *restrict string,
 
     case VALUE_KIND_NIL: string_append(string, SV("()")); break;
 
-    case VALUE_KIND_BOOLEAN: {
-        string_append(string, v->boolean ? SV("true") : SV("false"));
+    case VALUE_KIND_BOOL: {
+        string_append(string, v->bool_ ? SV("true") : SV("false"));
         break;
     }
     case VALUE_KIND_U8:  string_append_u64(string, v->u8_); break;

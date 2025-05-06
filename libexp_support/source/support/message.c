@@ -64,35 +64,35 @@ void message(MessageLevel level,
     file_write(SV("\n"), stream);
 }
 
-void trace(StringView msg, FILE *restrict stream) {
-    message(MESSAGE_TRACE, NULL, 0, msg, stream);
+void status(StringView msg, FILE *restrict stream) {
+    message(MESSAGE_STATUS, NULL, 0, msg, stream);
 }
 
-void trace_u64(u64 value, FILE *restrict stream) {
+void status_u64(u64 value, FILE *restrict stream) {
     u64  len = u64_safe_strlen(value);
     char buf[len + 1];
     u64_to_str(value, buf);
     buf[len] = '\0';
-    message(MESSAGE_TRACE, NULL, 0, string_view(buf, len), stream);
+    message(MESSAGE_STATUS, NULL, 0, string_view(buf, len), stream);
 }
 
-void trace_i64(i64 value, FILE *restrict stream) {
+void status_i64(i64 value, FILE *restrict stream) {
     u64  len = i64_safe_strlen(value);
     char buf[len + 1];
     i64_to_str(value, buf);
     buf[len] = '\0';
-    message(MESSAGE_TRACE, NULL, 0, string_view(buf, len), stream);
+    message(MESSAGE_STATUS, NULL, 0, string_view(buf, len), stream);
 }
 
-void trace_command(StringView   cmd,
-                   i32          argc,
-                   char const **argv,
-                   FILE *restrict stream) {
-    trace(SV("command: "), stream);
-    trace(cmd, stream);
-    trace(SV("args: "), stream);
+void status_command(StringView   cmd,
+                    i32          argc,
+                    char const **argv,
+                    FILE *restrict stream) {
+    status(SV("command: "), stream);
+    status(cmd, stream);
+    status(SV("args: "), stream);
     for (i32 i = 0; argv[i] != NULL && (i < argc); ++i) {
-        trace(string_view_from_cstring(argv[i]), stream);
+        status(string_view_from_cstring(argv[i]), stream);
     }
 }
 

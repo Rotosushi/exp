@@ -82,7 +82,7 @@ x86_codegen_load_address_from_scalar_operand(x86_Address *restrict dst,
                 x86_mov(x86_operand_address(*dst),
                         x86_operand_gpr(allocation->location.gpr)));
         } else {
-            u64 size = size_of(type);
+            u64 size = x86_size_of(type);
             x86_codegen_copy_scalar_memory(
                 dst, &allocation->location.address, size, Idx, context);
         }
@@ -143,7 +143,7 @@ x86_codegen_load_address_from_composite_operand(x86_Address *restrict dst,
             Operand     element = tuple->elements[i];
             Type const *element_type =
                 type_of_operand(element, context->context);
-            u64 element_size = size_of(element_type);
+            u64 element_size = x86_size_of(element_type);
 
             x86_codegen_load_address_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
@@ -197,7 +197,7 @@ x86_codegen_load_argument_from_scalar_operand(x86_Address *restrict dst,
                 x86_mov(x86_operand_address(*dst),
                         x86_operand_gpr(allocation->location.gpr)));
         } else {
-            u64 size = size_of(type);
+            u64 size = x86_size_of(type);
             x86_codegen_copy_scalar_memory(
                 dst, &allocation->location.address, size, Idx, context);
         }
@@ -257,7 +257,7 @@ static void x86_codegen_load_argument_from_composite_operand(
             Operand     element = tuple->elements[i];
             Type const *element_type =
                 type_of_operand(element, context->context);
-            u64 element_size = size_of(element_type);
+            u64 element_size = x86_size_of(element_type);
 
             x86_codegen_load_argument_from_operand(
                 &dst_element_address, element, element_type, Idx, context);
@@ -303,7 +303,7 @@ void x86_codegen_load_gpr_from_operand(x86_GPR              gpr,
     case OPERAND_KIND_SSA: {
         x86_Allocation *allocation =
             x86_context_allocation_of(context, src.data.ssa);
-        u64 size = size_of(allocation->type);
+        u64 size = x86_size_of(allocation->type);
         exp_assert_debug(x86_gpr_valid_size(size));
         x86_GPR sized_gpr = x86_gpr_resize(gpr, size);
         x86_context_append(
@@ -358,7 +358,7 @@ static void x86_codegen_load_allocation_from_tuple(x86_Allocation *dst,
     for (u64 i = 0; i < tuple->size; ++i) {
         Operand     element      = tuple->elements[i];
         Type const *element_type = type_of_operand(element, context->context);
-        u64         element_size = size_of(element_type);
+        u64         element_size = x86_size_of(element_type);
 
         x86_codegen_load_address_from_operand(
             &dst_address, element, element_type, Idx, context);

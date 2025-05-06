@@ -20,30 +20,34 @@
 #include "codegen/IR/codegen.h"
 #include "codegen/IR/directives.h"
 #include "support/assert.h"
-#include "support/io.h"
+#include "support/config.h"
 
-i32 ir_codegen(Context *restrict context) {
+i32 ir_header(String *restrict buffer, Context *restrict context) {
+    exp_assert(buffer != NULL);
     exp_assert(context != NULL);
+    ir_directive_version(SV("1.0"), buffer);
+    ir_directive_file(context_source_path(context), buffer);
+    return 0;
+}
 
-    String buffer = string_create();
-    ir_directive_version(SV("1.0"), &buffer);
-    ir_directive_file(context_source_path(context), &buffer);
+i32 ir_codegen(String *restrict buffer,
+               Symbol const *restrict symbol,
+               Context *restrict context) {
+    exp_assert(buffer != NULL);
+    exp_assert(symbol != NULL);
+    exp_assert(context != NULL);
+    ir_directive_let(symbol->name, buffer);
+    string_append(buffer, SV(": "));
+    print_type(buffer, symbol->type);
+    string_append(buffer, SV(" = "));
+    print_value(buffer, symbol->value, context);
+    string_append(buffer, SV(";\n"));
+    return 0;
+}
 
-    SymbolTable *symbol_table = &context->global_symbol_table;
-    for (u64 index = 0; index < symbol_table->capacity; ++index) {
-        Symbol *symbol = symbol_table->elements[index];
-        if (symbol == NULL) { continue; }
-
-        ir_directive_function(symbol->name, &buffer);
-        exp_assert(symbol->value->kind == VALUE_KIND_FUNCTION);
-        print_value(&buffer, symbol->value, context);
-        string_append(&buffer, SV("\n"));
-    }
-
-    StringView ir_path = context_ir_path(context);
-    FILE      *file    = file_open(ir_path.ptr, "w");
-    file_write(string_to_view(&buffer), file);
-    file_close(file);
-    string_destroy(&buffer);
+i32 ir_footer(String *restrict buffer, Context *restrict context) {
+    exp_assert(buffer != NULL);
+    exp_assert(context != NULL);
+    ir_directive_comment(SV(EXP_VERSION_STRING), buffer);
     return 0;
 }

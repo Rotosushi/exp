@@ -109,6 +109,11 @@ Local *function_lookup_local_name(Function const *restrict function,
     return locals_lookup_name(&function->locals, name);
 }
 
+u32 function_locals_count(Function const *restrict function) {
+    assert(function != NULL);
+    return function->locals.size;
+}
+
 static void print_formal_argument(String *restrict string,
                                   Local *restrict arg) {
     string_append(string, arg->name);

@@ -126,7 +126,7 @@ void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
                                  x86_Context *restrict context) {
     assert(type_equality(dst->type, src->type));
 
-    if (x86_location_eq(dst->location, src->location)) { return; }
+    if (x86_location_equality(dst->location, src->location)) { return; }
 
     if (type_is_scalar(dst->type)) {
         x86_codegen_copy_scalar_allocation(dst, src, Idx, context);

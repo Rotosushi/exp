@@ -69,6 +69,15 @@ u64 file_read(char *restrict buffer, u64 length, FILE *restrict stream) {
     return count;
 }
 
+void file_read_all(String *restrict string, StringView path) {
+    FILE *file   = file_open(path.ptr, "r");
+    u64   length = file_length(file);
+    string_resize(string, length + 1);
+    char *data = string_data(string);
+    file_read(data, length, file);
+    file_close(file);
+}
+
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/stat.h>
 #include <sys/types.h>

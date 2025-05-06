@@ -18,17 +18,18 @@
  */
 #include <assert.h>
 
-#include "codegen/IR/directives.h"
-#include "codegen/x86/codegen.h"
-#include "codegen/x86/emit.h"
-#include "codegen/x86/env/context.h"
 #include "env/context.h"
 #include "env/context_options.h"
-#include "intrinsics/type_of.h"
+#include "evaluate/evaluate.h"
+#include "scanning/parser.h"
 #include "support/assert.h"
 #include "support/config.h"
 #include "support/io.h"
+#include "support/message.h"
+#include "support/process.h"
+#include "support/string.h"
 #include "support/string_view.h"
+#include "support/unreachable.h"
 
 #define EXP_IR_EXTENSION  "eir"
 #define EXP_ASM_EXTENSION "s"
@@ -44,33 +45,13 @@ static void generate_path_from_source(String *restrict target,
 }
 
 void context_create(Context *restrict context,
-                    ContextOptions *restrict options,
-                    StringView source_path) {
+                    ContextOptions *restrict options) {
     assert(context != nullptr);
     assert(options != nullptr);
-    assert(!string_view_empty(source_path));
     context->options = *options;
     string_initialize(&(context->source_path));
-    string_initialize(&(context->ir_path));
-    string_initialize(&(context->assembly_path));
-    string_initialize(&(context->object_path));
-    string_initialize(&(context->executable_path));
-    string_initialize(&(context->library_path));
-    string_assign(&(context->source_path), source_path);
-    generate_path_from_source(
-        &(context->ir_path), source_path, SV(EXP_IR_EXTENSION));
-    generate_path_from_source(
-        &(context->assembly_path), source_path, SV(EXP_ASM_EXTENSION));
-    generate_path_from_source(
-        &(context->object_path), source_path, SV(EXP_OBJ_EXTENSION));
-    generate_path_from_source(
-        &(context->executable_path), source_path, SV(EXP_EXE_EXTENSION));
-    generate_path_from_source(
-        &(context->library_path), source_path, SV(EXP_LIB_EXTENSION));
-    // context->current_function    = nullptr;
     context->current_error       = error_create();
     context->global_symbol_table = symbol_table_create();
-    // context->global_labels       = labels_create();
     constants_create(&context->constants);
     stack_create(&context->stack);
     context->string_interner = string_interner_create();
@@ -80,19 +61,34 @@ void context_create(Context *restrict context,
 void context_destroy(Context *context) {
     assert(context != nullptr);
     string_destroy(&(context->source_path));
-    string_destroy(&(context->ir_path));
-    string_destroy(&(context->assembly_path));
-    string_destroy(&(context->object_path));
-    string_destroy(&(context->executable_path));
-    string_destroy(&(context->library_path));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
     symbol_table_destroy(&(context->global_symbol_table));
-    // labels_destroy(&(context->global_labels));
     constants_destroy(&(context->constants));
     stack_destroy(&context->stack);
     error_destroy(&context->current_error);
-    // context->current_function = nullptr;
+}
+
+void context_print_compile_actions(Context const *restrict context) {
+    if (context_shall_create_assembly_artifact(context)) {
+        status(SV("create assembly artifact"), stdout);
+    }
+
+    if (context_shall_create_object_artifact(context)) {
+        status(SV("create object artifact:"), stdout);
+    }
+
+    if (context_shall_create_executable_artifact(context)) {
+        status(SV("create executable artifact:"), stdout);
+    }
+
+    if (context_shall_cleanup_assembly_artifact(context)) {
+        status(SV("cleanup assembly artifact"), stdout);
+    }
+
+    if (context_shall_cleanup_object_artifact(context)) {
+        status(SV("cleanup object artifact"), stdout);
+    }
 }
 
 bool context_shall_prolix(Context const *context) {
@@ -100,108 +96,221 @@ bool context_shall_prolix(Context const *context) {
     return context->options.prolix;
 }
 
-bool context_shall_create_ir_artifact(Context const *context) {
-    assert(context != nullptr);
-    return context->options.create_ir_artifact;
-}
 bool context_shall_create_assembly_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_assembly_artifact;
 }
+
 bool context_shall_create_object_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_object_artifact;
 }
+
 bool context_shall_create_executable_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.create_executable_artifact;
 }
-bool context_shall_cleanup_ir_artifact(Context const *context) {
-    assert(context != nullptr);
-    return context->options.cleanup_ir_artifact;
-}
+
 bool context_shall_cleanup_assembly_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_assembly_artifact;
 }
+
 bool context_shall_cleanup_object_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_object_artifact;
 }
 
-void context_create_ir_artifact(Context *restrict context) {
-    assert(context != NULL);
+i32 context_compile_source(Context *restrict context, StringView source_path) {
+    exp_assert(context != NULL);
+    string_assign(&context->source_path, source_path);
 
-    String ir_path;
-    string_initialize(&ir_path);
-    generate_path_from_source(
-        &ir_path, string_to_view(&context->source_path), SV(EXP_IR_EXTENSION));
+    String buffer;
+    string_initialize(&buffer);
+    file_read_all(&buffer, source_path);
 
-    String contents;
-    string_initialize(&contents);
-    ir_directive_version(SV(EXP_VERSION_STRING), &contents);
-    ir_directive_file(string_to_view(&context->source_path), &contents);
+    Parser parser;
+    parser_create(&parser, context);
+    parser_set_file(&parser, source_path);
 
-    SymbolTable *symbol_table = &context->global_symbol_table;
-    for (u64 index = 0; index < symbol_table->capacity; ++index) {
-        Symbol *symbol = symbol_table->elements[index];
+    parser_setup(&parser, string_to_view(&buffer));
+    while (!parser_done(&parser)) {
+        Function expression;
+        function_create(&expression);
+
+        if (!parser_parse_expression(&parser, &expression)) {
+            SourceLocation source_location;
+            parser_current_source_location(&parser, &source_location);
+            context_print_error(
+                context, source_location.file, source_location.line);
+            // #NOTE: we can also reset the parser to some valid next point in
+            // the input stream, and continue parsing, hoping to catch more
+            // errors than just the first one encountered. This would be handled
+            // right here.
+            function_destroy(&expression);
+            return 1;
+        }
+
+        if (!evaluate(&expression, context)) {
+            SourceLocation source_location;
+            parser_current_source_location(&parser, &source_location);
+            context_print_error(
+                context, source_location.file, source_location.line);
+            // #NOTE: we can also continue to the next iteration of the loop
+            // here, hoping to signal more than just the first error encountered
+            // within the input text. This would be handled here. #NOTE: the
+            // source information provided here is not necessarily the most
+            // accurate that it could be. #TODO: devise a method to associate
+            // instructions with a source location, so error reporting can
+            // create very nice and clear error messages.
+            function_destroy(&expression);
+            return 1;
+        }
+
+        function_destroy(&expression);
+    }
+
+    // #NOTE: at this point, the source file has been fully compiled into IR.
+    // So we can move on to the creation of build artifacts.
+    string_destroy(&buffer);
+    return 0;
+}
+
+i32 context_create_assembly_artifact(Context *restrict context) {
+    exp_assert(context != NULL);
+    Target *target = context->options.target;
+    String  buffer;
+    string_initialize(&buffer);
+    target->header(&buffer, context);
+
+    SymbolTable *table = &context->global_symbol_table;
+    for (u64 index = 0; index < table->capacity; ++index) {
+        Symbol *symbol = table->elements[index];
         if (symbol == NULL) { continue; }
 
-        ir_directive_function(symbol->name, &contents);
-        print_value(&contents, symbol->value, context);
-        string_append(&contents, SV("\n"));
+        target->codegen(&buffer, symbol, context);
+
+        string_append(&buffer, SV("\n"));
     }
 
-    FILE *ir_file = file_open(string_to_cstring(&ir_path), "w");
-    file_write(string_to_view(&contents), ir_file);
-    file_close(ir_file);
-    string_destroy(&contents);
-    string_destroy(&ir_path);
+    target->footer(&buffer, context);
+
+    String assembly_path;
+    string_initialize(&assembly_path);
+    generate_path_from_source(&assembly_path,
+                              context_source_path(context),
+                              target->assembly_extension);
+
+    file_write_all(&buffer, string_to_view(&assembly_path));
+
+    string_destroy(&buffer);
+    string_destroy(&assembly_path);
+    return 0;
 }
 
-void context_create_assembly_artifact(Context *restrict context) {
-    x86_Context  x86_context = x86_context_create(context);
-    SymbolTable *table       = &context->global_symbol_table;
+i32 context_create_object_artifact(Context *restrict context) {
+    exp_assert(context != NULL);
+    Target *target = context->options.target;
 
-    for (u64 index = 0; index < table->capacity; ++index) {
-        Symbol *element = table->elements[index];
-        if (element == NULL) { continue; }
-        x86_codegen_symbol(element, &x86_context);
-    }
+    String assembly_path;
+    string_initialize(&assembly_path);
+    generate_path_from_source(&assembly_path,
+                              context_source_path(context),
+                              target->assembly_extension);
 
-    x86_emit(&x86_context);
-    x86_context_destroy(&x86_context);
+    String object_path;
+    string_initialize(&object_path);
+    generate_path_from_source(
+        &object_path, context_source_path(context), target->object_extension);
+
+    // #TODO: don't hardcode the call to the assembler. Nor the arguments given
+    // to the assembler.
+    char const *args[] = {
+        "as",
+        string_to_cstring(&assembly_path),
+        "-o",
+        string_to_cstring(&object_path),
+        NULL,
+    };
+
+    i32 result = process("as", 4, args);
+
+    string_destroy(&assembly_path);
+    string_destroy(&object_path);
+    return result;
 }
 
-void context_create_object_artifact(Context *restrict context);
-void context_create_executable_artifact(Context *restrict context);
-void context_cleanup_ir_artifact(Context *restrict context);
-void context_cleanup_assembly_artifact(Context *restrict context);
-void context_cleanup_object_artifact(Context *restrict context);
+i32 context_create_executable_artifact(Context *restrict context) {
+    exp_assert(context != NULL);
+    Target *target = context->options.target;
+
+    String object_path;
+    string_initialize(&object_path);
+    generate_path_from_source(
+        &object_path, context_source_path(context), target->object_extension);
+
+    String executable_path;
+    string_initialize(&executable_path);
+    generate_path_from_source(&executable_path,
+                              context_source_path(context),
+                              target->executable_extension);
+
+    // #TODO: place our target libraries into one of ld's standard search
+    //  locations on install.
+    // #TODO: figure out CPACK to create .deb files for installing/uninstalling
+    //  exp from a host system. or creating SNAPs to do the same.
+    // #TODO: don't hardcode our call to the linker, nor the arguments we pass
+    // to it.
+    char const *args[] = {
+        "ld",
+        "-o",
+        string_to_cstring(&executable_path),
+        ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
+        "-lexp_runtime_start",
+        "-lexp_runtime",
+        string_to_cstring(&object_path),
+        NULL,
+    };
+
+    i32 result = process("ld", 7, args);
+
+    string_destroy(&object_path);
+    string_destroy(&executable_path);
+
+    return result;
+}
+
+void context_cleanup_assembly_artifact(Context *restrict context) {
+    exp_assert(context);
+    Target *target = context->options.target;
+
+    String path;
+    string_initialize(&path);
+    generate_path_from_source(
+        &path, context_source_path(context), target->assembly_extension);
+
+    file_remove(string_to_cstring(&path));
+
+    string_destroy(&path);
+}
+
+void context_cleanup_object_artifact(Context *restrict context) {
+    exp_assert(context);
+    Target *target = context->options.target;
+
+    String path;
+    string_initialize(&path);
+    generate_path_from_source(
+        &path, context_source_path(context), target->object_extension);
+
+    file_remove(string_to_cstring(&path));
+
+    string_destroy(&path);
+}
 
 StringView context_source_path(Context const *restrict context) {
     assert(context != nullptr);
     return string_to_view(&(context->source_path));
-}
-
-StringView context_ir_path(Context const *context) {
-    assert(context != nullptr);
-    return string_to_view(&(context->ir_path));
-}
-
-StringView context_assembly_path(Context const *context) {
-    assert(context != nullptr);
-    return string_to_view(&context->assembly_path);
-}
-
-StringView context_object_path(Context const *context) {
-    assert(context != nullptr);
-    return string_to_view(&context->object_path);
-}
-
-StringView context_executable_path(Context const *context) {
-    assert(context != nullptr);
-    return string_to_view(&(context->executable_path));
 }
 
 void context_print_error(Context const *restrict context,
@@ -267,8 +376,8 @@ bool context_failure_index_out_of_bounds(Context *restrict context,
 }
 
 bool context_failure_mismatch_argument_count(Context *restrict context,
-                                             u8 expected,
-                                             u8 actual) {
+                                             u64 expected,
+                                             u64 actual) {
     String buf = string_create();
     string_append(&buf, SV("Expected "));
     string_append_u64(&buf, expected);
@@ -297,7 +406,8 @@ bool context_failure_unsupported_operand(Context *restrict context,
     print_operand(&buffer, operand, context);
     string_append(&buffer, SV("] with Type ["));
     Frame *frame = context_frames_top(context);
-    print_type(&buffer, type_of_operand(operand, frame->function, context));
+    print_type(&buffer,
+               context_type_of_operand(context, frame->function, operand));
     string_append(&buffer, SV("] is unsupported for operator ["));
     string_append(&buffer, operator);
     string_append(&buffer, SV("]"));
@@ -313,7 +423,7 @@ bool context_failure_unsupported_operand_value(Context *restrict context,
     print_value(&buffer, value, context);
     string_append(&buffer, SV("] with Type ["));
     Frame *frame = context_frames_top(context);
-    print_type(&buffer, type_of_value(value, frame->function, context));
+    print_type(&buffer, context_type_of_value(context, frame->function, value));
     string_append(&buffer, SV("] is unsupported for operator ["));
     string_append(&buffer, operator);
     string_append(&buffer, SV("]"));
@@ -551,6 +661,106 @@ Frame *context_frames_top(Context const *restrict context) {
 void context_frames_pop(Context *restrict context) {
     assert(context != NULL);
     frames_pop(&context->frames);
+}
+
+Type const *context_type_of_value(Context *restrict context,
+                                  Function const *restrict function,
+                                  Value const *restrict value) {
+    switch (value->kind) {
+    case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
+    case VALUE_KIND_NIL:           return context_nil_type(context);
+    case VALUE_KIND_BOOL:          return context_bool_type(context);
+    case VALUE_KIND_U8:            return context_u8_type(context);
+    case VALUE_KIND_U16:           return context_u16_type(context);
+    case VALUE_KIND_U32:           return context_u32_type(context);
+    case VALUE_KIND_U64:           return context_u64_type(context);
+    case VALUE_KIND_I8:            return context_i8_type(context);
+    case VALUE_KIND_I16:           return context_i16_type(context);
+    case VALUE_KIND_I32:           return context_i32_type(context);
+    case VALUE_KIND_I64:           return context_i64_type(context);
+
+    case VALUE_KIND_TUPLE:
+        return context_type_of_tuple(context, function, &value->tuple);
+
+    case VALUE_KIND_FUNCTION:
+        return context_type_of_function(context, &value->function);
+
+    default: EXP_UNREACHABLE();
+    }
+}
+
+Type const *context_type_of_function(Context *restrict context,
+                                     Function const *restrict function) {
+    exp_assert(context != NULL);
+    assert(function != NULL);
+    assert(function->return_type != NULL);
+
+    TupleType argument_types = tuple_type_create();
+    for (u64 i = 0; i < function->arguments.size; ++i) {
+        Local      *formal_argument = function->arguments.list[i];
+        Type const *argument_type   = formal_argument->type;
+        tuple_type_append(&argument_types, argument_type);
+    }
+
+    return context_function_type(
+        context, function->return_type, argument_types);
+}
+
+Type const *context_type_of_tuple(Context *restrict context,
+                                  Function const *restrict function,
+                                  Tuple const *restrict tuple) {
+    exp_assert(context != NULL);
+    exp_assert(function != NULL);
+    exp_assert(tuple != NULL);
+    TupleType tuple_type = tuple_type_create();
+    for (u64 i = 0; i < tuple->size; ++i) {
+        Type const *T =
+            context_type_of_operand(context, function, tuple->elements[i]);
+        tuple_type_append(&tuple_type, T);
+    }
+    return context_tuple_type(context, tuple_type);
+}
+
+Type const *context_type_of_operand(Context *restrict context,
+                                    Function const *restrict function,
+                                    Operand operand) {
+    exp_assert(context != NULL);
+    exp_assert(function != NULL);
+    switch (operand.kind) {
+    case OPERAND_KIND_SSA: {
+        Local *local = function_lookup_local(function, operand.data.ssa);
+        exp_assert_debug(local->type != NULL);
+        return local->type;
+    }
+
+    case OPERAND_KIND_CONSTANT:
+        return context_type_of_value(context, function, operand.data.constant);
+
+    case OPERAND_KIND_LABEL: {
+        StringView label = constant_string_to_view(operand.data.label);
+
+        LookupResult lookup = context_lookup_label(context, function, label);
+        switch (lookup.kind) {
+        case LOOKUP_RESULT_NONE:   unreachable();
+        case LOOKUP_RESULT_LOCAL:  return lookup.local->type;
+        case LOOKUP_RESULT_GLOBAL: return lookup.global->type;
+        default:                   unreachable();
+        }
+    }
+
+    case OPERAND_KIND_NIL:  return context_nil_type(context);
+    case OPERAND_KIND_BOOL: return context_bool_type(context);
+    case OPERAND_KIND_U8:   return context_u8_type(context);
+    case OPERAND_KIND_U16:  return context_u16_type(context);
+    case OPERAND_KIND_U32:  return context_u32_type(context);
+    case OPERAND_KIND_U64:  return context_u64_type(context);
+    case OPERAND_KIND_I8:   return context_i8_type(context);
+    case OPERAND_KIND_I16:  return context_i16_type(context);
+    case OPERAND_KIND_I32:  return context_i32_type(context);
+    case OPERAND_KIND_I64:  return context_i64_type(context);
+
+    default: EXP_UNREACHABLE();
+    }
 }
 
 bool context_at_top_level(Context const *restrict context) {

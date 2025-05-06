@@ -46,6 +46,8 @@ StringView string_to_view(String const *restrict str);
 
 char const *string_to_cstring(String const *restrict str);
 
+char *string_data(String *restrict string);
+
 String string_from_view(StringView sv);
 
 String string_from_cstring(char const *cstring);

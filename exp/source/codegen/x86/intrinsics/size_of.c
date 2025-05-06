@@ -16,27 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
-#include "intrinsics/align_of.h"
+#include "codegen/x86/intrinsics/size_of.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
-u64 align_of(Type const *restrict type) {
-    assert(type != NULL);
+u64 x86_size_of(Type const *restrict type) {
+    exp_assert(type != NULL);
 
     switch (type->kind) {
-    // #NOTE: single byte objects do not
-    // have an alignment specified by gcc or
-    // clang. I believe this is
-    // because we are aligning all other
-    // objects, so when we allocate the byte
-    // we are guaranteed to be at a location counter
-    // that is valid for a single byte.
-    // for other objects, the alignment is often equal
-    // to their size. quads are 8 bytes, and their
-    // alignment is 8. ints are 4 bytes, and their
-    // alignment is 4.
-    // string literals are align 8 as well.
     case TYPE_KIND_NIL:     return 1;
     case TYPE_KIND_BOOLEAN: return 1;
     case TYPE_KIND_U8:      return 1;
@@ -47,16 +35,17 @@ u64 align_of(Type const *restrict type) {
     case TYPE_KIND_I16:     return 2;
     case TYPE_KIND_I32:     return 4;
     case TYPE_KIND_I64:     return 8;
-    case TYPE_KIND_TUPLE:   {
-        TupleType *tuple_type = (TupleType *)type;
-        u64        max        = 0;
-        for (u32 i = 0; i < tuple_type->size; ++i) {
-            Type const *t = tuple_type->types[i];
-            u64         a = align_of(t);
-            if (a > max) { max = a; }
+
+    case TYPE_KIND_TUPLE: {
+        TupleType const *tuple = &type->tuple_type;
+        u64              acc   = 0;
+        for (u64 i = 0; i < tuple->size; ++i) {
+            acc += x86_size_of(tuple->types[i]);
         }
-        return max;
+        return acc;
     }
+
+    case TYPE_KIND_FUNCTION: return 0;
 
     default: EXP_UNREACHABLE();
     }

@@ -21,15 +21,15 @@
 #include "support/string.h"
 
 typedef struct x86_Bytecode {
-    u64              length;
-    u64              capacity;
+    u32              length;
+    u32              capacity;
     x86_Instruction *buffer;
 } x86_Bytecode;
 
-x86_Bytecode x86_bytecode_create();
-void         x86_bytecode_destroy(x86_Bytecode *restrict bc);
+void x86_bytecode_create(x86_Bytecode *restrict bc);
+void x86_bytecode_destroy(x86_Bytecode *restrict bc);
 
-u64 x86_bytecode_current_offset(x86_Bytecode *restrict bc);
+u32 x86_bytecode_current_offset(x86_Bytecode *restrict bc);
 
 void x86_bytecode_insert(x86_Bytecode *restrict bc,
                          x86_Instruction I,
@@ -37,9 +37,7 @@ void x86_bytecode_insert(x86_Bytecode *restrict bc,
 void x86_bytecode_prepend(x86_Bytecode *restrict bc, x86_Instruction I);
 void x86_bytecode_append(x86_Bytecode *restrict bc, x86_Instruction I);
 
-void x86_bytecode_emit(x86_Bytecode *restrict bc,
-                       String *restrict buffer,
-                       Context *restrict context);
+void print_x86_bytecode(String *restrict buffer,
+                        x86_Bytecode const *restrict bc);
 
 #endif // !EXP_BACKEND_X86_BYTECODE_H
-

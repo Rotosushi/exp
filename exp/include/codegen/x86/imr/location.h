@@ -17,26 +17,36 @@
 #ifndef EXP_BACKEND_X86_LOCATION_H
 #define EXP_BACKEND_X86_LOCATION_H
 
-#include "codegen/x86/imr/address.h"
 #include "codegen/x86/imr/registers.h"
+#include "support/string.h"
 
-typedef enum x86_LocationKind : u8 {
-    X86_LOCATION_GPR,
-    X86_LOCATION_ADDRESS,
-} x86_LocationKind;
-
-typedef struct x64_Location {
-    x86_LocationKind kind;
+typedef struct x86_Location {
     union {
-        x86_GPR     gpr;
-        x86_Address address;
+        x86_GPR base;
+        x86_GPR gpr;
     };
+    x86_GPR index;
+    u8      scale;
+    bool    has_index  : 1;
+    bool    is_address : 1;
+    i32     offset;
 } x86_Location;
 
 x86_Location x86_location_gpr(x86_GPR gpr);
-x86_Location x86_location_address(x86_GPR base, i64 offset);
+x86_Location x86_location_address(x86_GPR base, i32 offset);
 x86_Location
-x86_location_address_indexed(x86_GPR base, x86_GPR index, u8 scale, i64 offset);
-bool x86_location_eq(x86_Location A, x86_Location B);
+x86_location_address_indexed(x86_GPR base, x86_GPR index, u8 scale, i32 offset);
+
+/**
+ * @brief compares two locations for equality
+ *
+ * @note this does a lexicographic comparison,
+ * and we do not use the values stored within the registers
+ * (because we cannot) to confirm true equality. Thus this
+ * method should be used with caution. if at all.
+ */
+bool x86_location_equality(x86_Location A, x86_Location B);
+
+void print_x86_location(String *restrict buffer, x86_Location location);
 
 #endif // !EXP_BACKEND_X86_LOCATION_H

@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,10 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CORE_LINK_H
-#define EXP_CORE_LINK_H
-#include "env/context.h"
+#ifndef EXP_CODEGEN_X86_LOCATIONS_H
+#define EXP_CODEGEN_X86_LOCATIONS_H
 
-i32 link(Context *restrict context);
+#include "codegen/x86/imr/location.h"
 
-#endif // !EXP_CORE_LINK_H
+typedef struct x86_Locations {
+    u32           capacity;
+    x86_Location *buffer;
+} x86_Locations;
+
+void x86_locations_create(x86_Locations *restrict locations, u32 capacity);
+void x86_locations_destroy(x86_Locations *restrict locations);
+
+x86_Location *x86_locations_at(x86_Locations const *restrict locations,
+                               u32 ssa);
+
+#endif // !EXP_CODEGEN_X86_LOCATIONS_H

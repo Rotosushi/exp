@@ -30,7 +30,7 @@ static void x86_codegen_modulus_ssa(Instruction  I,
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if (x86_location_eq(B->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(B->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_to_gpr(
                 context, local, X86_GPR_RDX, block_index);
             x86_context_append(
@@ -41,7 +41,7 @@ static void x86_codegen_modulus_ssa(Instruction  I,
             break;
         }
 
-        if (x86_location_eq(C->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(C->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_to_gpr(
                 context, local, X86_GPR_RDX, block_index);
 
@@ -114,7 +114,7 @@ static void x86_codegen_modulus_immediate(Instruction  I,
             context, x86_mov(x86_operand_gpr(X86_GPR_RDX), x86_operand_i64(0)));
 
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if (x86_location_eq(C->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(C->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }
 
@@ -181,7 +181,7 @@ void x86_codegen_modulus_constant(Instruction  I,
             context, x86_mov(x86_operand_gpr(X86_GPR_RDX), x86_operand_i64(0)));
 
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if (x86_location_eq(C->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(C->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_reallocate_active(context, C);
         }
 

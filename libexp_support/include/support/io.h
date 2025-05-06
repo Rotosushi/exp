@@ -27,15 +27,19 @@
 #include <stdio.h>
 
 #include "support/scalar.h"
+#include "support/string.h"
 #include "support/string_view.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes);
-void file_close(FILE *restrict file);
-void file_remove(char const *restrict path);
-u64 file_length(FILE *restrict stream);
-void file_write(StringView view, FILE *restrict stream);
-void file_write_i64(i64 value, FILE *restrict stream);
-void file_write_u64(u64 value, FILE *restrict stream);
-u64 file_read(char *restrict buffer, u64 size, FILE *restrict stream);
+void  file_close(FILE *restrict file);
+void  file_remove(char const *restrict path);
+u64   file_length(FILE *restrict stream);
+void  file_write(StringView view, FILE *restrict stream);
+void  file_write_i64(i64 value, FILE *restrict stream);
+void  file_write_u64(u64 value, FILE *restrict stream);
+u64   file_read(char *restrict buffer, u64 size, FILE *restrict stream);
+
+void file_read_all(String *restrict string, StringView path);
+void file_write_all(String *restrict string, StringView path);
 
 #endif // !EXP_SUPPORT_IO_H

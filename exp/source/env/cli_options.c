@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "codegen/IR/target.h"
+#include "codegen/x86/target.h"
 #include "env/cli_options.h"
 #include "support/config.h"
 #include "support/io.h"
@@ -27,12 +29,9 @@
 
 void cli_options_init(CLIOptions *restrict cli_options) {
     cli_options->context_options.prolix                     = false;
-    cli_options->context_options.create_ir_artifact         = false;
     cli_options->context_options.create_assembly_artifact   = true;
     cli_options->context_options.create_object_artifact     = true;
-    cli_options->context_options.create_library_artifact    = false;
     cli_options->context_options.create_executable_artifact = true;
-    cli_options->context_options.cleanup_ir_artifact        = false;
     cli_options->context_options.cleanup_assembly_artifact  = true;
     cli_options->context_options.cleanup_object_artifact    = true;
     string_initialize(&cli_options->source);
@@ -54,16 +53,19 @@ static void print_help(FILE *file) {
     file_write(SV("exp [options] <source-file>\n\n"), file);
     file_write(SV("\t-h print help.\n"), file);
     file_write(SV("\t-v print version.\n"), file);
-    file_write(SV("\t-o <filename> set output filename.\n"), file);
     file_write(SV("\t-c emit an object file.\n"), file);
     file_write(SV("\t-s emit an assembly file.\n"), file);
+    file_write(SV("\t-t <x86_64|IR> select target.\n"), file);
     file_write(SV("\n"), file);
 }
 
 void parse_cli_options(i32         argc,
                        char const *argv[],
                        CLIOptions *restrict cli_options) {
-    static char const *short_options = "hvpcs";
+    static char const *short_options = "hvpcst:";
+
+    // Set the default target
+    cli_options->context_options.target = x86_target;
 
     i32 option = 0;
     while ((option = getopt(argc, (char *const *)argv, short_options)) != -1) {
@@ -96,6 +98,22 @@ void parse_cli_options(i32         argc,
             cli_options->context_options.create_object_artifact     = false;
             cli_options->context_options.cleanup_assembly_artifact  = false;
             cli_options->context_options.cleanup_object_artifact    = false;
+            break;
+        }
+
+        case 't': {
+            StringView argument = string_view_from_cstring(optarg);
+            if (string_view_equal(argument, x86_target->tag)) {
+                cli_options->context_options.target = x86_target;
+            } else if (string_view_equal(argument, ir_target->tag)) {
+                cli_options->context_options.target = ir_target;
+                // #TODO: ensure that -s is specified when the target is IR.
+                // as this workaround is unintuitive.
+                cli_options->context_options.create_executable_artifact = false;
+                cli_options->context_options.create_object_artifact     = false;
+                cli_options->context_options.cleanup_assembly_artifact  = false;
+                cli_options->context_options.cleanup_object_artifact    = false;
+            }
             break;
         }
 

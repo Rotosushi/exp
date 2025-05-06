@@ -43,12 +43,12 @@ static void x86_gprp_destroy(x86_GPRP *restrict gprp) {
 #define CHK_BIT(B, r) (((B) >> r) & 1)
 
 static void x86_gprp_aquire(x86_GPRP *restrict gprp, x86_GPR gpr) {
-    SET_BIT(gprp->bitset, x86_gpr_index(gpr));
+    SET_BIT(gprp->bitset, x86_gpr_to_index(gpr));
 }
 
 static void x86_gprp_release(x86_GPRP *restrict gprp, x86_GPR gpr) {
-    CLR_BIT(gprp->bitset, x86_gpr_index(gpr));
-    gprp->buffer[x86_gpr_index(gpr)] = NULL;
+    CLR_BIT(gprp->bitset, x86_gpr_to_index(gpr));
+    gprp->buffer[x86_gpr_to_index(gpr)] = NULL;
 }
 
 static void x86_gprp_release_index(x86_GPRP *restrict gprp, u8 gpr_index) {
@@ -74,9 +74,9 @@ x86_gprp_allocate_to_gpr_index(x86_GPRP *restrict gprp,
     u64 size = size_of(allocation->type);
     exp_assert_debug(x86_gpr_valid_size(size));
     x86_GPR gpr = x86_gpr_with_size(gpr_index, size);
-    SET_BIT(gprp->bitset, x86_gpr_index(gpr));
-    gprp->buffer[x86_gpr_index(gpr)] = allocation;
-    allocation->location             = x86_location_gpr(gpr);
+    SET_BIT(gprp->bitset, x86_gpr_to_index(gpr));
+    gprp->buffer[x86_gpr_to_index(gpr)] = allocation;
+    allocation->location                = x86_location_gpr(gpr);
 }
 
 static void x86_gprp_allocate_to_gpr(x86_GPRP *restrict gprp,
@@ -87,9 +87,9 @@ static void x86_gprp_allocate_to_gpr(x86_GPRP *restrict gprp,
     if (!x86_gpr_is_sized(gpr)) { gpr = x86_gpr_resize(gpr, size); }
     exp_assert_debug(size <= x86_gpr_size(gpr));
 
-    SET_BIT(gprp->bitset, x86_gpr_index(gpr));
-    gprp->buffer[x86_gpr_index(gpr)] = allocation;
-    allocation->location             = x86_location_gpr(gpr);
+    SET_BIT(gprp->bitset, x86_gpr_to_index(gpr));
+    gprp->buffer[x86_gpr_to_index(gpr)] = allocation;
+    allocation->location                = x86_location_gpr(gpr);
 }
 
 /**
@@ -135,7 +135,7 @@ static bool x86_gprp_reallocate(x86_GPRP *restrict gprp,
 
 static x86_Allocation *x86_gprp_allocation_at(x86_GPRP *restrict gprp,
                                               x86_GPR gpr) {
-    return gprp->buffer[x86_gpr_index(gpr)];
+    return gprp->buffer[x86_gpr_to_index(gpr)];
 }
 
 static x86_Allocation *x86_gprp_allocation_of(x86_GPRP *restrict gprp,
@@ -511,7 +511,7 @@ u8 x86_allocator_spill_oldest_active(x86_Allocator *restrict allocator,
     }
     x86_GPR gpr = oldest->location.gpr;
     x86_allocator_spill_allocation(allocator, oldest, x64bc);
-    return x86_gpr_index(gpr);
+    return x86_gpr_to_index(gpr);
 }
 
 x86_Allocation *

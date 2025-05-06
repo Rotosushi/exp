@@ -26,21 +26,36 @@
 #ifndef EXP_CODEGEN_TARGET_H
 #define EXP_CODEGEN_TARGET_H
 
-#include "env/context.h"
+#include "support/string_view.h"
+struct String;
+struct Symbol;
+struct Context;
 
-typedef u64 (*align_of_fn)(Type const *restrict type);
-typedef u64 (*size_of_fn)(Type const *restrict type);
-// note that this exact type signature will not work with
-// the way we have codegen defined as is. Because we use a
-// target specific context to perform codegen. This is not
-// extensible, which will need to be changed for this to
-// possible. Though I believe this is a good direction to
-// be working in. We just need to allow the generic context
-// to be extended with target specific structures, without
-// knowing what they are apriori.
-typedef void (*codegen_fn)(Symbol const *restrict symbol,
-                           Context *restrict context);
-typedef void (*emit_fn)(Symbol const *restrict symbol,
-                        Context *restrict context);
+// #NOTE with this signature we are forced into combining
+// code generation with emission. However, this removes
+// the need for a target dependent context, which should be
+// less code overall.
+typedef i32 (*codegen_fn)(struct String *restrict buffer,
+                          struct Symbol const *restrict symbol,
+                          struct Context *restrict context);
+typedef i32 (*header_fn)(struct String *restrict buffer,
+                         struct Context *restrict context);
+typedef i32 (*footer_fn)(struct String *restrict buffer,
+                         struct Context *restrict context);
+
+// #TODO: This structure needs to be broken up into more components
+// for mixing and matching. But that is not a problem we currently
+// need to solve
+typedef struct Target {
+    StringView tag;
+    StringView triple;
+    StringView assembly_extension;
+    StringView object_extension;
+    StringView library_extension;
+    StringView executable_extension;
+    header_fn  header;
+    codegen_fn codegen;
+    footer_fn  footer;
+} Target;
 
 #endif // !EXP_CODEGEN_TARGET_H

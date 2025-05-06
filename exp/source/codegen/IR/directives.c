@@ -19,19 +19,25 @@
 
 #include "codegen/IR/directives.h"
 
-void ir_directive_version(StringView version, String *restrict str) {
-    string_append(str, SV(".version "));
-    string_append(str, version);
-    string_append(str, SV("\n"));
+void ir_directive_version(StringView version, String *restrict string) {
+    string_append(string, SV(".version "));
+    string_append(string, version);
+    string_append(string, SV("\n"));
 }
 
-void ir_directive_file(StringView path, String *restrict str) {
-    string_append(str, SV(".file "));
-    string_append(str, path);
-    string_append(str, SV("\n"));
+void ir_directive_file(StringView path, String *restrict string) {
+    string_append(string, SV(".file "));
+    string_append(string, path);
+    string_append(string, SV("\n"));
 }
 
-void ir_directive_function(StringView name, String *restrict str) {
-    string_append(str, SV(".function "));
-    string_append(str, name);
+void ir_directive_let(StringView name, String *restrict string) {
+    string_append(string, SV(".let"));
+    string_append(string, name);
+}
+
+void ir_directive_comment(StringView comment, String *restrict string) {
+    string_append(string, SV("// "));
+    string_append(string, comment);
+    string_append(string, SV("\n"));
 }

@@ -18,11 +18,9 @@
 #define EXP_BACKEND_X64_INSTRUCTION_H
 
 #include "codegen/x86/imr/operand.h"
-#include "env/context.h"
-#include "support/string.h"
 
 typedef enum x86_Opcode : u8 {
-    X64_OPCODE_RETURN,
+    X64_OPCODE_RET,
     X64_OPCODE_CALL,
     X64_OPCODE_PUSH,
     X64_OPCODE_POP,
@@ -36,9 +34,11 @@ typedef enum x86_Opcode : u8 {
 } x86_Opcode;
 
 typedef struct x86_Instruction {
-    x86_Opcode  opcode;
-    x86_Operand A;
-    x86_Operand B;
+    x86_Opcode      opcode;
+    x86_OperandKind A_kind;
+    x86_OperandKind B_kind;
+    x86_OperandData A_data;
+    x86_OperandData B_data;
 } x86_Instruction;
 
 x86_Instruction x86_ret();
@@ -54,8 +54,7 @@ x86_Instruction x86_sub(x86_Operand dst, x86_Operand src);
 x86_Instruction x86_imul(x86_Operand src);
 x86_Instruction x86_idiv(x86_Operand src);
 
-void x86_instruction_emit(x86_Instruction I,
-                          String *restrict buffer,
-                          Context *restrict context);
+void print_x86_instruction(String *restrict buffer,
+                           x86_Instruction instruction);
 
 #endif // !EXP_BACKEND_X64_INSTRUCTION_H

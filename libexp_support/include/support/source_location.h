@@ -15,24 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @brief defines x86_Target, providing hooks into x86 codegen
- * and target specific information. This allows specific targets
- * to provide implementation specific information in a uniform way.
- */
+#ifndef EXP_SUPPORT_SOURCE_LOCATION_H
+#define EXP_SUPPORT_SOURCE_LOCATION_H
 
-#ifndef EXP_CODEGEN_X86_TARGET_H
-#define EXP_CODEGEN_X86_TARGET_H
+#include "support/string_view.h"
 
-#include "codegen/target.h"
+typedef struct SourceLocation {
+    StringView file;
+    u64        line;
+    u64        column;
+} SourceLocation;
 
-typedef struct x86_Target {
-    align_of_fn align_of;
-    size_of_fn  size_of;
-    codegen_fn  codegen;
-    emit_fn     emit;
-} x86_Target;
+void source_location_initialize(SourceLocation *restrict source_location,
+                                StringView file,
+                                u64        line,
+                                u64        column);
 
-void x86_target_initialize(x86_Target *restrict target);
+#define SOURCE_LOCATION_CURRENT()                                              \
+    ((SourceLocation){.file = SV(__FILE__), .line = __LINE__})
 
-#endif // !EXP_CODEGEN_X86_TARGET_H
+#endif // !EXP_SUPPORT_SOURCE_LOCATION_H

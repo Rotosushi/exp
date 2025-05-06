@@ -40,7 +40,7 @@ void tuple_type_destroy(TupleType *restrict tuple_type) {
     tuple_type->types = NULL;
 }
 
-bool tuple_type_equality(TupleType const *A, TupleType const *B) {
+bool tuple_type_equal(TupleType const *A, TupleType const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
     if (A == B) { return 1; }
@@ -76,14 +76,14 @@ void tuple_type_append(TupleType *restrict tuple_type, Type const *type) {
     tuple_type->size += 1;
 }
 
-bool function_type_equality(FunctionType const *A, FunctionType const *B) {
+bool function_type_equal(FunctionType const *A, FunctionType const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
     if (A == B) { return 1; }
 
     if (!type_equality(A->return_type, B->return_type)) { return 0; }
 
-    return tuple_type_equality(&A->argument_types, &B->argument_types);
+    return tuple_type_equal(&A->argument_types, &B->argument_types);
 }
 
 Type type_create_nil() {
@@ -155,9 +155,9 @@ bool type_equality(Type const *A, Type const *B) {
 
     switch (A->kind) {
     case TYPE_KIND_TUPLE:
-        return tuple_type_equality(&A->tuple_type, &B->tuple_type);
+        return tuple_type_equal(&A->tuple_type, &B->tuple_type);
     case TYPE_KIND_FUNCTION:
-        return function_type_equality(&A->function_type, &B->function_type);
+        return function_type_equal(&A->function_type, &B->function_type);
 
     // #NOTE: scalar types are equal when their kinds are equal
     default: return true;

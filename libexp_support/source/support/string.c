@@ -72,6 +72,14 @@ char const *string_to_cstring(String const *restrict str) {
     }
 }
 
+char *string_data(String *restrict string) {
+    if (string_is_small(string)) {
+        return string->buffer;
+    } else {
+        return string->ptr;
+    }
+}
+
 void string_assign(String *restrict str, StringView sv) {
     string_destroy(str);
     if ((sv.length == u64_MAX) || (sv.length + 1 == u64_MAX)) {

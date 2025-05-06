@@ -13,11 +13,21 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CORE_COMPILE_H
-#define EXP_CORE_COMPILE_H
-#include "support/scalar.h"
+// along with exp.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef EXP_INTRINSICS_SIZEOF_H
+#define EXP_INTRINSICS_SIZEOF_H
+#include <stddef.h>
 
-i32 compile(i32 argc, char const *argv[]);
+#include "imr/type.h"
 
-#endif // !EXP_CORE_COMPILE_H
+/**
+ * @brief returns the x86-64 size in bytes of the given type
+ *
+ * @note this is the number of bytes to store a <value> with <type>.
+ *
+ * @param type
+ * @return u64
+ */
+u64 x86_size_of(Type const *restrict type);
+
+#endif // !EXP_INTRINSICS_SIZEOF_H

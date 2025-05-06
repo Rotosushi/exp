@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
+ * Copyright (C) 2025 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -16,10 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/codegen.h"
+
+#include "codegen/IR/target.h"
 #include "codegen/IR/codegen.h"
-#include "codegen/x86/codegen.h"
 
-i32 codegen_ir(Context *restrict context) { return ir_codegen(context); }
+Target ir_target_info = {.tag                  = SV("ir"),
+                         .triple               = SV("exp-ir"),
+                         .assembly_extension   = SV("eir"),
+                         .object_extension     = SV(""),
+                         .library_extension    = SV(""),
+                         .executable_extension = SV(""),
+                         .header               = ir_header,
+                         .codegen              = ir_codegen,
+                         .footer               = ir_footer};
 
-i32 codegen_assembly(Context *restrict context) { return x86_codegen(context); }
+Target *ir_target = &ir_target_info;

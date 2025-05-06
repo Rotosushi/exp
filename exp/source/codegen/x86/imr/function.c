@@ -19,11 +19,9 @@
 #include <assert.h>
 
 #include "codegen/x86/imr/function.h"
-#include "intrinsics/size_of.h"
 #include "support/allocation.h"
-#include "support/panic.h"
 
-x86_FormalArgumentList x86_formal_argument_list_create(u8 size) {
+static x86_FormalArgumentList x86_formal_argument_list_create(u8 size) {
     x86_FormalArgumentList args = {
         .size = size, .buffer = allocate(size * sizeof(x86_FormalArgument))};
     return args;
@@ -36,60 +34,26 @@ x86_formal_arguments_destroy(x86_FormalArgumentList *restrict args) {
     args->buffer = NULL;
 }
 
-x86_FormalArgument *
-x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 idx) {
-    assert(args != NULL);
-    assert(idx < args->size);
-    return args->buffer + idx;
+void x86_function_create(x86_Function *restrict x86_function,
+                         Function const *restrict function,
+                         Context *restrict context) {
+    assert(x86_function != NULL);
+    assert(function != NULL);
+    x86_function->arguments =
+        x86_formal_argument_list_create(function->arguments.size);
+    x86_bytecode_create(&x86_function->body);
+    x86_function->gprp = x86_gprp_construct();
+    x86_locations_create(&x86_function->locations,
+                         function_locals_count(function));
+
+    Bytecode const *body = &function->body;
+    for (u32 index = 0; index < body->length; ++index) {}
 }
 
-void x86_function_create(x86_Function *restrict x86_body,
-                         Function const *restrict body) {
-    assert(x86_body != NULL);
-    assert(body != NULL);
-    x86_body->arguments = x86_formal_argument_list_create(body->arguments.size);
-    x86_body->result    = NULL;
-    x86_body->bc        = x86_bytecode_create();
-    x86_allocator_create(&x86_body->allocator);
-    x86_Allocator *allocator = &x86_body->allocator;
-    x86_Bytecode  *bc        = &x86_body->bc;
-
-    u8 scalar_argument_count = 0;
-
-    if (type_is_scalar(body->return_type)) {
-        x86_body->result = x86_allocator_allocate_result(
-            allocator, x86_location_gpr(X86_GPR_RAX), body->return_type);
-    } else {
-        x86_body->result = x86_allocator_allocate_result(
-            allocator, x86_location_address(X86_GPR_RDI, 0), body->return_type);
-        scalar_argument_count += 1;
-    }
-
-    i64 offset = 16;
-    for (u8 i = 0; i < body->arguments.size; ++i) {
-        Local *local = body->arguments.list[i];
-
-        if ((scalar_argument_count < 6) && type_is_scalar(local->type)) {
-            u64     size = size_of(local->type);
-            x86_GPR gpr =
-                x86_gpr_scalar_argument(scalar_argument_count++, size);
-            x86_allocator_allocate_to_gpr(allocator, local, gpr, 0, bc);
-        } else {
-            u64 argument_size = size_of(local->type);
-            assert(argument_size <= i64_MAX);
-
-            x86_allocator_allocate_to_stack(allocator, offset, local);
-
-            if (__builtin_add_overflow(offset, (i64)argument_size, &offset)) {
-                PANIC("argument offset overflow");
-            }
-        }
-    }
-}
-
-void x86_function_destroy(x86_Function *restrict body) {
-    assert(body != NULL);
-    x86_formal_arguments_destroy(&body->arguments);
-    x86_bytecode_destroy(&body->bc);
-    x86_allocator_destroy(&body->allocator);
+void x86_function_destroy(x86_Function *restrict function) {
+    assert(function != NULL);
+    x86_formal_arguments_destroy(&function->arguments);
+    x86_bytecode_destroy(&function->body);
+    function->gprp = x86_gprp_construct();
+    x86_locations_destroy(&function->locations);
 }

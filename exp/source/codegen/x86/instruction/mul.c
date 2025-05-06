@@ -39,7 +39,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
          * allow for the different sizes of available registers, based on the
          * size of the incoming operands.
          */
-        if (x86_location_eq(B->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(B->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
             x86_context_release_gpr(context, X86_GPR_RDX, block_index);
@@ -48,7 +48,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
             break;
         }
 
-        if (x86_location_eq(C->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(C->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, C, block_index);
 
             x86_context_release_gpr(context, X86_GPR_RDX, block_index);
@@ -126,7 +126,7 @@ static void x86_codegen_multiply_immediate(Instruction  I,
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        if (x86_location_eq(C->location, x86_location_gpr(X86_GPR_RAX))) {
+        if (x86_location_equality(C->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, C, block_index);
 
             x86_context_release_gpr(context, X86_GPR_RDX, block_index);

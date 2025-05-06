@@ -22,6 +22,7 @@
 
 void ir_directive_version(StringView version, String *restrict str);
 void ir_directive_file(StringView path, String *restrict str);
-void ir_directive_function(StringView name, String *restrict str);
+void ir_directive_let(StringView name, String *restrict string);
+void ir_directive_comment(StringView comment, String *restrict string);
 
 #endif // !EXP_CODEGEN_IR_DIRECTIVES_H

@@ -50,14 +50,14 @@ void message(MessageLevel level,
 
 /**
  * @brief wrapper for message that does not take a file and line number.
- * and uses MESSAGE_TRACE as the MessageLevel.
+ * and uses MESSAGE_STATUS as the MessageLevel.
  */
-void trace(StringView msg, FILE *restrict stream);
-void trace_u64(u64 value, FILE *restrict stream);
-void trace_i64(i64 value, FILE *restrict stream);
-void trace_command(StringView   cmd,
-                   i32          argc,
-                   char const **argv,
-                   FILE *restrict stream);
+void status(StringView msg, FILE *restrict stream);
+void status_u64(u64 value, FILE *restrict stream);
+void status_i64(i64 value, FILE *restrict stream);
+void status_command(StringView   cmd,
+                    i32          argc,
+                    char const **argv,
+                    FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

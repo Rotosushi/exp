@@ -45,7 +45,8 @@ typedef struct TupleType {
 
 TupleType tuple_type_create();
 void      tuple_type_destroy(TupleType *restrict tuple_type);
-bool      tuple_type_equality(TupleType const *A, TupleType const *B);
+bool      tuple_type_equal(TupleType const *A, TupleType const *B);
+bool      tuple_type_index_in_bounds(TupleType const *restrict A, u32 index);
 void tuple_type_append(TupleType *restrict tuple_type, struct Type const *type);
 
 typedef struct FunctionType {
@@ -53,7 +54,7 @@ typedef struct FunctionType {
     TupleType          argument_types;
 } FunctionType;
 
-bool function_type_equality(FunctionType const *A, FunctionType const *B);
+bool function_type_equal(FunctionType const *A, FunctionType const *B);
 
 /**
  * @brief represents Types in the compiler
@@ -89,10 +90,10 @@ Type type_create_function(Type const *result, TupleType args);
 void type_destroy(Type *type);
 
 bool type_equality(Type const *t1, Type const *t2);
-bool type_is_scalar(Type const *t);
-bool type_is_index(Type const *t);
-bool type_is_indexable(Type const *t);
-bool type_is_callable(Type const *t);
+bool type_is_scalar(Type const *restrict type);
+bool type_is_index(Type const *restrict type);
+bool type_is_indexable(Type const *restrict type);
+bool type_is_callable(Type const *restrict type);
 
 void print_type(String *restrict string, Type const *restrict type);
 

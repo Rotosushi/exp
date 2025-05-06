@@ -18,16 +18,19 @@
  */
 
 #include "analysis/infer_lifetimes.h"
+#include "imr/function.h"
 #include "imr/instruction.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-static void
-infer_lifetime_operand_A(OperandKind kind, OperandData data, u32 block_index) {
+static void infer_lifetime_operand_A(OperandKind kind,
+                                     OperandData data,
+                                     u32         block_index,
+                                     Function const *restrict function) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local          = data.ssa;
+        Local *local          = function_lookup_local(function, data.ssa);
         local->lifetime.start = block_index;
         break;
     }
@@ -36,11 +39,13 @@ infer_lifetime_operand_A(OperandKind kind, OperandData data, u32 block_index) {
     }
 }
 
-static void
-infer_lifetime_operand(OperandKind kind, OperandData data, u32 block_index) {
+static void infer_lifetime_operand(OperandKind kind,
+                                   OperandData data,
+                                   u32         block_index,
+                                   Function const *restrict function) {
     switch (kind) {
     case OPERAND_KIND_SSA: {
-        Local *local = data.ssa;
+        Local *local = function_lookup_local(function, data.ssa);
         if (block_index > local->lifetime.end) {
             local->lifetime.end = block_index;
         }
@@ -54,7 +59,8 @@ infer_lifetime_operand(OperandKind kind, OperandData data, u32 block_index) {
 
             for (u64 i = 0; i < tuple->size; ++i) {
                 Operand element = tuple->elements[i];
-                infer_lifetime_operand(element.kind, element.data, block_index);
+                infer_lifetime_operand(
+                    element.kind, element.data, block_index, function);
             }
         }
         break;
@@ -64,19 +70,25 @@ infer_lifetime_operand(OperandKind kind, OperandData data, u32 block_index) {
     }
 }
 
-static void infer_lifetime_B(Instruction I, u32 block_index) {
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
+static void infer_lifetime_B(Instruction I,
+                             u32         block_index,
+                             Function const *restrict function) {
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index, function);
 }
 
-static void infer_lifetime_AB(Instruction I, u32 block_index) {
-    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index);
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
+static void infer_lifetime_AB(Instruction I,
+                              u32         block_index,
+                              Function const *restrict function) {
+    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index, function);
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index, function);
 }
 
-static void infer_lifetime_ABC(Instruction I, u32 block_index) {
-    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index);
-    infer_lifetime_operand(I.B_kind, I.B_data, block_index);
-    infer_lifetime_operand(I.C_kind, I.C_data, block_index);
+static void infer_lifetime_ABC(Instruction I,
+                               u32         block_index,
+                               Function const *restrict function) {
+    infer_lifetime_operand_A(I.A_kind, I.A_data, block_index, function);
+    infer_lifetime_operand(I.B_kind, I.B_data, block_index, function);
+    infer_lifetime_operand(I.C_kind, I.C_data, block_index, function);
 }
 
 bool infer_lifetimes(Function *restrict function) {
@@ -94,52 +106,52 @@ bool infer_lifetimes(Function *restrict function) {
         Instruction I           = body->buffer[block_index];
         switch (I.opcode) {
         case OPCODE_RET: {
-            infer_lifetime_B(I, block_index);
+            infer_lifetime_B(I, block_index, function);
             break;
         }
 
         case OPCODE_CALL: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_DOT: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_LET: {
-            infer_lifetime_AB(I, block_index);
+            infer_lifetime_AB(I, block_index, function);
             break;
         }
 
         case OPCODE_NEG: {
-            infer_lifetime_AB(I, block_index);
+            infer_lifetime_AB(I, block_index, function);
             break;
         }
 
         case OPCODE_ADD: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_SUB: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_MUL: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_DIV: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_MOD: {
-            infer_lifetime_ABC(I, block_index);
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
         default: EXP_UNREACHABLE();

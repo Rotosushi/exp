@@ -16,30 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
-#include <stddef.h>
 
 #include "codegen/x86/imr/instruction.h"
-#include "codegen/x86/imr/registers.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 static x86_Instruction x64_instruction(x86_Opcode opcode) {
-    x86_Instruction I = {.opcode = opcode};
-    return I;
+    return (x86_Instruction){.opcode = opcode};
 }
 
 static x86_Instruction x64_instruction_A(x86_Opcode opcode, x86_Operand A) {
-    x86_Instruction I = {.opcode = opcode, .A = A};
-    return I;
+    return (x86_Instruction){
+        .opcode = opcode, .A_kind = A.kind, .A_data = A.data};
 }
 
 static x86_Instruction
 x64_instruction_AB(x86_Opcode opcode, x86_Operand A, x86_Operand B) {
-    x86_Instruction I = {.opcode = opcode, .A = A, .B = B};
-    return I;
+    return (x86_Instruction){.opcode = opcode,
+                             .A_kind = A.kind,
+                             .A_data = A.data,
+                             .B_kind = B.kind,
+                             .B_data = B.data};
 }
 
-x86_Instruction x86_ret() { return x64_instruction(X64_OPCODE_RETURN); }
+x86_Instruction x86_ret() { return x64_instruction(X64_OPCODE_RET); }
 
 x86_Instruction x86_call(x86_Operand label) {
     return x64_instruction_A(X64_OPCODE_CALL, label);
@@ -81,163 +81,83 @@ x86_Instruction x86_idiv(x86_Operand src) {
     return x64_instruction_A(X64_OPCODE_IDIV, src);
 }
 
-static void x64_emit_mnemonic(StringView                       mnemonic,
-                              [[maybe_unused]] x86_Instruction I,
-                              String *restrict buffer,
-                              [[maybe_unused]] Context *restrict context) {
+static void print_x86_instruction_A(String *restrict buffer,
+                                    x86_Instruction instruction,
+                                    StringView      mnemonic) {
     string_append(buffer, mnemonic);
-    // if either operand is a register then it is a 64 bit GPR, so we
-    // know we need the 'q' suffix. because, as a simplification, we
-    // only support the 64 bit GPRs.
-    //
-    // as a simplification, we always allocate a 64 bit word for each
-    // type we currently support.
-    //
-    // #TODO:
-    // we need to get the size of the type that the operand is representing
-    // and choose the correct mnemonic suffix accordingly.
-    // 'b' -> u8
-    // 'w' -> u16
-    // 'l' -> u32
-    // 'q' -> u64
-    //
-    // additionally
-    // 's' -> f32
-    // 'l' -> f64
-    // 't' -> f80
-    //
-    // however, relying on the above simplifications, we always load/store
-    // a quad word, so we can always emit the 'q' suffix.
-    string_append(buffer, SV("q\t"));
+    string_append(buffer, SV("\t"));
+    print_x86_operand(buffer,
+                      x86_operand(instruction.A_kind, instruction.A_data));
 }
 
-static void x64_emit_operand(x86_Operand operand, String *restrict buffer) {
-    switch (operand.kind) {
-    case X86_OPERAND_KIND_GPR: {
-        string_append(buffer, SV("%"));
-        string_append(buffer, x86_gpr_mnemonic(operand.data.gpr));
-        break;
-    }
-
-    case X86_OPERAND_KIND_ADDRESS: {
-        x86_Address *address = &operand.data.address;
-        string_append_i64(buffer, address->offset);
-
-        string_append(buffer, SV("(%"));
-        string_append(buffer, x86_gpr_mnemonic(address->base));
-
-        if (address->has_index) {
-            string_append(buffer, SV(", "));
-            string_append(buffer, x86_gpr_mnemonic(address->index));
-            string_append(buffer, SV(", "));
-            string_append_u64(buffer, address->scale);
-        }
-
-        string_append(buffer, SV(")"));
-        break;
-    }
-
-    case X86_OPERAND_KIND_IMMEDIATE: {
-        string_append(buffer, SV("$"));
-        string_append_i64(buffer, operand.data.i64_);
-        break;
-    }
-
-    case X86_OPERAND_KIND_CONSTANT: {
-        Value const *constant = operand.data.constant;
-        // #TODO: this needs to robustly handle all scalar constants.
-        //  and it is important to note that only scalar constants
-        //  can validly appear here.
-        assert(constant->kind == VALUE_KIND_I64);
-        string_append(buffer, SV("$"));
-        string_append_i64(buffer, constant->i64_);
-        break;
-    }
-
-    case X86_OPERAND_KIND_LABEL: {
-        StringView name = constant_string_to_view(operand.data.label);
-        string_append(buffer, name);
-        break;
-    }
-
-    default: unreachable();
-    }
+static void print_x86_instruction_AB(String *restrict buffer,
+                                     x86_Instruction instruction,
+                                     StringView      mnemonic) {
+    string_append(buffer, mnemonic);
+    string_append(buffer, SV("\t"));
+    print_x86_operand(buffer,
+                      x86_operand(instruction.A_kind, instruction.A_data));
+    string_append(buffer, SV(", "));
+    print_x86_operand(buffer,
+                      x86_operand(instruction.B_kind, instruction.B_data));
 }
 
-void x86_instruction_emit(x86_Instruction I,
-                          String *restrict buffer,
-                          Context *restrict context) {
-    switch (I.opcode) {
-    case X64_OPCODE_RETURN: {
+void print_x86_instruction(String *restrict buffer,
+                           x86_Instruction instruction) {
+    exp_assert(buffer != NULL);
+    switch (instruction.opcode) {
+    case X64_OPCODE_RET: {
         string_append(buffer, SV("ret"));
         break;
     }
 
     case X64_OPCODE_CALL: {
-        string_append(buffer, SV("call\t"));
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("call"));
         break;
     }
 
     case X64_OPCODE_PUSH: {
-        x64_emit_mnemonic(SV("push"), I, buffer, context);
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("push"));
         break;
     }
 
     case X64_OPCODE_POP: {
-        x64_emit_mnemonic(SV("pop"), I, buffer, context);
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("pop"));
         break;
     }
 
     case X64_OPCODE_MOV: {
-        x64_emit_mnemonic(SV("mov"), I, buffer, context);
-        x64_emit_operand(I.B, buffer);
-        string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_AB(buffer, instruction, SV("mov"));
         break;
     }
 
     case X64_OPCODE_LEA: {
-        x64_emit_mnemonic(SV("lea"), I, buffer, context);
-        x64_emit_operand(I.B, buffer);
-        string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_AB(buffer, instruction, SV("lea"));
         break;
     }
 
     case X64_OPCODE_NEG: {
-        x64_emit_mnemonic(SV("neg"), I, buffer, context);
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("neg"));
         break;
     }
 
     case X64_OPCODE_ADD: {
-        x64_emit_mnemonic(SV("add"), I, buffer, context);
-        x64_emit_operand(I.B, buffer);
-        string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_AB(buffer, instruction, SV("add"));
         break;
     }
 
     case X64_OPCODE_SUB: {
-        x64_emit_mnemonic(SV("sub"), I, buffer, context);
-        x64_emit_operand(I.B, buffer);
-        string_append(buffer, SV(", "));
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_AB(buffer, instruction, SV("sub"));
         break;
     }
 
     case X64_OPCODE_IMUL: {
-        x64_emit_mnemonic(SV("imul"), I, buffer, context);
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("imul"));
         break;
     }
 
     case X64_OPCODE_IDIV: {
-        x64_emit_mnemonic(SV("idiv"), I, buffer, context);
-        x64_emit_operand(I.A, buffer);
+        print_x86_instruction_A(buffer, instruction, SV("idiv"));
         break;
     }
 

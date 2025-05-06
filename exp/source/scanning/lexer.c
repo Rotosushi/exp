@@ -32,7 +32,9 @@ void lexer_init(Lexer *restrict lexer) {
     assert(lexer != NULL);
     lexer->length = 0;
     lexer->buffer = lexer->cursor = lexer->token = NULL;
-    lexer->line = lexer->column = 1;
+    lexer->source_location.file                  = SV("stdin");
+    lexer->source_location.line                  = 1;
+    lexer->source_location.column                = 1;
 }
 
 void lexer_reset(Lexer *restrict lexer) {
@@ -44,6 +46,11 @@ void lexer_set_view(Lexer *restrict lexer, StringView view) {
     assert(lexer != NULL);
     lexer->buffer = lexer->cursor = lexer->token = view.ptr;
     lexer->length                                = view.length;
+}
+
+void lexer_set_file(Lexer *restrict lexer, StringView file) {
+    assert(lexer != NULL);
+    lexer->source_location.file = file;
 }
 
 bool lexer_at_end(Lexer *restrict lexer) {
@@ -64,12 +71,19 @@ StringView lexer_current_text(Lexer const *restrict lexer) {
 
 u64 lexer_current_line(Lexer const *restrict lexer) {
     assert(lexer != NULL);
-    return lexer->line;
+    return lexer->source_location.line;
 }
 
 u64 lexer_current_column(Lexer const *restrict lexer) {
     assert(lexer != NULL);
-    return lexer->column;
+    return lexer->source_location.column;
+}
+
+void lexer_current_source_location(Lexer const *restrict lexer,
+                                   SourceLocation *restrict source_location) {
+    assert(lexer != NULL);
+    assert(source_location != NULL);
+    *source_location = lexer->source_location;
 }
 
 static bool isid(char c) {
@@ -77,7 +91,7 @@ static bool isid(char c) {
 }
 
 static char lexer_next(Lexer *restrict lexer) {
-    lexer->column++;
+    lexer->source_location.column++;
     lexer->cursor++;
     return lexer->cursor[-1];
 }
@@ -95,8 +109,8 @@ static void lexer_skip_whitespace(Lexer *restrict lexer) {
         if (lexer_at_end(lexer)) break;
         switch (lexer_peek(lexer)) {
         case '\n':
-            lexer->column = 1;
-            lexer->line++;
+            lexer->source_location.column = 1;
+            lexer->source_location.line++;
             [[fallthrough]];
         case ' ':
         case '\r':
@@ -120,7 +134,7 @@ static bool lexer_match(Lexer *restrict lexer, char c) {
 
     if (lexer_peek(lexer) != c) { return 0; }
 
-    lexer->column++;
+    lexer->source_location.column++;
     lexer->cursor++;
     return 1;
 }
@@ -213,7 +227,7 @@ static Token lexer_string_literal(Lexer *restrict lexer) {
         if (lexer_at_end(lexer)) { return TOK_ERROR_UNMATCHED_DOUBLE_QUOTE; }
     }
     // eat the '"'
-    lexer->column++;
+    lexer->source_location.column++;
     lexer->cursor++;
 
     return TOK_STRING_LITERAL;

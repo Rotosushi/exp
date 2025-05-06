@@ -17,23 +17,36 @@
 #ifndef EXP_BACKEND_X86_OPERAND_H
 #define EXP_BACKEND_X86_OPERAND_H
 
-#include "codegen/x86/imr/allocation.h"
-#include "imr/value.h"
+#include "codegen/x86/imr/location.h"
 #include "support/constant_string.h"
 
 typedef enum x86_OperandKind : u8 {
-    X86_OPERAND_KIND_GPR,
-    X86_OPERAND_KIND_ADDRESS,
+    X86_OPERAND_KIND_LOCATION,
     X86_OPERAND_KIND_LABEL,
-    X86_OPERAND_KIND_CONSTANT,
-    X86_OPERAND_KIND_IMMEDIATE,
+    X86_OPERAND_KIND_NIL,
+    X86_OPERAND_KIND_BOOL,
+    X86_OPERAND_KIND_U8,
+    X86_OPERAND_KIND_U16,
+    X86_OPERAND_KIND_U32,
+    X86_OPERAND_KIND_U64,
+    X86_OPERAND_KIND_I8,
+    X86_OPERAND_KIND_I16,
+    X86_OPERAND_KIND_I32,
+    X86_OPERAND_KIND_I64,
 } x86_OperandKind;
 
 typedef union x86_OperandData {
-    x86_GPR               gpr;
-    x86_Address           address;
+    x86_Location          location;
     ConstantString const *label;
-    Value const          *constant;
+    bool                  nil;
+    bool                  bool_;
+    u8                    u8_;
+    u16                   u16_;
+    u32                   u32_;
+    u64                   u64_;
+    i8                    i8_;
+    i16                   i16_;
+    i32                   i32_;
     i64                   i64_;
 } x86_OperandData;
 
@@ -42,12 +55,25 @@ typedef struct x86_Operand {
     x86_OperandData data;
 } x86_Operand;
 
-x86_Operand x86_operand_gpr(x86_GPR gpr);
-x86_Operand x86_operand_address(x86_Address address);
-x86_Operand x86_operand_location(x86_Location location);
-x86_Operand x86_operand_alloc(x86_Allocation *alloc);
-x86_Operand x86_operand_constant(Value const *constant);
+x86_Operand x86_operand(x86_OperandKind kind, x86_OperandData data);
+x86_Operand x86_operand_location_gpr(x86_GPR gpr);
+x86_Operand x86_operand_location_address(x86_GPR base, i32 offset);
+x86_Operand x86_operand_location_address_indexed(x86_GPR base,
+                                                 x86_GPR index,
+                                                 u8      scale,
+                                                 i32     offset);
 x86_Operand x86_operand_label(ConstantString const *cs);
+x86_Operand x86_operand_nil();
+x86_Operand x86_operand_bool(bool bool_);
+x86_Operand x86_operand_u8(u8 u8_);
+x86_Operand x86_operand_u16(u16 u16_);
+x86_Operand x86_operand_u32(u32 u32_);
+x86_Operand x86_operand_u64(u64 u64_);
+x86_Operand x86_operand_i8(i8 i8_);
+x86_Operand x86_operand_i16(i16 i16_);
+x86_Operand x86_operand_i32(i32 i32_);
 x86_Operand x86_operand_i64(i64 value);
+
+void print_x86_operand(String *restrict buffer, x86_Operand operand);
 
 #endif // !EXP_BACKEND_X86_OPERAND_H

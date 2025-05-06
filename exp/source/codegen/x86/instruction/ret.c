@@ -19,8 +19,6 @@
 #include <assert.h>
 
 #include "codegen/x86/instruction/ret.h"
-#include "codegen/x86/intrinsics/copy.h"
-#include "codegen/x86/intrinsics/load.h"
 #include "support/panic.h"
 #include "support/unreachable.h"
 

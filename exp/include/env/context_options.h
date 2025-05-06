@@ -19,20 +19,20 @@
 
 #include <stdbool.h>
 
+#include "codegen/target.h"
+
 /**
  * @brief holds the options available that affect the compilation
  * of a given context.
  */
 typedef struct ContextOptions {
-    bool prolix                     : 1;
-    bool create_ir_artifact         : 1;
-    bool create_assembly_artifact   : 1;
-    bool create_object_artifact     : 1;
-    bool create_executable_artifact : 1;
-    bool create_library_artifact    : 1;
-    bool cleanup_ir_artifact        : 1;
-    bool cleanup_assembly_artifact  : 1;
-    bool cleanup_object_artifact    : 1;
+    bool    prolix                     : 1;
+    bool    create_assembly_artifact   : 1;
+    bool    create_object_artifact     : 1;
+    bool    create_executable_artifact : 1;
+    bool    cleanup_assembly_artifact  : 1;
+    bool    cleanup_object_artifact    : 1;
+    Target *target;
 } ContextOptions;
 
 #endif // !EXP_ENV_CONTEXT_OPTIONS_H

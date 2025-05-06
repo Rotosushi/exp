@@ -17,34 +17,34 @@
 #ifndef EXP_BACKEND_X86_FUNCTION_BODY_H
 #define EXP_BACKEND_X86_FUNCTION_BODY_H
 
-#include "codegen/x86/imr/allocator.h"
 #include "codegen/x86/imr/bytecode.h"
-#include "imr/function.h"
+#include "codegen/x86/imr/gprp.h"
+#include "codegen/x86/imr/locations.h"
+#include "env/context.h"
 
-typedef struct x64_FormalArgument {
-    u8              index;
-    x86_Allocation *allocation;
-    Type           *type;
+typedef struct x86_FormalArgument {
+    u8    index;
+    Type *type;
 } x86_FormalArgument;
 
-typedef struct x64_FormalArgumentList {
+typedef struct x86_FormalArgumentList {
     u8                  size;
     x86_FormalArgument *buffer;
 } x86_FormalArgumentList;
 
-x86_FormalArgumentList x86_formal_argument_list_create(u8 size);
-x86_FormalArgument *
-x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 idx);
-
 typedef struct x86_Function {
     x86_FormalArgumentList arguments;
-    x86_Allocation        *result;
-    x86_Bytecode           bc;
-    x86_Allocator          allocator;
+    x86_Bytecode           body;
+    x86_Locations          locations;
+    x86_GPRP               gprp;
 } x86_Function;
 
 void x86_function_create(x86_Function *restrict x86_body,
-                         Function const *restrict body);
+                         Function const *restrict body,
+                         Context *restrict context);
 void x86_function_destroy(x86_Function *restrict body);
+
+void print_x86_function(String *restrict buffer,
+                        x86_Function const *restrict function);
 
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

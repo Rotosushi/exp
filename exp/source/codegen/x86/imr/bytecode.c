@@ -16,23 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
 #include "codegen/x86/imr/bytecode.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 
-x86_Bytecode x86_bytecode_create() {
-    x86_Bytecode bc = {.length = 0, .capacity = 0, .buffer = NULL};
-    return bc;
+void x86_bytecode_create(x86_Bytecode *restrict bc) {
+    exp_assert(bc != NULL);
+    bc->length   = 0;
+    bc->capacity = 0;
+    bc->buffer   = NULL;
 }
 
 void x86_bytecode_destroy(x86_Bytecode *restrict bc) {
-    assert(bc != NULL);
-    bc->length   = 0;
-    bc->capacity = 0;
+    exp_assert(bc != NULL);
     deallocate(bc->buffer);
-    bc->buffer = NULL;
+    x86_bytecode_create(bc);
 }
 
 static bool x86_bytecode_full(x86_Bytecode *restrict bc) {
@@ -40,58 +40,50 @@ static bool x86_bytecode_full(x86_Bytecode *restrict bc) {
 }
 
 static void x86_bytecode_grow(x86_Bytecode *restrict bc) {
-    Growth_u64 g = array_growth_u64(bc->capacity, sizeof(x86_Instruction));
+    Growth_u32 g = array_growth_u32(bc->capacity, sizeof(x86_Instruction));
     bc->buffer   = reallocate(bc->buffer, g.alloc_size);
     bc->capacity = g.new_capacity;
 }
 
-u64 x86_bytecode_current_offset(x86_Bytecode *restrict bc) {
+u32 x86_bytecode_current_offset(x86_Bytecode *restrict bc) {
     return bc->length;
 }
 
 void x86_bytecode_insert(x86_Bytecode *restrict bc,
-                         x86_Instruction I,
+                         x86_Instruction instruction,
                          u64             offset) {
-    assert(bc != NULL);
-    assert(offset < bc->capacity);
-    assert(offset <= bc->length);
+    exp_assert(bc != NULL);
+    exp_assert(offset < bc->capacity);
+    exp_assert(offset <= bc->length);
     if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
 
-    for (u64 i = bc->length; i > offset; --i) {
-        bc->buffer[i] = bc->buffer[i - 1];
+    for (u32 index = bc->length; index > offset; --index) {
+        bc->buffer[index] = bc->buffer[index - 1];
     }
 
-    bc->buffer[offset] = I;
+    bc->buffer[offset] = instruction;
     bc->length += 1;
 }
 
-void x86_bytecode_append(x86_Bytecode *restrict bc, x86_Instruction I) {
-    assert(bc != NULL);
-    if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
-
-    bc->buffer[bc->length] = I;
-    bc->length += 1;
+void x86_bytecode_append(x86_Bytecode *restrict bc,
+                         x86_Instruction instruction) {
+    exp_assert(bc != NULL);
+    x86_bytecode_insert(bc, instruction, bc->length);
 }
 
-void x86_bytecode_prepend(x86_Bytecode *restrict bc, x86_Instruction I) {
-    assert(bc != NULL);
-    if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
-
-    // move all instructions forward one location
-    for (u64 idx = bc->length; idx > 0; --idx) {
-        bc->buffer[idx] = bc->buffer[idx - 1];
-    }
-
-    bc->buffer[0] = I;
-    bc->length += 1;
+void x86_bytecode_prepend(x86_Bytecode *restrict bc,
+                          x86_Instruction instruction) {
+    exp_assert(bc != NULL);
+    x86_bytecode_insert(bc, instruction, 0);
 }
 
-void x86_bytecode_emit(x86_Bytecode *restrict bc,
-                       String *restrict buffer,
-                       Context *restrict context) {
-    for (u16 i = 0; i < bc->length; ++i) {
+void print_x86_bytecode(String *restrict buffer,
+                        x86_Bytecode const *restrict bc) {
+    exp_assert(buffer != NULL);
+    exp_assert(bc != NULL);
+    for (u32 index = 0; index < bc->length; ++index) {
         string_append(buffer, SV("\t"));
-        x86_instruction_emit(bc->buffer[i], buffer, context);
+        print_x86_instruction(buffer, bc->buffer[index]);
         string_append(buffer, SV("\n"));
     }
 }
