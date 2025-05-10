@@ -15,13 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef EXP_EVALUATE_INSTRUCTION_FN_H
-#define EXP_EVALUATE_INSTRUCTION_FN_H
+#ifndef EXP_ANALYSIS_VALIDATE_H
+#define EXP_ANALYSIS_VALIDATE_H
 
 #include "env/context.h"
 
-bool evaluate_fn(Instruction instruction,
-                 Frame *restrict frame,
-                 Context *restrict context);
+/**
+ * @brief validates that the given expression does not break any
+ * of the enforced invariants. This is for internal consistency,
+ * An error here is an error in the compiler, not user code.
+ *
+ * @note:
+ * - each local is declared at most once
+ * - each local has a known type.
+ * - each use of a local occurs after it's declaration
+ * - each lifetime of a local is bound within the function
+ * - each use of a local is typesafe
+ * - each use of a value is typesafe
+ * - each use of a label is typesafe
+ *
+ */
+bool validate(Function const *restrict expression, Context *restrict context);
 
-#endif // !EXP_EVALAUTE_INSTRUCTION_FN_H
+#endif // !EXP_ANALYSIS_VALIDATE_H

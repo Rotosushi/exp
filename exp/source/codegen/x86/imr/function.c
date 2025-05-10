@@ -16,44 +16,108 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
 #include "codegen/x86/imr/function.h"
 #include "support/allocation.h"
+#include "support/assert.h"
 
-static x86_FormalArgumentList x86_formal_argument_list_create(u8 size) {
-    x86_FormalArgumentList args = {
-        .size = size, .buffer = allocate(size * sizeof(x86_FormalArgument))};
-    return args;
+static void
+x86_formal_argument_list_create(x86_FormalArgumentList *restrict args) {
+    args->size   = 0;
+    args->buffer = NULL;
 }
 
 static void
 x86_formal_arguments_destroy(x86_FormalArgumentList *restrict args) {
-    args->size = 0;
     deallocate(args->buffer);
-    args->buffer = NULL;
+    x86_formal_argument_list_create(args);
 }
 
-void x86_function_create(x86_Function *restrict x86_function,
-                         Function const *restrict function,
-                         Context *restrict context) {
-    assert(x86_function != NULL);
-    assert(function != NULL);
-    x86_function->arguments =
-        x86_formal_argument_list_create(function->arguments.size);
-    x86_bytecode_create(&x86_function->body);
-    x86_function->gprp = x86_gprp_construct();
-    x86_locations_create(&x86_function->locations,
-                         function_locals_count(function));
+static void
+x86_formal_argument_list_allocate(x86_FormalArgumentList *restrict args,
+                                  u8 size) {
+    args->size   = size;
+    args->buffer = callocate(size, sizeof(*args->buffer));
+}
 
-    Bytecode const *body = &function->body;
-    for (u32 index = 0; index < body->length; ++index) {}
+static x86_FormalArgument *
+x86_formal_argument_list_at(x86_FormalArgumentList const *restrict args,
+                            u8 index) {
+    exp_assert(args->size > index);
+    return args->buffer + index;
+}
+
+void x86_function_create(x86_Function *restrict x86_function) {
+    exp_assert(x86_function != NULL);
+    x86_formal_argument_list_create(&x86_function->arguments);
+    x86_bytecode_create(&x86_function->body);
+    x86_gprp_create(&x86_function->gprp);
+    x86_locations_create(&x86_function->locations);
 }
 
 void x86_function_destroy(x86_Function *restrict function) {
-    assert(function != NULL);
+    exp_assert(function != NULL);
     x86_formal_arguments_destroy(&function->arguments);
     x86_bytecode_destroy(&function->body);
-    function->gprp = x86_gprp_construct();
+    x86_gprp_create(&function->gprp);
     x86_locations_destroy(&function->locations);
+}
+
+void x86_function_append(x86_Function *restrict x86_function,
+                         x86_Instruction instruction) {
+    exp_assert(x86_function != NULL);
+    x86_bytecode_append(&x86_function->body, instruction);
+}
+
+static void x86_function_codegen_setup(x86_Function *restrict x86_function,
+                                       Function const *restrict function) {
+    x86_formal_argument_list_allocate(&x86_function->arguments,
+                                      function_arguments_count(function));
+    x86_locations_allocate(&x86_function->locations,
+                           function_locals_count(function));
+
+    // #NOTE: Mark rsp and rbp as occupied, as these are used by the function
+    // to implement it's stack frame at runtime.
+    // #NOTE: #OPTIMIZATION: when the function uses no stack space, we can use
+    // these registers as general purpose. So long as we save/restore them
+    // before returning to another functions frame.
+    // #NOTE: #OPTIMIZATION: if the frame is not using anything fancy, we can
+    // get away with only using the RBP register. Which frees up the RSP for
+    // general usage.
+    exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RSP));
+    exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RBP));
+}
+
+void x86_function_codegen_header(x86_Function *restrict x86_function) {
+    // #NOTE: The standard x86 function header is to save the previous
+    // stack frame, and save all registers used by the current
+    // functions frame. Then allocate the current stack frame.
+    // #ADDENDUM #[08-05-2025]:
+    // Currently, we store all local values on the stack So the only values
+    // appearing in registers are temporaries, and thus never need to be
+    // save/restored. So all we have to do here is save/restore the previous
+    // stack frames stack pointer. This will need to change if we ever add an
+    // optimization which allows a local variable to live in a register for
+    // it's lifetime
+    x86_function_append(x86_function,
+                        x86_push(x86_operand_location_gpr(X86_GPR_RBP)));
+    x86_function_append(x86_function,
+                        x86_mov(x86_operand_location_gpr(X86_GPR_RBP),
+                                x86_operand_location_gpr(X86_GPR_RSP)));
+    // #NOTE: At this point in the function, we do not know how large the
+    // functions frame is going to be. We might be able to precompute the size,
+    // as we allocate all locals onto the stack.
+    x86_function_append(
+        x86_function,
+        x86_sub(x86_operand_location_gpr(X86_GPR_RSP), x86_operand_i32(0)));
+}
+
+i32 x86_function_codegen(x86_Function *restrict x86_function,
+                         Function const *restrict function,
+                         Context *restrict context) {
+    exp_assert(x86_function != NULL);
+    exp_assert(function != NULL);
+    exp_assert(context != NULL);
+
+    x86_function_codegen_setup(x86_function, function);
 }

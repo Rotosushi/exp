@@ -115,11 +115,6 @@ bool infer_lifetimes(Function *restrict function) {
             break;
         }
 
-        case OPCODE_DOT: {
-            infer_lifetime_ABC(I, block_index, function);
-            break;
-        }
-
         case OPCODE_LET: {
             infer_lifetime_AB(I, block_index, function);
             break;
@@ -127,6 +122,11 @@ bool infer_lifetimes(Function *restrict function) {
 
         case OPCODE_NEG: {
             infer_lifetime_AB(I, block_index, function);
+            break;
+        }
+
+        case OPCODE_DOT: {
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 

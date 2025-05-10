@@ -36,6 +36,7 @@ typedef enum Token {
     TOK_SEMICOLON,
     TOK_COLON,
     TOK_RIGHT_ARROW,
+    TOK_BACKSLASH,
 
     TOK_MINUS,
     TOK_PLUS,

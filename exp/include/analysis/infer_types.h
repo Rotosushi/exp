@@ -19,46 +19,6 @@
 
 #include "env/context.h"
 
-/*
- * This applies to both infer_types and infer_lifetimes.
- * I want to add in an `evaluate(expr, context);` function
- * which is able to evaluate bytecode and return a result.
- * I think that as a part of that, infer_types and infer_lifetimes
- * need to have the API broken up into infer_types(expr, context);
- * and infer_lifetimes(expr, context);
- * But, what is an expression? I think, it can be an implicit lambda,
- * which captures the context. The thing is we need to rearchitect
- * the way that functions are defined. Namely function definitions
- * must be expressable within the bytecode itself. As const variables
- * already are. Then, we can pass a chunk of bytecode to the eval statement
- * as an expression, and that expression can be evaluated, one of the side
- * effects can then be, define a function, or define a global constant,
- * So what does that look like in practice though?
- * What is the memory layout of an operand that defines a function?
- * IF a Value can store a lambda, Then it can simply be a Constant in the
- * constants array. and we can have a unified 'const' instruction.
- *
- * approximate series of steps:
- * - rename 'const' instructions to 'let' instructions. (done!)
- * - modify Value to store a Function. (done! plust some extra)
- * - refactor the parser and the context, we need to generate
- *   a single chunk of bytecode for each "unit" of input, call
- *   that an 'expression'. we then evaluate each expression as
- *   it comes 'within' the context, this evaluation is what defines
- *   global names in the context, not the parser directly, as is done
- *   currently.
- *
- * - refactor the parser and context:
- *   - modify the parser such that it appends to a newly created
- *     chunk of bytecode for each full top level expression.
- *   - add an evaluate function which evaluates this chunk of bytecode.
- *   - extend the functionality of bytecode to allow it to represent
- *     the definition of functions
- *   - The evaluation of the bytecode is what defines global symbols
- *     in the current evaluation context.
- *
- */
-
 /**
  * @brief fills in the type information for the given function,
  * and all its locals.

@@ -17,7 +17,8 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/evaluate.h"
+#include "evaluate/evaluate.h"
+#include "analysis/infer_lifetimes.h"
 #include "analysis/infer_types.h"
 #include "evaluate/top.h"
 #include "support/assert.h"
@@ -65,6 +66,7 @@ bool evaluate(Function *restrict expression, Context *restrict context) {
     exp_assert(context != NULL);
 
     if (!infer_types(expression, context)) { return false; }
+    if (!infer_lifetimes(expression)) { return false; }
 
     Frame frame;
     frame.function = expression;

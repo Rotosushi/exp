@@ -51,7 +51,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/evaluate/instruction/call.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/div.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/dot.c
-  ${EXP_SOURCE_DIR}/evaluate/instruction/fn.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/let.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/mod.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/mul.c

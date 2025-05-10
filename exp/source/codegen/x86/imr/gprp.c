@@ -19,7 +19,7 @@
 
 #include "codegen/x86/imr/gprp.h"
 
-extern x86_GPRP x86_gprp_construct();
+extern void x86_gprp_create(x86_GPRP *restrict gprp);
 
 #define SET(pool, index) ((pool->active) |= (u32)(1 << index))
 #define CLR(pool, index) ((pool->active) &= (u32)(~(1 << index)))

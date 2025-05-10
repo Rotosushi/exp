@@ -114,6 +114,11 @@ u32 function_locals_count(Function const *restrict function) {
     return function->locals.size;
 }
 
+u8 function_arguments_count(Function const *restrict function) {
+    assert(function != NULL);
+    return function->arguments.size;
+}
+
 static void print_formal_argument(String *restrict string,
                                   Local *restrict arg) {
     string_append(string, arg->name);

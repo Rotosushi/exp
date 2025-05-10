@@ -23,6 +23,8 @@
 #ifndef EXP_SUPPORT_ASSERT_H
 #define EXP_SUPPORT_ASSERT_H
 
+#include <stddef.h>
+
 #include "support/panic.h"
 
 /**

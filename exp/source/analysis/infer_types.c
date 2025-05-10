@@ -22,7 +22,6 @@
 #include "analysis/infer_types.h"
 #include "env/context.h"
 #include "imr/type.h"
-#include "intrinsics/type_of.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
@@ -347,15 +346,15 @@ static bool infer_types_function(Type const **restrict result,
             break;
         }
 
-        case OPCODE_DOT: {
-            Type const *Aty;
-            if (!infer_types_dot(&Aty, function, context, I)) { return false; }
-            break;
-        }
-
         case OPCODE_NEG: {
             Type const *Aty;
             if (!infer_types_neg(&Aty, function, context, I)) { return false; }
+            break;
+        }
+
+        case OPCODE_DOT: {
+            Type const *Aty;
+            if (!infer_types_dot(&Aty, function, context, I)) { return false; }
             break;
         }
 
@@ -393,7 +392,7 @@ static bool infer_types_function(Type const **restrict result,
         }
     }
 
-    return success(result, type_of_function(function, context));
+    return success(result, context_type_of_function(context, function));
 }
 
 bool infer_types(Function *restrict function, Context *restrict context) {

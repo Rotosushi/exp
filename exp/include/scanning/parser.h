@@ -55,6 +55,21 @@
 
   let = "let" (":" type)? "=" expression ";"
 
+  type = basic-type
+       | type "->" type
+       | "(" type ("," type)* ")"
+
+  basic-type = "nil"
+             | "bool"
+             | "u8"
+             | "u16"
+             | "u32"
+             | "u64"
+             | "i8"
+             | "i16"
+             | "i32"
+             | "i64"
+
   expression = basic (binop precedece-parser)*
 
   basic = literal

@@ -68,7 +68,6 @@
 typedef enum Opcode : u8 {
     OPCODE_RET,
     OPCODE_CALL,
-    OPCODE_FN,
     OPCODE_LET,
     OPCODE_NEG,
     OPCODE_DOT,
@@ -91,7 +90,6 @@ typedef struct Instruction {
 
 Instruction instruction_return(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
-Instruction instruction_fn(Operand dst, Operand src);
 Instruction instruction_let(Operand dst, Operand src);
 Instruction instruction_neg(Operand dst, Operand src);
 Instruction instruction_dot(Operand dst, Operand src, Operand index);

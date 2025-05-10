@@ -22,17 +22,22 @@
 #include "support/allocation.h"
 #include "support/assert.h"
 
-void x86_locations_create(x86_Locations *restrict locations, u32 capacity) {
+void x86_locations_create(x86_Locations *restrict locations) {
     exp_assert(locations != NULL);
-    locations->capacity = capacity;
-    locations->buffer   = callocate(capacity, sizeof(*locations->buffer));
+    locations->capacity = 0;
+    locations->buffer   = NULL;
 }
 
 void x86_locations_destroy(x86_Locations *restrict locations) {
     exp_assert(locations != NULL);
-    locations->capacity = 0;
     deallocate(locations->buffer);
-    locations->buffer = NULL;
+    x86_locations_create(locations);
+}
+
+void x86_locations_allocate(x86_Locations *restrict locations, u32 capacity) {
+    exp_assert(locations != NULL);
+    locations->capacity = capacity;
+    locations->buffer   = callocate(capacity, sizeof(*locations->buffer));
 }
 
 x86_Location *x86_locations_at(x86_Locations const *restrict locations,

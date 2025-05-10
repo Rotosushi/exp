@@ -67,11 +67,6 @@ Instruction instruction_let(Operand dst, Operand src) {
     return instruction_AB(OPCODE_LET, dst, src);
 }
 
-Instruction instruction_fn(Operand dst, Operand src) {
-    exp_assert(dst.kind == OPERAND_KIND_SSA);
-    return instruction_AB(OPCODE_FN, dst, src);
-}
-
 Instruction instruction_neg(Operand dst, Operand src) {
     exp_assert(dst.kind == OPERAND_KIND_SSA);
     return instruction_AB(OPCODE_NEG, dst, src);

@@ -19,12 +19,16 @@
 #define EXP_CODEGEN_X86_IMR_GPRP_H
 
 #include "codegen/x86/imr/registers.h"
+#include "support/assert.h"
 
 typedef struct x86_GPRP {
     u32 active;
 } x86_GPRP;
 
-inline x86_GPRP x86_gprp_construct() { return (x86_GPRP){.active = 0}; }
+inline void x86_gprp_create(x86_GPRP *restrict gprp) {
+    exp_assert(gprp != NULL);
+    gprp->active = 0;
+}
 
 bool x86_gprp_aquire(x86_GPRP *restrict pool, x86_GPR gpr);
 bool x86_gprp_release(x86_GPRP *restrict pool, x86_GPR gpr);

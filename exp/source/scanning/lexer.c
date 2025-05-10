@@ -252,14 +252,15 @@ Token lexer_scan(Lexer *restrict lexer) {
 
     char c = lexer_next(lexer);
     switch (c) {
-    case '(': return lexer_match(lexer, ')') ? TOK_NIL : TOK_BEGIN_PAREN;
-    case ')': return TOK_END_PAREN;
-    case '{': return TOK_BEGIN_BRACE;
-    case '}': return TOK_END_BRACE;
-    case ';': return TOK_SEMICOLON;
-    case ':': return TOK_COLON;
-    case ',': return TOK_COMMA;
-    case '.': return TOK_DOT;
+    case '(':  return lexer_match(lexer, ')') ? TOK_NIL : TOK_BEGIN_PAREN;
+    case ')':  return TOK_END_PAREN;
+    case '{':  return TOK_BEGIN_BRACE;
+    case '}':  return TOK_END_BRACE;
+    case ';':  return TOK_SEMICOLON;
+    case ':':  return TOK_COLON;
+    case ',':  return TOK_COMMA;
+    case '.':  return TOK_DOT;
+    case '\\': return TOK_BACKSLASH;
 
     case '-': return lexer_match(lexer, '>') ? TOK_RIGHT_ARROW : TOK_MINUS;
     case '+': return TOK_PLUS;

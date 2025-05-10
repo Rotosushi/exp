@@ -24,8 +24,10 @@ typedef struct x86_Locations {
     x86_Location *buffer;
 } x86_Locations;
 
-void x86_locations_create(x86_Locations *restrict locations, u32 capacity);
+void x86_locations_create(x86_Locations *restrict locations);
 void x86_locations_destroy(x86_Locations *restrict locations);
+
+void x86_locations_allocate(x86_Locations *restrict locations, u32 capacity);
 
 x86_Location *x86_locations_at(x86_Locations const *restrict locations,
                                u32 ssa);

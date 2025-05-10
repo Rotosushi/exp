@@ -39,7 +39,7 @@ typedef enum Precedence {
     PREC_TERM,       // + -
     PREC_FACTOR,     // * /
     PREC_UNARY,      // ! -
-    PREC_CALL,       // . ()
+    PREC_CALL,       // . () "\"
     PREC_PRIMARY,
 } Precedence;
 
@@ -146,11 +146,11 @@ parser_emit_call(Parser *restrict parser, Operand callee, Operand arguments) {
     return result;
 }
 
-static Operand parser_emit_fn(Parser *restrict parser, Operand fn) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_fn(result, fn));
-    return result;
-}
+// static Operand parser_emit_fn(Parser *restrict parser, Operand fn) {
+//     Operand result = parser_declare_local(parser);
+//     parser_emit_instruction(parser, instruction_fn(result, fn));
+//     return result;
+// }
 
 static Operand parser_emit_let(Parser *restrict parser, Operand value) {
     Operand result = parser_declare_local(parser);
@@ -487,17 +487,49 @@ static bool parse_block(Operand *restrict result, Parser *restrict parser) {
     }
 }
 
-static bool function(Operand *restrict result, Parser *restrict parser) {
-    exp_assert_debug(peek(parser, TOK_FN));
-    if (!nexttok(parser)) { return false; } // eat "fn"
+// static bool function(Operand *restrict result, Parser *restrict parser) {
+//     exp_assert_debug(peek(parser, TOK_FN));
+//     if (!nexttok(parser)) { return false; } // eat "fn"
 
-    if (!peek(parser, TOK_IDENTIFIER)) {
-        return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
-    }
+//     if (!peek(parser, TOK_IDENTIFIER)) {
+//         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
+//     }
 
-    StringView name = constant_string_to_view(
-        context_intern(parser->context, curtxt(parser)));
-    if (!nexttok(parser)) { return false; }
+//     StringView name = constant_string_to_view(
+//         context_intern(parser->context, curtxt(parser)));
+//     if (!nexttok(parser)) { return false; }
+
+//     Value    *value    = value_allocate_function();
+//     Function *function = &value->function;
+
+//     Function *previous = parser->function;
+//     parser->function   = function;
+
+//     if (!parse_formal_argument_list(function, parser)) { return false; }
+
+//     switch (expect(parser, TOK_RIGHT_ARROW)) {
+//     case EXPECT_RESULT_SUCCESS:
+//         if (!parse_type(&function->return_type, parser)) { return false; }
+//     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+//     case EXPECT_RESULT_FAILURE:         return false;
+//     default:                            EXP_UNREACHABLE();
+//     }
+
+//     if (!parse_block(result, parser)) { return false; }
+
+//     parser->function = previous;
+//     Value const *fn  = context_constant_function(parser->context, value);
+//     *result          = parser_emit_fn(parser, operand_constant(fn));
+//     exp_assert_debug(result->kind == OPERAND_KIND_SSA);
+//     Local *local = function_lookup_local(parser->function, result->data.ssa);
+//     local->name  = name;
+
+//     return true;
+// }
+
+static bool lambda(Operand *restrict result, Parser *restrict parser) {
+    exp_assert_debug(peek(parser, TOK_BACKSLASH));
+    if (!nexttok(parser)) { return false; } // eat "\"
 
     Value    *value    = value_allocate_function();
     Function *function = &value->function;
@@ -519,11 +551,7 @@ static bool function(Operand *restrict result, Parser *restrict parser) {
 
     parser->function = previous;
     Value const *fn  = context_constant_function(parser->context, value);
-    *result          = parser_emit_fn(parser, operand_constant(fn));
-    exp_assert_debug(result->kind == OPERAND_KIND_SSA);
-    Local *local = function_lookup_local(parser->function, result->data.ssa);
-    local->name  = name;
-
+    *result          = operand_constant(fn);
     return true;
 }
 
@@ -738,11 +766,13 @@ static ParseRule *get_rule(Token token) {
         [TOK_BEGIN_PAREN] = {       parens,  call,   PREC_CALL},
         [TOK_END_PAREN]   = {         NULL,  NULL,   PREC_NONE},
         [TOK_BEGIN_BRACE] = {         NULL,  NULL,   PREC_NONE},
-        [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
+        [TOK_END_BRACE]   = {         NULL,  NULL,   PREC_NONE},
         [TOK_DOT]         = {         NULL, binop,   PREC_CALL},
+        [TOK_COMMA]       = {         NULL,  NULL,   PREC_NONE},
         [TOK_SEMICOLON]   = {         NULL,  NULL,   PREC_NONE},
         [TOK_COLON]       = {         NULL,  NULL,   PREC_NONE},
         [TOK_RIGHT_ARROW] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_BACKSLASH]   = {       lambda,  NULL,   PREC_CALL},
 
         [TOK_MINUS]         = {         unop, binop,   PREC_TERM},
         [TOK_PLUS]          = {         NULL, binop,   PREC_TERM},
@@ -775,6 +805,13 @@ static ParseRule *get_rule(Token token) {
 
         [TOK_TYPE_NIL]  = {         NULL,  NULL,   PREC_NONE},
         [TOK_TYPE_BOOL] = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_U8]   = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_U16]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_U32]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_U64]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_I8]   = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_I16]  = {         NULL,  NULL,   PREC_NONE},
+        [TOK_TYPE_I32]  = {         NULL,  NULL,   PREC_NONE},
         [TOK_TYPE_I64]  = {         NULL,  NULL,   PREC_NONE},
     };
 
@@ -784,7 +821,6 @@ static ParseRule *get_rule(Token token) {
 static bool top_level_expression(Parser *restrict parser) {
     Operand result;
     switch (parser->curtok) {
-    case TOK_FN:  return function(&result, parser);
     case TOK_LET: return let(&result, parser);
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TOP_LEVEL_DECLARATION);

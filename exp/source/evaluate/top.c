@@ -22,7 +22,6 @@
 #include "evaluate/instruction/call.h"
 #include "evaluate/instruction/div.h"
 #include "evaluate/instruction/dot.h"
-#include "evaluate/instruction/fn.h"
 #include "evaluate/instruction/let.h"
 #include "evaluate/instruction/mod.h"
 #include "evaluate/instruction/mul.h"
@@ -37,7 +36,6 @@ static bool evaluate_instruction(Instruction instruction,
     switch (instruction.opcode) {
     case OPCODE_RET:  return evaluate_ret(instruction, frame, context);
     case OPCODE_CALL: return evaluate_call(instruction, frame, context);
-    case OPCODE_FN:   return evaluate_fn(instruction, frame, context);
     case OPCODE_LET:  return evaluate_let(instruction, frame, context);
     case OPCODE_NEG:  return evaluate_neg(instruction, frame, context);
     case OPCODE_DOT:  return evaluate_dot(instruction, frame, context);

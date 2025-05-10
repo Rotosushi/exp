@@ -197,7 +197,12 @@ i32 x86_codegen(String *restrict buffer,
 
     case VALUE_KIND_FUNCTION: {
         x86_Function x86_function;
-        x86_function_create(&x86_function, &value->function, context);
+        x86_function_create(&x86_function);
+
+        if (x86_function_codegen(&x86_function, &value->function, context)) {
+            x86_function_destroy(&x86_function);
+            return 1;
+        }
 
         gas_directive_text(buffer);
         gas_directive_globl(symbol->name, buffer);
