@@ -27,9 +27,14 @@
 #define EXP_CODEGEN_TARGET_H
 
 #include "support/string_view.h"
+
 struct String;
 struct Symbol;
 struct Context;
+struct Type;
+
+typedef u64 (*size_of_fn)(struct Type const *type);
+typedef u64 (*align_of_fn)(struct Type const *type);
 
 // #NOTE with this signature we are forced into combining
 // code generation with emission. However, this removes
@@ -47,15 +52,17 @@ typedef i32 (*footer_fn)(struct String *restrict buffer,
 // for mixing and matching. But that is not a problem we currently
 // need to solve
 typedef struct Target {
-    StringView tag;
-    StringView triple;
-    StringView assembly_extension;
-    StringView object_extension;
-    StringView library_extension;
-    StringView executable_extension;
-    header_fn  header;
-    codegen_fn codegen;
-    footer_fn  footer;
+    StringView  tag;
+    StringView  triple;
+    StringView  assembly_extension;
+    StringView  object_extension;
+    StringView  library_extension;
+    StringView  executable_extension;
+    size_of_fn  size_of;
+    align_of_fn align_of;
+    header_fn   header;
+    codegen_fn  codegen;
+    footer_fn   footer;
 } Target;
 
 #endif // !EXP_CODEGEN_TARGET_H

@@ -41,17 +41,17 @@ u64 x86_align_of(Type const *restrict type) {
     // alignment is 8. double-words are 4 bytes, and their
     // alignment is 4. words are 2 bytes, alignment is 2 bytes.
     // string literals are align 8.
-    case TYPE_KIND_NIL:     return 1;
-    case TYPE_KIND_BOOLEAN: return 1;
-    case TYPE_KIND_U8:      return 1;
-    case TYPE_KIND_U16:     return 2;
-    case TYPE_KIND_U32:     return 4;
-    case TYPE_KIND_U64:     return 8;
-    case TYPE_KIND_I8:      return 1;
-    case TYPE_KIND_I16:     return 2;
-    case TYPE_KIND_I32:     return 4;
-    case TYPE_KIND_I64:     return 8;
-    case TYPE_KIND_TUPLE:   {
+    case TYPE_KIND_NIL:   return 1;
+    case TYPE_KIND_BOOL:  return 1;
+    case TYPE_KIND_U8:    return 1;
+    case TYPE_KIND_U16:   return 2;
+    case TYPE_KIND_U32:   return 4;
+    case TYPE_KIND_U64:   return 8;
+    case TYPE_KIND_I8:    return 1;
+    case TYPE_KIND_I16:   return 2;
+    case TYPE_KIND_I32:   return 4;
+    case TYPE_KIND_I64:   return 8;
+    case TYPE_KIND_TUPLE: {
         TupleType *tuple_type = (TupleType *)type;
         u64        max        = 0;
         for (u32 i = 0; i < tuple_type->size; ++i) {

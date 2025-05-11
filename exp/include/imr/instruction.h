@@ -88,6 +88,18 @@ typedef struct Instruction {
     OperandData C_data;
 } Instruction;
 
+inline Operand operand_A(Instruction instruction) {
+    return operand(instruction.A_kind, instruction.A_data);
+}
+
+inline Operand operand_B(Instruction instruction) {
+    return operand(instruction.B_kind, instruction.B_data);
+}
+
+inline Operand operand_C(Instruction instruction) {
+    return operand(instruction.C_kind, instruction.C_data);
+}
+
 Instruction instruction_return(Operand result);
 Instruction instruction_call(Operand dst, Operand label, Operand args);
 Instruction instruction_let(Operand dst, Operand src);

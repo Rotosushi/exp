@@ -76,6 +76,12 @@ void tuple_type_append(TupleType *restrict tuple_type, Type const *type) {
     tuple_type->size += 1;
 }
 
+Type const *tuple_type_at(TupleType const *restrict tuple, u32 index) {
+    exp_assert(tuple != NULL);
+    exp_assert(tuple_type_index_in_bounds(tuple, index));
+    return tuple->types[index];
+}
+
 bool function_type_equal(FunctionType const *A, FunctionType const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
@@ -91,7 +97,7 @@ Type type_create_nil() {
 }
 
 Type type_create_boolean() {
-    return (Type){.kind = TYPE_KIND_BOOLEAN, .scalar_type = 0};
+    return (Type){.kind = TYPE_KIND_BOOL, .scalar_type = 0};
 }
 
 Type type_create_u8() { return (Type){.kind = TYPE_KIND_U8, .scalar_type = 0}; }
@@ -133,7 +139,8 @@ Type type_create_function(Type const *result, TupleType args) {
     };
 }
 
-void type_destroy(Type *type) {
+void type_destroy(Type *restrict type) {
+    exp_assert(type != NULL);
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
         tuple_type_destroy(&type->tuple_type);
@@ -167,7 +174,7 @@ bool type_equality(Type const *A, Type const *B) {
 bool type_is_scalar(Type const *T) {
     switch (T->kind) {
     case TYPE_KIND_NIL:
-    case TYPE_KIND_BOOLEAN:
+    case TYPE_KIND_BOOL:
     case TYPE_KIND_U8:
     case TYPE_KIND_U16:
     case TYPE_KIND_U32:
@@ -175,7 +182,7 @@ bool type_is_scalar(Type const *T) {
     case TYPE_KIND_I8:
     case TYPE_KIND_I16:
     case TYPE_KIND_I32:
-    case TYPE_KIND_I64:     return true;
+    case TYPE_KIND_I64:  return true;
 
     // a tuple type of size two or more cannot be scalar
     // unless we optimize it to be so. which is a TODO.
@@ -235,10 +242,10 @@ static void print_function_type(String *restrict string,
 
 void print_type(String *restrict string, Type const *restrict T) {
     switch (T->kind) {
-    case TYPE_KIND_NIL:     string_append(string, SV("nil")); break;
-    case TYPE_KIND_BOOLEAN: string_append(string, SV("bool")); break;
-    case TYPE_KIND_I64:     string_append(string, SV("i64")); break;
-    case TYPE_KIND_TUPLE:   print_tuple_type(string, &T->tuple_type); break;
+    case TYPE_KIND_NIL:   string_append(string, SV("nil")); break;
+    case TYPE_KIND_BOOL:  string_append(string, SV("bool")); break;
+    case TYPE_KIND_I64:   string_append(string, SV("i64")); break;
+    case TYPE_KIND_TUPLE: print_tuple_type(string, &T->tuple_type); break;
     case TYPE_KIND_FUNCTION:
         print_function_type(string, &T->function_type);
         break;

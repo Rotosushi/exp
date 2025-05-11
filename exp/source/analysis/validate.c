@@ -19,6 +19,7 @@
 
 #include "analysis/validate.h"
 #include "env/context.h"
+#include "imr/function.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
@@ -169,10 +170,10 @@ static bool validate_operand_A(Instruction instruction,
     return true;
 }
 
-bool validate_B(Instruction instruction,
-                u32         block_index,
-                Function const *restrict function,
-                Context *restrict context) {
+static bool validate_B(Instruction instruction,
+                       u32         block_index,
+                       Function const *restrict function,
+                       Context *restrict context) {
     if (!validate_operand(instruction.B_kind,
                           instruction.B_data,
                           block_index,
@@ -184,10 +185,10 @@ bool validate_B(Instruction instruction,
     return true;
 }
 
-bool validate_AB(Instruction instruction,
-                 u32         block_index,
-                 Function const *restrict function,
-                 Context *restrict context) {
+static bool validate_AB(Instruction instruction,
+                        u32         block_index,
+                        Function const *restrict function,
+                        Context *restrict context) {
     if (!validate_operand_A(instruction, block_index, function)) {
         return false;
     }
@@ -203,10 +204,10 @@ bool validate_AB(Instruction instruction,
     return true;
 }
 
-bool validate_ABC(Instruction instruction,
-                  u32         block_index,
-                  Function const *restrict function,
-                  Context *restrict context) {
+static bool validate_ABC(Instruction instruction,
+                         u32         block_index,
+                         Function const *restrict function,
+                         Context *restrict context) {
     if (!validate_AB(instruction, block_index, function, context)) {
         return false;
     }
@@ -222,18 +223,18 @@ bool validate_ABC(Instruction instruction,
     return true;
 }
 
-bool validate_ret(Instruction instruction,
-                  u32         block_index,
-                  Function const *restrict function,
-                  Context *restrict context) {
+static bool validate_ret(Instruction instruction,
+                         u32         block_index,
+                         Function const *restrict function,
+                         Context *restrict context) {
     exp_assert_always(instruction.opcode == OPCODE_RET);
 
     if (!validate_B(instruction, block_index, function, context)) {
         return false;
     }
 
-    Type const *B_type = context_type_of_operand(
-        context, function, operand(instruction.B_kind, instruction.B_data));
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(B_type != NULL);
 
     exp_assert_always(type_equality(B_type, function->return_type));
@@ -241,15 +242,255 @@ bool validate_ret(Instruction instruction,
     return true;
 }
 
-bool validate_call(Instruction instruction,
-                   u32         block_index,
-                   Function const *restrict function,
-                   Context *restrict context) {
+static bool validate_call(Instruction instruction,
+                          u32         block_index,
+                          Function const *restrict function,
+                          Context *restrict context) {
     exp_assert_always(instruction.opcode == OPCODE_CALL);
 
     if (!validate_ABC(instruction, block_index, function, context)) {
         return false;
     }
+
+    Type const *A_type =
+        context_type_of_operand(context, function, operand_A(instruction));
+
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(B_type != NULL);
+    exp_assert_always(B_type->kind == TYPE_KIND_FUNCTION);
+    FunctionType const *callee = &B_type->function_type;
+
+    Type const *return_type = callee->return_type;
+    exp_assert_always(return_type != NULL);
+    exp_assert_always(type_equality(return_type, A_type));
+
+    TupleType const *formal_args = &callee->argument_types;
+
+    Type const *C_type =
+        context_type_of_operand(context, function, operand_C(instruction));
+    exp_assert_always(C_type != NULL);
+    exp_assert_always(C_type->kind == TYPE_KIND_TUPLE);
+    TupleType const *actual_args = &C_type->tuple_type;
+
+    exp_assert_always(formal_args->size == actual_args->size);
+
+    for (u32 index = 0; index < formal_args->size; ++index) {
+        Type const *formal_arg = formal_args->types[index];
+        exp_assert_always(formal_arg != NULL);
+        Type const *actual_arg = actual_args->types[index];
+        exp_assert_always(actual_arg != NULL);
+
+        exp_assert_always(type_equality(formal_arg, actual_arg));
+    }
+
+    return true;
 }
 
-bool validate(Function const *restrict expression, Context *restrict context) {}
+static bool validate_let(Instruction instruction,
+                         u32         block_index,
+                         Function const *restrict function,
+                         Context *restrict context) {
+    if (!validate_AB(instruction, block_index, function, context)) {
+        return false;
+    }
+
+    Type const *A_type =
+        context_type_of_operand(context, function, operand_A(instruction));
+    exp_assert_always(A_type != NULL);
+
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(B_type != NULL);
+
+    exp_assert_always(type_equality(A_type, B_type));
+    return true;
+}
+
+static bool validate_unop(Instruction instruction,
+                          u32         block_index,
+                          Function const *restrict function,
+                          Context *restrict context,
+                          Type const *return_type,
+                          Type const *arg_type) {
+    if (!validate_AB(instruction, block_index, function, context)) {
+        return false;
+    }
+
+    Type const *A_type =
+        context_type_of_operand(context, function, operand_A(instruction));
+    exp_assert_always(type_equality(A_type, return_type));
+
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(B_type != NULL);
+    exp_assert_always(type_equality(B_type, arg_type));
+    return true;
+}
+
+static bool validate_arithmetic_unop(Instruction instruction,
+                                     u32         block_index,
+                                     Function const *restrict function,
+                                     Context *restrict context) {
+    // #NOTE: We only allow arithmetic operations [+ - * / %] on
+    // itegral types. The question is, which integral type are we concerned
+    // about here? Currently, we only allow arithmetic if the types match
+    // exactly. and I think the answer going forward is to promote integral
+    // types to something larger if that is needed, for example to compile [u8 +
+    // u32]. I think our solution here is to rely on the type of the incoming
+    // argument. If it matches a valid type for an arithmetic expression, then
+    // we require the return type to match exactly. Otherwise this is an invalid
+    // instruction.
+    Type const *underlying_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(underlying_type != NULL);
+    switch (underlying_type->kind) {
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64:
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64:
+        return validate_unop(instruction,
+                             block_index,
+                             function,
+                             context,
+                             underlying_type,
+                             underlying_type);
+
+    default: PANIC("Underlying type of unop is not supported");
+    }
+}
+
+static bool validate_dot(Instruction instruction,
+                         u32         block_index,
+                         Function const *restrict function,
+                         Context *restrict context) {
+    if (!validate_ABC(instruction, block_index, function, context)) {
+        return false;
+    }
+
+    Type const *A_type =
+        context_type_of_operand(context, function, operand_A(instruction));
+
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(type_is_indexable(B_type));
+
+    exp_assert_always(B_type->kind == TYPE_KIND_TUPLE);
+    TupleType const *tuple = &B_type->tuple_type;
+
+    Type const *C_type =
+        context_type_of_operand(context, function, operand_C(instruction));
+    exp_assert_always(type_is_index(C_type));
+
+    exp_assert_always(operand_is_index(operand_C(instruction)));
+    u64 index = operand_as_index(operand_C(instruction));
+    exp_assert_always(index <= u32_MAX);
+    exp_assert_always(tuple_type_index_in_bounds(tuple, (u32)index));
+
+    Type const *element_type = tuple_type_at(tuple, (u32)index);
+    exp_assert_always(type_equality(element_type, A_type));
+    return true;
+}
+
+static bool validate_binop(Instruction instruction,
+                           u32         block_index,
+                           Function const *restrict function,
+                           Context *restrict context,
+                           Type const *return_type,
+                           Type const *left_type,
+                           Type const *right_type) {
+    if (!validate_ABC(instruction, block_index, function, context)) {
+        return false;
+    }
+
+    Type const *A_type =
+        context_type_of_operand(context, function, operand_A(instruction));
+    exp_assert_always(type_equality(A_type, return_type));
+
+    Type const *B_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(B_type != NULL);
+    exp_assert_always(type_equality(B_type, left_type));
+
+    Type const *C_type =
+        context_type_of_operand(context, function, operand_C(instruction));
+    exp_assert_always(C_type != NULL);
+    exp_assert_always(type_equality(C_type, right_type));
+
+    return true;
+}
+
+static bool validate_arithmetic_binop(Instruction instruction,
+                                      u32         block_index,
+                                      Function const *restrict function,
+                                      Context *restrict context) {
+    Type const *underlying_type =
+        context_type_of_operand(context, function, operand_B(instruction));
+    exp_assert_always(underlying_type != NULL);
+    switch (instruction.B_kind) {
+    case OPERAND_KIND_U8:
+    case OPERAND_KIND_U16:
+    case OPERAND_KIND_U32:
+    case OPERAND_KIND_U64:
+    case OPERAND_KIND_I8:
+    case OPERAND_KIND_I16:
+    case OPERAND_KIND_I32:
+    case OPERAND_KIND_I64:
+        return validate_binop(instruction,
+                              block_index,
+                              function,
+                              context,
+                              underlying_type,
+                              underlying_type,
+                              underlying_type);
+
+    default: PANIC("Underlying type of binop not supported");
+    }
+}
+
+static bool validate_instruction(Instruction instruction,
+                                 u32         block_index,
+                                 Function const *restrict function,
+                                 Context *restrict context) {
+    switch (instruction.opcode) {
+    case OPCODE_RET:
+        return validate_ret(instruction, block_index, function, context);
+    case OPCODE_CALL:
+        return validate_call(instruction, block_index, function, context);
+    case OPCODE_LET:
+        return validate_let(instruction, block_index, function, context);
+    case OPCODE_NEG:
+        return validate_arithmetic_unop(
+            instruction, block_index, function, context);
+    case OPCODE_DOT:
+        return validate_dot(instruction, block_index, function, context);
+    case OPCODE_ADD:
+    case OPCODE_SUB:
+    case OPCODE_MUL:
+    case OPCODE_DIV:
+    case OPCODE_MOD:
+        return validate_arithmetic_binop(
+            instruction, block_index, function, context);
+
+    default: EXP_UNREACHABLE();
+    }
+}
+
+bool validate(Function const *restrict expression, Context *restrict context) {
+    exp_assert(expression != NULL);
+    exp_assert(context != NULL);
+
+    Bytecode const *block = &expression->body;
+    for (u32 index = 0; index < block->length; ++index) {
+        if (!validate_instruction(
+                block->buffer[index], index, expression, context)) {
+            return false;
+        }
+    }
+
+    return true;
+}

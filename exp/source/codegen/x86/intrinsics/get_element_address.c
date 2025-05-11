@@ -34,8 +34,8 @@ x86_get_element_address(x86_Location *src, Type const *type, u64 index) {
         for (u64 i = 0; i < index; ++i) {
             Type const *element_type = tuple->types[i];
             u64         element_size = x86_size_of(element_type);
-            assert(element_size <= i64_MAX);
-            i64 offset = (i64)element_size;
+            assert(element_size <= i32_MAX);
+            i32 offset = (i32)element_size;
 
             result.offset += offset;
         }

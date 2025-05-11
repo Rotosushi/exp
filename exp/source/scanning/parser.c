@@ -487,45 +487,45 @@ static bool parse_block(Operand *restrict result, Parser *restrict parser) {
     }
 }
 
-// static bool function(Operand *restrict result, Parser *restrict parser) {
-//     exp_assert_debug(peek(parser, TOK_FN));
-//     if (!nexttok(parser)) { return false; } // eat "fn"
+static bool function(Operand *restrict result, Parser *restrict parser) {
+    exp_assert_debug(peek(parser, TOK_FN));
+    if (!nexttok(parser)) { return false; } // eat "fn"
 
-//     if (!peek(parser, TOK_IDENTIFIER)) {
-//         return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
-//     }
+    if (!peek(parser, TOK_IDENTIFIER)) {
+        return error(parser, ERROR_PARSER_EXPECTED_IDENTIFIER);
+    }
 
-//     StringView name = constant_string_to_view(
-//         context_intern(parser->context, curtxt(parser)));
-//     if (!nexttok(parser)) { return false; }
+    StringView name = constant_string_to_view(
+        context_intern(parser->context, curtxt(parser)));
+    if (!nexttok(parser)) { return false; }
 
-//     Value    *value    = value_allocate_function();
-//     Function *function = &value->function;
+    Value    *value    = value_allocate_function();
+    Function *function = &value->function;
 
-//     Function *previous = parser->function;
-//     parser->function   = function;
+    Function *previous = parser->function;
+    parser->function   = function;
 
-//     if (!parse_formal_argument_list(function, parser)) { return false; }
+    if (!parse_formal_argument_list(function, parser)) { return false; }
 
-//     switch (expect(parser, TOK_RIGHT_ARROW)) {
-//     case EXPECT_RESULT_SUCCESS:
-//         if (!parse_type(&function->return_type, parser)) { return false; }
-//     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
-//     case EXPECT_RESULT_FAILURE:         return false;
-//     default:                            EXP_UNREACHABLE();
-//     }
+    switch (expect(parser, TOK_RIGHT_ARROW)) {
+    case EXPECT_RESULT_SUCCESS:
+        if (!parse_type(&function->return_type, parser)) { return false; }
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
+    }
 
-//     if (!parse_block(result, parser)) { return false; }
+    if (!parse_block(result, parser)) { return false; }
 
-//     parser->function = previous;
-//     Value const *fn  = context_constant_function(parser->context, value);
-//     *result          = parser_emit_fn(parser, operand_constant(fn));
-//     exp_assert_debug(result->kind == OPERAND_KIND_SSA);
-//     Local *local = function_lookup_local(parser->function, result->data.ssa);
-//     local->name  = name;
+    parser->function = previous;
+    Value const *fn  = context_constant_function(parser->context, value);
+    *result          = parser_emit_let(parser, operand_constant(fn));
+    exp_assert_debug(result->kind == OPERAND_KIND_SSA);
+    Local *local = function_lookup_local(parser->function, result->data.ssa);
+    local->name  = name;
 
-//     return true;
-// }
+    return true;
+}
 
 static bool lambda(Operand *restrict result, Parser *restrict parser) {
     exp_assert_debug(peek(parser, TOK_BACKSLASH));
@@ -822,6 +822,7 @@ static bool top_level_expression(Parser *restrict parser) {
     Operand result;
     switch (parser->curtok) {
     case TOK_LET: return let(&result, parser);
+    case TOK_FN:  return function(&result, parser);
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TOP_LEVEL_DECLARATION);
     }

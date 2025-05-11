@@ -22,6 +22,10 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
+extern Operand operand_A(Instruction instruction);
+extern Operand operand_B(Instruction instruction);
+extern Operand operand_C(Instruction instruction);
+
 static Instruction instruction_B(Opcode opcode, Operand B) {
     Instruction I = {.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
     return I;

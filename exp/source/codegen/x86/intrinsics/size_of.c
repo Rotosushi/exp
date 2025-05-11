@@ -25,16 +25,16 @@ u64 x86_size_of(Type const *restrict type) {
     exp_assert(type != NULL);
 
     switch (type->kind) {
-    case TYPE_KIND_NIL:     return 1;
-    case TYPE_KIND_BOOLEAN: return 1;
-    case TYPE_KIND_U8:      return 1;
-    case TYPE_KIND_U16:     return 2;
-    case TYPE_KIND_U32:     return 4;
-    case TYPE_KIND_U64:     return 8;
-    case TYPE_KIND_I8:      return 1;
-    case TYPE_KIND_I16:     return 2;
-    case TYPE_KIND_I32:     return 4;
-    case TYPE_KIND_I64:     return 8;
+    case TYPE_KIND_NIL:  return 1;
+    case TYPE_KIND_BOOL: return 1;
+    case TYPE_KIND_U8:   return 1;
+    case TYPE_KIND_U16:  return 2;
+    case TYPE_KIND_U32:  return 4;
+    case TYPE_KIND_U64:  return 8;
+    case TYPE_KIND_I8:   return 1;
+    case TYPE_KIND_I16:  return 2;
+    case TYPE_KIND_I32:  return 4;
+    case TYPE_KIND_I64:  return 8;
 
     case TYPE_KIND_TUPLE: {
         TupleType const *tuple = &type->tuple_type;

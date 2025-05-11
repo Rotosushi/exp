@@ -22,7 +22,7 @@
 
 typedef enum TypeKind {
     TYPE_KIND_NIL,
-    TYPE_KIND_BOOLEAN,
+    TYPE_KIND_BOOL,
     TYPE_KIND_U8,
     TYPE_KIND_U16,
     TYPE_KIND_U32,
@@ -48,6 +48,7 @@ void      tuple_type_destroy(TupleType *restrict tuple_type);
 bool      tuple_type_equal(TupleType const *A, TupleType const *B);
 bool      tuple_type_index_in_bounds(TupleType const *restrict A, u32 index);
 void tuple_type_append(TupleType *restrict tuple_type, struct Type const *type);
+struct Type const *tuple_type_at(TupleType const *restrict tuple, u32 index);
 
 typedef struct FunctionType {
     struct Type const *return_type;
@@ -59,12 +60,13 @@ bool function_type_equal(FunctionType const *A, FunctionType const *B);
 /**
  * @brief represents Types in the compiler
  *
- * #TODO #FEATURE: type attributes, something like u16::max, could work in the
+ * #TODO: #FEATURE: type attributes, something like u16::max, could work in the
  * same way that struct members work, there is also no reason we cannot bind a
  * function ptr there as well, giving type "member" functions. except not tied
  * to a specific instance of that type. I think we can leverage such a mechanism
  * for type introspection if we implicitly fill in the member details when we
- * create the type.
+ * create the type. That is, a hash table which is implicitly filled in with
+ * the data about the type
  */
 typedef struct Type {
     TypeKind kind;
@@ -87,13 +89,14 @@ Type type_create_i32();
 Type type_create_i64();
 Type type_create_tuple(TupleType tuple_type);
 Type type_create_function(Type const *result, TupleType args);
-void type_destroy(Type *type);
+void type_destroy(Type *restrict type);
 
 bool type_equality(Type const *t1, Type const *t2);
 bool type_is_scalar(Type const *restrict type);
+bool type_is_callable(Type const *restrict type);
+
 bool type_is_index(Type const *restrict type);
 bool type_is_indexable(Type const *restrict type);
-bool type_is_callable(Type const *restrict type);
 
 void print_type(String *restrict string, Type const *restrict type);
 

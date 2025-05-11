@@ -20,6 +20,7 @@
 #include "evaluate/evaluate.h"
 #include "analysis/infer_lifetimes.h"
 #include "analysis/infer_types.h"
+#include "analysis/validate.h"
 #include "evaluate/top.h"
 #include "support/assert.h"
 
@@ -67,6 +68,8 @@ bool evaluate(Function *restrict expression, Context *restrict context) {
 
     if (!infer_types(expression, context)) { return false; }
     if (!infer_lifetimes(expression)) { return false; }
+
+    exp_assert_debug(validate(expression, context));
 
     Frame frame;
     frame.function = expression;
