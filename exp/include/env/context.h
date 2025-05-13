@@ -64,6 +64,8 @@ bool context_shall_cleanup_object_artifact(Context const *restrict context);
 
 void context_print_compile_actions(Context const *restrict context);
 
+void *context_get_target_context(Context const *restrict context);
+
 // Compilation Helpers
 i32 context_compile_source(Context *restrict context, StringView source);
 // #TODO: i32  context_repl(Context *restrict context);
@@ -188,6 +190,9 @@ Type const *context_type_of_tuple(Context *restrict context,
 Type const *context_type_of_operand(Context *restrict context,
                                     Function const *restrict function,
                                     Operand operand);
+
+u64 context_size_of(Context *restrict context, Type const *type);
+u64 context_align_of(Context *restrict context, Type const *type);
 
 // Evaluation helpers
 bool context_at_top_level(Context const *restrict context);

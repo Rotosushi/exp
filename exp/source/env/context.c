@@ -48,7 +48,8 @@ void context_create(Context *restrict context,
                     ContextOptions *restrict options) {
     assert(context != nullptr);
     assert(options != nullptr);
-    context->options = *options;
+    context->options                = *options;
+    context->options.target_context = options->target->context_allocate();
     string_initialize(&(context->source_path));
     context->current_error       = error_create();
     context->global_symbol_table = symbol_table_create();
@@ -60,6 +61,8 @@ void context_create(Context *restrict context,
 
 void context_destroy(Context *context) {
     assert(context != nullptr);
+    context->options.target->context_deallocate(
+        context->options.target_context);
     string_destroy(&(context->source_path));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
@@ -119,6 +122,11 @@ bool context_shall_cleanup_assembly_artifact(Context const *context) {
 bool context_shall_cleanup_object_artifact(Context const *context) {
     assert(context != nullptr);
     return context->options.cleanup_object_artifact;
+}
+
+void *context_get_target_context(Context const *restrict context) {
+    exp_assert(context != NULL);
+    return context->options.target_context;
 }
 
 i32 context_compile_source(Context *restrict context, StringView source_path) {
@@ -761,6 +769,18 @@ Type const *context_type_of_operand(Context *restrict context,
 
     default: EXP_UNREACHABLE();
     }
+}
+
+u64 context_size_of(Context *restrict context, Type const *type) {
+    exp_assert(context != NULL);
+    exp_assert(type != NULL);
+    return context->options.target->size_of(type);
+}
+
+u64 context_align_of(Context *restrict context, Type const *type) {
+    exp_assert(context != NULL);
+    exp_assert(type != NULL);
+    return context->options.target->align_of(type);
 }
 
 bool context_at_top_level(Context const *restrict context) {

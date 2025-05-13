@@ -16,55 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
 #include "codegen/x86/intrinsics/align_of.h"
-#include "support/unreachable.h"
+#include "codegen/x86/env/context.h"
+#include "support/assert.h"
 
-u64 x86_align_of(Type const *restrict type) {
-    assert(type != NULL);
-
-    switch (type->kind) {
-    // #NOTE: single byte objects do not
-    // have an alignment specified by gcc or
-    // clang. I believe this is
-    // because we are aligning all other
-    // objects, so when we allocate the byte
-    // we are guaranteed to be at a location counter
-    // that is valid for a single byte.
-    // Though I don't see the harm in specifying an
-    // alignment. as it becomes a noop in the assembler.
-    // The only thing is it will cause the assembler to
-    // run marginally slower for each noop alignment.
-    // for other objects, the alignment is often equal
-    // to their size. quad-words are 8 bytes, and their
-    // alignment is 8. double-words are 4 bytes, and their
-    // alignment is 4. words are 2 bytes, alignment is 2 bytes.
-    // string literals are align 8.
-    case TYPE_KIND_NIL:   return 1;
-    case TYPE_KIND_BOOL:  return 1;
-    case TYPE_KIND_U8:    return 1;
-    case TYPE_KIND_U16:   return 2;
-    case TYPE_KIND_U32:   return 4;
-    case TYPE_KIND_U64:   return 8;
-    case TYPE_KIND_I8:    return 1;
-    case TYPE_KIND_I16:   return 2;
-    case TYPE_KIND_I32:   return 4;
-    case TYPE_KIND_I64:   return 8;
-    case TYPE_KIND_TUPLE: {
-        TupleType *tuple_type = (TupleType *)type;
-        u64        max        = 0;
-        for (u32 i = 0; i < tuple_type->size; ++i) {
-            Type const *t = tuple_type->types[i];
-            u64         a = x86_align_of(t);
-            if (a > max) { max = a; }
-        }
-        return max;
-    }
-
-    // functions need to be word boundary aligned.
-    case TYPE_KIND_FUNCTION: return 8;
-
-    default: EXP_UNREACHABLE();
-    }
+u64 x86_align_of(Context *restrict context, Type const *restrict type) {
+    exp_assert(context != NULL);
+    exp_assert(type != NULL);
+    x86_Layout const *layout = x86_context_layout_of(context, type);
+    return x86_layout_align_of(layout);
 }

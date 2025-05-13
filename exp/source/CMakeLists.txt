@@ -8,15 +8,21 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/analysis/infer_lifetimes.c
   
   ${EXP_SOURCE_DIR}/codegen/GAS/directives.c
+  
   ${EXP_SOURCE_DIR}/codegen/IR/codegen.c
   ${EXP_SOURCE_DIR}/codegen/IR/directives.c
+  ${EXP_SOURCE_DIR}/codegen/IR/intrinsics.c
+  ${EXP_SOURCE_DIR}/codegen/IR/target.c
+  
   ${EXP_SOURCE_DIR}/codegen/x86/codegen.c
-  ${EXP_SOURCE_DIR}/codegen/x86/emit.c
+  ${EXP_SOURCE_DIR}/codegen/x86/target.c
+
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/align_of.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/load.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/size_of.c
+
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
@@ -27,12 +33,17 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
+
+  ${EXP_SOURCE_DIR}/codegen/x86/value/scalar.c
+  ${EXP_SOURCE_DIR}/codegen/x86/value/tuple.c
+
   ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
+  #${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/bytecode.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/gprp.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/instruction.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/layout.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c

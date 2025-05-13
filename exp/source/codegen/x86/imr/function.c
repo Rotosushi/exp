@@ -94,19 +94,21 @@ void x86_function_codegen_header(x86_Function *restrict x86_function) {
     // functions frame. Then allocate the current stack frame.
     // #ADDENDUM #[08-05-2025]:
     // Currently, we store all local values on the stack So the only values
-    // appearing in registers are temporaries, and thus never need to be
-    // save/restored. So all we have to do here is save/restore the previous
-    // stack frames stack pointer. This will need to change if we ever add an
-    // optimization which allows a local variable to live in a register for
-    // it's lifetime
+    // appearing in registers are temporaries, and so are always retrieved
+    // upon use, and thus never need to be save/restored. So all we have to do
+    // here is save/restore the previous stack frames stack pointer. This will
+    // need to change if we ever add an optimization which allows a local
+    // variable to live in a register for it's lifetime.
     x86_function_append(x86_function,
                         x86_push(x86_operand_location_gpr(X86_GPR_RBP)));
     x86_function_append(x86_function,
                         x86_mov(x86_operand_location_gpr(X86_GPR_RBP),
                                 x86_operand_location_gpr(X86_GPR_RSP)));
     // #NOTE: At this point in the function, we do not know how large the
-    // functions frame is going to be. We might be able to precompute the size,
-    // as we allocate all locals onto the stack.
+    // functions frame is going to be. So we subtract a dummy value, to
+    // be filled in after we perform all allocations on the stack,
+    // though because our allocation strategy is so simple we might be able to
+    // precompute the size, as we allocate all locals onto the stack.
     x86_function_append(
         x86_function,
         x86_sub(x86_operand_location_gpr(X86_GPR_RSP), x86_operand_i32(0)));

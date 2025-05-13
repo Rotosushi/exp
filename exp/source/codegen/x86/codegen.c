@@ -20,8 +20,8 @@
 #include "codegen/x86/codegen.h"
 #include "codegen/GAS/directives.h"
 #include "codegen/x86/imr/function.h"
-#include "codegen/x86/intrinsics/align_of.h"
-#include "codegen/x86/intrinsics/size_of.h"
+#include "codegen/x86/value/scalar.h"
+#include "codegen/x86/value/tuple.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/config.h"
@@ -60,138 +60,62 @@ i32 x86_codegen(String *restrict buffer,
     // Thus we can allocate the correct amount of space for
     // an uninitialized value by relying on the type of the value.
     case VALUE_KIND_UNINITIALIZED: {
-        u64 size  = x86_size_of(symbol->type);
-        u64 align = x86_align_of(symbol->type);
-        gas_directive_bss(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(align, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, size, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_zero(size, buffer);
+        x86_codegen_uninitialized_symbol(buffer, symbol, context);
         break;
     }
 
     case VALUE_KIND_NIL: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 1, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u8(0, buffer);
+        x86_codegen_nil_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_BOOL: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 1, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u8(value->bool_, buffer);
+        x86_codegen_bool_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_U8: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 1, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u8(value->u8_, buffer);
+        x86_codegen_u8_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_U16: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(2, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 2, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u16(value->u16_, buffer);
+        x86_codegen_u16_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_U32: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(4, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 4, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u32(value->u32_, buffer);
+        x86_codegen_u32_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_U64: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(8, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 8, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_u64(value->u64_, buffer);
+        x86_codegen_u64_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_I8: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(1, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 1, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_i8(value->i8_, buffer);
+        x86_codegen_i8_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_I16: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(2, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 2, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_i16(value->i16_, buffer);
+        x86_codegen_i16_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_I32: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(4, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 4, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_i32(value->i32_, buffer);
+        x86_codegen_i32_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_I64: {
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(8, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, 8, buffer);
-        gas_directive_label(symbol->name, buffer);
-        gas_directive_i64(value->i64_, buffer);
+        x86_codegen_i64_symbol(buffer, symbol);
         break;
     }
 
     case VALUE_KIND_TUPLE: {
-        PANIC("#TODO: Support Global Tuple definitions");
-        // x86_Tuple x86_tuple;
-        // x86_tuple_create(&x86_tuple, &value->tuple, context);
-        // u64 size  = x86_size_of(symbol->type);
-        // u64 align = x86_align_of(symbol->type);
-        // gas_directive_data(buffer);
-        // gas_directive_globl(symbol->name, buffer);
-        // gas_directive_balign(align, buffer);
-        // gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        // gas_directive_size(symbol->name, size, buffer);
-        // gas_directive_label(symbol->name, buffer);
-        // print_x86_tuple(buffer, &x86_tuple);
+        x86_codegen_tuple_symbol(buffer, symbol, context);
         break;
     }
 

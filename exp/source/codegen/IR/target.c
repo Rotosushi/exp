@@ -20,6 +20,9 @@
 #include "codegen/IR/target.h"
 #include "codegen/IR/codegen.h"
 
+void *ir_context_allocate() { return NULL; }
+void  ir_context_deallocate([[maybe_unused]] void *restrict context) { return; }
+
 Target ir_target_info = {.tag                  = SV("ir"),
                          .triple               = SV("exp-ir"),
                          .assembly_extension   = SV("eir"),
@@ -28,6 +31,8 @@ Target ir_target_info = {.tag                  = SV("ir"),
                          .executable_extension = SV(""),
                          .header               = ir_header,
                          .codegen              = ir_codegen,
-                         .footer               = ir_footer};
+                         .footer               = ir_footer,
+                         .context_allocate     = ir_context_allocate,
+                         .context_deallocate   = ir_context_deallocate};
 
 Target *ir_target = &ir_target_info;

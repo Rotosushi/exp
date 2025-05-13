@@ -19,6 +19,7 @@
 
 #include "codegen/x86/target.h"
 #include "codegen/x86/codegen.h"
+#include "codegen/x86/env/context.h"
 #include "codegen/x86/intrinsics/align_of.h"
 #include "codegen/x86/intrinsics/size_of.h"
 
@@ -32,6 +33,8 @@ Target x86_target_info = {.tag                  = SV("x86-64"),
                           .align_of             = x86_align_of,
                           .header               = x86_header,
                           .codegen              = x86_codegen,
-                          .footer               = x86_footer};
+                          .footer               = x86_footer,
+                          .context_allocate     = x86_context_allocate,
+                          .context_deallocate   = x86_context_deallocate};
 
 Target *x86_target = &x86_target_info;

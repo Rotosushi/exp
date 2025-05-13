@@ -25,9 +25,9 @@
 i32 main(i32 argc, char const *argv[], [[maybe_unused]] char *envv[]) {
     CLIOptions cli_options;
     cli_options_init(&cli_options);
-    Context context;
     parse_cli_options(argc, argv, &cli_options);
 
+    Context context;
     context_create(&context, &cli_options.context_options);
 
     if (context_shall_prolix(&context)) {

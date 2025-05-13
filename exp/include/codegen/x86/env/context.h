@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,22 +13,22 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_INTRINSICS_SIZEOF_H
-#define EXP_INTRINSICS_SIZEOF_H
-#include <stddef.h>
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef EXP_CODEGEN_X86_ENV_CONTEXT_H
+#define EXP_CODEGEN_X86_ENV_CONTEXT_H
+
+#include "codegen/x86/imr/layout.h"
 #include "env/context.h"
-#include "imr/type.h"
 
-/**
- * @brief returns the x86-64 size in bytes of the given type
- *
- * @note this is the number of bytes to store a <value> with <type>.
- *
- * @param type
- * @return u64
- */
-u64 x86_size_of(Context *restrict context, Type const *restrict type);
+typedef struct x86_Context {
+    x86_Layouts layouts;
+} x86_Context;
 
-#endif // !EXP_INTRINSICS_SIZEOF_H
+void *x86_context_allocate();
+void  x86_context_deallocate(void *restrict context);
+
+x86_Layout const *x86_context_layout_of(Context *restrict context,
+                                        Type const *type);
+
+#endif // !EXP_CODEGEN_X86_ENV_CONTEXT_H

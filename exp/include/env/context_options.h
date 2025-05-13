@@ -33,6 +33,7 @@ typedef struct ContextOptions {
     bool    cleanup_assembly_artifact  : 1;
     bool    cleanup_object_artifact    : 1;
     Target *target;
+    void   *target_context;
 } ContextOptions;
 
 #endif // !EXP_ENV_CONTEXT_OPTIONS_H
