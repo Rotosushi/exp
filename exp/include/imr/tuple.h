@@ -25,7 +25,7 @@
 #include "imr/operand.h"
 
 typedef struct Tuple {
-    u32      size;
+    u32      length;
     u32      capacity;
     Operand *elements;
 } Tuple;

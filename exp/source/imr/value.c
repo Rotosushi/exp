@@ -473,10 +473,10 @@ static void print_tuple(String *restrict string,
                         Tuple const *restrict tuple,
                         Context *restrict context) {
     string_append(string, SV("("));
-    for (u64 i = 0; i < tuple->size; ++i) {
+    for (u64 i = 0; i < tuple->length; ++i) {
         print_operand(string, tuple->elements[i], context);
 
-        if (i < (tuple->size - 1)) { string_append(string, SV(", ")); }
+        if (i < (tuple->length - 1)) { string_append(string, SV(", ")); }
     }
     string_append(string, SV(")"));
 }

@@ -56,7 +56,7 @@ void x86_codegen_dot(Instruction I,
         Value const    *value = I.B_data.constant;
         assert(value->kind == VALUE_KIND_TUPLE);
         Tuple const *tuple = &value->tuple;
-        assert(index < tuple->size);
+        assert(index < tuple->length);
         Operand operand = tuple->elements[index];
         x86_codegen_load_allocation_from_operand(
             A, operand, block_index, context);

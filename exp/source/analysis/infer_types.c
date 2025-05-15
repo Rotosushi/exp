@@ -153,12 +153,12 @@ static bool infer_types_call(Type const **result,
     exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
     Tuple const *actual_args = &value->tuple;
 
-    if (formal_types->size != actual_args->size) {
+    if (formal_types->size != actual_args->length) {
         return context_failure_mismatch_argument_count(
-            context, formal_types->size, actual_args->size);
+            context, formal_types->size, actual_args->length);
     }
 
-    for (u8 i = 0; i < actual_args->size; ++i) {
+    for (u8 i = 0; i < actual_args->length; ++i) {
         Type const *formal_type = formal_types->types[i];
         Operand     operand     = actual_args->elements[i];
         Type const *actual_type;

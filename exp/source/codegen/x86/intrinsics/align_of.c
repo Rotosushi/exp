@@ -24,6 +24,6 @@
 u64 x86_align_of(Context *restrict context, Type const *restrict type) {
     exp_assert(context != NULL);
     exp_assert(type != NULL);
-    x86_Layout const *layout = x86_context_layout_of(context, type);
+    x86_Layout const *layout = x86_context_layout_of_type(context, type);
     return x86_layout_align_of(layout);
 }

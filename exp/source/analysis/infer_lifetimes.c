@@ -57,7 +57,7 @@ static void infer_lifetime_operand(OperandKind kind,
         if (constant->kind == VALUE_KIND_TUPLE) {
             Tuple const *tuple = &constant->tuple;
 
-            for (u64 i = 0; i < tuple->size; ++i) {
+            for (u64 i = 0; i < tuple->length; ++i) {
                 Operand element = tuple->elements[i];
                 infer_lifetime_operand(
                     element.kind, element.data, block_index, function);

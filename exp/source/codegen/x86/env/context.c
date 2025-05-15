@@ -36,12 +36,12 @@ void x86_context_deallocate(void *restrict context) {
     deallocate(context);
 }
 
-x86_Layout const *x86_context_layout_of(Context *restrict context,
-                                        Type const *type) {
+x86_Layout const *x86_context_layout_of_type(Context *restrict context,
+                                             Type const *type) {
     exp_assert(context != NULL);
     exp_assert(type != NULL);
     x86_Context *x86_context =
         (x86_Context *)context_get_target_context(context);
 
-    return x86_layouts_layout_of(&x86_context->layouts, type);
+    return x86_layouts_layout_of_type(&x86_context->layouts, type);
 }

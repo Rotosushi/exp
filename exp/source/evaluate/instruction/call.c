@@ -65,7 +65,7 @@ bool evaluate_call(Instruction instruction,
     exp_assert_debug(actual_args_value->kind == VALUE_KIND_TUPLE);
     Tuple const *actual_args = &actual_args_value->tuple;
 
-    for (u32 index = 0; index < actual_args->size; ++index) {
+    for (u32 index = 0; index < actual_args->length; ++index) {
         // each operand of the tuple represents an incoming argument,
         // so we retrieve their values from the current frame.
         Operand      element    = actual_args->elements[index];

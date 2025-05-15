@@ -28,7 +28,10 @@ typedef struct x86_Context {
 void *x86_context_allocate();
 void  x86_context_deallocate(void *restrict context);
 
-x86_Layout const *x86_context_layout_of(Context *restrict context,
-                                        Type const *type);
+x86_Layout const *x86_context_layout_of_type(Context *restrict context,
+                                             Type const *type);
+
+x86_Layout const *x86_context_layout_of_value(Context *restrict context,
+                                              Value const *restrict value);
 
 #endif // !EXP_CODEGEN_X86_ENV_CONTEXT_H

@@ -24,7 +24,7 @@
 
 void tuple_create(Tuple *restrict tuple) {
     exp_assert(tuple != NULL);
-    tuple->size     = 0;
+    tuple->length   = 0;
     tuple->capacity = 0;
     tuple->elements = NULL;
 }
@@ -39,9 +39,9 @@ bool tuple_equal(Tuple const *A, Tuple const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
     if (A == B) { return true; }
-    if (A->size != B->size) { return false; }
+    if (A->length != B->length) { return false; }
 
-    for (u64 i = 0; i < A->size; ++i) {
+    for (u64 i = 0; i < A->length; ++i) {
         if (!operand_equality(A->elements[i], B->elements[i])) { return false; }
     }
 
@@ -50,11 +50,11 @@ bool tuple_equal(Tuple const *A, Tuple const *B) {
 
 bool tuple_index_in_bounds(Tuple const *restrict tuple, u32 index) {
     exp_assert(tuple != NULL);
-    return index < tuple->size;
+    return index < tuple->length;
 }
 
 static bool tuple_full(Tuple *restrict tuple) {
-    return (tuple->size + 1) >= tuple->capacity;
+    return (tuple->length + 1) >= tuple->capacity;
 }
 
 static void tuple_grow(Tuple *restrict tuple) {
@@ -66,7 +66,7 @@ static void tuple_grow(Tuple *restrict tuple) {
 void tuple_append(Tuple *restrict tuple, Operand element) {
     if (tuple_full(tuple)) { tuple_grow(tuple); }
 
-    tuple->elements[tuple->size++] = element;
+    tuple->elements[tuple->length++] = element;
 }
 
 Operand tuple_at(Tuple const *restrict tuple, u32 index) {

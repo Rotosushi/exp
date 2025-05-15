@@ -14,13 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_X86_TUPLE_H
-#define EXP_CODEGEN_X86_TUPLE_H
 
-#include "env/context.h"
+#ifndef EXP_CODEGEN_X86_VALUE_VALUE_H
+#define EXP_CODEGEN_X86_VALUE_VALUE_H
 
-void x86_codegen_tuple_symbol(String *restrict buffer,
-                              Symbol const *restrict symbol,
-                              Context *restrict context);
+#include "codegen/x86/imr/layout.h"
+#include "imr/value.h"
 
-#endif // !EXP_CODEGEN_X86_TUPLE_H
+void print_x86_value(String *restrict buffer,
+                     Value const *restrict value,
+                     x86_Layout const *layout);
+
+#endif // !EXP_CODEGEN_X86_VALUE_VALUE_H

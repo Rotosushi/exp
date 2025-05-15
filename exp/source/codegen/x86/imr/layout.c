@@ -73,42 +73,11 @@
  * option to have full control when necessary.
  */
 
-static x86_TupleLayoutElement
-x86_tuple_layout_element_create_scalar(x86_ScalarLayout scalar) {
-    return (x86_TupleLayoutElement){
-        .kind = X86_TUPLE_LAYOUT_ELEMENT_KIND_SCALAR, .data.scalar = scalar};
-}
-
-static x86_TupleLayoutElement
-x86_tuple_layout_element_create_padding(u8 padding) {
-    return (x86_TupleLayoutElement){
-        .kind = X86_TUPLE_LAYOUT_ELEMENT_KIND_PADDING, .data.padding = padding};
-}
-
-static x86_TupleLayoutElement
-x86_tuple_layout_element_create_tuple(x86_TupleLayout const *tuple) {
-    return (x86_TupleLayoutElement){.kind = X86_TUPLE_LAYOUT_ELEMENT_KIND_TUPLE,
-                                    .data.tuple = tuple};
-}
-
-static u64 x86_tuple_layout_size_of(x86_TupleLayout *restrict tuple);
-
-static u64 x86_tuple_layout_element_size_of(
-    x86_TupleLayoutElement const *restrict element) {
-    switch (element->kind) {
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_SCALAR:  return element->data.scalar.size;
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_PADDING: return element->data.padding;
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_TUPLE:
-        return x86_tuple_layout_size_of((x86_TupleLayout *)element->data.tuple);
-    default: EXP_UNREACHABLE();
-    }
-}
-
 static u64 x86_tuple_layout_size_of(x86_TupleLayout *restrict tuple) {
     u64 size = 0;
     for (u32 index = 0; index < tuple->size; ++index) {
-        x86_TupleLayoutElement const *element = tuple->buffer + index;
-        u64 element_size = x86_tuple_layout_element_size_of(element);
+        x86_Layout const *element      = tuple->buffer[index];
+        u64               element_size = x86_layout_size_of(element);
 
         if (__builtin_add_overflow(size, element_size, &size)) {
             PANIC("integer overflow");
@@ -118,26 +87,11 @@ static u64 x86_tuple_layout_size_of(x86_TupleLayout *restrict tuple) {
     return size;
 }
 
-static u64 x86_tuple_layout_align_of(x86_TupleLayout *restrict tuple);
-
-static u64 x86_tuple_layout_element_align_of(
-    x86_TupleLayoutElement const *restrict element) {
-    switch (element->kind) {
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_SCALAR:
-        return element->data.scalar.alignment;
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_PADDING: return 0;
-    case X86_TUPLE_LAYOUT_ELEMENT_KIND_TUPLE:
-        return x86_tuple_layout_align_of(
-            (x86_TupleLayout *)element->data.tuple);
-    default: EXP_UNREACHABLE();
-    }
-}
-
 static u64 x86_tuple_layout_align_of(x86_TupleLayout *restrict tuple) {
     u64 alignment = 0;
     for (u32 index = 0; index < tuple->size; ++index) {
-        x86_TupleLayoutElement const *element = tuple->buffer + index;
-        u64 element_alignment = x86_tuple_layout_element_align_of(element);
+        x86_Layout const *element           = tuple->buffer[index];
+        u64               element_alignment = x86_layout_align_of(element);
 
         if (element_alignment > alignment) { alignment = element_alignment; }
     }
@@ -156,38 +110,63 @@ static void x86_tuple_layout_grow(x86_TupleLayout *restrict layout) {
 }
 
 static void x86_tuple_layout_append_element(x86_TupleLayout *restrict layout,
-                                            x86_TupleLayoutElement element) {
+                                            x86_Layout const *element) {
     if (x86_tuple_layout_full(layout)) { x86_tuple_layout_grow(layout); }
     layout->buffer[layout->length++] = element;
 }
 
+static void x86_layout_create_padding(x86_Layout *restrict layout, u64 padding);
+static void x86_layout_list_append(x86_LayoutList *restrict list,
+                                   Type const *type,
+                                   x86_Layout *layout);
+static x86_LayoutListElement *
+x86_layout_list_lookup_padding(x86_LayoutList *restrict list, u64 padding);
+
 static void x86_tuple_layout_append(x86_TupleLayout *restrict tuple,
                                     x86_Layout const *layout,
-                                    x86_Layout const *next) {
-    switch (layout->kind) {
-    case X86_LAYOUT_KIND_SCALAR:
-        x86_tuple_layout_append_element(
-            tuple, x86_tuple_layout_element_create_scalar(layout->data.scalar));
-        break;
+                                    x86_Layout const *next,
+                                    x86_Layouts *restrict layouts) {
+    x86_tuple_layout_append_element(tuple, layout);
+    if (next == NULL) { return; }
 
-    case X86_LAYOUT_KIND_TUPLE:
-        x86_tuple_layout_append_element(
-            tuple, x86_tuple_layout_element_create_tuple(&layout->data.tuple));
-        break;
+    u64 layout_alignment = x86_layout_align_of(layout);
+    u64 next_alignment   = x86_layout_align_of(next);
+    // #NOTE: The reasoning here is:
+    // if the alignment requirements of the next element of the tuple
+    // are greater than the alignment requirements of this element,
+    // placing the next element down immediately after this element will
+    // cause the next element to be misaligned in memory. Therefore we
+    // need padding between this element and the next element.
+    // The amount of padding is the difference in alignment. because that
+    // is the number of bytes required to get to an aligned point.
+    // assuming we are starting aligned. Which based on how x86_codegen
+    // is written, we ask the assembler to align each symbol. So we are
+    // relying on the assembler to start the layout at an aligned point.
+    if (next_alignment <= layout_alignment) { return; }
 
-    default: EXP_UNREACHABLE();
+    u64 padding = next_alignment - layout_alignment;
+
+    // #NOTE:
+    // since most alignments are (1, 2, 4, 8), most paddings are
+    // (1, 2, 3, 4, 7). We can reuse those x86_Layout allocations
+    // by looking through the existing paddings before we add a new one.
+    // This should be a win in terms of memory allocated by the program.
+    x86_LayoutListElement *existing =
+        x86_layout_list_lookup_padding(&layouts->paddings, padding);
+    if (existing != NULL) {
+        x86_tuple_layout_append_element(tuple, existing->layout);
+        return;
     }
 
-    if (next != NULL) {
-        u64 layout_alignment = x86_layout_align_of(layout);
-        u64 next_alignment   = x86_layout_align_of(next);
-        if (layout_alignment < next_alignment) {
-            u64 padding = next_alignment - layout_alignment;
-            exp_assert_debug(padding <= u8_MAX);
-            x86_tuple_layout_append_element(
-                tuple, x86_tuple_layout_element_create_padding((u8)padding));
-        }
-    }
+    x86_Layout *padding_layout = allocate(sizeof(x86_Layout));
+    x86_layout_create_padding(padding_layout, padding);
+    // #NOTE: #WARNING !!!WE ARE PASSING ~NULL~ HERE FOR THE TYPE!!!
+    // This is only fine because we are NEVER going to lookup a padding
+    // based on it's type. We are only using a LayoutList because it is
+    // convenient to reuse what is already written, and a LayoutList is
+    // already an owner of a list of layout allocations.
+    x86_layout_list_append(&layouts->paddings, NULL, padding_layout);
+    x86_tuple_layout_append_element(tuple, padding_layout);
 }
 
 static void x86_tuple_layout_create(x86_TupleLayout *restrict layout,
@@ -201,15 +180,15 @@ static void x86_tuple_layout_create(x86_TupleLayout *restrict layout,
         if (index < (tuple->size - 1)) {
             element        = tuple->types[index];
             next           = tuple->types[index + 1];
-            element_layout = x86_layouts_layout_of(layouts, element);
-            next_layout    = x86_layouts_layout_of(layouts, next);
+            element_layout = x86_layouts_layout_of_type(layouts, element);
+            next_layout    = x86_layouts_layout_of_type(layouts, next);
         } else {
             element        = tuple->types[index];
             next           = NULL;
-            element_layout = x86_layouts_layout_of(layouts, element);
+            element_layout = x86_layouts_layout_of_type(layouts, element);
             next_layout    = NULL;
         }
-        x86_tuple_layout_append(layout, element_layout, next_layout);
+        x86_tuple_layout_append(layout, element_layout, next_layout, layouts);
     }
 
     x86_tuple_layout_size_of(layout);
@@ -230,6 +209,12 @@ x86_layout_create_scalar(x86_Layout *restrict layout, u8 size, u8 alignment) {
         (x86_ScalarLayout){.size = size, .alignment = alignment};
 }
 
+static void x86_layout_create_padding(x86_Layout *restrict layout,
+                                      u64 padding) {
+    layout->kind         = X86_LAYOUT_KIND_PADDING;
+    layout->data.padding = padding;
+}
+
 static void x86_layout_create_tuple(x86_Layout *restrict layout,
                                     TupleType const *tuple,
                                     x86_Layouts *restrict layouts) {
@@ -243,6 +228,7 @@ static void x86_layout_destroy(x86_Layout *restrict layout) {
         x86_tuple_layout_destroy(&layout->data.tuple);
         break;
     // Scalar layouts do not dynamically allocate
+    // Padding layouts do not dynamically allocate
     default: break;
     }
 }
@@ -300,6 +286,17 @@ x86_layout_list_lookup(x86_LayoutList *restrict list, Type const *type) {
     return NULL;
 }
 
+static x86_LayoutListElement *
+x86_layout_list_lookup_padding(x86_LayoutList *restrict list, u64 padding) {
+    for (u32 index = 0; index < list->length; ++index) {
+        x86_LayoutListElement *element = list->buffer + index;
+        exp_assert(element->type == NULL);
+        exp_assert(element->layout->kind == X86_LAYOUT_KIND_PADDING);
+        if (padding == element->layout->data.padding) { return element; }
+    }
+    return NULL;
+}
+
 static void x86_layout_list_append(x86_LayoutList *restrict list,
                                    Type const *type,
                                    x86_Layout *layout) {
@@ -338,16 +335,18 @@ void x86_layouts_create(x86_Layouts *restrict layouts) {
     x86_layout_create_scalar(&layouts->i16_, 2, 2);
     x86_layout_create_scalar(&layouts->i32_, 4, 4);
     x86_layout_create_scalar(&layouts->i64_, 8, 8);
+    x86_layout_list_create(&layouts->paddings);
     x86_layout_list_create(&layouts->tuples);
 }
 
 void x86_layouts_destroy(x86_Layouts *restrict layouts) {
     exp_assert(layouts != NULL);
+    x86_layout_list_destroy(&layouts->paddings);
     x86_layout_list_destroy(&layouts->tuples);
 }
 
-x86_Layout const *x86_layouts_layout_of(x86_Layouts *restrict layouts,
-                                        Type const *type) {
+x86_Layout const *x86_layouts_layout_of_type(x86_Layouts *restrict layouts,
+                                             Type const *type) {
     exp_assert(layouts != NULL);
     exp_assert(type != NULL);
     switch (type->kind) {

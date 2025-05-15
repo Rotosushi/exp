@@ -608,10 +608,10 @@ static bool parens(Operand *restrict result, Parser *restrict parser) {
 
     if (!parse_tuple(tuple, parser)) { return false; };
 
-    if (tuple->size == 0) {
+    if (tuple->length == 0) {
         *result = operand_constant(context_constant_nil(parser->context));
         value_deallocate(value);
-    } else if (tuple->size == 1) {
+    } else if (tuple->length == 1) {
         *result = tuple->elements[0];
         value_deallocate(value);
     } else {

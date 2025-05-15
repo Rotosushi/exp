@@ -721,7 +721,7 @@ Type const *context_type_of_tuple(Context *restrict context,
     exp_assert(function != NULL);
     exp_assert(tuple != NULL);
     TupleType tuple_type = tuple_type_create();
-    for (u64 i = 0; i < tuple->size; ++i) {
+    for (u64 i = 0; i < tuple->length; ++i) {
         Type const *T =
             context_type_of_operand(context, function, tuple->elements[i]);
         tuple_type_append(&tuple_type, T);

@@ -45,11 +45,4 @@ void x86_function_destroy(x86_Function *restrict function);
 void x86_function_append(x86_Function *restrict function,
                          x86_Instruction instruction);
 
-i32 x86_function_codegen(x86_Function *restrict x86_function,
-                         Function const *restrict function,
-                         Context *restrict context);
-
-void print_x86_function(String *restrict buffer,
-                        x86_Function const *restrict function);
-
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H
