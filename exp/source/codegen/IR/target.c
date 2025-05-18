@@ -23,16 +23,18 @@
 void *ir_context_allocate() { return NULL; }
 void  ir_context_deallocate([[maybe_unused]] void *restrict context) { return; }
 
-Target ir_target_info = {.tag                  = SV("ir"),
-                         .triple               = SV("exp-ir"),
-                         .assembly_extension   = SV("eir"),
-                         .object_extension     = SV(""),
-                         .library_extension    = SV(""),
-                         .executable_extension = SV(""),
-                         .header               = ir_header,
-                         .codegen              = ir_codegen,
-                         .footer               = ir_footer,
-                         .context_allocate     = ir_context_allocate,
-                         .context_deallocate   = ir_context_deallocate};
+Target ir_target_info = {
+    .tag                  = {    .length = sizeof("ir") - 1,     .ptr = "ir"},
+    .triple               = {.length = sizeof("exp-ir") - 1, .ptr = "exp-ir"},
+    .assembly_extension   = {   .length = sizeof("eir") - 1,    .ptr = "eir"},
+    .object_extension     = {      .length = sizeof("") - 1,       .ptr = ""},
+    .library_extension    = {      .length = sizeof("") - 1,       .ptr = ""},
+    .executable_extension = {      .length = sizeof("") - 1,       .ptr = ""},
+    .header               = ir_header,
+    .codegen              = ir_codegen,
+    .footer               = ir_footer,
+    .context_allocate     = ir_context_allocate,
+    .context_deallocate   = ir_context_deallocate
+};
 
 Target *ir_target = &ir_target_info;

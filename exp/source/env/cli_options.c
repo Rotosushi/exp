@@ -27,7 +27,7 @@
 #include "support/io.h"
 #include "support/message.h"
 
-void cli_options_init(CLIOptions *restrict cli_options) {
+void cli_options_create(CLIOptions *restrict cli_options) {
     cli_options->context_options.prolix                     = false;
     cli_options->context_options.create_assembly_artifact   = true;
     cli_options->context_options.create_object_artifact     = true;

@@ -238,7 +238,8 @@ static bool parse_tuple_type(Type const **restrict result,
     assert(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; } // eat '('
 
-    TupleType tuple_type = tuple_type_create();
+    TupleType tuple_type;
+    tuple_type_create(&tuple_type);
 
     bool found_comma = false;
     do {
@@ -265,7 +266,7 @@ static bool parse_tuple_type(Type const **restrict result,
     }
 
     // a tuple type of length 1 is equivalent to that type.
-    if (tuple_type.size == 1) {
+    if (tuple_type.length == 1) {
         *result = tuple_type.types[0];
         tuple_type_destroy(&tuple_type);
     } else {

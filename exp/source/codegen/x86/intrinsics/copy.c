@@ -48,11 +48,11 @@ void x86_codegen_copy_composite_memory(x86_Address *restrict dst,
                                        u64         Idx,
                                        x86_Context *restrict context) {
     assert(type->kind == TYPE_KIND_TUPLE);
-    TupleType const *tuple_type = &type->tuple_type;
+    TupleType const *tuple_type = &type->tuple;
 
     x86_Address dst_element_address = *dst;
     x86_Address src_element_address = *src;
-    for (u64 i = 0; i < tuple_type->size; ++i) {
+    for (u64 i = 0; i < tuple_type->length; ++i) {
         Type const *element_type = tuple_type->types[i];
         u64         element_size = size_of(element_type);
 

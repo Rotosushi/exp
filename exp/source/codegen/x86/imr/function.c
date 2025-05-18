@@ -23,7 +23,7 @@
 
 static void
 x86_formal_argument_list_create(x86_FormalArgumentList *restrict args) {
-    args->size   = 0;
+    args->length = 0;
     args->buffer = NULL;
 }
 
@@ -35,15 +35,15 @@ x86_formal_arguments_destroy(x86_FormalArgumentList *restrict args) {
 
 static void
 x86_formal_argument_list_allocate(x86_FormalArgumentList *restrict args,
-                                  u8 size) {
-    args->size   = size;
-    args->buffer = callocate(size, sizeof(*args->buffer));
+                                  u8 length) {
+    args->length = length;
+    args->buffer = callocate(length, sizeof(*args->buffer));
 }
 
-static x86_FormalArgument *
+static x86_FormalArgument const *
 x86_formal_argument_list_at(x86_FormalArgumentList const *restrict args,
                             u8 index) {
-    exp_assert(args->size > index);
+    exp_assert(args->length > index);
     return args->buffer + index;
 }
 
@@ -63,32 +63,43 @@ void x86_function_destroy(x86_Function *restrict function) {
     x86_locations_destroy(&function->locations);
 }
 
+x86_FormalArgument const *
+x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index) {
+    exp_assert(x86_function != NULL);
+    return x86_formal_argument_list_at(&x86_function->arguments, index);
+}
+
 void x86_function_append(x86_Function *restrict x86_function,
                          x86_Instruction instruction) {
     exp_assert(x86_function != NULL);
     x86_bytecode_append(&x86_function->body, instruction);
 }
 
-static void x86_function_codegen_setup(x86_Function *restrict x86_function,
-                                       Function const *restrict function) {
+void x86_function_setup(x86_Function *restrict x86_function,
+                        Function const *restrict function) {
+    exp_assert(x86_function != NULL);
+    exp_assert(function != NULL);
+    // #NOTE: The argument list is the same length, unless we are passing in
+    // a pointer to the stack space allocated for the return value as a hidden
+    // first parameter.
     x86_formal_argument_list_allocate(&x86_function->arguments,
-                                      function_arguments_count(function));
+                                      function_arguments_length(function));
     x86_locations_allocate(&x86_function->locations,
-                           function_locals_count(function));
+                           function_locals_length(function));
 
     // #NOTE: Mark rsp and rbp as occupied, as these are used by the function
     // to implement it's stack frame at runtime.
     // #NOTE: #OPTIMIZATION: when the function uses no stack space, we can use
     // these registers as general purpose. So long as we save/restore them
     // before returning to another functions frame.
-    // #NOTE: #OPTIMIZATION: if the frame is not using anything fancy, we can
+    // #NOTE: #OPTIMIZATION: if the frame size is static then, we can
     // get away with only using the RBP register. Which frees up the RSP for
     // general usage.
     exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RSP));
     exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RBP));
 }
 
-void x86_function_codegen_header(x86_Function *restrict x86_function) {
+void x86_function_header(x86_Function *restrict x86_function) {
     // #NOTE: The standard x86 function header is to save the previous
     // stack frame, and save all registers used by the current
     // functions frame. Then allocate the current stack frame.
@@ -114,12 +125,20 @@ void x86_function_codegen_header(x86_Function *restrict x86_function) {
         x86_sub(x86_operand_location_gpr(X86_GPR_RSP), x86_operand_i32(0)));
 }
 
-i32 x86_function_codegen(x86_Function *restrict x86_function,
-                         Function const *restrict function,
-                         Context *restrict context) {
-    exp_assert(x86_function != NULL);
-    exp_assert(function != NULL);
-    exp_assert(context != NULL);
-
-    x86_function_codegen_setup(x86_function, function);
+void x86_function_footer(x86_Function *restrict x86_function) {
+    // #NOTE: since we save the previous rbp on the stack, then move the
+    // rsp into rbp before subtracting the stack space for the function,
+    // when we move rbp back into rsp we are in effect deallocating the
+    // stack space we subtracted for the current frame. when we then pop
+    // rbp back off the stack, this restores the base of the previous functions
+    // call frame.
+    // #NOTE: The standard x86 function footer is to restore the previous
+    // stack and base pointers before returning to the previous functions frame.
+    // A more optimal way is to use only rbp or only rsp given that we have
+    // static size stack frames.
+    x86_function_append(x86_function,
+                        x86_mov(x86_operand_location_gpr(X86_GPR_RSP),
+                                x86_operand_location_gpr(X86_GPR_RBP)));
+    x86_function_append(x86_function,
+                        x86_pop(x86_operand_location_gpr(X86_GPR_RBP)));
 }

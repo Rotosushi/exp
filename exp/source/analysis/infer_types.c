@@ -146,16 +146,16 @@ static bool infer_types_call(Type const **result,
         return context_failure_type_is_not_callable(context, Bty);
     }
 
-    FunctionType const *function_type = &Bty->function_type;
+    FunctionType const *function_type = &Bty->function;
     TupleType const    *formal_types  = &function_type->argument_types;
     exp_assert_debug(I.C_kind == OPERAND_KIND_CONSTANT);
     Value const *value = I.C_data.constant;
     exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
     Tuple const *actual_args = &value->tuple;
 
-    if (formal_types->size != actual_args->length) {
+    if (formal_types->length != actual_args->length) {
         return context_failure_mismatch_argument_count(
-            context, formal_types->size, actual_args->length);
+            context, formal_types->length, actual_args->length);
     }
 
     for (u8 i = 0; i < actual_args->length; ++i) {
@@ -192,7 +192,7 @@ static bool infer_types_dot(Type const **result,
         return context_failure_type_is_not_indexable(context, Bty);
     }
 
-    TupleType const *tuple = &Bty->tuple_type;
+    TupleType const *tuple = &Bty->tuple;
     Operand          C     = operand(I.C_kind, I.C_data);
 
     if (!operand_is_index(C)) {
@@ -202,7 +202,8 @@ static bool infer_types_dot(Type const **result,
     u64 index = operand_as_index(C);
     exp_assert(index < u32_MAX);
     if (!tuple_type_index_in_bounds(tuple, (u32)index)) {
-        return context_failure_index_out_of_bounds(context, tuple->size, index);
+        return context_failure_index_out_of_bounds(
+            context, tuple->length, index);
     }
 
     local->type = tuple->types[index];

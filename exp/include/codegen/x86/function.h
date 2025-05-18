@@ -15,14 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef EXP_CODEGEN_X86_VALUE_H
-#define EXP_CODEGEN_X86_VALUE_H
+#ifndef EXP_CODEGEN_X86_FUNCTION_H
+#define EXP_CODEGEN_X86_FUNCTION_H
 
-#include "codegen/x86/imr/layout.h"
+#include "codegen/x86/imr/function.h"
+#include "env/context.h"
 #include "imr/value.h"
 
-void print_x86_value(String *restrict buffer,
-                     Value const *restrict value,
-                     x86_Layout const *layout);
+void print_x86_function(String *restrict buffer,
+                        Value const *restrict value,
+                        Context *restrict context);
 
-#endif // !EXP_CODEGEN_X86_VALUE_H
+#endif // !EXP_CODEGEN_X86_FUNCTION_H

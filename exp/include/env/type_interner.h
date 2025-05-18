@@ -50,7 +50,7 @@ typedef struct TypeList {
  */
 typedef struct TypeInterner {
     Type     nil_type;
-    Type     boolean_type;
+    Type     bool_type;
     Type     u8_type;
     Type     u16_type;
     Type     u32_type;
@@ -78,7 +78,7 @@ TypeInterner type_interner_create();
 void type_interner_destroy(TypeInterner *restrict type_interner);
 
 Type const *type_interner_nil_type(TypeInterner *restrict type_interner);
-Type const *type_interner_boolean_type(TypeInterner *restrict type_interner);
+Type const *type_interner_bool_type(TypeInterner *restrict type_interner);
 Type const *type_interner_u8_type(TypeInterner *restrict type_interner);
 Type const *type_interner_u16_type(TypeInterner *restrict type_interner);
 Type const *type_interner_u32_type(TypeInterner *restrict type_interner);

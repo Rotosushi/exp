@@ -61,7 +61,7 @@ static bool validate_tuple(Tuple const *restrict tuple,
                            u32 block_index,
                            Function const *restrict function,
                            Context *restrict context) {
-    for (u32 index = 0; index < tuple->size; ++index) {
+    for (u32 index = 0; index < tuple->length; ++index) {
         Operand element = tuple->elements[index];
         if (!validate_operand(
                 element.kind, element.data, block_index, function, context)) {
@@ -259,7 +259,7 @@ static bool validate_call(Instruction instruction,
         context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(B_type != NULL);
     exp_assert_always(B_type->kind == TYPE_KIND_FUNCTION);
-    FunctionType const *callee = &B_type->function_type;
+    FunctionType const *callee = &B_type->function;
 
     Type const *return_type = callee->return_type;
     exp_assert_always(return_type != NULL);
@@ -271,11 +271,11 @@ static bool validate_call(Instruction instruction,
         context_type_of_operand(context, function, operand_C(instruction));
     exp_assert_always(C_type != NULL);
     exp_assert_always(C_type->kind == TYPE_KIND_TUPLE);
-    TupleType const *actual_args = &C_type->tuple_type;
+    TupleType const *actual_args = &C_type->tuple;
 
-    exp_assert_always(formal_args->size == actual_args->size);
+    exp_assert_always(formal_args->length == actual_args->length);
 
-    for (u32 index = 0; index < formal_args->size; ++index) {
+    for (u32 index = 0; index < formal_args->length; ++index) {
         Type const *formal_arg = formal_args->types[index];
         exp_assert_always(formal_arg != NULL);
         Type const *actual_arg = actual_args->types[index];
@@ -380,7 +380,7 @@ static bool validate_dot(Instruction instruction,
     exp_assert_always(type_is_indexable(B_type));
 
     exp_assert_always(B_type->kind == TYPE_KIND_TUPLE);
-    TupleType const *tuple = &B_type->tuple_type;
+    TupleType const *tuple = &B_type->tuple;
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));

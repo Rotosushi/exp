@@ -16,58 +16,85 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
 #include "codegen/x86/instruction/ret.h"
-#include "support/panic.h"
 #include "support/unreachable.h"
 
-void x86_codegen_ret(Instruction I,
-                     u64         block_index,
-                     x86_Context *restrict context) {
-    x86_Function *body = x86_context_current_x86_body(context);
-    switch (I.B_kind) {
-    case OPERAND_KIND_SSA: {
-        x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
-        if (x86_allocation_location_eq(B, body->result->location)) { break; }
-        x86_codegen_copy_allocation(body->result, B, block_index, context);
+void x86_codegen_ret(Instruction          instruction,
+                     [[maybe_unused]] u32 block_index,
+                     x86_Function *restrict x86_function,
+                     [[maybe_unused]] Context *restrict context) {
+    switch (instruction.B_kind) {
+    case OPERAND_KIND_SSA:
+    case OPERAND_KIND_CONSTANT:
+    case OPERAND_KIND_LABEL:    EXP_UNREACHABLE(); break;
+
+    case OPERAND_KIND_NIL: break;
+
+    case OPERAND_KIND_BOOL:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_bool(instruction.B_data.bool_)));
+        break;
+
+    case OPERAND_KIND_U8:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_u8(instruction.B_data.u8_)));
+        break;
+
+    case OPERAND_KIND_U16:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_u16(instruction.B_data.u16_)));
+        break;
+
+    case OPERAND_KIND_U32:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_u32(instruction.B_data.u32_)));
+        break;
+
+    case OPERAND_KIND_U64:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_u64(instruction.B_data.u64_)));
+        break;
+
+    case OPERAND_KIND_I8:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_i8(instruction.B_data.i8_)));
+        break;
+
+    case OPERAND_KIND_I16:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_i16(instruction.B_data.i16_)));
+        break;
+
+    case OPERAND_KIND_I32:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_i32(instruction.B_data.i32_)));
+        break;
+
+    case OPERAND_KIND_I64:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(x86_function->return_location),
+                    x86_operand_i64(instruction.B_data.i64_)));
         break;
     }
 
-    case OPERAND_KIND_CONSTANT: {
-        Value const *value = I.B_data.constant;
-        x86_codegen_load_allocation_from_constant(
-            body->result, value, block_index, context);
-        break;
-    }
-
-    case OPERAND_KIND_I64: {
-        x86_context_append(context,
-                           x86_mov(x86_operand_alloc(body->result),
-                                   x86_operand_i64(I.B_data.i64_)));
-        break;
-    }
-
-    case OPERAND_KIND_LABEL: {
-        /*
-         * #NOTE #TODO #FEATURE eventually we will add support for
-         * global constants (global variables are in limbo until
-         * proven vital). When these exist, it will be possible to
-         * access them via OPRFMT_LABEL operands. Since we do not
-         * have them yet, this case is effecively unreachable.
-         * (right now OPRFMT_LABEL is used exclusively for global
-         *  functions. which are global constants.)
-         */
-        PANIC("#TODO");
-        break;
-    }
-
-    default: EXP_UNREACHABLE();
-    }
-
-    x86_context_append(
-        context,
-        x86_mov(x86_operand_gpr(X86_GPR_RSP), x86_operand_gpr(X86_GPR_RBP)));
-    x86_context_append(context, x86_pop(x86_operand_gpr(X86_GPR_RBP)));
-    x86_context_append(context, x86_ret());
+    x86_function_footer(x86_function);
+    x86_function_append(x86_function, x86_ret());
 }

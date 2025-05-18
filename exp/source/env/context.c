@@ -494,7 +494,7 @@ Type const *context_nil_type(Context *context) {
 
 Type const *context_bool_type(Context *context) {
     assert(context != nullptr);
-    return type_interner_boolean_type(&(context->type_interner));
+    return type_interner_bool_type(&(context->type_interner));
 }
 
 Type const *context_u8_type(Context *context) {
@@ -703,7 +703,8 @@ Type const *context_type_of_function(Context *restrict context,
     assert(function != NULL);
     assert(function->return_type != NULL);
 
-    TupleType argument_types = tuple_type_create();
+    TupleType argument_types;
+    tuple_type_create(&argument_types);
     for (u64 i = 0; i < function->arguments.size; ++i) {
         Local      *formal_argument = function->arguments.list[i];
         Type const *argument_type   = formal_argument->type;
@@ -720,7 +721,8 @@ Type const *context_type_of_tuple(Context *restrict context,
     exp_assert(context != NULL);
     exp_assert(function != NULL);
     exp_assert(tuple != NULL);
-    TupleType tuple_type = tuple_type_create();
+    TupleType tuple_type;
+    tuple_type_create(&tuple_type);
     for (u64 i = 0; i < tuple->length; ++i) {
         Type const *T =
             context_type_of_operand(context, function, tuple->elements[i]);
@@ -774,13 +776,13 @@ Type const *context_type_of_operand(Context *restrict context,
 u64 context_size_of(Context *restrict context, Type const *type) {
     exp_assert(context != NULL);
     exp_assert(type != NULL);
-    return context->options.target->size_of(type);
+    return context->options.target->size_of(context, type);
 }
 
 u64 context_align_of(Context *restrict context, Type const *type) {
     exp_assert(context != NULL);
     exp_assert(type != NULL);
-    return context->options.target->align_of(type);
+    return context->options.target->align_of(context, type);
 }
 
 bool context_at_top_level(Context const *restrict context) {

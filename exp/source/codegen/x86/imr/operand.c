@@ -26,23 +26,28 @@ x86_Operand x86_operand(x86_OperandKind kind, x86_OperandData data) {
     return (x86_Operand){.kind = kind, .data = data};
 }
 
+x86_Operand x86_operand_location(x86_Location location) {
+    return (x86_Operand){.kind          = X86_OPERAND_KIND_LOCATION,
+                         .data.location = location};
+}
+
 x86_Operand x86_operand_location_gpr(x86_GPR gpr) {
     return (x86_Operand){.kind          = X86_OPERAND_KIND_LOCATION,
                          .data.location = x86_location_gpr(gpr)};
 }
 
-x86_Operand x86_operand_location_address(x86_GPR base, i32 offset) {
-    return (x86_Operand){.kind          = X86_OPERAND_KIND_LOCATION,
-                         .data.location = x86_location_address(base, offset)};
+x86_Operand
+x86_operand_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset) {
+    return (x86_Operand){.kind = X86_OPERAND_KIND_LOCATION,
+                         .data.location =
+                             x86_location_address(base, ptr_kind, offset)};
 }
 
-x86_Operand x86_operand_location_address_indexed(x86_GPR base,
-                                                 x86_GPR index,
-                                                 u8      scale,
-                                                 i32     offset) {
+x86_Operand x86_operand_location_address_indexed(
+    x86_GPR base, x86_PtrKind ptr_kind, x86_GPR index, u8 scale, i32 offset) {
     return (x86_Operand){.kind          = X86_OPERAND_KIND_LOCATION,
                          .data.location = x86_location_address_indexed(
-                             base, index, scale, offset)};
+                             base, ptr_kind, index, scale, offset)};
 }
 
 x86_Operand x86_operand_label(ConstantString const *label) {

@@ -63,16 +63,16 @@ static void type_list_append(TypeList *restrict type_list,
 
 TypeInterner type_interner_create() {
     TypeInterner type_interner;
-    type_interner.nil_type     = type_create_nil();
-    type_interner.boolean_type = type_create_boolean();
-    type_interner.u8_type      = type_create_u8();
-    type_interner.u16_type     = type_create_u16();
-    type_interner.u32_type     = type_create_u32();
-    type_interner.u64_type     = type_create_u64();
-    type_interner.i8_type      = type_create_i8();
-    type_interner.i16_type     = type_create_i16();
-    type_interner.i32_type     = type_create_i32();
-    type_interner.i64_type     = type_create_i64();
+    type_create_nil(&type_interner.nil_type);
+    type_create_bool(&type_interner.bool_type);
+    type_create_u8(&type_interner.u8_type);
+    type_create_u16(&type_interner.u16_type);
+    type_create_u32(&type_interner.u32_type);
+    type_create_u64(&type_interner.u64_type);
+    type_create_i8(&type_interner.i8_type);
+    type_create_i16(&type_interner.i16_type);
+    type_create_i32(&type_interner.i32_type);
+    type_create_i64(&type_interner.i64_type);
     type_list_create(&type_interner.tuple_types);
     type_list_create(&type_interner.function_types);
     return type_interner;
@@ -90,9 +90,9 @@ Type const *type_interner_nil_type(TypeInterner *restrict type_interner) {
     return &(type_interner->nil_type);
 }
 
-Type const *type_interner_boolean_type(TypeInterner *restrict type_interner) {
+Type const *type_interner_bool_type(TypeInterner *restrict type_interner) {
     assert(type_interner != NULL);
-    return &(type_interner->boolean_type);
+    return &(type_interner->bool_type);
 }
 
 Type const *type_interner_u8_type(TypeInterner *restrict type_interner) {
@@ -139,7 +139,7 @@ Type const *type_interner_tuple_type(TypeInterner *restrict type_interner,
                                      TupleType tuple) {
     assert(type_interner != NULL);
     Type *type = allocate(sizeof(Type));
-    *type      = type_create_tuple(tuple);
+    type_create_tuple(type, tuple);
     type_list_append(&type_interner->tuple_types, type);
     return type;
 }
@@ -150,7 +150,7 @@ Type const *type_interner_function_type(TypeInterner *restrict type_interner,
     assert(type_interner != NULL);
     assert(return_type != NULL);
     Type *type = allocate(sizeof(Type));
-    *type      = type_create_function(return_type, argument_types);
+    type_create_function(type, return_type, argument_types);
     type_list_append(&type_interner->function_types, type);
     return type;
 }

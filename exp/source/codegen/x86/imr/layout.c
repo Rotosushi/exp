@@ -176,8 +176,8 @@ static void x86_tuple_layout_create(x86_TupleLayout *restrict layout,
     Type const       *next           = NULL;
     x86_Layout const *element_layout = NULL;
     x86_Layout const *next_layout    = NULL;
-    for (u32 index = 0; index < tuple->size; ++index) {
-        if (index < (tuple->size - 1)) {
+    for (u32 index = 0; index < tuple->length; ++index) {
+        if (index < (tuple->length - 1)) {
             element        = tuple->types[index];
             next           = tuple->types[index + 1];
             element_layout = x86_layouts_layout_of_type(layouts, element);
@@ -367,7 +367,7 @@ x86_Layout const *x86_layouts_layout_of_type(x86_Layouts *restrict layouts,
         if (existing != NULL) { return existing->layout; }
 
         x86_Layout *layout = allocate(sizeof(x86_Layout));
-        x86_layout_create_tuple(layout, &type->tuple_type, layouts);
+        x86_layout_create_tuple(layout, &type->tuple, layouts);
         x86_layout_list_append(&layouts->tuples, type, layout);
         return layout;
     }

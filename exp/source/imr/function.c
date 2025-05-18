@@ -109,12 +109,12 @@ Local *function_lookup_local_name(Function const *restrict function,
     return locals_lookup_name(&function->locals, name);
 }
 
-u32 function_locals_count(Function const *restrict function) {
+u32 function_locals_length(Function const *restrict function) {
     assert(function != NULL);
     return function->locals.size;
 }
 
-u8 function_arguments_count(Function const *restrict function) {
+u8 function_arguments_length(Function const *restrict function) {
     assert(function != NULL);
     return function->arguments.size;
 }

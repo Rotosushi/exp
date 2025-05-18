@@ -20,34 +20,35 @@
 #define EXP_BACKEND_X86_INTRINSICS_H
 
 #include "codegen/x86/env/context.h"
+#include "codegen/x86/imr/location.h"
 
-void x86_codegen_copy_scalar_memory(x86_Address *restrict dst,
-                                    x86_Address *restrict src,
+void x86_codegen_copy_scalar_memory(x86_Location *restrict dst,
+                                    x86_Location *restrict src,
                                     u64 size,
                                     u64 Idx,
                                     x86_Context *restrict context);
 
-void x86_codegen_copy_composite_memory(x86_Address *restrict dst,
-                                       x86_Address *restrict src,
+void x86_codegen_copy_composite_memory(x86_Location *restrict dst,
+                                       x86_Location *restrict src,
                                        Type const *type,
                                        u64         Idx,
                                        x86_Context *restrict context);
 
-void x86_codegen_copy_memory(x86_Address *restrict dst,
-                             x86_Address *restrict src,
+void x86_codegen_copy_memory(x86_Location *restrict dst,
+                             x86_Location *restrict src,
                              Type const *type,
                              u64         Idx,
                              x86_Context *restrict context);
 
-void x86_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
-                                             x86_Address *restrict src,
-                                             Type const *restrict type,
-                                             u64 Idx,
-                                             x86_Context *restrict context);
+// void x86_codegen_copy_allocation_from_memory(x86_Allocation *restrict dst,
+//                                              x86_Location *restrict src,
+//                                              Type const *restrict type,
+//                                              u64 Idx,
+//                                              x86_Context *restrict context);
 
-void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
-                                 x86_Allocation *restrict src,
-                                 u64 Idx,
-                                 x86_Context *restrict context);
+// void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
+//                                  x86_Allocation *restrict src,
+//                                  u64 Idx,
+//                                  x86_Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_INTRINSICS_H

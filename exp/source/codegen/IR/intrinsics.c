@@ -37,9 +37,9 @@ u64 ir_size_of(Type const *restrict type) {
     case TYPE_KIND_I64:  return 8;
 
     case TYPE_KIND_TUPLE: {
-        TupleType const *tuple = &type->tuple_type;
+        TupleType const *tuple = &type->tuple;
         u64              acc   = 0;
-        for (u64 i = 0; i < tuple->size; ++i) {
+        for (u64 i = 0; i < tuple->length; ++i) {
             acc += ir_size_of(tuple->types[i]);
         }
         return acc;
@@ -72,7 +72,7 @@ u64 ir_align_of(Type const *restrict type) {
     case TYPE_KIND_TUPLE: {
         TupleType *tuple_type = (TupleType *)type;
         u64        max        = 0;
-        for (u32 i = 0; i < tuple_type->size; ++i) {
+        for (u32 i = 0; i < tuple_type->length; ++i) {
             Type const *t = tuple_type->types[i];
             u64         a = ir_align_of(t);
             if (a > max) { max = a; }

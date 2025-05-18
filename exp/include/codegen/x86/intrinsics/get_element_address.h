@@ -19,8 +19,8 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 #define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
+#include "codegen/x86/imr/layout.h"
 #include "codegen/x86/imr/location.h"
-#include "imr/type.h"
 
 /**
  * @brief Get the address of an element in a tuple.
@@ -34,13 +34,8 @@
  *
  * @note This function can be extended to compute the address of the N'th
  * element of an array, a structure, or a union type.
- *
- * @param src The address of the tuple.
- * @param type The type of the tuple.
- * @param index The index of the element to get the address of.
- * @return The address of the element.
  */
 x86_Location
-x86_get_element_address(x86_Location *src, Type const *type, u64 index);
+x86_get_element_address(x86_Location *src, x86_Layout const *layout, u64 index);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H

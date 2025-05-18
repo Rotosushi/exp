@@ -24,18 +24,17 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-TupleType tuple_type_create() {
-    TupleType tuple_type;
-    tuple_type.capacity = 0;
-    tuple_type.size     = 0;
-    tuple_type.types    = NULL;
-    return tuple_type;
+void tuple_type_create(TupleType *restrict tuple_type) {
+    exp_assert(tuple_type != NULL);
+    tuple_type->capacity = 0;
+    tuple_type->length   = 0;
+    tuple_type->types    = NULL;
 }
 
 void tuple_type_destroy(TupleType *restrict tuple_type) {
     exp_assert(tuple_type != NULL);
     tuple_type->capacity = 0;
-    tuple_type->size     = 0;
+    tuple_type->length   = 0;
     deallocate(tuple_type->types);
     tuple_type->types = NULL;
 }
@@ -45,9 +44,9 @@ bool tuple_type_equal(TupleType const *A, TupleType const *B) {
     exp_assert(B != NULL);
     if (A == B) { return 1; }
 
-    if (A->size != B->size) { return 0; }
+    if (A->length != B->length) { return 0; }
 
-    for (u64 i = 0; i < A->size; ++i) {
+    for (u64 i = 0; i < A->length; ++i) {
         Type const *t = A->types[i];
         Type const *u = B->types[i];
 
@@ -57,8 +56,13 @@ bool tuple_type_equal(TupleType const *A, TupleType const *B) {
     return 1;
 }
 
+bool tuple_type_index_in_bounds(TupleType const *restrict tuple, u32 index) {
+    exp_assert(tuple != NULL);
+    return tuple->length > index;
+}
+
 static bool tuple_type_full(TupleType *restrict tuple_type) {
-    return (tuple_type->size + 1) >= tuple_type->capacity;
+    return (tuple_type->length + 1) >= tuple_type->capacity;
 }
 
 static void tuple_type_grow(TupleType *restrict tuple_type) {
@@ -72,8 +76,8 @@ void tuple_type_append(TupleType *restrict tuple_type, Type const *type) {
 
     if (tuple_type_full(tuple_type)) { tuple_type_grow(tuple_type); }
 
-    tuple_type->types[tuple_type->size] = type;
-    tuple_type->size += 1;
+    tuple_type->types[tuple_type->length] = type;
+    tuple_type->length += 1;
 }
 
 Type const *tuple_type_at(TupleType const *restrict tuple, u32 index) {
@@ -92,50 +96,67 @@ bool function_type_equal(FunctionType const *A, FunctionType const *B) {
     return tuple_type_equal(&A->argument_types, &B->argument_types);
 }
 
-Type type_create_nil() {
-    return (Type){.kind = TYPE_KIND_NIL, .scalar_type = 0};
+void type_create_nil(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_NIL, .scalar = 0};
 }
 
-Type type_create_boolean() {
-    return (Type){.kind = TYPE_KIND_BOOL, .scalar_type = 0};
+void type_create_bool(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_BOOL, .scalar = 0};
 }
 
-Type type_create_u8() { return (Type){.kind = TYPE_KIND_U8, .scalar_type = 0}; }
-
-Type type_create_u16() {
-    return (Type){.kind = TYPE_KIND_U16, .scalar_type = 0};
+void type_create_u8(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_U8, .scalar = 0};
 }
 
-Type type_create_u32() {
-    return (Type){.kind = TYPE_KIND_U32, .scalar_type = 0};
+void type_create_u16(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_U16, .scalar = 0};
 }
 
-Type type_create_u64() {
-    return (Type){.kind = TYPE_KIND_U64, .scalar_type = 0};
+void type_create_u32(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_U32, .scalar = 0};
 }
 
-Type type_create_i8() { return (Type){.kind = TYPE_KIND_I8, .scalar_type = 0}; }
-
-Type type_create_i16() {
-    return (Type){.kind = TYPE_KIND_I16, .scalar_type = 0};
+void type_create_u64(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_U64, .scalar = 0};
 }
 
-Type type_create_i32() {
-    return (Type){.kind = TYPE_KIND_I32, .scalar_type = 0};
+void type_create_i8(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_I8, .scalar = 0};
 }
 
-Type type_create_i64() {
-    return (Type){.kind = TYPE_KIND_I64, .scalar_type = 0};
+void type_create_i16(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_I16, .scalar = 0};
 }
 
-Type type_create_tuple(TupleType tuple) {
-    return (Type){.kind = TYPE_KIND_TUPLE, .tuple_type = tuple};
+void type_create_i32(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_I32, .scalar = 0};
 }
 
-Type type_create_function(Type const *result, TupleType args) {
-    return (Type){
-        .kind          = TYPE_KIND_FUNCTION,
-        .function_type = (FunctionType){result, args}
+void type_create_i64(Type *restrict type) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_I64, .scalar = 0};
+}
+
+void type_create_tuple(Type *restrict type, TupleType tuple) {
+    exp_assert(type != NULL);
+    *type = (Type){.kind = TYPE_KIND_TUPLE, .tuple = tuple};
+}
+
+void type_create_function(Type *restrict type,
+                          Type const *result,
+                          TupleType   args) {
+    exp_assert(type != NULL);
+    *type = (Type){
+        .kind = TYPE_KIND_FUNCTION, .function = (FunctionType){result, args}
     };
 }
 
@@ -143,12 +164,12 @@ void type_destroy(Type *restrict type) {
     exp_assert(type != NULL);
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
-        tuple_type_destroy(&type->tuple_type);
+        tuple_type_destroy(&type->tuple);
         break;
     }
 
     case TYPE_KIND_FUNCTION: {
-        tuple_type_destroy(&type->function_type.argument_types);
+        tuple_type_destroy(&type->function.argument_types);
         break;
     }
 
@@ -158,13 +179,14 @@ void type_destroy(Type *restrict type) {
 }
 
 bool type_equality(Type const *A, Type const *B) {
+    exp_assert(A != NULL);
+    exp_assert(B != NULL);
     if (A->kind != B->kind) { return 0; }
 
     switch (A->kind) {
-    case TYPE_KIND_TUPLE:
-        return tuple_type_equal(&A->tuple_type, &B->tuple_type);
+    case TYPE_KIND_TUPLE: return tuple_type_equal(&A->tuple, &B->tuple);
     case TYPE_KIND_FUNCTION:
-        return function_type_equal(&A->function_type, &B->function_type);
+        return function_type_equal(&A->function, &B->function);
 
     // #NOTE: scalar types are equal when their kinds are equal
     default: return true;
@@ -172,6 +194,7 @@ bool type_equality(Type const *A, Type const *B) {
 }
 
 bool type_is_scalar(Type const *T) {
+    exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_NIL:
     case TYPE_KIND_BOOL:
@@ -192,6 +215,7 @@ bool type_is_scalar(Type const *T) {
 }
 
 bool type_is_index(Type const *T) {
+    exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_U8:
     case TYPE_KIND_U16:
@@ -207,6 +231,7 @@ bool type_is_index(Type const *T) {
 }
 
 bool type_is_callable(Type const *T) {
+    exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_FUNCTION: return true;
     default:                 return false;
@@ -214,6 +239,7 @@ bool type_is_callable(Type const *T) {
 }
 
 bool type_is_indexable(Type const *T) {
+    exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_TUPLE: return true;
     default:              return false;
@@ -223,10 +249,10 @@ bool type_is_indexable(Type const *T) {
 static void print_tuple_type(String *restrict string,
                              TupleType const *restrict tuple_type) {
     string_append(string, SV("("));
-    for (u64 i = 0; i < tuple_type->size; ++i) {
+    for (u64 i = 0; i < tuple_type->length; ++i) {
         print_type(string, tuple_type->types[i]);
 
-        if (i < (tuple_type->size - 1)) { string_append(string, SV(", ")); }
+        if (i < (tuple_type->length - 1)) { string_append(string, SV(", ")); }
     }
     string_append(string, SV(")"));
 }
@@ -241,14 +267,13 @@ static void print_function_type(String *restrict string,
 }
 
 void print_type(String *restrict string, Type const *restrict T) {
+    exp_assert(T != NULL);
     switch (T->kind) {
-    case TYPE_KIND_NIL:   string_append(string, SV("nil")); break;
-    case TYPE_KIND_BOOL:  string_append(string, SV("bool")); break;
-    case TYPE_KIND_I64:   string_append(string, SV("i64")); break;
-    case TYPE_KIND_TUPLE: print_tuple_type(string, &T->tuple_type); break;
-    case TYPE_KIND_FUNCTION:
-        print_function_type(string, &T->function_type);
-        break;
+    case TYPE_KIND_NIL:      string_append(string, SV("nil")); break;
+    case TYPE_KIND_BOOL:     string_append(string, SV("bool")); break;
+    case TYPE_KIND_I64:      string_append(string, SV("i64")); break;
+    case TYPE_KIND_TUPLE:    print_tuple_type(string, &T->tuple); break;
+    case TYPE_KIND_FUNCTION: print_function_type(string, &T->function); break;
 
     default: EXP_UNREACHABLE();
     }

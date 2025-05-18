@@ -6,6 +6,7 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/analysis/infer_types.c
   ${EXP_SOURCE_DIR}/analysis/infer_lifetimes.c
+  ${EXP_SOURCE_DIR}/analysis/validate.c
   
   ${EXP_SOURCE_DIR}/codegen/GAS/directives.c
   
@@ -15,29 +16,30 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/IR/target.c
   
   ${EXP_SOURCE_DIR}/codegen/x86/codegen.c
+  ${EXP_SOURCE_DIR}/codegen/x86/function.c
   ${EXP_SOURCE_DIR}/codegen/x86/target.c
+  ${EXP_SOURCE_DIR}/codegen/x86/value.c
+
+  ${EXP_SOURCE_DIR}/codegen/x86/env/context.c
 
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/align_of.c
-  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
-  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
-  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/load.c
+  #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
+  #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
+  #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/load.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/size_of.c
 
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/let.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/let.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
-  ${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
+  #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
-  ${EXP_SOURCE_DIR}/codegen/x86/value/scalar.c
-  ${EXP_SOURCE_DIR}/codegen/x86/value/tuple.c
-
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
+  #${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
   #${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/bytecode.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
@@ -52,7 +54,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
+  ${EXP_SOURCE_DIR}/env/frames.c
   ${EXP_SOURCE_DIR}/env/labels.c
+  ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c

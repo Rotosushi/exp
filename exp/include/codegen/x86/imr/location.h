@@ -20,22 +20,56 @@
 #include "codegen/x86/imr/registers.h"
 #include "support/string.h"
 
+/*
+ * #NOTE: We need to handle floating point registers
+ * and the status registers.
+ */
+
+/**
+ * @brief specifies the size of the data pointed to by the
+ * address. In Intel syntax this is used by the memory operand
+ * itself, in AT&T this is used to add a suffix to the instruction
+ * mnemonic.
+ * from GNU as docs (9.16.3.1 AT&T Syntax versus Intel Syntax):
+ * "... Thus, Intel syntax
+ * `mov al, byte ptr foo` is
+ * `movb foo, %al`
+ * in AT&T syntax. ..."
+ *
+ * @note I think we only need a single enum within the Location,
+ * otherwise we would
+ */
+typedef enum x86_PtrKind {
+    X86_BYTE_PTR,
+    X86_WORD_PTR,
+    X86_DWORD_PTR,
+    X86_QWORD_PTR,
+    // X86_XMMWORD_PTR,
+    // X86_YMMWORD_PTR,
+    // X86_ZMMWORD_PTR,
+    // X86_FWORD_PTR, (48 bit ptr)
+    // X86_TBYTE_PTR, (80 bit ptr)
+    // X86_OWORD_PTR, (128 bit ptr)
+} x86_PtrKind;
+
 typedef struct x86_Location {
     union {
         x86_GPR base;
         x86_GPR gpr;
     };
-    x86_GPR index;
-    u8      scale;
-    bool    has_index  : 1;
-    bool    is_address : 1;
-    i32     offset;
+    x86_GPR  index;
+    unsigned scale      : 4;
+    bool     has_index  : 1;
+    bool     is_address : 1;
+    unsigned ptr_kind   : 4;
+    i32      offset;
 } x86_Location;
 
 x86_Location x86_location_gpr(x86_GPR gpr);
-x86_Location x86_location_address(x86_GPR base, i32 offset);
 x86_Location
-x86_location_address_indexed(x86_GPR base, x86_GPR index, u8 scale, i32 offset);
+x86_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset);
+x86_Location x86_location_address_indexed(
+    x86_GPR base, x86_PtrKind ptr_kind, x86_GPR index, u8 scale, i32 offset);
 
 /**
  * @brief compares two locations for equality

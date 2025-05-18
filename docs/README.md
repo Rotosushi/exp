@@ -16,7 +16,9 @@ compilation takes place in a few stages
 
 [[Analysis]] consists of:
 
-1. [[typechecking]]
+1. [[Typechecking]]
+2. [[Lifetime Analysis]]
+3. [[Validation]]
 
 [[Codegen]] consists of:
 

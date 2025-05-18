@@ -20,23 +20,39 @@
 
 #include "scanning/parser.h"
 #include "support/io.h"
+#include "support/string.h"
 #include "test_resources.h"
 
-i32 test_parse(StringView path, StringView contents) {
+static i32 test_parse(StringView path) {
     ContextOptions options = {};
     Context        context;
-    context_create(&context, &options, path);
+    context_create(&context, &options);
 
-    i32 result = parse_string_view(contents, &context);
+    Parser parser;
+    parser_create(&parser, &context);
 
-    context_destroy(&context);
+    String buffer;
+    string_initialize(&buffer);
+    file_read_all(&buffer, path);
 
-    if (result != EXIT_SUCCESS) {
-        file_write(SV(" failed to parse:\n"), stderr);
-        file_write(contents, stderr);
-        file_write(SV("\n"), stderr);
+    parser_setup(&parser, string_to_view(&buffer));
+
+    i32 result = 0;
+    while (!parser_done(&parser)) {
+        Function expression;
+        function_create(&expression);
+
+        if (!parser_parse_expression(&parser, &expression)) {
+            SourceLocation location;
+            parser_current_source_location(&parser, &location);
+            context_print_error(&context, location.file, location.line);
+            function_destroy(&expression);
+            result += 1;
+            break;
+        }
     }
 
+    context_destroy(&context);
     return result;
 }
 
@@ -49,13 +65,7 @@ i32 parse_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
         String *resource = test_resources.buffer + index;
         file_write(SV("\ntesting resource: "), stderr);
         file_write(string_to_view(resource), stderr);
-
-        FILE  *file     = file_open(string_to_cstring(resource), "r");
-        String contents = string_from_file(file);
-        file_close(file);
-        result +=
-            test_parse(string_to_view(resource), string_to_view(&contents));
-        string_destroy(&contents);
+        test_parse(string_to_view(resource));
     }
 
     test_resources_terminate(&test_resources);

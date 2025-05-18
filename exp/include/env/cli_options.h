@@ -25,7 +25,7 @@ typedef struct CLIOptions {
     String         source;
 } CLIOptions;
 
-void cli_options_init(CLIOptions *restrict cli_options);
+void cli_options_create(CLIOptions *restrict cli_options);
 void cli_options_destroy(CLIOptions *restrict cli_options);
 
 void parse_cli_options(i32         argc,

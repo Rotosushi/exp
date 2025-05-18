@@ -28,8 +28,8 @@ x86_get_element_address(x86_Location *src, Type const *type, u64 index) {
 
     switch (type->kind) {
     case TYPE_KIND_TUPLE: {
-        TupleType const *tuple = &type->tuple_type;
-        assert(index < tuple->size);
+        TupleType const *tuple = &type->tuple;
+        assert(index < tuple->length);
 
         for (u64 i = 0; i < index; ++i) {
             Type const *element_type = tuple->types[i];

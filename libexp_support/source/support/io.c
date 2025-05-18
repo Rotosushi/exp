@@ -78,6 +78,12 @@ void file_read_all(String *restrict string, StringView path) {
     file_close(file);
 }
 
+void file_write_all(String *restrict string, StringView path) {
+    FILE *file = file_open(path.ptr, "w");
+    file_write(string_to_view(string), file);
+    file_close(file);
+}
+
 #if defined(EXP_HOST_SYSTEM_LINUX)
 #include <sys/stat.h>
 #include <sys/types.h>

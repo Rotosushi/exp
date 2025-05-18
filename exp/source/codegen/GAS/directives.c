@@ -26,6 +26,10 @@ void gas_directive_file(StringView path, String *restrict str) {
     string_append(str, SV("\"\n"));
 }
 
+void gas_directive_intel_syntax(String *restrict buffer) {
+    string_append(buffer, SV(".intel_syntax\n"));
+}
+
 void gas_directive_arch(StringView cpu_type, String *restrict str) {
     string_append(str, SV("\t.arch "));
     string_append(str, cpu_type);
@@ -110,15 +114,51 @@ void gas_directive_type(StringView name, STT_Type kind, String *restrict str) {
     }
 }
 
-void gas_directive_quad(i64 value, String *restrict str) {
+void gas_directive_u8(u8 value, String *restrict str) {
+    string_append(str, SV("\t.byte "));
+    string_append_u64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_u16(u16 value, String *restrict str) {
+    string_append(str, SV("\t.short "));
+    string_append_u64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_u32(u32 value, String *restrict str) {
+    string_append(str, SV("\t.int "));
+    string_append_u64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_u64(u64 value, String *restrict str) {
     string_append(str, SV("\t.quad "));
+    string_append_u64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_i8(i8 value, String *restrict str) {
+    string_append(str, SV("\t.byte "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
-void gas_directive_byte_u8(unsigned char value, String *restrict str) {
-    string_append(str, SV("\t.byte "));
-    string_append_u64(str, value);
+void gas_directive_i16(i16 value, String *restrict str) {
+    string_append(str, SV("\t.short "));
+    string_append_i64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_i32(i32 value, String *restrict str) {
+    string_append(str, SV("\t.int "));
+    string_append_i64(str, value);
+    string_append(str, SV("\n"));
+}
+
+void gas_directive_i64(i64 value, String *restrict str) {
+    string_append(str, SV("\t.quad "));
+    string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 

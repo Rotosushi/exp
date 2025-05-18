@@ -17,14 +17,15 @@
 #ifndef EXP_ENV_SYMBOL_TABLE_H
 #define EXP_ENV_SYMBOL_TABLE_H
 
-#include "imr/type.h"
-#include "imr/value.h"
 #include "support/string_view.h"
 
+struct Type;
+struct Value;
+
 typedef struct Symbol {
-    StringView   name;
-    Type const  *type;
-    Value const *value;
+    StringView          name;
+    struct Type const  *type;
+    struct Value const *value;
 } Symbol;
 
 typedef struct SymbolTable {

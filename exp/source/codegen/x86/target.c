@@ -23,18 +23,21 @@
 #include "codegen/x86/intrinsics/align_of.h"
 #include "codegen/x86/intrinsics/size_of.h"
 
-Target x86_target_info = {.tag                  = SV("x86-64"),
-                          .triple               = SV("x86_64-Linux-GNU-ELF"),
-                          .assembly_extension   = SV("s"),
-                          .object_extension     = SV("o"),
-                          .library_extension    = SV("a"),
-                          .executable_extension = SV(""),
-                          .size_of              = x86_size_of,
-                          .align_of             = x86_align_of,
-                          .header               = x86_header,
-                          .codegen              = x86_codegen,
-                          .footer               = x86_footer,
-                          .context_allocate     = x86_context_allocate,
-                          .context_deallocate   = x86_context_deallocate};
+Target x86_target_info = {
+    .tag                  = {              .length = sizeof("x86-64") - 1,.ptr = "x86-64"                                                                          },
+    .triple               = {.length = sizeof("x86_64-Linux-GNU-ELF") - 1,
+                             .ptr    = "x86_64-Linux-GNU-ELF"                             },
+    .assembly_extension   = {                   .length = sizeof("s") - 1,      .ptr = "s"},
+    .object_extension     = {                   .length = sizeof("o") - 1,      .ptr = "o"},
+    .library_extension    = {                   .length = sizeof("a") - 1,      .ptr = "a"},
+    .executable_extension = {                    .length = sizeof("") - 1,       .ptr = ""},
+    .size_of              = x86_size_of,
+    .align_of             = x86_align_of,
+    .header               = x86_header,
+    .codegen              = x86_codegen,
+    .footer               = x86_footer,
+    .context_allocate     = x86_context_allocate,
+    .context_deallocate   = x86_context_deallocate
+};
 
 Target *x86_target = &x86_target_info;
