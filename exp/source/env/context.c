@@ -159,7 +159,8 @@ i32 context_compile_source(Context *restrict context, StringView source_path) {
             return 1;
         }
 
-        if (!evaluate(&expression, context)) {
+        Value const *result = NULL;
+        if (!evaluate(&result, &expression, context)) {
             SourceLocation source_location;
             parser_current_source_location(&parser, &source_location);
             context_print_error(
@@ -404,6 +405,10 @@ bool context_failure_mismatch_type(Context *restrict context,
     print_type(&buf, actual);
     string_append(&buf, SV("]"));
     return context_failure_string(context, ERROR_ANALYSIS_TYPE_MISMATCH, buf);
+}
+
+bool context_failure_uninitialized_value(Context *restrict context) {
+    return context_failure(context, ERROR_ANALYSIS_UNINITIALIZED_VALUE, SV(""));
 }
 
 bool context_failure_unsupported_operand(Context *restrict context,

@@ -62,7 +62,9 @@
  * statement, and thus we could pop the result off the stack.
  */
 
-bool evaluate(Function *restrict expression, Context *restrict context) {
+bool evaluate(Value const **result,
+              Function *restrict expression,
+              Context *restrict context) {
     exp_assert(expression != NULL);
     exp_assert(context != NULL);
 
@@ -78,5 +80,11 @@ bool evaluate(Function *restrict expression, Context *restrict context) {
     frame.size     = 0;
     context_frames_push(context, frame);
 
-    return evaluate_top_frame(context);
+    bool success = evaluate_top_frame(context);
+    // We expect that whatever instruction sequence was just evaluated,
+    // the result will be left on the top of the stack.
+    exp_assert(context_stack_size(context) == 1);
+    *result = context_stack_pop(context);
+
+    return success;
 }

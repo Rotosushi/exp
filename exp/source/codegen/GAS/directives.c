@@ -27,7 +27,7 @@ void gas_directive_file(StringView path, String *restrict str) {
 }
 
 void gas_directive_intel_syntax(String *restrict buffer) {
-    string_append(buffer, SV(".intel_syntax\n"));
+    string_append(buffer, SV("\t.intel_syntax\n"));
 }
 
 void gas_directive_arch(StringView cpu_type, String *restrict str) {

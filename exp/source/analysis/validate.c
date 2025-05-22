@@ -28,11 +28,11 @@
 static bool validate_local(Local const *restrict local,
                            u32 block_index,
                            Function const *restrict function) {
-    exp_assert_always(local->type == NULL);
+    exp_assert_always(local->type != NULL);
     Lifetime bounds = {.start = 0, .end = function->body.length};
-    exp_assert_always(local->lifetime.start > local->lifetime.end);
-    exp_assert_always(local->lifetime.start < bounds.start);
-    exp_assert_always(local->lifetime.end >= bounds.end);
+    exp_assert_always(local->lifetime.start >= local->lifetime.end);
+    exp_assert_always(local->lifetime.start >= bounds.start);
+    exp_assert_always(local->lifetime.end <= bounds.end);
     exp_assert_always(local->lifetime.start <= block_index);
     return true;
 }

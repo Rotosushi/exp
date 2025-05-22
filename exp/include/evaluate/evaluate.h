@@ -24,6 +24,8 @@
 
 #include "env/context.h"
 
-bool evaluate(Function *restrict expression, Context *restrict context);
+bool evaluate(Value const **result,
+              Function *restrict expression,
+              Context *restrict context);
 
 #endif // !EXP_CORE_EVALUATE_H

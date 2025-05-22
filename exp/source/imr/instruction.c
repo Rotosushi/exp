@@ -26,31 +26,10 @@ extern Operand operand_A(Instruction instruction);
 extern Operand operand_B(Instruction instruction);
 extern Operand operand_C(Instruction instruction);
 
-static Instruction instruction_B(Opcode opcode, Operand B) {
-    Instruction I = {.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
-    return I;
-}
-
-static Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data};
-    return I;
-}
-
-static Instruction
-instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
-    Instruction I = {.opcode = opcode,
-                     .A_kind = A.kind,
-                     .A_data = A.data,
-                     .B_kind = B.kind,
-                     .B_data = B.data,
-                     .C_kind = C.kind,
-                     .C_data = C.data};
-    return I;
-}
+extern Instruction instruction_B(Opcode opcode, Operand B);
+extern Instruction instruction_AB(Opcode opcode, Operand A, Operand B);
+extern Instruction
+instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C);
 
 Instruction instruction_return(Operand result) {
     return instruction_B(OPCODE_RET, result);

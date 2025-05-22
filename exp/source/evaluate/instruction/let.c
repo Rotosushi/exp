@@ -49,16 +49,15 @@ bool evaluate_let(Instruction instruction,
     if (context_at_top_level(context)) {
         Symbol *global = context_global_symbol_lookup(context, local->name);
         exp_assert_debug(string_view_equal(global->name, local->name));
-        exp_assert_debug(global->type == local->type);
+        exp_assert_debug(global->type == NULL);
         exp_assert_debug(global->value == NULL);
         global->name  = local->name;
         global->type  = local->type;
         global->value = constant;
-        return true;
     }
     // else define a local name
 
-    // push the locals value onto the current stack frame
+    // push the value onto the current stack frame
     context_push_local_value(context, frame, local, constant);
     return true;
 }

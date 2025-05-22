@@ -62,6 +62,26 @@
  * the evaluator to handle non SSA operand As.
  */
 
+/*
+ * #NOTE: #DESIGN:
+ * I do not know how useful it would be, but there is space in the
+ * instruction to fit an enumeration of the Layout of the instruction.
+ * We currently have three Layouts, B, AB, and ABC
+ * Where B only has a single operand, B,
+ * AB has two operands, A and B,
+ * and ABC has all three operands used.
+ * Given some inspiration from actual fixed length encoding architectures,
+ * like RISC-V, ARM, we can have other layouts, and reorganize the instruction
+ * structure to make use of all available bits. Again, I don't know how useful
+ * this is, as we are not as pressed for bits as actual hardware is. We
+ * essentially have a 32 byte architecture. or a word size of 256. I have
+ * considered this compiler to use a literal internal instruction representation
+ * of 64 bits, just like the actual hardware. And the first implementation of
+ * the language was going down that route. But I changed course
+ * There is more of a discussion of this in
+ * [[docs/In-Memory-Representation/IMR.md]]
+ */
+
 /**
  * @brief the valid opcodes for instructions
  */
@@ -98,6 +118,29 @@ inline Operand operand_B(Instruction instruction) {
 
 inline Operand operand_C(Instruction instruction) {
     return operand(instruction.C_kind, instruction.C_data);
+}
+
+inline Instruction instruction_B(Opcode opcode, Operand B) {
+    return (Instruction){.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
+}
+
+inline Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
+    return (Instruction){.opcode = opcode,
+                         .A_kind = A.kind,
+                         .A_data = A.data,
+                         .B_kind = B.kind,
+                         .B_data = B.data};
+}
+
+inline Instruction
+instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
+    return (Instruction){.opcode = opcode,
+                         .A_kind = A.kind,
+                         .A_data = A.data,
+                         .B_kind = B.kind,
+                         .B_data = B.data,
+                         .C_kind = C.kind,
+                         .C_data = C.data};
 }
 
 Instruction instruction_return(Operand result);

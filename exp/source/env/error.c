@@ -58,6 +58,8 @@ StringView error_code_to_view(ErrorCode code) {
         return SV("Expected a Symbol Declaration. Found: ");
     case ERROR_PARSER_UNEXPECTED_TOKEN: return SV("Unexpected Token: ");
 
+    case ERROR_ANALYSIS_UNINITIALIZED_VALUE:
+        return SV("Cannot infer the type of an uninitialized Value.");
     case ERROR_ANALYSIS_UNDEFINED_SYMBOL:    return SV("Symbol Undefined: ");
     case ERROR_ANALYSIS_UNSUPPORTED_OPERAND: return SV("Operand Unsupported: ");
     case ERROR_ANALYSIS_OPERAND_IS_NOT_AN_INDEX:

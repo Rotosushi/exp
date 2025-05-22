@@ -102,6 +102,7 @@ bool context_failure_mismatch_argument_count(Context *restrict context,
 bool context_failure_mismatch_type(Context *restrict context,
                                    Type const *expected,
                                    Type const *actual);
+bool context_failure_uninitialized_value(Context *restrict context);
 bool context_failure_undefined_symbol(Context *restrict context,
                                       StringView symbol);
 bool context_failure_unsupported_operand(Context *restrict context,

@@ -20,6 +20,7 @@
 #include "codegen/x86/imr/bytecode.h"
 #include "codegen/x86/imr/gprp.h"
 #include "codegen/x86/imr/locations.h"
+#include "env/context.h"
 #include "imr/function.h"
 #include "imr/type.h"
 
@@ -44,7 +45,8 @@ void x86_function_create(x86_Function *restrict function);
 void x86_function_destroy(x86_Function *restrict function);
 
 void x86_function_setup(x86_Function *restrict x86_function,
-                        Function const *restrict function);
+                        Function const *restrict function,
+                        Context *restrict context);
 
 x86_FormalArgument const *
 x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index);

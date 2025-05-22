@@ -18,6 +18,7 @@
  */
 
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/intrinsics/size_of.h"
 #include "support/allocation.h"
 #include "support/assert.h"
 
@@ -76,7 +77,8 @@ void x86_function_append(x86_Function *restrict x86_function,
 }
 
 void x86_function_setup(x86_Function *restrict x86_function,
-                        Function const *restrict function) {
+                        Function const *restrict function,
+                        Context *restrict context) {
     exp_assert(x86_function != NULL);
     exp_assert(function != NULL);
     // #NOTE: The argument list is the same length, unless we are passing in
@@ -97,6 +99,23 @@ void x86_function_setup(x86_Function *restrict x86_function,
     // general usage.
     exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RSP));
     exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RBP));
+
+    // #NOTE: if the return type can fit into a register than it goes into rAX.
+    // That is, the smallest version of the rAX register that fits the type.
+    // i.e. a u8 will be placed into AX and a u32 will be placed into EAX
+    // both of which are the rAX register, just with different operating sizes.
+    u64 result_size = x86_size_of(context, function->return_type);
+    if (x86_gpr_valid_size(result_size)) {
+        x86_function->return_location =
+            x86_location_gpr(x86_gpr_with_size(X86_GPR_rAX, result_size));
+    } else {
+        // if the return size is too large to fit into a single register, then
+        // it is passed as a hidden first parameter to the function. And it is
+        // allocated by the caller on the callers stack. so it is placed in a
+        // memory location held in rdi.
+        x86_function->return_location =
+            x86_location_address(X86_GPR_RDI, X86_QWORD_PTR, 0);
+    }
 }
 
 void x86_function_header(x86_Function *restrict x86_function) {

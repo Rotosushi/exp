@@ -45,7 +45,7 @@ static void x86_codegen_instruction(Instruction instruction,
 static void x86_codegen_function(x86_Function *restrict x86_function,
                                  Function const *restrict function,
                                  Context *restrict context) {
-    x86_function_setup(x86_function, function);
+    x86_function_setup(x86_function, function, context);
     x86_function_header(x86_function);
     Bytecode const *body = &function->body;
     for (u32 index = 0; index < body->length; ++index) {

@@ -22,12 +22,71 @@
 #include "analysis/infer_types.h"
 #include "env/context.h"
 #include "imr/type.h"
+#include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
 static bool success(Type const **result, Type const *type) {
     *result = type;
     return true;
+}
+
+static bool infer_types_function(Type const **restrict result,
+                                 Function *restrict function,
+                                 Context *restrict context);
+
+static bool infer_types_operand(Type const **result,
+                                Function *restrict function,
+                                Context *restrict context,
+                                OperandKind kind,
+                                OperandData data);
+
+static bool infer_types_constant(Type const **result,
+                                 Function *restrict function,
+                                 Context *restrict context,
+                                 Value const *restrict constant) {
+    switch (constant->kind) {
+    case VALUE_KIND_UNINITIALIZED: {
+        return context_failure_uninitialized_value(context);
+    }
+
+    case VALUE_KIND_NIL:  return success(result, context_nil_type(context));
+    case VALUE_KIND_BOOL: return success(result, context_bool_type(context));
+    case VALUE_KIND_U8:   return success(result, context_u8_type(context));
+    case VALUE_KIND_U16:  return success(result, context_u16_type(context));
+    case VALUE_KIND_U32:  return success(result, context_u32_type(context));
+    case VALUE_KIND_U64:  return success(result, context_u64_type(context));
+    case VALUE_KIND_I8:   return success(result, context_i8_type(context));
+    case VALUE_KIND_I16:  return success(result, context_i16_type(context));
+    case VALUE_KIND_I32:  return success(result, context_i32_type(context));
+    case VALUE_KIND_I64:  return success(result, context_i64_type(context));
+
+    case VALUE_KIND_TUPLE: {
+        Tuple const *tuple = &constant->tuple;
+        TupleType    tuple_type;
+        tuple_type_create(&tuple_type);
+        for (u32 index = 0; index < tuple->length; ++index) {
+            Operand     element      = tuple->elements[index];
+            Type const *element_type = NULL;
+            if (!infer_types_operand(&element_type,
+                                     function,
+                                     context,
+                                     element.kind,
+                                     element.data)) {
+                return false;
+            }
+            tuple_type_append(&tuple_type, element_type);
+        }
+        return success(result, context_tuple_type(context, tuple_type));
+    }
+
+    case VALUE_KIND_FUNCTION: {
+        return infer_types_function(
+            result, (Function *)&constant->function, context);
+    }
+
+    default: EXP_UNREACHABLE();
+    }
 }
 
 static bool infer_types_operand(Type const **result,
@@ -49,8 +108,7 @@ static bool infer_types_operand(Type const **result,
     }
 
     case OPERAND_KIND_CONSTANT: {
-        Value const *value = data.constant;
-        return success(result, context_type_of_value(context, function, value));
+        return infer_types_constant(result, function, context, data.constant);
     }
 
     case OPERAND_KIND_LABEL: {
@@ -315,83 +373,109 @@ static bool infer_types_mod(Type const **result,
 static bool infer_types_function(Type const **restrict result,
                                  Function *restrict function,
                                  Context *restrict context) {
-    Bytecode *body = &function->body;
-
-    Instruction *ip = body->buffer;
+    Type const  *return_type = NULL;
+    Bytecode    *body        = &function->body;
+    Instruction *ip          = body->buffer;
     for (u32 idx = 0; idx < body->length; ++idx) {
         Instruction I = ip[idx];
         switch (I.opcode) {
         case OPCODE_RET: {
-            Type const *Bty;
-            if (!infer_types_ret(&Bty, function, context, I)) { return false; }
-
-            if ((function->return_type != NULL) &&
-                (!type_equality(function->return_type, Bty))) {
-                return context_failure_mismatch_type(
-                    context, function->return_type, Bty);
+            if (!infer_types_ret(&return_type, function, context, I)) {
+                return false;
             }
 
-            function->return_type = Bty;
+            if ((function->return_type != NULL) &&
+                (!type_equality(function->return_type, return_type))) {
+                return context_failure_mismatch_type(
+                    context, function->return_type, return_type);
+            }
+
+            function->return_type = return_type;
             break;
         }
 
         case OPCODE_CALL: {
-            Type const *Aty;
-            if (!infer_types_call(&Aty, function, context, I)) { return false; }
+            if (!infer_types_call(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_LET: {
-            Type const *Aty;
-            if (!infer_types_let(&Aty, function, context, I)) { return false; }
+            if (!infer_types_let(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_NEG: {
-            Type const *Aty;
-            if (!infer_types_neg(&Aty, function, context, I)) { return false; }
+            if (!infer_types_neg(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_DOT: {
-            Type const *Aty;
-            if (!infer_types_dot(&Aty, function, context, I)) { return false; }
+            if (!infer_types_dot(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_ADD: {
-            Type const *Aty;
-            if (!infer_types_add(&Aty, function, context, I)) { return false; }
+            if (!infer_types_add(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_SUB: {
-            Type const *Aty;
-            if (!infer_types_sub(&Aty, function, context, I)) { return false; }
+            if (!infer_types_sub(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_MUL: {
-            Type const *Aty;
-            if (!infer_types_mul(&Aty, function, context, I)) { return false; }
+            if (!infer_types_mul(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_DIV: {
-            Type const *Aty;
-            if (!infer_types_div(&Aty, function, context, I)) { return false; }
+            if (!infer_types_div(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         case OPCODE_MOD: {
-            Type const *Aty;
-            if (!infer_types_mod(&Aty, function, context, I)) { return false; }
+            if (!infer_types_mod(&return_type, function, context, I)) {
+                return false;
+            }
             break;
         }
 
         default: EXP_UNREACHABLE();
         }
     }
+
+    // #NOTE: We are not accounting for the fact that a top level expression
+    // is not required to have a return statement. And since we expect each
+    // function to use their required return statement to give us something to
+    // use for the return type, we assert here. We can solve this by letting the
+    // last statement in a block implicitly be a return statement. But we have
+    // not accounted for that anywhere else.
+
+    // #NOTE: first, an empty function body is an implicit `return nil;`
+    if (return_type == NULL) { return_type = context_nil_type(context); }
+
+    // #NOTE: second, if the function did not have it's return type set by a
+    // return instruction, then we use the type of it's last instruction as
+    // it's return type. return_type will hold this value after we finish
+    // iterating through all of the instructions as a matter of course.
+    if (function->return_type == NULL) { function->return_type = return_type; }
 
     return success(result, context_type_of_function(context, function));
 }

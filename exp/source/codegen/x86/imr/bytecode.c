@@ -53,7 +53,7 @@ void x86_bytecode_insert(x86_Bytecode *restrict bc,
                          x86_Instruction instruction,
                          u64             offset) {
     exp_assert(bc != NULL);
-    exp_assert(offset < bc->capacity);
+    exp_assert(offset <= bc->capacity);
     exp_assert(offset <= bc->length);
     if (x86_bytecode_full(bc)) { x86_bytecode_grow(bc); }
 

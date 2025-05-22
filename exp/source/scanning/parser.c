@@ -134,70 +134,63 @@ static Operand parser_declare_local(Parser *restrict parser) {
     return operand_ssa(function_declare_local(parser->function));
 }
 
+static void parser_emit_B(Parser *restrict parser, Opcode opcode, Operand B) {
+    parser_emit_instruction(parser, instruction_B(opcode, B));
+}
+
+static Operand
+parser_emit_AB(Parser *restrict parser, Opcode opcode, Operand B) {
+    Operand A = parser_declare_local(parser);
+    parser_emit_instruction(parser, instruction_AB(opcode, A, B));
+    return A;
+}
+
+static Operand
+parser_emit_ABC(Parser *restrict parser, Opcode opcode, Operand B, Operand C) {
+    Operand A = parser_declare_local(parser);
+    parser_emit_instruction(parser, instruction_ABC(opcode, A, B, C));
+    return A;
+}
+
 static void parser_emit_return(Parser *restrict parser, Operand result) {
-    parser_emit_instruction(parser, instruction_return(result));
+    parser_emit_B(parser, OPCODE_RET, result);
 }
 
 static Operand
 parser_emit_call(Parser *restrict parser, Operand callee, Operand arguments) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser,
-                            instruction_call(result, callee, arguments));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_CALL, callee, arguments);
 }
 
-// static Operand parser_emit_fn(Parser *restrict parser, Operand fn) {
-//     Operand result = parser_declare_local(parser);
-//     parser_emit_instruction(parser, instruction_fn(result, fn));
-//     return result;
-// }
-
 static Operand parser_emit_let(Parser *restrict parser, Operand value) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_let(result, value));
-    return result;
+    return parser_emit_AB(parser, OPCODE_LET, value);
 }
 
 static Operand parser_emit_neg(Parser *restrict parser, Operand value) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_neg(result, value));
-    return result;
+    return parser_emit_AB(parser, OPCODE_NEG, value);
 }
 
 static Operand parser_emit_dot(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_dot(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_DOT, B, C);
 }
 
 static Operand parser_emit_add(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_add(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_ADD, B, C);
 }
 
 static Operand parser_emit_sub(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_sub(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_SUB, B, C);
 }
 
 static Operand parser_emit_mul(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_mul(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_MUL, B, C);
 }
 
 static Operand parser_emit_div(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_div(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_DIV, B, C);
 }
 
 static Operand parser_emit_mod(Parser *restrict parser, Operand B, Operand C) {
-    Operand result = parser_declare_local(parser);
-    parser_emit_instruction(parser, instruction_mod(result, B, C));
-    return result;
+    return parser_emit_ABC(parser, OPCODE_MOD, B, C);
 }
 
 typedef enum ExpectResult {
@@ -286,6 +279,13 @@ static bool parse_type(Type const **restrict result, Parser *restrict parser) {
     case TOK_NIL:       *result = context_nil_type(parser->context); break;
     case TOK_TYPE_NIL:  *result = context_nil_type(parser->context); break;
     case TOK_TYPE_BOOL: *result = context_bool_type(parser->context); break;
+    case TOK_TYPE_U8:   *result = context_u8_type(parser->context); break;
+    case TOK_TYPE_U16:  *result = context_u16_type(parser->context); break;
+    case TOK_TYPE_U32:  *result = context_u32_type(parser->context); break;
+    case TOK_TYPE_U64:  *result = context_u64_type(parser->context); break;
+    case TOK_TYPE_I8:   *result = context_i8_type(parser->context); break;
+    case TOK_TYPE_I16:  *result = context_i16_type(parser->context); break;
+    case TOK_TYPE_I32:  *result = context_i32_type(parser->context); break;
     case TOK_TYPE_I64:  *result = context_i64_type(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);

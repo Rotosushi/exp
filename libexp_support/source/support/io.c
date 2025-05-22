@@ -73,8 +73,9 @@ void file_read_all(String *restrict string, StringView path) {
     FILE *file   = file_open(path.ptr, "r");
     u64   length = file_length(file);
     string_resize(string, length + 1);
-    char *data = string_data(string);
-    file_read(data, length, file);
+    char *data       = string_data(string);
+    u64   bytes_read = file_read(data, length, file);
+    string->length   = bytes_read;
     file_close(file);
 }
 

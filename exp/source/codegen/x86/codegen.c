@@ -44,6 +44,7 @@ i32 x86_header(String *restrict buffer, Context *restrict context) {
     // else we leave it blank.
     gas_directive_arch(SV("znver3"), buffer);
     gas_directive_intel_syntax(buffer);
+    string_append(buffer, SV("\n"));
     return 0;
 }
 
