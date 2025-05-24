@@ -1,6 +1,35 @@
 
 /-----------------------------------------------------------------------------
 
+Each function has certain metrics associated with it by the compiler in the 
+backend when considering optimizations and code generation. Metrics such as
+number of lines of assembly, number of functions called to (fan-out), and 
+we can also consider the predicted number of cycles it will take a certain 
+processor to execute said assembly. This last one is tricky, because it depends 
+upon the specification of the specific chip, and like the big-O notation it leaves 
+out some important considerations, such as cache-misses (instruction and data).
+and what about which code-path is taken through the function? with early returns 
+this number is different depending upon when we exit the function.
+
+while these are all important things to consider, when we have something like 
+and IDE's context popup which shows the documentation and call signature of a 
+given function, I feel like, how long that function is, how many functions it calls 
+out too, what is it's runtime in big-O notation? might also be important peices of 
+information to display in this window. It would go a long way in assisting developers 
+with exploring a new codebase, for instance. As an experienced developer will most 
+likely know these characteristics to some degree by heart. 
+
+Some metrics, such as how many cycles it is predicted to take to execute a function 
+is not something that can be easily read by the programmer, however the compiler itself 
+has the tools to make this calculation on each compilation. So why not use a database 
+or something to keep track of this information as we compile? why not then display this 
+information back to the programmer. 
+This is similar to the profile-guided-optimization build process.
+
+
+
+/-----------------------------------------------------------------------------
+
 After modifying the parser unit_tests to parse all of the resources in the 
 test resources file I noticed that the difference between the runtimes of 
 the "parser all resources test" and the "compile all test resources and test the 
