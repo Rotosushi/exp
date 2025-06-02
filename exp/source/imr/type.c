@@ -207,16 +207,13 @@ bool type_is_scalar(Type const *T) {
     case TYPE_KIND_I32:
     case TYPE_KIND_I64:  return true;
 
-    // a tuple type of size two or more cannot be scalar
-    // unless we optimize it to be so. which is a TODO.
-    case TYPE_KIND_TUPLE:
-    default:              return false;
+    default: return false;
     }
 }
 
-bool type_is_index(Type const *T) {
-    exp_assert(T != NULL);
-    switch (T->kind) {
+bool type_is_integral(Type const *restrict type) {
+    exp_assert(type != NULL);
+    switch (type->kind) {
     case TYPE_KIND_U8:
     case TYPE_KIND_U16:
     case TYPE_KIND_U32:
@@ -235,6 +232,22 @@ bool type_is_callable(Type const *T) {
     switch (T->kind) {
     case TYPE_KIND_FUNCTION: return true;
     default:                 return false;
+    }
+}
+
+bool type_is_index(Type const *T) {
+    exp_assert(T != NULL);
+    switch (T->kind) {
+    case TYPE_KIND_U8:
+    case TYPE_KIND_U16:
+    case TYPE_KIND_U32:
+    case TYPE_KIND_U64:
+    case TYPE_KIND_I8:
+    case TYPE_KIND_I16:
+    case TYPE_KIND_I32:
+    case TYPE_KIND_I64: return true;
+
+    default: return false;
     }
 }
 

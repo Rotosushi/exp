@@ -20,17 +20,21 @@
 #include "codegen/x86/imr/operand.h"
 
 typedef enum x86_Opcode : u8 {
-    X64_OPCODE_RET,
-    X64_OPCODE_CALL,
-    X64_OPCODE_PUSH,
-    X64_OPCODE_POP,
-    X64_OPCODE_MOV,
-    X64_OPCODE_LEA,
-    X64_OPCODE_NEG,
-    X64_OPCODE_ADD,
-    X64_OPCODE_SUB,
-    X64_OPCODE_IMUL,
-    X64_OPCODE_IDIV,
+    X86_OPCODE_RET,
+    X86_OPCODE_CALL,
+    X86_OPCODE_PUSH,
+    X86_OPCODE_POP,
+    X86_OPCODE_MOV,
+    X86_OPCODE_LEA,
+    X86_OPCODE_AND,
+    X86_OPCODE_OR,
+    X86_OPCODE_XOR,
+    X86_OPCODE_NOT,
+    X86_OPCODE_NEG,
+    X86_OPCODE_ADD,
+    X86_OPCODE_SUB,
+    X86_OPCODE_IMUL,
+    X86_OPCODE_IDIV,
 } x86_Opcode;
 
 typedef struct x86_Instruction {
@@ -47,6 +51,11 @@ x86_Instruction x86_push(x86_Operand src);
 x86_Instruction x86_pop(x86_Operand dst);
 x86_Instruction x86_mov(x86_Operand dst, x86_Operand src);
 x86_Instruction x86_lea(x86_Operand dst, x86_Operand src);
+
+x86_Instruction x86_and(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_or(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_xor(x86_Operand dst, x86_Operand src);
+x86_Instruction x86_not(x86_Operand dst);
 
 x86_Instruction x86_neg(x86_Operand dst);
 x86_Instruction x86_add(x86_Operand dst, x86_Operand src);

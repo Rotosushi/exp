@@ -29,7 +29,20 @@ void x86_codegen_ret(Instruction          instruction,
     case OPERAND_KIND_CONSTANT:
     case OPERAND_KIND_LABEL:    EXP_UNREACHABLE(); break;
 
-    case OPERAND_KIND_NIL: break;
+    // #NOTE: I am still considering this. Is it fine to not return anything
+    // here, or is it safer to always return zero? If we do not emit any
+    // statement for return nil, becuase it is in my opinion practically
+    // unecessary, and if the rax register can be unused by the entire body of
+    // the procedure, then we can avoid the (albeit miniscule) overhead of
+    // saving/restoring the rax register in this body. Which, given the way our
+    // register allocator works, is not going to happen. it simply chooses the
+    // first available register starting from 0 and going to 15, and rax is
+    // register 0.
+    case OPERAND_KIND_NIL:
+        x86_Operand operand =
+            x86_operand_location(x86_function->return_location);
+        x86_function_append(x86_function, x86_xor(operand, operand));
+        break;
 
     case OPERAND_KIND_BOOL:
         x86_function_append(

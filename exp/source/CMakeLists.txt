@@ -39,16 +39,16 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
-  #${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
-  #${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/bytecode.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/gprp.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/instruction.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/layout.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/register_pool.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c

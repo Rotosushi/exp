@@ -17,27 +17,28 @@
 #ifndef EXP_BACKEND_X86_ALLOCATION_H
 #define EXP_BACKEND_X86_ALLOCATION_H
 
+#include "codegen/x86/imr/layout.h"
 #include "codegen/x86/imr/location.h"
-#include "imr/lifetime.h"
-#include "imr/type.h"
-
-/*
- * #TODO: since the only unique piece of information here is the
- * location, we may be able to use Local directly, along with
- * an array of locations indexed by SSA.
- */
+#include "env/context.h"
+#include "imr/local.h"
 
 typedef struct x86_Allocation {
-    u32          ssa;
-    Lifetime     lifetime;
-    x86_Location location;
-    Type const  *type;
+    u32               ssa;
+    unsigned          alive : 1;
+    StringView        name;
+    Lifetime          lifetime;
+    x86_Location      location;
+    Type const       *type;
+    x86_Layout const *layout;
 } x86_Allocation;
 
-x86_Allocation *x86_allocation_allocate();
+x86_Allocation *x86_allocation_allocate(Local const *restrict local,
+                                        Context *restrict context);
 void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
 
-bool x86_allocation_location_eq(x86_Allocation *restrict allocation,
-                                x86_Location location);
+u64 x86_allocation_size_of(x86_Allocation const *restrict allocation);
+u64 x86_allocation_align_of(x86_Allocation const *restrict allocation);
+x86_PtrKind
+x86_allocation_ptr_kind_of(x86_Allocation const *restrict allocation);
 
 #endif // !EXP_BACKEND_X86_ALLOCATION_H

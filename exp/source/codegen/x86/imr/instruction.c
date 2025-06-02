@@ -21,17 +21,17 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-static x86_Instruction x64_instruction(x86_Opcode opcode) {
+static x86_Instruction x86_instruction(x86_Opcode opcode) {
     return (x86_Instruction){.opcode = opcode};
 }
 
-static x86_Instruction x64_instruction_A(x86_Opcode opcode, x86_Operand A) {
+static x86_Instruction x86_instruction_A(x86_Opcode opcode, x86_Operand A) {
     return (x86_Instruction){
         .opcode = opcode, .A_kind = A.kind, .A_data = A.data};
 }
 
 static x86_Instruction
-x64_instruction_AB(x86_Opcode opcode, x86_Operand A, x86_Operand B) {
+x86_instruction_AB(x86_Opcode opcode, x86_Operand A, x86_Operand B) {
     return (x86_Instruction){.opcode = opcode,
                              .A_kind = A.kind,
                              .A_data = A.data,
@@ -39,53 +39,69 @@ x64_instruction_AB(x86_Opcode opcode, x86_Operand A, x86_Operand B) {
                              .B_data = B.data};
 }
 
-x86_Instruction x86_ret() { return x64_instruction(X64_OPCODE_RET); }
+x86_Instruction x86_ret() { return x86_instruction(X86_OPCODE_RET); }
 
 x86_Instruction x86_call(x86_Operand label) {
-    return x64_instruction_A(X64_OPCODE_CALL, label);
+    return x86_instruction_A(X86_OPCODE_CALL, label);
 }
 
 x86_Instruction x86_push(x86_Operand src) {
-    return x64_instruction_A(X64_OPCODE_PUSH, src);
+    return x86_instruction_A(X86_OPCODE_PUSH, src);
 }
 
 x86_Instruction x86_pop(x86_Operand dst) {
-    return x64_instruction_A(X64_OPCODE_POP, dst);
+    return x86_instruction_A(X86_OPCODE_POP, dst);
 }
 
 x86_Instruction x86_mov(x86_Operand dst, x86_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_MOV, dst, src);
+    return x86_instruction_AB(X86_OPCODE_MOV, dst, src);
+}
+
+x86_Instruction x86_and(x86_Operand dst, x86_Operand src) {
+    return x86_instruction_AB(X86_OPCODE_AND, dst, src);
+}
+
+x86_Instruction x86_or(x86_Operand dst, x86_Operand src) {
+    return x86_instruction_AB(X86_OPCODE_OR, dst, src);
+}
+
+x86_Instruction x86_xor(x86_Operand dst, x86_Operand src) {
+    return x86_instruction_AB(X86_OPCODE_XOR, dst, src);
+}
+
+x86_Instruction x86_not(x86_Operand dst) {
+    return x86_instruction_A(X86_OPCODE_NOT, dst);
 }
 
 x86_Instruction x86_lea(x86_Operand dst, x86_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_LEA, dst, src);
+    return x86_instruction_AB(X86_OPCODE_LEA, dst, src);
 }
 
 x86_Instruction x86_neg(x86_Operand dst) {
-    return x64_instruction_A(X64_OPCODE_NEG, dst);
+    return x86_instruction_A(X86_OPCODE_NEG, dst);
 }
 
 x86_Instruction x86_add(x86_Operand dst, x86_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_ADD, dst, src);
+    return x86_instruction_AB(X86_OPCODE_ADD, dst, src);
 }
 
 x86_Instruction x86_sub(x86_Operand dst, x86_Operand src) {
-    return x64_instruction_AB(X64_OPCODE_SUB, dst, src);
+    return x86_instruction_AB(X86_OPCODE_SUB, dst, src);
 }
 
 x86_Instruction x86_imul(x86_Operand src) {
-    return x64_instruction_A(X64_OPCODE_IMUL, src);
+    return x86_instruction_A(X86_OPCODE_IMUL, src);
 }
 
 x86_Instruction x86_idiv(x86_Operand src) {
-    return x64_instruction_A(X64_OPCODE_IDIV, src);
+    return x86_instruction_A(X86_OPCODE_IDIV, src);
 }
 
 static void print_x86_instruction_A(String *restrict buffer,
                                     x86_Instruction instruction,
                                     StringView      mnemonic) {
     string_append(buffer, mnemonic);
-    string_append(buffer, SV("\t"));
+    string_append(buffer, SV(" "));
     print_x86_operand(buffer,
                       x86_operand(instruction.A_kind, instruction.A_data));
 }
@@ -94,7 +110,7 @@ static void print_x86_instruction_AB(String *restrict buffer,
                                      x86_Instruction instruction,
                                      StringView      mnemonic) {
     string_append(buffer, mnemonic);
-    string_append(buffer, SV("\t"));
+    string_append(buffer, SV(" "));
     print_x86_operand(buffer,
                       x86_operand(instruction.A_kind, instruction.A_data));
     string_append(buffer, SV(", "));
@@ -106,57 +122,77 @@ void print_x86_instruction(String *restrict buffer,
                            x86_Instruction instruction) {
     exp_assert(buffer != NULL);
     switch (instruction.opcode) {
-    case X64_OPCODE_RET: {
+    case X86_OPCODE_RET: {
         string_append(buffer, SV("ret"));
         break;
     }
 
-    case X64_OPCODE_CALL: {
+    case X86_OPCODE_CALL: {
         print_x86_instruction_A(buffer, instruction, SV("call"));
         break;
     }
 
-    case X64_OPCODE_PUSH: {
+    case X86_OPCODE_PUSH: {
         print_x86_instruction_A(buffer, instruction, SV("push"));
         break;
     }
 
-    case X64_OPCODE_POP: {
+    case X86_OPCODE_POP: {
         print_x86_instruction_A(buffer, instruction, SV("pop"));
         break;
     }
 
-    case X64_OPCODE_MOV: {
+    case X86_OPCODE_MOV: {
         print_x86_instruction_AB(buffer, instruction, SV("mov"));
         break;
     }
 
-    case X64_OPCODE_LEA: {
+    case X86_OPCODE_LEA: {
         print_x86_instruction_AB(buffer, instruction, SV("lea"));
         break;
     }
 
-    case X64_OPCODE_NEG: {
+    case X86_OPCODE_AND: {
+        print_x86_instruction_AB(buffer, instruction, SV("and"));
+        break;
+    }
+
+    case X86_OPCODE_OR: {
+        print_x86_instruction_AB(buffer, instruction, SV("or"));
+        break;
+    }
+
+    case X86_OPCODE_XOR: {
+        print_x86_instruction_AB(buffer, instruction, SV("xor"));
+        break;
+    }
+
+    case X86_OPCODE_NOT: {
+        print_x86_instruction_AB(buffer, instruction, SV("not"));
+        break;
+    }
+
+    case X86_OPCODE_NEG: {
         print_x86_instruction_A(buffer, instruction, SV("neg"));
         break;
     }
 
-    case X64_OPCODE_ADD: {
+    case X86_OPCODE_ADD: {
         print_x86_instruction_AB(buffer, instruction, SV("add"));
         break;
     }
 
-    case X64_OPCODE_SUB: {
+    case X86_OPCODE_SUB: {
         print_x86_instruction_AB(buffer, instruction, SV("sub"));
         break;
     }
 
-    case X64_OPCODE_IMUL: {
+    case X86_OPCODE_IMUL: {
         print_x86_instruction_A(buffer, instruction, SV("imul"));
         break;
     }
 
-    case X64_OPCODE_IDIV: {
+    case X86_OPCODE_IDIV: {
         print_x86_instruction_A(buffer, instruction, SV("idiv"));
         break;
     }

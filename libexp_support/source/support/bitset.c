@@ -7,7 +7,7 @@
 
 #include "support/bitset.h"
 
-extern Bitset bitset_create();
-extern void   bitset_set(Bitset *bitset, u8 index);
-extern void   bitset_clear(Bitset *bitset, u8 index);
-extern bool   bitset_check(Bitset const *bitset, u8 index);
+extern void bitset_initialize(Bitset *restrict bitset);
+extern void bitset_set(Bitset *restrict bitset, u8 index);
+extern void bitset_clear(Bitset *restrict bitset, u8 index);
+extern bool bitset_check(Bitset const *restrict bitset, u8 index);

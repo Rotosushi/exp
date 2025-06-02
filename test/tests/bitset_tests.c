@@ -22,7 +22,7 @@
 i32 bitset_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     i32 result = 0;
 
-    Bitset bitset = bitset_create();
+    Bitset bitset = bitset_initialize();
     bitset_set(&bitset, 0);
     bitset_set(&bitset, 1);
 

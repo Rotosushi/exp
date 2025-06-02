@@ -27,6 +27,7 @@
 #ifndef EXP_SUPPORT_BITSET_H
 #define EXP_SUPPORT_BITSET_H
 
+#include "support/assert.h"
 #include "support/scalar.h"
 
 typedef struct Bitset {
@@ -38,7 +39,10 @@ typedef struct Bitset {
  *
  * @return Bitset the new Bitset
  */
-inline Bitset bitset_create() { return (Bitset){0}; }
+inline void bitset_initialize(Bitset *restrict bitset) {
+    exp_assert(bitset != NULL);
+    bitset->data = 0;
+}
 
 /**
  * @brief Set the bit at the given index
@@ -46,7 +50,9 @@ inline Bitset bitset_create() { return (Bitset){0}; }
  * @param bitset the Bitset to set the bit in
  * @param index the index of the bit to set
  */
-inline void bitset_set(Bitset *bitset, u8 index) {
+inline void bitset_set(Bitset *restrict bitset, u8 index) {
+    exp_assert(bitset != NULL);
+    exp_assert(index < 64);
     bitset->data |= (1ULL << index);
 }
 
@@ -56,7 +62,9 @@ inline void bitset_set(Bitset *bitset, u8 index) {
  * @param bitset the Bitset to clear the bit in
  * @param index the index of the bit to clear
  */
-inline void bitset_clear(Bitset *bitset, u8 index) {
+inline void bitset_clear(Bitset *restrict bitset, u8 index) {
+    exp_assert(bitset != NULL);
+    exp_assert(index < 64);
     bitset->data &= ~(1ULL << index);
 }
 
@@ -68,7 +76,9 @@ inline void bitset_clear(Bitset *bitset, u8 index) {
  * @return true if the bit is set
  * @return false if the bit is not set
  */
-inline bool bitset_check(Bitset const *bitset, u8 index) {
+inline bool bitset_check(Bitset const *restrict bitset, u8 index) {
+    exp_assert(bitset != NULL);
+    exp_assert(index < 64);
     return ((bitset->data >> index) & 1ULL);
 }
 

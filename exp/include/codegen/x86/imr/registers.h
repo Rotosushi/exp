@@ -139,6 +139,12 @@ typedef enum x86_64_GPR : u8 {
 } x86_GPR;
 
 /**
+ * @def x86_gpr_count
+ * @brief Defines the number of available general purpose registers.
+ */
+#define x86_gpr_count() 16
+
+/**
  * @brief convert a GPR to a string view of it's mnemonic
  *
  * @note this returns a static string view, so it should not be modified

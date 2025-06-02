@@ -153,10 +153,34 @@ void type_create_function(Type *restrict type,
 void type_destroy(Type *restrict type);
 
 bool type_equality(Type const *t1, Type const *t2);
+
+/**
+ * A scalar type is a type which is not decomposable into
+ * more primitive types within the compiler.
+ */
 bool type_is_scalar(Type const *restrict type);
+
+/**
+ * An integral type is a type which represents some segment of
+ * the integer number line
+ */
+bool type_is_integral(Type const *restrict type);
+
+/**
+ * A callable type is a valid target for the CALL instruction
+ */
 bool type_is_callable(Type const *restrict type);
 
+/**
+ * An index type is a type which is valid to use as an index
+ * within a dot or subscript operation
+ */
 bool type_is_index(Type const *restrict type);
+
+/**
+ * An indexable type is a type which is a valid target for a
+ * dot or subscript operation.
+ */
 bool type_is_indexable(Type const *restrict type);
 
 void print_type(String *restrict string, Type const *restrict type);
