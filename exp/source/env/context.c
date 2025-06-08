@@ -710,7 +710,7 @@ Type const *context_type_of_function(Context *restrict context,
 
     TupleType argument_types;
     tuple_type_create(&argument_types);
-    for (u64 i = 0; i < function->arguments.size; ++i) {
+    for (u64 i = 0; i < function->arguments.length; ++i) {
         Local      *formal_argument = function->arguments.list[i];
         Type const *argument_type   = formal_argument->type;
         tuple_type_append(&argument_types, argument_type);

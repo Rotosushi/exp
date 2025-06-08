@@ -36,6 +36,11 @@ x86_Allocation *x86_allocation_allocate(Local const *restrict local,
                                         Context *restrict context);
 void            x86_allocation_deallocate(x86_Allocation *restrict allocation);
 
+bool x86_allocation_alive(x86_Allocation const *restrict allocation,
+                          u32 block_index);
+
+void x86_allocation_expire(x86_Allocation *restrict allocation);
+
 u64 x86_allocation_size_of(x86_Allocation const *restrict allocation);
 u64 x86_allocation_align_of(x86_Allocation const *restrict allocation);
 x86_PtrKind

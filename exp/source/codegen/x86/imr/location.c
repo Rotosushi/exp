@@ -31,15 +31,18 @@ static StringView x86_ptr_kind_mnemonic(x86_PtrKind ptr_kind) {
     }
 }
 
+x86_Location x86_location_expire() { return (x86_Location){.is_alive = false}; }
+
 x86_Location x86_location_gpr(x86_GPR gpr) {
-    return (x86_Location){.gpr = gpr, .is_address = false};
+    return (x86_Location){.gpr = gpr, .is_address = false, .is_alive = true};
 }
 
 x86_Location
 x86_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset) {
     return (x86_Location){.base       = base,
-                          .has_index  = false,
+                          .is_index   = false,
                           .is_address = true,
+                          .is_alive   = true,
                           .ptr_kind   = ptr_kind,
                           .offset     = offset};
 }
@@ -60,17 +63,18 @@ x86_Location x86_location_address_indexed(
         // are representable within 4 bits, checked by "valid_scale" above.
         // But alas, GCC has failed to notice this.
         .scale      = (u8)(scale & 0xF),
-        .has_index  = true,
+        .is_index   = true,
         .is_address = true,
+        .is_alive   = true,
         .offset     = offset};
 }
 
 static bool x86_location_address_equality(x86_Location A, x86_Location B) {
-    if (A.has_index && B.has_index) {
+    if (A.is_index && B.is_index) {
         return (A.base == B.base) && (A.ptr_kind == B.ptr_kind) &&
                (A.index == B.index) && (A.scale == B.scale) &&
                (A.offset == B.offset);
-    } else if (!A.has_index && !B.has_index) {
+    } else if (!A.is_index && !B.is_index) {
         return (A.base == B.base) && (A.ptr_kind == B.ptr_kind) &&
                (A.offset == B.offset);
     } else {
@@ -79,6 +83,9 @@ static bool x86_location_address_equality(x86_Location A, x86_Location B) {
 }
 
 bool x86_location_equality(x86_Location A, x86_Location B) {
+    exp_assert(A.is_alive);
+    exp_assert(B.is_alive);
+
     if (A.is_address && B.is_address) {
         return x86_location_address_equality(A, B);
     } else if (!A.is_address && !B.is_address) {
@@ -95,7 +102,7 @@ static void print_x86_address(String *restrict buffer, x86_Location address) {
 
     string_append(buffer, x86_gpr_mnemonic(address.base));
 
-    if (address.has_index) {
+    if (address.is_index) {
         exp_assert(valid_scale(address.scale));
         string_append(buffer, SV(" + "));
         string_append(buffer, x86_gpr_mnemonic(address.index));
@@ -116,6 +123,8 @@ static void print_x86_address(String *restrict buffer, x86_Location address) {
 
 void print_x86_location(String *restrict buffer, x86_Location location) {
     exp_assert(buffer != NULL);
+    exp_assert(location.is_alive);
+
     if (location.is_address) {
         print_x86_address(buffer, location);
         return;

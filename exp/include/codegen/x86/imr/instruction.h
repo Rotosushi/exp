@@ -22,6 +22,7 @@
 typedef enum x86_Opcode : u8 {
     X86_OPCODE_RET,
     X86_OPCODE_CALL,
+    X86_OPCODE_JMP,
     X86_OPCODE_PUSH,
     X86_OPCODE_POP,
     X86_OPCODE_MOV,
@@ -47,8 +48,12 @@ typedef struct x86_Instruction {
 
 x86_Instruction x86_ret();
 x86_Instruction x86_call(x86_Operand label);
+
+x86_Instruction x86_jmp(x86_Operand dst);
+
 x86_Instruction x86_push(x86_Operand src);
 x86_Instruction x86_pop(x86_Operand dst);
+
 x86_Instruction x86_mov(x86_Operand dst, x86_Operand src);
 x86_Instruction x86_lea(x86_Operand dst, x86_Operand src);
 

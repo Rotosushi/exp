@@ -33,7 +33,7 @@ void print_x86_function(String *restrict buffer,
     x86_Function    x86_function;
     x86_function_create(&x86_function);
     x86_codegen_function(&x86_function, function, context);
-    print_x86_bytecode(buffer, &x86_function.body);
+    print_x86_body(buffer, &x86_function.body);
     x86_function_destroy(&x86_function);
 }
 

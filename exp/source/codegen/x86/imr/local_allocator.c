@@ -17,183 +17,77 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/allocator.h"
-#include "codegen/x86/imr/registers.h"
-#include "support/allocation.h"
-#include "support/array_growth.h"
+#include "codegen/x86/imr/local_allocator.h"
 #include "support/assert.h"
-#include "support/panic.h"
-#include "support/unreachable.h"
 
-static void x86_register_allocations_create(
-    x86_RegisterAllocations *restrict register_allocations);
-static void
-x86_stack_allocations_create(x86_StackAllocations *restrict stack_allocations);
-static void x86_allocations_create(x86_Allocations *restrict allocations);
-
-void x86_allocator_create(x86_Allocator *restrict allocator) {
+void x86_local_allocator_create(x86_LocalAllocator *restrict allocator) {
     exp_assert(allocator != NULL);
-    x86_register_allocations_create(&allocator->register_allocations);
-    x86_stack_allocations_create(&allocator->stack_allocations);
+    x86_register_allocator_create(&allocator->register_allocator);
+    x86_stack_allocator_create(&allocator->stack_allocator);
     x86_allocations_create(&allocator->allocations);
 }
 
-static void
-x86_registers_destroy(x86_RegisterAllocations *restrict register_allocations);
-static void
-x86_stack_frame_destroy(x86_StackAllocations *restrict stack_allocations);
-static void x86_allocations_destroy(x86_Allocations *restrict allocations);
-
-void x86_allocator_destroy(x86_Allocator *restrict allocator) {
+void x86_local_allocator_destroy(x86_LocalAllocator *restrict allocator) {
     exp_assert(allocator != NULL);
-    x86_registers_destroy(&allocator->register_allocations);
-    x86_stack_frame_destroy(&allocator->stack_allocations);
+    x86_register_allocator_destroy(&allocator->register_allocator);
+    x86_stack_allocator_destroy(&allocator->stack_allocator);
     x86_allocations_destroy(&allocator->allocations);
 }
 
-static void x86_release_expired_allocations(x86_Allocator *restrict allocator,
-                                            u32 block_index);
+i32 x86_local_allocator_stack_size(
+    x86_LocalAllocator *restrict local_allocator) {
+    exp_assert(local_allocator != NULL);
+    return x86_stack_allocator_stack_size(&local_allocator->stack_allocator);
+}
 
-static x86_Allocation *
-x86_allocations_append(x86_Allocations *restrict allocations,
-                       Local const *restrict local,
-                       Context *restrict context);
+void x86_local_allocator_aquire_gpr(x86_LocalAllocator *restrict allocator,
+                                    x86_GPR gpr) {
+    exp_assert(allocator != NULL);
+    x86_register_allocator_aquire_gpr(&allocator->register_allocator, gpr);
+}
 
-static bool x86_allocate_to_next_available_register(
-    x86_RegisterAllocations *restrict register_allocations,
-    x86_Allocation *restrict allocation);
+void x86_local_allocator_release_gpr(x86_LocalAllocator *restrict allocator,
+                                     x86_GPR gpr) {
+    exp_assert(allocator != NULL);
+    x86_register_allocator_aquire_gpr(&allocator->register_allocator, gpr);
+}
 
-static void
-x86_allocate_to_stack(x86_StackAllocations *restrict stack_allocations,
-                      x86_Allocation *restrict allocation);
+void x86_local_allocator_release_expired(x86_LocalAllocator *restrict allocator,
+                                         u32 block_index) {
+    x86_register_allocator_release_expired(&allocator->register_allocator,
+                                           block_index);
+    x86_stack_allocator_release_expired(&allocator->stack_allocator,
+                                        block_index);
+}
 
-x86_Allocation *x86_allocator_allocate_local(x86_Allocator *restrict allocator,
-                                             Local const *restrict local,
-                                             u32 block_index,
-                                             Context *restrict context) {
+x86_Allocation *
+x86_local_allocator_allocate_local(x86_LocalAllocator *restrict allocator,
+                                   Local const *restrict local,
+                                   u32 block_index,
+                                   Context *restrict context) {
     exp_assert(allocator != NULL);
     exp_assert(local != NULL);
     exp_assert(context != NULL);
 
-    x86_release_expired_allocations(allocator, block_index);
+    x86_local_allocator_release_expired(allocator, block_index);
 
     x86_Allocation *allocation =
         x86_allocations_append(&allocator->allocations, local, context);
 
-    // #NOTE: For now, we always allocate local variables onto
-    // the stack. I don't know how exactly to express it yet,
-    // but if a local variable fits into a register, we should
-    // try to place it into one. As registers are faster than
-    // memory. Perhaps this is done by a register promotion pass?
-    if (!string_view_empty(allocation->name)) {
-        x86_allocate_to_stack(&allocator->stack_allocations, allocation);
-        return allocation;
-    }
+    // #NOTE: When we add an "address of" operator, we must handle
+    //  the fact that locals can live in registers, and thus may not
+    //  have a valid address at all.
 
     u64 size = x86_layout_size_of(allocation->layout);
     if ((x86_gpr_valid_size(size)) &&
-        (x86_allocate_to_next_available_register(
-            &allocator->register_allocations, allocation))) {
+        (x86_register_allocator_allocate_to_next_available(
+            &allocator->register_allocator, allocation))) {
         return allocation;
     }
 
-    x86_allocate_to_stack(&allocator->stack_allocations, allocation);
+    x86_stack_allocator_allocate_to_next_available(&allocator->stack_allocator,
+                                                   allocation);
     return allocation;
-}
-
-static void x86_release_expired_register_allocations(
-    x86_RegisterAllocations *restrict register_allocations, u32 block_index);
-
-// #NOTE:
-// 1: search the existing allocations for any whose lifetime is not
-//    inclusive of the given block_index.
-// 2: for each expired allocation mark the stack allocation as free
-static void x86_release_expired_stack_allocations(
-    x86_StackAllocations *restrict stack_allocations, u32 block_index);
-
-static void x86_release_expired_allocations(x86_Allocator *restrict allocator,
-                                            u32 block_index) {
-    x86_release_expired_register_allocations(&allocator->register_allocations,
-                                             block_index);
-    x86_release_expired_stack_allocations(&allocator->stack_allocations,
-                                          block_index);
-}
-
-static x86_Allocation *
-x86_allocations_append(x86_Allocations *restrict allocations,
-                       Local const *restrict local,
-                       Context *restrict context);
-
-/**
- * @brief allocate the given allocation to the next available GPR
- *
- * @pre the allocation must be a valid size for a GPR.
- *
- * @return true if able to allocate
- * @return false otherwise
- */
-static bool x86_allocate_to_next_available_register(
-    x86_RegisterAllocations *restrict register_allocations,
-    x86_Allocation *restrict allocation) {
-    x86_RegisterPool *pool   = &register_allocations->pool;
-    x86_Allocation  **buffer = register_allocations->buffer;
-    u8                gpr_index;
-    if (!x86_register_pool_gpr_aquire_next_available(pool, &gpr_index)) {
-        return false;
-    }
-
-    u64 size = x86_layout_size_of(allocation->layout);
-    exp_assert_debug(x86_gpr_valid_size(size));
-    x86_GPR gpr          = x86_gpr_with_size(gpr_index, size);
-    allocation->location = x86_location_gpr(gpr);
-    buffer[gpr_index]    = allocation;
-    return true;
-}
-
-// #NOTE: the location of the given allocation on the stack is
-// address of the first byte of it's data. given that the stack
-// grows downwards we need to give a negative offset to the base
-// pointer. The simplest solution is to add the size of the new
-// allocation to the active stack size, and return the new active
-// stack size as the offset relative to the base pointer.
-// however, this does not account for the fact that we need to access
-// the memory properly aligned. which means that the stack frame itself
-// is layed out like a tuple, where we need to add padding between elements
-// of differing alignments.
-//
-// 1: search the existing allocations for enough free space for the new
-//    allocation. The available free space includes the padding between the
-//    free spot and the next element, we can simply decrement the padding
-//    or remove it entirely if need be. If we do this here, we avoid
-//    shuffling all the data in the array twice, once when we would coalesce
-//    the padding with the free allocation, and once when we add the padding
-//    back once we reuse the spot. (obviously neither of these will always
-//    happen, however if we reuse the padding now, we only have the potential
-//    of shuffling the elements in the array in the case where we need all of
-//    the available free space and all of the padding exactly.)
-//    1a: There was an empty spot, we reuse it
-// 2: There was no empty spot, so we add more space onto the end of the
-//    stack, enough for the new allocation, and place it there.
-//    taking care to include padding between the previous element if
-//    needed.
-
-static void
-x86_allocate_to_stack(x86_StackAllocations *restrict stack_allocations,
-                      x86_Allocation *restrict allocation) {
-    // #NOTE: We address locals relative to the stack
-    // frames base pointer. The offset is the address of the
-    // first byte of the stack space allocated.
-    u64 size      = x86_allocation_size_of(allocation);
-    u64 alignment = x86_allocation_align_of(allocation);
-    // #NOTE: for now, this is simply asserted. however there is
-    // a more robust and friendly way of handling this i'm sure.
-    exp_assert(size < i32_MAX);
-
-    x86_PtrKind ptr_kind = x86_allocation_ptr_kind_of(allocation);
-
-    i32 offset;
-
-    x86_Location address = x86_location_address(X86_GPR_RBP, ptr_kind, offset);
 }
 
 // /**

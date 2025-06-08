@@ -59,12 +59,14 @@ typedef struct x86_Location {
     };
     x86_GPR  index;
     unsigned scale      : 4;
-    bool     has_index  : 1;
+    bool     is_index   : 1;
     bool     is_address : 1;
+    bool     is_alive   : 1;
     unsigned ptr_kind   : 4;
     i32      offset;
 } x86_Location;
 
+x86_Location x86_location_expire();
 x86_Location x86_location_gpr(x86_GPR gpr);
 x86_Location
 x86_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset);

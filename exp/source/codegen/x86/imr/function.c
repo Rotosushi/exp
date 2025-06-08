@@ -18,6 +18,7 @@
  */
 
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/local_allocator.h"
 #include "codegen/x86/intrinsics/size_of.h"
 #include "support/allocation.h"
 #include "support/assert.h"
@@ -41,39 +42,104 @@ x86_formal_argument_list_allocate(x86_FormalArgumentList *restrict args,
     args->buffer = callocate(length, sizeof(*args->buffer));
 }
 
-static x86_FormalArgument const *
-x86_formal_argument_list_at(x86_FormalArgumentList const *restrict args,
-                            u8 index) {
+static x86_Allocation *
+x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 index) {
     exp_assert(args->length > index);
-    return args->buffer + index;
+    return args->buffer[index];
 }
 
-void x86_function_create(x86_Function *restrict x86_function) {
-    exp_assert(x86_function != NULL);
-    x86_formal_argument_list_create(&x86_function->arguments);
-    x86_bytecode_create(&x86_function->body);
-    x86_gprp_create(&x86_function->gprp);
-    x86_locations_create(&x86_function->locations);
+void x86_function_create(x86_Function *restrict function) {
+    exp_assert(function != NULL);
+    x86_formal_argument_list_create(&function->arguments);
+    x86_body_create(&function->body);
+    x86_local_allocator_create(&function->local_allocator);
+    function->return_location = x86_location_expire();
 }
 
 void x86_function_destroy(x86_Function *restrict function) {
     exp_assert(function != NULL);
     x86_formal_arguments_destroy(&function->arguments);
-    x86_bytecode_destroy(&function->body);
-    x86_gprp_create(&function->gprp);
-    x86_locations_destroy(&function->locations);
+    x86_body_destroy(&function->body);
+    x86_local_allocator_create(&function->local_allocator);
+    function->return_location = x86_location_expire();
 }
 
-x86_FormalArgument const *
+x86_Allocation *
 x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index) {
     exp_assert(x86_function != NULL);
     return x86_formal_argument_list_at(&x86_function->arguments, index);
 }
 
-void x86_function_append(x86_Function *restrict x86_function,
-                         x86_Instruction instruction) {
+void x86_function_insert_block(x86_Function *restrict x86_function,
+                               u32 position) {
     exp_assert(x86_function != NULL);
-    x86_bytecode_append(&x86_function->body, instruction);
+    x86_body_insert(&x86_function->body, position);
+}
+
+void x86_function_prepend_block(x86_Function *restrict x86_function) {
+    exp_assert(x86_function != NULL);
+    x86_body_prepend(&x86_function->body);
+}
+
+u32 x86_function_append_block(x86_Function *restrict x86_function) {
+    exp_assert(x86_function != NULL);
+    return x86_body_append(&x86_function->body);
+}
+
+void x86_function_target_block(x86_Function *restrict x86_function, u32 block) {
+    exp_assert(x86_function != NULL);
+    exp_assert(block < x86_function->body.length);
+    x86_function->current_block = block;
+}
+
+u32 x86_function_current_block(x86_Function *restrict x86_function) {
+    exp_assert(x86_function != NULL);
+    return x86_function->current_block;
+}
+
+void x86_function_insert(x86_Function *restrict function,
+                         x86_Instruction instruction,
+                         u32             block_index) {
+    exp_assert(function != NULL);
+    x86_Block *block = x86_body_at(&function->body, function->current_block);
+    x86_block_insert(block, instruction, block_index);
+}
+
+void x86_function_prepend(x86_Function *restrict function,
+                          x86_Instruction instruction) {
+    exp_assert(function != NULL);
+    x86_Block *block = x86_body_at(&function->body, function->current_block);
+    x86_block_prepend(block, instruction);
+}
+
+void x86_function_append(x86_Function *restrict function,
+                         x86_Instruction instruction) {
+    exp_assert(function != NULL);
+    x86_Block *block = x86_body_at(&function->body, function->current_block);
+    x86_block_append(block, instruction);
+}
+
+static void x86_function_setup_arguments(x86_Function *restrict x86_function,
+                                         Function const *restrict function,
+                                         Context *restrict context) {
+    FormalArgumentList const *formal_arguments = &function->arguments;
+
+    u64 return_size = x86_size_of(context, function->result->type);
+    if (x86_gpr_valid_size(return_size)) {
+        x86_formal_argument_list_allocate(&x86_function->arguments,
+                                          formal_arguments->length);
+        for (u32 index = 0; index < formal_arguments->length; ++index) {
+            Local *argument = formal_arguments->list[index];
+        }
+        return;
+    }
+
+    x86_formal_argument_list_allocate(&x86_function->arguments,
+                                      formal_arguments->length + 1);
+
+    for (u32 index = 0; index < formal_arguments->length; ++index) {
+        Local *argument = formal_arguments->list[index];
+    }
 }
 
 void x86_function_setup(x86_Function *restrict x86_function,
@@ -81,14 +147,6 @@ void x86_function_setup(x86_Function *restrict x86_function,
                         Context *restrict context) {
     exp_assert(x86_function != NULL);
     exp_assert(function != NULL);
-    // #NOTE: The argument list is the same length, unless we are passing in
-    // a pointer to the stack space allocated for the return value as a hidden
-    // first parameter.
-    x86_formal_argument_list_allocate(&x86_function->arguments,
-                                      function_arguments_length(function));
-    x86_locations_allocate(&x86_function->locations,
-                           function_locals_length(function));
-
     // #NOTE: Mark rsp and rbp as occupied, as these are used by the function
     // to implement it's stack frame at runtime.
     // #NOTE: #OPTIMIZATION: when the function uses no stack space, we can use
@@ -97,17 +155,22 @@ void x86_function_setup(x86_Function *restrict x86_function,
     // #NOTE: #OPTIMIZATION: if the frame size is static then, we can
     // get away with only using the RBP register. Which frees up the RSP for
     // general usage.
-    exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RSP));
-    exp_assert_always(x86_gprp_aquire(&x86_function->gprp, X86_GPR_RBP));
+    x86_local_allocator_aquire_gpr(&x86_function->local_allocator, X86_GPR_RSP);
+    x86_local_allocator_aquire_gpr(&x86_function->local_allocator, X86_GPR_RBP);
+
+    x86_function_setup_arguments(x86_function, function, context);
 
     // #NOTE: if the return type can fit into a register than it goes into rAX.
     // That is, the smallest version of the rAX register that fits the type.
     // i.e. a u8 will be placed into AX and a u32 will be placed into EAX
     // both of which are the rAX register, just with different operating sizes.
-    u64 result_size = x86_size_of(context, function->return_type);
+    // if the return type cannot fit into a single register, it's location is
+    // caller allocated and the address is passed as a hidden first argument
+    u64 result_size = x86_size_of(context, function->result->type);
     if (x86_gpr_valid_size(result_size)) {
         x86_function->return_location =
             x86_location_gpr(x86_gpr_with_size(X86_GPR_rAX, result_size));
+
     } else {
         // if the return size is too large to fit into a single register, then
         // it is passed as a hidden first parameter to the function. And it is
@@ -116,9 +179,18 @@ void x86_function_setup(x86_Function *restrict x86_function,
         x86_function->return_location =
             x86_location_address(X86_GPR_RDI, X86_QWORD_PTR, 0);
     }
+
+    u32 block = x86_function_append_block(x86_function);
+    x86_function_target_block(x86_function, block);
 }
 
-void x86_function_header(x86_Function *restrict x86_function) {
+void x86_function_header(x86_Function *restrict function) {
+    exp_assert(function != NULL);
+    // Set up the function to insert instructions in the new first
+    // basic block.
+    u32 previous_block = function->current_block;
+    x86_function_prepend_block(function);
+    x86_function_target_block(function, 0);
     // #NOTE: The standard x86 function header is to save the previous
     // stack frame, and save all registers used by the current
     // functions frame. Then allocate the current stack frame.
@@ -129,22 +201,31 @@ void x86_function_header(x86_Function *restrict x86_function) {
     // here is save/restore the previous stack frames stack pointer. This will
     // need to change if we ever add an optimization which allows a local
     // variable to live in a register for it's lifetime.
-    x86_function_append(x86_function,
+    x86_function_append(function,
                         x86_push(x86_operand_location_gpr(X86_GPR_RBP)));
-    x86_function_append(x86_function,
+    x86_function_append(function,
                         x86_mov(x86_operand_location_gpr(X86_GPR_RBP),
                                 x86_operand_location_gpr(X86_GPR_RSP)));
-    // #NOTE: At this point in the function, we do not know how large the
-    // functions frame is going to be. So we subtract a dummy value, to
-    // be filled in after we perform all allocations on the stack,
-    // though because our allocation strategy is so simple we might be able to
-    // precompute the size, as we allocate all locals onto the stack.
-    x86_function_append(
-        x86_function,
-        x86_sub(x86_operand_location_gpr(X86_GPR_RSP), x86_operand_i32(0)));
+
+    i32 stack_size = x86_local_allocator_stack_size(&function->local_allocator);
+    x86_function_append(function,
+                        x86_sub(x86_operand_location_gpr(X86_GPR_RSP),
+                                x86_operand_i32(stack_size)));
+
+    // #NOTE: each basic block must include a terminator instruction which takes
+    // it to the next basic block, or terminates the function itself.
+    x86_function_append(function, x86_jmp(x86_operand_u32(1)));
+    x86_function_target_block(function, previous_block);
 }
 
-void x86_function_footer(x86_Function *restrict x86_function) {
+void x86_function_footer(x86_Function *restrict function) {
+    u32 block = x86_function_append_block(function);
+    // #NOTE: each basic block must include a terminator instruction which takes
+    // it to the next basic block, or terminates the function itself.
+    x86_function_append(function, x86_jmp(x86_operand_u32(block)));
+
+    // setup the function to insert instructions into the footer block
+    x86_function_target_block(function, block);
     // #NOTE: since we save the previous rbp on the stack, then move the
     // rsp into rbp before subtracting the stack space for the function,
     // when we move rbp back into rsp we are in effect deallocating the
@@ -155,9 +236,11 @@ void x86_function_footer(x86_Function *restrict x86_function) {
     // stack and base pointers before returning to the previous functions frame.
     // A more optimal way is to use only rbp or only rsp given that we have
     // static size stack frames.
-    x86_function_append(x86_function,
+    x86_function_append(function,
                         x86_mov(x86_operand_location_gpr(X86_GPR_RSP),
                                 x86_operand_location_gpr(X86_GPR_RBP)));
-    x86_function_append(x86_function,
+    x86_function_append(function,
                         x86_pop(x86_operand_location_gpr(X86_GPR_RBP)));
+
+    x86_function_append(function, x86_ret());
 }

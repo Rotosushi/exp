@@ -40,16 +40,20 @@ set(SOURCE_FILES
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
   ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocations.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/block.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/body.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/instruction.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/layout.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/register_allocator.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/register_pool.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/stack_allocator.c
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/context.c
@@ -77,11 +81,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/evaluate/evaluate.c
 
   ${EXP_SOURCE_DIR}/imr/bytecode.c
+  ${EXP_SOURCE_DIR}/imr/function_type.c
   ${EXP_SOURCE_DIR}/imr/function.c
   ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/local.c
   ${EXP_SOURCE_DIR}/imr/locals.c
   ${EXP_SOURCE_DIR}/imr/operand.c
+  ${EXP_SOURCE_DIR}/imr/tuple_type.c
   ${EXP_SOURCE_DIR}/imr/tuple.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c

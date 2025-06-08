@@ -237,7 +237,7 @@ static bool validate_ret(Instruction instruction,
         context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(B_type != NULL);
 
-    exp_assert_always(type_equality(B_type, function->return_type));
+    exp_assert_always(type_equality(B_type, function->result->type));
 
     return true;
 }

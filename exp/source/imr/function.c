@@ -28,20 +28,20 @@
 void formal_argument_list_create(FormalArgumentList *restrict fal) {
     assert(fal != NULL);
     fal->capacity = 0;
-    fal->size     = 0;
+    fal->length   = 0;
     fal->list     = NULL;
 }
 
 void formal_argument_list_destroy(FormalArgumentList *restrict fal) {
     assert(fal != NULL);
     fal->capacity = 0;
-    fal->size     = 0;
+    fal->length   = 0;
     deallocate(fal->list);
     fal->list = NULL;
 }
 
 static bool formal_argument_list_full(FormalArgumentList *restrict fal) {
-    return fal->capacity <= (fal->size + 1);
+    return fal->capacity <= (fal->length + 1);
 }
 
 static void formal_argument_list_grow(FormalArgumentList *restrict fal) {
@@ -56,7 +56,7 @@ Local *formal_argument_list_append(FormalArgumentList *restrict fal,
     assert(arg != NULL);
     if (formal_argument_list_full(fal)) { formal_argument_list_grow(fal); }
 
-    fal->list[fal->size++] = arg;
+    fal->list[fal->length++] = arg;
 
     return arg;
 }
@@ -66,7 +66,8 @@ void function_create(Function *restrict function) {
     formal_argument_list_create(&function->arguments);
     locals_create(&function->locals);
     bytecode_create(&function->body);
-    function->return_type = NULL;
+    u32 ssa          = locals_declare(&function->locals);
+    function->result = locals_lookup(&function->locals, ssa);
 }
 
 void function_destroy(Function *restrict function) {
@@ -74,7 +75,7 @@ void function_destroy(Function *restrict function) {
     formal_argument_list_destroy(&function->arguments);
     locals_destroy(&function->locals);
     bytecode_destroy(&function->body);
-    function->return_type = NULL;
+    function->result = NULL;
 }
 
 u32 function_declare_argument(Function *restrict function) {
@@ -85,15 +86,15 @@ u32 function_declare_argument(Function *restrict function) {
     return ssa;
 }
 
-Local *function_lookup_argument(Function const *restrict function, u8 index) {
-    assert(function != NULL);
-    assert(index < function->arguments.size);
-    return function->arguments.list[index];
-}
-
 u32 function_declare_local(Function *restrict function) {
     assert(function != NULL);
     return locals_declare(&function->locals);
+}
+
+Local *function_lookup_argument(Function const *restrict function, u8 index) {
+    assert(function != NULL);
+    assert(index < function->arguments.length);
+    return function->arguments.list[index];
 }
 
 Local *function_lookup_local(Function const *restrict function, u32 ssa) {
@@ -116,7 +117,7 @@ u32 function_locals_length(Function const *restrict function) {
 
 u8 function_arguments_length(Function const *restrict function) {
     assert(function != NULL);
-    return function->arguments.size;
+    return function->arguments.length;
 }
 
 static void print_formal_argument(String *restrict string,
@@ -131,10 +132,10 @@ void print_function(String *restrict string,
                     Context *restrict context) {
     string_append(string, SV("("));
     FormalArgumentList const *args = &f->arguments;
-    for (u8 i = 0; i < args->size; ++i) {
+    for (u8 i = 0; i < args->length; ++i) {
         print_formal_argument(string, args->list[i]);
 
-        if (i < (u8)(args->size - 1)) { string_append(string, SV(", ")); }
+        if (i < (u8)(args->length - 1)) { string_append(string, SV(", ")); }
     }
     string_append(string, SV(")\n"));
     print_bytecode(string, &f->body, context);

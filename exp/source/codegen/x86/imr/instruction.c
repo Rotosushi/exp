@@ -45,6 +45,10 @@ x86_Instruction x86_call(x86_Operand label) {
     return x86_instruction_A(X86_OPCODE_CALL, label);
 }
 
+x86_Instruction x86_jmp(x86_Operand dst) {
+    return x86_instruction_A(X86_OPCODE_JMP, dst);
+}
+
 x86_Instruction x86_push(x86_Operand src) {
     return x86_instruction_A(X86_OPCODE_PUSH, src);
 }
@@ -129,6 +133,11 @@ void print_x86_instruction(String *restrict buffer,
 
     case X86_OPCODE_CALL: {
         print_x86_instruction_A(buffer, instruction, SV("call"));
+        break;
+    }
+
+    case X86_OPCODE_JMP: {
+        print_x86_instruction_A(buffer, instruction, SV("jmp"));
         break;
     }
 

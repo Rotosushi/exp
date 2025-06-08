@@ -17,28 +17,22 @@
 #ifndef EXP_BACKEND_X86_FUNCTION_BODY_H
 #define EXP_BACKEND_X86_FUNCTION_BODY_H
 
-#include "codegen/x86/imr/bytecode.h"
-#include "codegen/x86/imr/gprp.h"
-#include "codegen/x86/imr/locations.h"
+#include "codegen/x86/imr/body.h"
+#include "codegen/x86/imr/local_allocator.h"
 #include "env/context.h"
 #include "imr/function.h"
-#include "imr/type.h"
-
-typedef struct x86_FormalArgument {
-    Type const *type;
-} x86_FormalArgument;
 
 typedef struct x86_FormalArgumentList {
-    u8                  length;
-    x86_FormalArgument *buffer;
+    u8               length;
+    x86_Allocation **buffer;
 } x86_FormalArgumentList;
 
 typedef struct x86_Function {
     x86_FormalArgumentList arguments;
-    x86_Bytecode           body;
-    x86_Locations          locations;
-    x86_GPRP               gprp;
+    x86_Body               body;
+    x86_LocalAllocator     local_allocator;
     x86_Location           return_location;
+    u32                    current_block;
 } x86_Function;
 
 void x86_function_create(x86_Function *restrict function);
@@ -48,13 +42,25 @@ void x86_function_setup(x86_Function *restrict x86_function,
                         Function const *restrict function,
                         Context *restrict context);
 
-x86_FormalArgument const *
-x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index);
+x86_Allocation *x86_function_formal_argument_at(x86_Function *restrict function,
+                                                u8 index);
 
-void x86_function_header(x86_Function *restrict x86_function);
-void x86_function_footer(x86_Function *restrict x86_function);
+void x86_function_insert_block(x86_Function *restrict function, u32 position);
+void x86_function_prepend_block(x86_Function *restrict function);
+u32  x86_function_append_block(x86_Function *restrict function);
 
+void x86_function_target_block(x86_Function *restrict function, u32 block);
+u32  x86_function_current_block(x86_Function *restrict function);
+
+void x86_function_insert(x86_Function *restrict function,
+                         x86_Instruction instruction,
+                         u32             block_index);
+void x86_function_prepend(x86_Function *restrict function,
+                          x86_Instruction instruction);
 void x86_function_append(x86_Function *restrict function,
                          x86_Instruction instruction);
+
+void x86_function_header(x86_Function *restrict function);
+void x86_function_footer(x86_Function *restrict function);
 
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

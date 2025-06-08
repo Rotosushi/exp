@@ -509,8 +509,10 @@ static bool function(Operand *restrict result, Parser *restrict parser) {
     if (!parse_formal_argument_list(function, parser)) { return false; }
 
     switch (expect(parser, TOK_RIGHT_ARROW)) {
-    case EXPECT_RESULT_SUCCESS:
-        if (!parse_type(&function->return_type, parser)) { return false; }
+    case EXPECT_RESULT_SUCCESS: {
+        if (!parse_type(&function->result->type, parser)) { return false; }
+        break;
+    }
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
     case EXPECT_RESULT_FAILURE:         return false;
     default:                            EXP_UNREACHABLE();
@@ -541,8 +543,10 @@ static bool lambda(Operand *restrict result, Parser *restrict parser) {
     if (!parse_formal_argument_list(function, parser)) { return false; }
 
     switch (expect(parser, TOK_RIGHT_ARROW)) {
-    case EXPECT_RESULT_SUCCESS:
-        if (!parse_type(&function->return_type, parser)) { return false; }
+    case EXPECT_RESULT_SUCCESS: {
+        if (!parse_type(&function->result->type, parser)) { return false; }
+        break;
+    }
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
     case EXPECT_RESULT_FAILURE:         return false;
     default:                            EXP_UNREACHABLE();

@@ -198,7 +198,7 @@ x86_GPR x86_gpr_resize(x86_GPR gpr, u64 size);
  * @param size the size of the argument
  * @return the GPR that corresponds to the argument
  */
-x86_GPR x86_gpr_scalar_argument(u8 argument_index, u64 size);
+x86_GPR x86_gpr_for_argument(u8 argument_index, u64 size);
 
 /**
  * @brief check if a size is a valid size for a GPR

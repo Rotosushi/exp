@@ -43,6 +43,21 @@ void x86_allocation_deallocate(x86_Allocation *restrict allocation) {
     deallocate(allocation);
 }
 
+bool x86_allocation_alive(x86_Allocation const *restrict allocation,
+                          u32 block_index) {
+    exp_assert(allocation != NULL);
+    if (!allocation->alive) { return false; }
+    if (block_index < allocation->lifetime.start) { return false; }
+    return block_index <= allocation->lifetime.end;
+}
+
+void x86_allocation_expire(x86_Allocation *restrict allocation) {
+    exp_assert(allocation != NULL);
+    exp_assert(allocation->alive);
+    allocation->alive    = false;
+    allocation->location = x86_location_expire();
+}
+
 u64 x86_allocation_size_of(x86_Allocation const *restrict allocation) {
     exp_assert(allocation != NULL);
     return x86_layout_size_of(allocation->layout);

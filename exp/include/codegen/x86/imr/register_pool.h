@@ -25,6 +25,8 @@ typedef struct x86_RegisterPool {
     // Bitset sse_pool;
 } x86_RegisterPool;
 
+#define x86_register_count() x86_gpr_count()
+
 inline void x86_register_pool_initialize(x86_RegisterPool *restrict pool) {
     exp_assert(pool != NULL);
     bitset_initialize(&pool->gpr_pool);

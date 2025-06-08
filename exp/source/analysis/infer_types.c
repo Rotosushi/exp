@@ -384,13 +384,13 @@ static bool infer_types_function(Type const **restrict result,
                 return false;
             }
 
-            if ((function->return_type != NULL) &&
-                (!type_equality(function->return_type, return_type))) {
+            if ((function->result->type != NULL) &&
+                (!type_equality(function->result->type, return_type))) {
                 return context_failure_mismatch_type(
-                    context, function->return_type, return_type);
+                    context, function->result->type, return_type);
             }
 
-            function->return_type = return_type;
+            function->result->type = return_type;
             break;
         }
 
@@ -475,7 +475,9 @@ static bool infer_types_function(Type const **restrict result,
     // return instruction, then we use the type of it's last instruction as
     // it's return type. return_type will hold this value after we finish
     // iterating through all of the instructions as a matter of course.
-    if (function->return_type == NULL) { function->return_type = return_type; }
+    if (function->result->type == NULL) {
+        function->result->type = return_type;
+    }
 
     return success(result, context_type_of_function(context, function));
 }

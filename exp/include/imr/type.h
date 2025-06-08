@@ -18,7 +18,8 @@
 #define EXP_IMR_TYPE_H
 #include <stdbool.h>
 
-#include "support/string.h"
+#include "imr/function_type.h"
+#include "imr/tuple_type.h"
 
 typedef enum TypeKind {
     TYPE_KIND_NIL,
@@ -34,28 +35,6 @@ typedef enum TypeKind {
     TYPE_KIND_TUPLE,
     TYPE_KIND_FUNCTION,
 } TypeKind;
-
-struct Type;
-
-typedef struct TupleType {
-    u32                 length;
-    u32                 capacity;
-    struct Type const **types;
-} TupleType;
-
-void tuple_type_create(TupleType *restrict tuple);
-void tuple_type_destroy(TupleType *restrict tuple_type);
-bool tuple_type_equal(TupleType const *A, TupleType const *B);
-bool tuple_type_index_in_bounds(TupleType const *restrict tuple, u32 index);
-void tuple_type_append(TupleType *restrict tuple_type, struct Type const *type);
-struct Type const *tuple_type_at(TupleType const *restrict tuple, u32 index);
-
-typedef struct FunctionType {
-    struct Type const *return_type;
-    TupleType          argument_types;
-} FunctionType;
-
-bool function_type_equal(FunctionType const *A, FunctionType const *B);
 
 /**
  * @brief represents Types in the compiler

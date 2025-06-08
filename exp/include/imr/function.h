@@ -19,11 +19,10 @@
 
 #include "imr/bytecode.h"
 #include "imr/locals.h"
-#include "imr/type.h"
 #include "support/string_view.h"
 
 typedef struct FormalArgumentList {
-    u8      size;
+    u8      length;
     u8      capacity;
     Local **list;
 } FormalArgumentList;
@@ -46,7 +45,7 @@ typedef struct Function {
     FormalArgumentList arguments;
     Locals             locals;
     Bytecode           body;
-    Type const        *return_type;
+    Local             *result;
 } Function;
 
 void function_create(Function *restrict function);

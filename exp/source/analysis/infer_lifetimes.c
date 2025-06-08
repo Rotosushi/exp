@@ -95,7 +95,7 @@ bool infer_lifetimes(Function *restrict function) {
     exp_assert(function != NULL);
     Bytecode *body = &function->body;
 
-    for (u8 i = 0; i < function->arguments.size; ++i) {
+    for (u8 i = 0; i < function->arguments.length; ++i) {
         Local *arg          = function->arguments.list[i];
         arg->lifetime.start = 0;
         arg->lifetime.end   = body->length;
