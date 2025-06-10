@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/stack_allocator.h"
+#include "codegen/x86/imr/detail/stack_allocator.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
@@ -150,7 +150,6 @@ void x86_stack_allocator_allocate_to_next_available(
     exp_assert(allocation_size < i32_MAX);
     i32 size = (i32)allocation_size;
 
-    exp_assert(size < i32_MAX);
     for (u32 index = 0; index < stack_allocator->length; ++index) {
         x86_StackSpace *space = stack_allocator->buffer + index;
         switch (space->kind) {

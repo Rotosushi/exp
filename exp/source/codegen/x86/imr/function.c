@@ -18,15 +18,18 @@
  */
 
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/allocation.h"
 #include "codegen/x86/imr/local_allocator.h"
 #include "codegen/x86/intrinsics/size_of.h"
 #include "support/allocation.h"
+#include "support/array_growth.h"
 #include "support/assert.h"
 
 static void
 x86_formal_argument_list_create(x86_FormalArgumentList *restrict args) {
-    args->length = 0;
-    args->buffer = NULL;
+    args->length   = 0;
+    args->capacity = 0;
+    args->buffer   = NULL;
 }
 
 static void
@@ -35,11 +38,22 @@ x86_formal_arguments_destroy(x86_FormalArgumentList *restrict args) {
     x86_formal_argument_list_create(args);
 }
 
-static void
-x86_formal_argument_list_allocate(x86_FormalArgumentList *restrict args,
-                                  u8 length) {
-    args->length = length;
-    args->buffer = callocate(length, sizeof(*args->buffer));
+static bool x86_formal_arguments_full(x86_FormalArgumentList *restrict args) {
+    return (args->length + 1) >= args->capacity;
+}
+
+static void x86_formal_arguments_grow(x86_FormalArgumentList *restrict args) {
+    Growth_u8 g    = array_growth_u8(args->capacity, sizeof(*args->buffer));
+    args->buffer   = reallocate(args->buffer, g.alloc_size);
+    args->capacity = g.new_capacity;
+}
+
+void x86_formal_argument_list_append(x86_FormalArgumentList *restrict args,
+                                     x86_Allocation *arg) {
+    exp_assert(args != NULL);
+    exp_assert(arg != NULL);
+    if (x86_formal_arguments_full(args)) { x86_formal_arguments_grow(args); }
+    args->buffer[args->length++] = arg;
 }
 
 static x86_Allocation *
@@ -53,7 +67,7 @@ void x86_function_create(x86_Function *restrict function) {
     x86_formal_argument_list_create(&function->arguments);
     x86_body_create(&function->body);
     x86_local_allocator_create(&function->local_allocator);
-    function->return_location = x86_location_expire();
+    function->result = NULL;
 }
 
 void x86_function_destroy(x86_Function *restrict function) {
@@ -61,7 +75,7 @@ void x86_function_destroy(x86_Function *restrict function) {
     x86_formal_arguments_destroy(&function->arguments);
     x86_body_destroy(&function->body);
     x86_local_allocator_create(&function->local_allocator);
-    function->return_location = x86_location_expire();
+    function->result = NULL;
 }
 
 x86_Allocation *
@@ -119,29 +133,6 @@ void x86_function_append(x86_Function *restrict function,
     x86_block_append(block, instruction);
 }
 
-static void x86_function_setup_arguments(x86_Function *restrict x86_function,
-                                         Function const *restrict function,
-                                         Context *restrict context) {
-    FormalArgumentList const *formal_arguments = &function->arguments;
-
-    u64 return_size = x86_size_of(context, function->result->type);
-    if (x86_gpr_valid_size(return_size)) {
-        x86_formal_argument_list_allocate(&x86_function->arguments,
-                                          formal_arguments->length);
-        for (u32 index = 0; index < formal_arguments->length; ++index) {
-            Local *argument = formal_arguments->list[index];
-        }
-        return;
-    }
-
-    x86_formal_argument_list_allocate(&x86_function->arguments,
-                                      formal_arguments->length + 1);
-
-    for (u32 index = 0; index < formal_arguments->length; ++index) {
-        Local *argument = formal_arguments->list[index];
-    }
-}
-
 void x86_function_setup(x86_Function *restrict x86_function,
                         Function const *restrict function,
                         Context *restrict context) {
@@ -158,27 +149,16 @@ void x86_function_setup(x86_Function *restrict x86_function,
     x86_local_allocator_aquire_gpr(&x86_function->local_allocator, X86_GPR_RSP);
     x86_local_allocator_aquire_gpr(&x86_function->local_allocator, X86_GPR_RBP);
 
-    x86_function_setup_arguments(x86_function, function, context);
+    x86_local_allocator_allocate_result(&x86_function->local_allocator,
+                                        function->result,
+                                        context,
+                                        &x86_function->arguments);
 
-    // #NOTE: if the return type can fit into a register than it goes into rAX.
-    // That is, the smallest version of the rAX register that fits the type.
-    // i.e. a u8 will be placed into AX and a u32 will be placed into EAX
-    // both of which are the rAX register, just with different operating sizes.
-    // if the return type cannot fit into a single register, it's location is
-    // caller allocated and the address is passed as a hidden first argument
-    u64 result_size = x86_size_of(context, function->result->type);
-    if (x86_gpr_valid_size(result_size)) {
-        x86_function->return_location =
-            x86_location_gpr(x86_gpr_with_size(X86_GPR_rAX, result_size));
-
-    } else {
-        // if the return size is too large to fit into a single register, then
-        // it is passed as a hidden first parameter to the function. And it is
-        // allocated by the caller on the callers stack. so it is placed in a
-        // memory location held in rdi.
-        x86_function->return_location =
-            x86_location_address(X86_GPR_RDI, X86_QWORD_PTR, 0);
-    }
+    x86_local_allocator_allocate_incoming_arguments(
+        &x86_function->local_allocator,
+        &function->arguments,
+        context,
+        &x86_function->arguments);
 
     u32 block = x86_function_append_block(x86_function);
     x86_function_target_block(x86_function, block);

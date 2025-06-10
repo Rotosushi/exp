@@ -39,8 +39,13 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/allocations.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/incoming_argument_allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/register_allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/register_pool.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/stack_allocator.c
+
   ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/block.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/body.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
@@ -50,10 +55,8 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/register_allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/register_pool.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/stack_allocator.c
+  
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
   ${EXP_SOURCE_DIR}/env/context.c

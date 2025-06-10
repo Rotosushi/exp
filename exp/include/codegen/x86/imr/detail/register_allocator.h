@@ -18,7 +18,7 @@
 #define EXP_CODEGEN_X86_IMR_REGISTER_ALLOCATOR_H
 
 #include "codegen/x86/imr/allocation.h"
-#include "codegen/x86/imr/register_pool.h"
+#include "codegen/x86/imr/detail/register_pool.h"
 
 typedef struct x86_RegisterAllocator {
     x86_RegisterPool pool;

@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/allocations.h"
+#include "codegen/x86/imr/detail/allocations.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 

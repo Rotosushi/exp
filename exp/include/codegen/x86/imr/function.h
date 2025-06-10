@@ -24,14 +24,18 @@
 
 typedef struct x86_FormalArgumentList {
     u8               length;
+    u8               capacity;
     x86_Allocation **buffer;
 } x86_FormalArgumentList;
+
+void x86_formal_argument_list_append(x86_FormalArgumentList *restrict arguments,
+                                     x86_Allocation *allocation);
 
 typedef struct x86_Function {
     x86_FormalArgumentList arguments;
     x86_Body               body;
     x86_LocalAllocator     local_allocator;
-    x86_Location           return_location;
+    x86_Allocation        *result;
     u32                    current_block;
 } x86_Function;
 

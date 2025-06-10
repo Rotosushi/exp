@@ -18,6 +18,12 @@
  */
 
 #include "codegen/x86/imr/local_allocator.h"
+#include "codegen/x86/imr/detail/allocations.h"
+#include "codegen/x86/imr/detail/incoming_argument_allocator.h"
+#include "codegen/x86/imr/detail/register_allocator.h"
+#include "codegen/x86/imr/function.h"
+#include "support/allocation.h"
+#include "support/array_growth.h"
 #include "support/assert.h"
 
 void x86_local_allocator_create(x86_LocalAllocator *restrict allocator) {
@@ -88,6 +94,137 @@ x86_local_allocator_allocate_local(x86_LocalAllocator *restrict allocator,
     x86_stack_allocator_allocate_to_next_available(&allocator->stack_allocator,
                                                    allocation);
     return allocation;
+}
+
+/*
+ * #NOTE: if the result fits in a register it goes into RAX
+ * otherwise it's caller allocated and comes in by pointer
+ * stored in the first argument
+ */
+x86_Allocation *x86_local_allocator_allocate_result(
+    x86_LocalAllocator *restrict local_allocator,
+    Local const *restrict local,
+    Context *restrict context,
+    x86_FormalArgumentList *restrict x86_arguments) {
+    exp_assert(local_allocator != NULL);
+    exp_assert(local != NULL);
+    exp_assert(context != NULL);
+    exp_assert(x86_arguments != NULL);
+
+    x86_Allocation *allocation =
+        x86_allocations_append(&local_allocator->allocations, local, context);
+    u64 size = x86_allocation_size_of(allocation);
+    if (x86_gpr_valid_size(size)) {
+        // #HACK: since we know the result is going into rAX
+        // and it's the result, we know it does not need
+        // to be valid until after the return instruction is generated.
+        // at which point the function cannot interfere with it's value.
+        // and since it's value is not known until the return instruction
+        // is generated, the result value cannot be interfered with by the
+        // rest of the function. Therefore we can just assign it's location
+        // without informing the register allocator, allowing the register
+        // allocator to use the register as normal, potentially allowing the
+        // result to be allocated there by the normal generation of
+        // instructions.
+        allocation->location = x86_location_gpr(
+            x86_gpr_with_size(x86_gpr_to_index(X86_GPR_rAX), size));
+    }
+
+    // #HACK however, if the result is caller allocated then we must inform
+    // both the register allocator and the incoming argument allocator.
+    // of the new first argument in rSI
+    exp_assert_always(x86_incoming_argument_allocator_allocate_register(
+        &local_allocator->incoming_argument_allocator, allocation));
+    exp_assert_always(allocation->location.is_address);
+    exp_assert_always(x86_gpr_overlap(allocation->location.base, X86_GPR_RDI));
+    x86_register_allocator_aquire_gpr(&local_allocator->register_allocator,
+                                      X86_GPR_RSI);
+    x86_formal_argument_list_append(x86_arguments, allocation);
+    return allocation;
+}
+
+typedef struct x86_ArgumentBuffer {
+    u32              length;
+    u32              capacity;
+    x86_Allocation **buffer;
+} x86_ArgumentBuffer;
+
+static void
+x86_argument_buffer_create(x86_ArgumentBuffer *restrict argument_buffer) {
+    argument_buffer->length   = 0;
+    argument_buffer->capacity = 0;
+    argument_buffer->buffer   = NULL;
+}
+
+static void
+x86_argument_buffer_destroy(x86_ArgumentBuffer *restrict argument_buffer) {
+    deallocate(argument_buffer->buffer);
+    x86_argument_buffer_create(argument_buffer);
+}
+
+static bool
+x86_argument_buffer_full(x86_ArgumentBuffer const *restrict argument_buffer) {
+    return (argument_buffer->length + 1) >= argument_buffer->capacity;
+}
+
+static void
+x86_argument_buffer_grow(x86_ArgumentBuffer *restrict argument_buffer) {
+    Growth_u32 g            = array_growth_u32(argument_buffer->capacity,
+                                    sizeof(*argument_buffer->buffer));
+    argument_buffer->buffer = reallocate(argument_buffer->buffer, g.alloc_size);
+    argument_buffer->capacity = g.new_capacity;
+}
+
+static void
+x86_argument_buffer_append(x86_ArgumentBuffer *restrict argument_buffer,
+                           x86_Allocation *restrict allocation) {
+    if (x86_argument_buffer_full(argument_buffer)) {
+        x86_argument_buffer_grow(argument_buffer);
+    }
+
+    argument_buffer->buffer[argument_buffer->length++] = allocation;
+}
+
+void x86_local_allocator_allocate_incoming_arguments(
+    x86_LocalAllocator *restrict local_allocator,
+    FormalArgumentList const *restrict arguments,
+    Context *restrict context,
+    x86_FormalArgumentList *restrict x86_arguments) {
+    exp_assert(local_allocator != NULL);
+    exp_assert(arguments != NULL);
+    exp_assert(context != NULL);
+    exp_assert(x86_arguments != NULL);
+
+    x86_ArgumentBuffer staging;
+    x86_argument_buffer_create(&staging);
+
+    for (u32 index = 0; index < arguments->length; ++index) {
+        Local *local = arguments->list[index];
+
+        x86_Allocation *allocation = x86_allocations_append(
+            &local_allocator->allocations, local, context);
+
+        x86_formal_argument_list_append(x86_arguments, allocation);
+
+        if (!x86_incoming_argument_allocator_allocate_register(
+                &local_allocator->incoming_argument_allocator, allocation)) {
+            x86_argument_buffer_append(&staging, allocation);
+            continue;
+        }
+
+        exp_assert(!allocation->location.is_address);
+        x86_GPR gpr = allocation->location.gpr;
+        x86_register_allocator_aquire_gpr(&local_allocator->register_allocator,
+                                          gpr);
+    }
+
+    for (u32 index = staging.length; index > 0; --index) {
+        x86_Allocation *allocation = staging.buffer[index - 1];
+        x86_incoming_argument_allocator_allocate_stack(
+            &local_allocator->incoming_argument_allocator, allocation);
+    }
+
+    x86_argument_buffer_destroy(&staging);
 }
 
 // /**

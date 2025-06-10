@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/register_allocator.h"
+#include "codegen/x86/imr/detail/register_allocator.h"
 #include "support/allocation.h"
 
 void x86_register_allocator_create(

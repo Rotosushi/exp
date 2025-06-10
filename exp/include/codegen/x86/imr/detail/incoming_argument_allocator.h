@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_IMR_INCOMING_ARGUMENT_ALLOCATOR_H
 #define EXP_CODEGEN_X86_IMR_INCOMING_ARGUMENT_ALLOCATOR_H
 
-#include "codegen/x86/imr/allocation.h"
+#include "codegen/x86/imr/detail/stack_allocator.h"
 
 /*
  * NOTE: System-V x86-64 ABI:
@@ -78,30 +78,9 @@
  *   stack just above call frame and 1st arg just above that.
  */
 
-typedef enum x86_IncomingStackArgumentKind {
-    X86_INCOMING_STACK_ARGUMENT_KIND_ALLOCATION,
-    X86_INCOMING_STACK_ARGUMENT_KIND_PADDING,
-} x86_IncomingStackArgumentKind;
-
-typedef struct x86_IncomingStackArgumentData {
-    i32 offset;
-    union {
-        x86_Allocation *allocation;
-        i32             padding;
-    };
-} x86_IncomingStackArgumentData;
-
-typedef struct x86_IncomingStackArgument {
-    x86_IncomingStackArgumentKind kind;
-    x86_IncomingStackArgumentData data;
-} x86_IncomingStackArgument;
-
 typedef struct x86_IncomingArgumentAllocator {
-    i32                        size;
-    u8                         registers_used;
-    u8                         length;
-    u8                         capacity;
-    x86_IncomingStackArgument *buffer;
+    u8                 registers_used;
+    x86_StackAllocator stack_arguments;
 } x86_IncomingArgumentAllocator;
 
 void x86_incoming_argument_allocator_create(
@@ -110,7 +89,11 @@ void x86_incoming_argument_allocator_create(
 void x86_incoming_argument_allocator_destroy(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator);
 
-void x86_incoming_argument_allocator_allocate(
+bool x86_incoming_argument_allocator_allocate_register(
+    x86_IncomingArgumentAllocator *restrict incoming_argument_allocator,
+    x86_Allocation *restrict allocation);
+
+void x86_incoming_argument_allocator_allocate_stack(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator,
     x86_Allocation *restrict allocation);
 
