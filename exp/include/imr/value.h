@@ -40,8 +40,6 @@ typedef enum ValueKind {
     VALUE_KIND_FUNCTION,
 } ValueKind;
 
-struct Value;
-
 /**
  * @brief represents Values in the compiler
  */
@@ -61,30 +59,35 @@ typedef struct Value {
         Tuple    tuple;
         Function function;
     };
+    Type const *type;
 } Value;
+
+struct Context;
 
 Value *value_allocate();
 void   value_deallocate(Value *restrict value);
 
-Value *value_allocate_nil();
-Value *value_allocate_bool(bool b);
-Value *value_allocate_u8(u8 u);
-Value *value_allocate_u16(u16 u);
-Value *value_allocate_u32(u32 u);
-Value *value_allocate_u64(u64 u);
-Value *value_allocate_i8(i8 i);
-Value *value_allocate_i16(i16 i);
-Value *value_allocate_i32(i32 i);
-Value *value_allocate_i64(i64 i);
-Value *value_allocate_tuple();
-Value *value_allocate_function();
+Value *value_allocate_nil(struct Context *restrict context);
+Value *value_allocate_bool(bool b, struct Context *restrict context);
+Value *value_allocate_u8(u8 u, struct Context *restrict context);
+Value *value_allocate_u16(u16 u, struct Context *restrict context);
+Value *value_allocate_u32(u32 u, struct Context *restrict context);
+Value *value_allocate_u64(u64 u, struct Context *restrict context);
+Value *value_allocate_i8(i8 i, struct Context *restrict context);
+Value *value_allocate_i16(i16 i, struct Context *restrict context);
+Value *value_allocate_i32(i32 i, struct Context *restrict context);
+Value *value_allocate_i64(i64 i, struct Context *restrict context);
+Value *value_allocate_tuple(Tuple tuple,
+                            Function *restrict function,
+                            struct Context *restrict context);
+Value *value_allocate_function(Function function,
+                               struct Context *restrict context);
 
 bool value_equal(Value const *v1, Value const *v2);
 
 bool value_is_index(Value const *v);
 u64  value_as_index(Value const *v);
 
-struct Context;
 void print_value(String *restrict string,
                  Value const *restrict v,
                  struct Context *restrict context);

@@ -20,9 +20,11 @@
 
 #include "codegen/x86/imr/layout.h"
 #include "env/context.h"
+#include "env/symbol_table.h"
 
 typedef struct x86_Context {
     x86_Layouts layouts;
+    SymbolTable initializers;
 } x86_Context;
 
 void *x86_context_allocate();
@@ -31,7 +33,6 @@ void  x86_context_deallocate(void *restrict context);
 x86_Layout const *x86_context_layout_of_type(Context *restrict context,
                                              Type const *type);
 
-x86_Layout const *x86_context_layout_of_value(Context *restrict context,
-                                              Value const *restrict value);
+Symbol *x86_context_initializer_at(Context *restrict context, StringView name);
 
 #endif // !EXP_CODEGEN_X86_ENV_CONTEXT_H

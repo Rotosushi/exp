@@ -38,6 +38,10 @@ void x86_local_allocator_destroy(x86_LocalAllocator *restrict local_allocator);
 i32 x86_local_allocator_stack_size(
     x86_LocalAllocator *restrict local_allocator);
 
+x86_Allocation *
+x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
+                                  u32 ssa);
+
 /*
  * #NOTE: Does it really make sense for the allocator to be adding instructions
  * to the function's body? Shouldn't the allocators concern simply be

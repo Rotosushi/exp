@@ -42,6 +42,7 @@ typedef struct x86_Instruction {
     x86_Opcode      opcode;
     x86_OperandKind A_kind;
     x86_OperandKind B_kind;
+    // 5 bytes padding
     x86_OperandData A_data;
     x86_OperandData B_data;
 } x86_Instruction;

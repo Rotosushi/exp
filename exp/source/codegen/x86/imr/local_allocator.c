@@ -46,6 +46,13 @@ i32 x86_local_allocator_stack_size(
     return x86_stack_allocator_stack_size(&local_allocator->stack_allocator);
 }
 
+x86_Allocation *
+x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
+                                  u32 ssa) {
+    exp_assert(local_allocator != NULL);
+    return x86_allocations_at(&local_allocator->allocations, ssa);
+}
+
 void x86_local_allocator_aquire_gpr(x86_LocalAllocator *restrict allocator,
                                     x86_GPR gpr) {
     exp_assert(allocator != NULL);

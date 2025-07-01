@@ -32,6 +32,7 @@ void x86_formal_argument_list_append(x86_FormalArgumentList *restrict arguments,
                                      x86_Allocation *allocation);
 
 typedef struct x86_Function {
+    StringView             name;
     x86_FormalArgumentList arguments;
     x86_Body               body;
     x86_LocalAllocator     local_allocator;
@@ -48,6 +49,9 @@ void x86_function_setup(x86_Function *restrict x86_function,
 
 x86_Allocation *x86_function_formal_argument_at(x86_Function *restrict function,
                                                 u8 index);
+
+x86_Allocation *x86_function_allocation_at(x86_Function *restrict function,
+                                           u32 ssa);
 
 void x86_function_insert_block(x86_Function *restrict function, u32 position);
 void x86_function_prepend_block(x86_Function *restrict function);

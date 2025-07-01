@@ -119,7 +119,7 @@ bool type_equality(Type const *A, Type const *B) {
     }
 }
 
-bool type_is_scalar(Type const *T) {
+bool type_is_primary(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_NIL:
@@ -132,6 +132,16 @@ bool type_is_scalar(Type const *T) {
     case TYPE_KIND_I16:
     case TYPE_KIND_I32:
     case TYPE_KIND_I64:  return true;
+
+    default: return false;
+    }
+}
+
+bool type_is_composite(Type const *restrict type) {
+    exp_assert(type != NULL);
+    switch (type->kind) {
+    case TYPE_KIND_TUPLE:
+    case TYPE_KIND_FUNCTION: return true;
 
     default: return false;
     }
@@ -153,7 +163,7 @@ bool type_is_integral(Type const *restrict type) {
     }
 }
 
-bool type_is_callable(Type const *T) {
+bool type_is_callable(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_FUNCTION: return true;
@@ -161,7 +171,7 @@ bool type_is_callable(Type const *T) {
     }
 }
 
-bool type_is_index(Type const *T) {
+bool type_is_index(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_U8:
@@ -177,7 +187,7 @@ bool type_is_index(Type const *T) {
     }
 }
 
-bool type_is_indexable(Type const *T) {
+bool type_is_indexable(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_TUPLE: return true;

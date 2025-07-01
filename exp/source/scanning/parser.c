@@ -22,6 +22,7 @@
 
 #include "env/error.h"
 #include "imr/operand.h"
+#include "imr/tuple.h"
 #include "scanning/lexer.h"
 #include "scanning/parser.h"
 #include "support/assert.h"
@@ -500,17 +501,17 @@ static bool function(Operand *restrict result, Parser *restrict parser) {
         context_intern(parser->context, curtxt(parser)));
     if (!nexttok(parser)) { return false; }
 
-    Value    *value    = value_allocate_function();
-    Function *function = &value->function;
+    Function function;
+    function_create(&function);
 
     Function *previous = parser->function;
-    parser->function   = function;
+    parser->function   = &function;
 
-    if (!parse_formal_argument_list(function, parser)) { return false; }
+    if (!parse_formal_argument_list(&function, parser)) { return false; }
 
     switch (expect(parser, TOK_RIGHT_ARROW)) {
     case EXPECT_RESULT_SUCCESS: {
-        if (!parse_type(&function->result->type, parser)) { return false; }
+        if (!parse_type(&function.result->type, parser)) { return false; }
         break;
     }
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
@@ -521,7 +522,7 @@ static bool function(Operand *restrict result, Parser *restrict parser) {
     if (!parse_block(result, parser)) { return false; }
 
     parser->function = previous;
-    Value const *fn  = context_constant_function(parser->context, value);
+    Value const *fn  = context_constant_function(parser->context, function);
     *result          = parser_emit_let(parser, operand_constant(fn));
     exp_assert_debug(result->kind == OPERAND_KIND_SSA);
     Local *local = function_lookup_local(parser->function, result->data.ssa);
@@ -534,17 +535,17 @@ static bool lambda(Operand *restrict result, Parser *restrict parser) {
     exp_assert_debug(peek(parser, TOK_BACKSLASH));
     if (!nexttok(parser)) { return false; } // eat "\"
 
-    Value    *value    = value_allocate_function();
-    Function *function = &value->function;
+    Function function;
+    function_create(&function);
 
     Function *previous = parser->function;
-    parser->function   = function;
+    parser->function   = &function;
 
-    if (!parse_formal_argument_list(function, parser)) { return false; }
+    if (!parse_formal_argument_list(&function, parser)) { return false; }
 
     switch (expect(parser, TOK_RIGHT_ARROW)) {
     case EXPECT_RESULT_SUCCESS: {
-        if (!parse_type(&function->result->type, parser)) { return false; }
+        if (!parse_type(&function.result->type, parser)) { return false; }
         break;
     }
     case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
@@ -555,7 +556,7 @@ static bool lambda(Operand *restrict result, Parser *restrict parser) {
     if (!parse_block(result, parser)) { return false; }
 
     parser->function = previous;
-    Value const *fn  = context_constant_function(parser->context, value);
+    Value const *fn  = context_constant_function(parser->context, function);
     *result          = operand_constant(fn);
     return true;
 }
@@ -608,21 +609,19 @@ static bool parse_tuple(Tuple *restrict tuple, Parser *restrict parser) {
 }
 
 static bool parens(Operand *restrict result, Parser *restrict parser) {
-    Value *value = value_allocate_tuple();
-    Tuple *tuple = &value->tuple;
+    Tuple tuple;
+    tuple_create(&tuple);
 
-    if (!parse_tuple(tuple, parser)) { return false; };
+    if (!parse_tuple(&tuple, parser)) { return false; };
 
-    if (tuple->length == 0) {
+    if (tuple.length == 0) {
         *result = operand_constant(context_constant_nil(parser->context));
-        value_deallocate(value);
-    } else if (tuple->length == 1) {
-        *result = tuple->elements[0];
-        value_deallocate(value);
+    } else if (tuple.length == 1) {
+        *result = tuple.elements[0];
+        tuple_destroy(&tuple);
     } else {
-        PANIC("#TODO: Add support for Tuples");
-        //*result =
-        //    operand_constant(context_constant_tuple(parser->context, value));
+        *result = operand_constant(
+            context_constant_tuple(parser->context, tuple, parser->function));
     }
 
     return true;
@@ -668,13 +667,14 @@ binop(Operand *restrict result, Operand left, Parser *restrict parser) {
 
 static bool
 call(Operand *restrict result, Operand left, Parser *restrict parser) {
-    Value *value         = value_allocate_tuple();
-    Tuple *argument_list = &value->tuple;
+    Tuple argument_list;
+    tuple_create(&argument_list);
 
-    if (!parse_tuple(argument_list, parser)) { return false; }
+    if (!parse_tuple(&argument_list, parser)) { return false; }
 
-    Value const *tuple = context_constant_tuple(parser->context, value);
-    Operand      actual_arguments = operand_constant(tuple);
+    Value const *tuple = context_constant_tuple(
+        parser->context, argument_list, parser->function);
+    Operand actual_arguments = operand_constant(tuple);
 
     *result = parser_emit_call(parser, left, actual_arguments);
     return true;

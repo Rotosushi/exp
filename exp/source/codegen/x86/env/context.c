@@ -18,6 +18,7 @@
  */
 
 #include "codegen/x86/env/context.h"
+#include "env/context.h"
 #include "support/allocation.h"
 #include "support/assert.h"
 
@@ -44,4 +45,11 @@ x86_Layout const *x86_context_layout_of_type(Context *restrict context,
         (x86_Context *)context_get_target_context(context);
 
     return x86_layouts_layout_of_type(&x86_context->layouts, type);
+}
+
+Symbol *x86_context_initializer_at(Context *restrict context, StringView name) {
+    exp_assert(context != NULL);
+    x86_Context *x86_context =
+        (x86_Context *)context_get_target_context(context);
+    return symbol_table_at(&x86_context->initializers, name);
 }

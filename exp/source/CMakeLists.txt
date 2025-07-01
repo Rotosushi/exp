@@ -25,7 +25,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/align_of.c
   #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
   #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
-  #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/load.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/initialize_local.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/size_of.c
 
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c

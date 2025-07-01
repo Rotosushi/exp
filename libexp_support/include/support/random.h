@@ -27,14 +27,17 @@ typedef struct SplitMix64State {
 } SplitMix64State;
 
 void splitmix64_seed(SplitMix64State *restrict state, u64 seed);
-u64 splitmix64_next(SplitMix64State *restrict state);
+u64  splitmix64_next(SplitMix64State *restrict state);
 
 typedef struct XorShiftR128PlusState {
     u64 state[2];
 } XorShiftR128PlusState;
 
 void xorshiftr128plus_seed(XorShiftR128PlusState *restrict state, u64 seed);
-u64 xorshiftr128plus_next(XorShiftR128PlusState *restrict state);
+u64  xorshiftr128plus_next(XorShiftR128PlusState *restrict state);
 
+typedef XorShiftR128PlusState RNG_state;
+#define RNG_seed(state, seed) xorshiftr128plus_seed(state, seed)
+#define RNG_next(state)       xorshiftr128plus_next(state)
 
 #endif // !EXP_SUPPORT_RANDOM_H

@@ -1,1 +1,1 @@
-fn main() { return 255; }
+fn main() -> u8 { return 255; }

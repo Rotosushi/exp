@@ -134,10 +134,16 @@ void type_destroy(Type *restrict type);
 bool type_equality(Type const *t1, Type const *t2);
 
 /**
- * A scalar type is a type which is not decomposable into
+ * A primary type is a type which is not decomposable into
  * more primitive types within the compiler.
  */
-bool type_is_scalar(Type const *restrict type);
+bool type_is_primary(Type const *restrict type);
+
+/**
+ * A composite type is a type which is constructed out
+ * of other types, either primary or composite.
+ */
+bool type_is_composite(Type const *restrict type);
 
 /**
  * An integral type is a type which represents some segment of

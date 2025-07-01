@@ -42,6 +42,7 @@ typedef struct FormalArgumentList {
  */
 
 typedef struct Function {
+    StringView         name;
     FormalArgumentList arguments;
     Locals             locals;
     Bytecode           body;

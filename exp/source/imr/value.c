@@ -47,87 +47,101 @@ void value_deallocate(Value *restrict value) {
     deallocate(value);
 }
 
-Value *value_allocate_nil() {
+Value *value_allocate_nil(Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_NIL;
     value->nil   = 0;
+    value->type  = context_nil_type(context);
     return value;
 }
 
-Value *value_allocate_bool(bool b) {
+Value *value_allocate_bool(bool b, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_BOOL;
     value->bool_ = b;
+    value->type  = context_bool_type(context);
     return value;
 }
 
-Value *value_allocate_u8(u8 u) {
+Value *value_allocate_u8(u8 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U8;
     value->u8_   = u;
+    value->type  = context_u8_type(context);
     return value;
 }
 
-Value *value_allocate_u16(u16 u) {
+Value *value_allocate_u16(u16 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U16;
     value->u16_  = u;
+    value->type  = context_u16_type(context);
     return value;
 }
 
-Value *value_allocate_u32(u32 u) {
+Value *value_allocate_u32(u32 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U32;
     value->u32_  = u;
+    value->type  = context_u32_type(context);
     return value;
 }
 
-Value *value_allocate_u64(u64 u) {
+Value *value_allocate_u64(u64 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U64;
     value->u64_  = u;
+    value->type  = context_u64_type(context);
     return value;
 }
 
-Value *value_allocate_i8(i8 i) {
+Value *value_allocate_i8(i8 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I8;
     value->i8_   = i;
+    value->type  = context_i8_type(context);
     return value;
 }
 
-Value *value_allocate_i16(i16 i) {
+Value *value_allocate_i16(i16 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I16;
     value->i16_  = i;
+    value->type  = context_i16_type(context);
     return value;
 }
 
-Value *value_allocate_i32(i32 i) {
+Value *value_allocate_i32(i32 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I32;
     value->i32_  = i;
+    value->type  = context_i32_type(context);
     return value;
 }
 
-Value *value_allocate_i64(i64 i) {
+Value *value_allocate_i64(i64 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I64;
     value->i64_  = i;
+    value->type  = context_i64_type(context);
     return value;
 }
 
-Value *value_allocate_tuple() {
+Value *value_allocate_tuple(Tuple tuple,
+                            Function *restrict function,
+                            Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_TUPLE;
-    tuple_create(&value->tuple);
+    value->tuple = tuple;
+    value->type  = context_type_of_tuple(context, function, &value->tuple);
     return value;
 }
 
-Value *value_allocate_function() {
-    Value *value = value_allocate();
-    value->kind  = VALUE_KIND_FUNCTION;
-    function_create(&value->function);
+Value *value_allocate_function(Function function, Context *restrict context) {
+    Value *value    = value_allocate();
+    value->kind     = VALUE_KIND_FUNCTION;
+    value->function = function;
+    value->type     = context_type_of_function(context, &value->function);
     return value;
 }
 

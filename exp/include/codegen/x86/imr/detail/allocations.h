@@ -33,4 +33,7 @@ x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
                                        Local const *restrict local,
                                        Context *restrict context);
 
+x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
+                                   u32 ssa);
+
 #endif // !EXP_CODEGEN_X86_IMR_ALLOCATIONS_H

@@ -18,8 +18,10 @@
  */
 
 #include "codegen/x86/imr/detail/allocations.h"
+#include "codegen/x86/imr/allocation.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 
 void x86_allocations_create(x86_Allocations *restrict allocations) {
     allocations->length   = 0;
@@ -54,6 +56,19 @@ x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
     }
 
     x86_Allocation *allocation = x86_allocation_allocate(local, context);
-    allocations->buffer[allocations->length++] = allocation;
+    exp_assert(allocation->ssa < allocations->capacity);
+
+    allocations->buffer[allocation->ssa] = allocation;
+    allocations->length += 1;
+    return allocation;
+}
+
+x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
+                                   u32 ssa) {
+    exp_assert(allocations != NULL);
+    exp_assert(ssa < allocations->capacity);
+
+    x86_Allocation *allocation = allocations->buffer[ssa];
+    exp_assert(allocation != NULL);
     return allocation;
 }

@@ -53,7 +53,7 @@ void context_create(Context *restrict context,
     string_initialize(&(context->source_path));
     context->current_error       = error_create();
     context->global_symbol_table = symbol_table_create();
-    constants_create(&context->constants);
+    constants_create(&context->constants, context);
     stack_create(&context->stack);
     context->string_interner = string_interner_create();
     context->type_interner   = type_interner_create();
@@ -572,53 +572,55 @@ Value const *context_constant_false(Context *restrict context) {
 
 Value const *context_constant_u8(Context *restrict context, u8 u8_) {
     assert(context != NULL);
-    return constants_u8(&context->constants, u8_);
+    return constants_u8(&context->constants, u8_, context);
 }
 
 Value const *context_constant_u16(Context *restrict context, u16 u16_) {
     assert(context != NULL);
-    return constants_u16(&context->constants, u16_);
+    return constants_u16(&context->constants, u16_, context);
 }
 
 Value const *context_constant_u32(Context *restrict context, u32 u32_) {
     assert(context != NULL);
-    return constants_u32(&context->constants, u32_);
+    return constants_u32(&context->constants, u32_, context);
 }
 
 Value const *context_constant_u64(Context *restrict context, u64 u64_) {
     assert(context != NULL);
-    return constants_u64(&context->constants, u64_);
+    return constants_u64(&context->constants, u64_, context);
 }
 
 Value const *context_constant_i8(Context *restrict context, i8 i8_) {
     assert(context != NULL);
-    return constants_i8(&context->constants, i8_);
+    return constants_i8(&context->constants, i8_, context);
 }
 
 Value const *context_constant_i16(Context *restrict context, i16 i16_) {
     assert(context != NULL);
-    return constants_i16(&context->constants, i16_);
+    return constants_i16(&context->constants, i16_, context);
 }
 
 Value const *context_constant_i32(Context *restrict context, i32 i32_) {
     assert(context != NULL);
-    return constants_i32(&context->constants, i32_);
+    return constants_i32(&context->constants, i32_, context);
 }
 
 Value const *context_constant_i64(Context *restrict context, i64 i64_) {
     assert(context != NULL);
-    return constants_i64(&context->constants, i64_);
+    return constants_i64(&context->constants, i64_, context);
 }
 
-Value const *context_constant_tuple(Context *restrict context, Value *tuple) {
+Value const *context_constant_tuple(Context *restrict context,
+                                    Tuple tuple,
+                                    Function *restrict function) {
     assert(context != NULL);
-    return constants_tuple(&context->constants, tuple);
+    return constants_tuple(&context->constants, tuple, function, context);
 }
 
 Value const *context_constant_function(Context *restrict context,
-                                       Value *function) {
+                                       Function function) {
     assert(context != NULL);
-    return constants_function(&context->constants, function);
+    return constants_function(&context->constants, function, context);
 }
 
 bool context_stack_empty(Context const *restrict context) {
@@ -706,7 +708,7 @@ Type const *context_type_of_function(Context *restrict context,
                                      Function const *restrict function) {
     exp_assert(context != NULL);
     assert(function != NULL);
-    assert(function->return_type != NULL);
+    assert(function->result != NULL);
 
     TupleType argument_types;
     tuple_type_create(&argument_types);
@@ -717,7 +719,7 @@ Type const *context_type_of_function(Context *restrict context,
     }
 
     return context_function_type(
-        context, function->return_type, argument_types);
+        context, function->result->type, argument_types);
 }
 
 Type const *context_type_of_tuple(Context *restrict context,

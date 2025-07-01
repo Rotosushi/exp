@@ -84,6 +84,13 @@ x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index) {
     return x86_formal_argument_list_at(&x86_function->arguments, index);
 }
 
+x86_Allocation *x86_function_allocation_at(x86_Function *restrict x86_function,
+                                           u32 ssa) {
+    exp_assert(x86_function != NULL);
+    return x86_local_allocator_allocation_at(&x86_function->local_allocator,
+                                             ssa);
+}
+
 void x86_function_insert_block(x86_Function *restrict x86_function,
                                u32 position) {
     exp_assert(x86_function != NULL);
@@ -138,6 +145,9 @@ void x86_function_setup(x86_Function *restrict x86_function,
                         Context *restrict context) {
     exp_assert(x86_function != NULL);
     exp_assert(function != NULL);
+
+    x86_function->name = function->name;
+
     // #NOTE: Mark rsp and rbp as occupied, as these are used by the function
     // to implement it's stack frame at runtime.
     // #NOTE: #OPTIMIZATION: when the function uses no stack space, we can use

@@ -153,9 +153,11 @@ Value const *context_constant_i8(Context *restrict context, i8 i8_);
 Value const *context_constant_i16(Context *restrict context, i16 i16_);
 Value const *context_constant_i32(Context *restrict context, i32 i32_);
 Value const *context_constant_i64(Context *restrict context, i64 i64_);
-Value const *context_constant_tuple(Context *restrict context, Value *tuple);
+Value const *context_constant_tuple(Context *restrict context,
+                                    Tuple tuple,
+                                    Function *restrict function);
 Value const *context_constant_function(Context *restrict context,
-                                       Value *function);
+                                       Function function);
 
 // Stack functions
 bool context_stack_empty(Context const *restrict context);

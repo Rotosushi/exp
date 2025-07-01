@@ -42,21 +42,45 @@ typedef struct Constants {
     ConstantList function_list;
 } Constants;
 
-void constants_create(Constants *restrict constants);
+struct Context;
+
+void constants_create(Constants *restrict constants,
+                      struct Context *restrict context);
 void constants_destroy(Constants *restrict constants);
 
 Value const *constants_nil(Constants *restrict constants);
 Value const *constants_true(Constants *restrict constants);
 Value const *constants_false(Constants *restrict constants);
-Value const *constants_u8(Constants *restrict constants, u8 u8_);
-Value const *constants_u16(Constants *restrict constants, u16 u16_);
-Value const *constants_u32(Constants *restrict constants, u32 u32_);
-Value const *constants_u64(Constants *restrict constants, u64 u64_);
-Value const *constants_i8(Constants *restrict constants, i8 i8_);
-Value const *constants_i16(Constants *restrict constants, i16 i16_);
-Value const *constants_i32(Constants *restrict constants, i32 i32_);
-Value const *constants_i64(Constants *restrict constants, i64 i64_);
-Value const *constants_tuple(Constants *restrict constants, Value *tuple);
-Value const *constants_function(Constants *restrict constants, Value *function);
+Value const *constants_u8(Constants *restrict constants,
+                          u8 u8_,
+                          struct Context *restrict context);
+Value const *constants_u16(Constants *restrict constants,
+                           u16 u16_,
+                           struct Context *restrict context);
+Value const *constants_u32(Constants *restrict constants,
+                           u32 u32_,
+                           struct Context *restrict context);
+Value const *constants_u64(Constants *restrict constants,
+                           u64 u64_,
+                           struct Context *restrict context);
+Value const *constants_i8(Constants *restrict constants,
+                          i8 i8_,
+                          struct Context *restrict context);
+Value const *constants_i16(Constants *restrict constants,
+                           i16 i16_,
+                           struct Context *restrict context);
+Value const *constants_i32(Constants *restrict constants,
+                           i32 i32_,
+                           struct Context *restrict context);
+Value const *constants_i64(Constants *restrict constants,
+                           i64 i64_,
+                           struct Context *restrict context);
+Value const *constants_tuple(Constants *restrict constants,
+                             Tuple tuple,
+                             Function *restrict function,
+                             struct Context *restrict context);
+Value const *constants_function(Constants *restrict constants,
+                                Function function,
+                                struct Context *restrict context);
 
 #endif // !EXP_IMR_CONSTANTS_H

@@ -1,4 +1,4 @@
-fn main () {
+fn main () -> u8 {
 	let x = 1;
 	return x;
 }
