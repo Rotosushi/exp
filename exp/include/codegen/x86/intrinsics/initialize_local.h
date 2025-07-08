@@ -28,14 +28,16 @@ void x86_codegen_initialize_local_from_value(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 void x86_codegen_initialize_local_from_operand(
     x86_Allocation *restrict allocation,
     Operand operand,
     u32     block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_INTRINSICS_LOAD_H

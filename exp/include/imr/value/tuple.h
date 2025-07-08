@@ -16,19 +16,27 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * @file env/frame.h
+ * @brief defines Tuple
  */
 
-#ifndef EXP_ENV_FRAME_H
-#define EXP_ENV_FRAME_H
+#ifndef EXP_IMR_TUPLE_H
+#define EXP_IMR_TUPLE_H
 
-#include "imr/value/function.h"
+#include "imr/block/operand.h"
 
-typedef struct Frame {
-    Function const *function;
-    u32             index;
-    u32             offset;
-    u32             size;
-} Frame;
+typedef struct Tuple {
+    u32      length;
+    u32      capacity;
+    Operand *elements;
+} Tuple;
 
-#endif // !EXP_ENV_FRAME_H
+void tuple_create(Tuple *restrict tuple);
+void tuple_destroy(Tuple *restrict tuple);
+
+bool tuple_equal(Tuple const *A, Tuple const *B);
+bool tuple_index_in_bounds(Tuple const *restrict tuple, u32 index);
+
+void    tuple_append(Tuple *restrict tuple, Operand element);
+Operand tuple_at(Tuple const *restrict tuple, u32 index);
+
+#endif // !EXP_IMR_TUPLE_H

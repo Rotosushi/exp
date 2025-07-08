@@ -17,8 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imr/locals.h"
-#include "imr/local.h"
+#include "imr/value/function/locals.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"

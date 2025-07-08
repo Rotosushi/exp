@@ -16,7 +16,8 @@
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef EXP_IMR_INSTRUCTION_H
 #define EXP_IMR_INSTRUCTION_H
-#include "imr/operand.h"
+
+#include "imr/block/operand.h"
 
 /*
  * #NOTE Control flow instructions which modify the instruction pointer

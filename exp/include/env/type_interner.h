@@ -88,10 +88,10 @@ Type const *type_interner_i16_type(TypeInterner *restrict type_interner);
 Type const *type_interner_i32_type(TypeInterner *restrict type_interner);
 Type const *type_interner_i64_type(TypeInterner *restrict type_interner);
 Type const *type_interner_tuple_type(TypeInterner *restrict type_interer,
-                                     TupleType tuple);
+                                     TypeTuple tuple);
 
 Type const *type_interner_function_type(TypeInterner *restrict type_interner,
                                         Type const *return_type,
-                                        TupleType   argument_types);
+                                        TypeTuple   argument_types);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

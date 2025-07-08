@@ -19,7 +19,7 @@
 
 #include "imr/value.h"
 #include "env/context.h"
-#include "imr/operand.h"
+#include "imr/block/operand.h"
 #include "support/allocation.h"
 #include "support/assert.h"
 #include "support/unreachable.h"

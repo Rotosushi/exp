@@ -18,8 +18,8 @@
 #define EXP_IMR_VALUE_H
 #include <stdbool.h>
 
-#include "imr/function.h"
-#include "imr/tuple.h"
+#include "imr/value/function.h"
+#include "imr/value/tuple.h"
 #include "support/string.h"
 
 typedef enum ValueKind {

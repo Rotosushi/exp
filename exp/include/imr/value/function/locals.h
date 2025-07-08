@@ -18,7 +18,7 @@
 #ifndef EXP_IMR_LOCALS_H
 #define EXP_IMR_LOCALS_H
 
-#include "imr/local.h"
+#include "imr/value/function/local.h"
 
 typedef struct Locals {
     u32    size;

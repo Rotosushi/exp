@@ -14,24 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_FUNCTION_TYPE_H
-#define EXP_IMR_FUNCTION_TYPE_H
+#ifndef EXP_IMR_LAYOUT_PRIMARY_H
+#define EXP_IMR_LAYOUT_PRIMARY_H
 
-#include "imr/tuple_type.h"
+#include "support/scalar.h"
 
-typedef struct FunctionType {
-    struct Type const *return_type;
-    TupleType          argument_types;
-} FunctionType;
+typedef struct LayoutPrimary {
+    u64 size;
+    u64 alignment;
+} LayoutPrimary;
 
-void function_type_create(FunctionType *restrict function,
-                          struct Type const *return_type,
-                          TupleType          arguments);
-void function_type_destroy(FunctionType *restrict function);
-
-bool function_type_equal(FunctionType const *A, FunctionType const *B);
-
-void print_function_type(String *restrict string,
-                         FunctionType const *restrict function);
-
-#endif // !EXP_IMR_FUNCTION_TYPE_H
+#endif // !EXP_IMR_LAYOUT_PRIMARY_H

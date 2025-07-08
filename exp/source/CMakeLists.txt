@@ -83,16 +83,18 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/evaluate/top.c
   ${EXP_SOURCE_DIR}/evaluate/evaluate.c
 
-  ${EXP_SOURCE_DIR}/imr/bytecode.c
-  ${EXP_SOURCE_DIR}/imr/function_type.c
-  ${EXP_SOURCE_DIR}/imr/function.c
-  ${EXP_SOURCE_DIR}/imr/instruction.c
-  ${EXP_SOURCE_DIR}/imr/local.c
-  ${EXP_SOURCE_DIR}/imr/locals.c
-  ${EXP_SOURCE_DIR}/imr/operand.c
-  ${EXP_SOURCE_DIR}/imr/tuple_type.c
-  ${EXP_SOURCE_DIR}/imr/tuple.c
+  ${EXP_SOURCE_DIR}/imr/block/instruction.c
+  ${EXP_SOURCE_DIR}/imr/block/operand.c
+  ${EXP_SOURCE_DIR}/imr/type/composite.c
+  ${EXP_SOURCE_DIR}/imr/type/function.c
+  ${EXP_SOURCE_DIR}/imr/type/primary.c
+  ${EXP_SOURCE_DIR}/imr/type/tuple.c
+  ${EXP_SOURCE_DIR}/imr/value/function/local.c
+  ${EXP_SOURCE_DIR}/imr/value/function/locals.c
+  ${EXP_SOURCE_DIR}/imr/value/function.c
+  ${EXP_SOURCE_DIR}/imr/value/tuple.c
   ${EXP_SOURCE_DIR}/imr/type.c
+  ${EXP_SOURCE_DIR}/imr/block.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
   ${EXP_SOURCE_DIR}/scanning/lexer.c

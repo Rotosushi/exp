@@ -1,4 +1,4 @@
-// Copyright (C) 2025 cade-weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,20 +14,18 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_IMR_LAYOUT_TUPLE_H
+#define EXP_IMR_LAYOUT_TUPLE_H
 
-#ifndef EXP_IMR_LOCAL_H
-#define EXP_IMR_LOCAL_H
+#include "imr/layout/primary.h"
 
-#include "imr/lifetime.h"
-#include "imr/type.h"
+struct Layout;
 
-typedef struct Local {
-    u32         ssa;
-    StringView  name;
-    Lifetime    lifetime;
-    Type const *type;
-} Local;
+typedef struct LayoutTuple {
+    LayoutPrimary   primary;
+    u32             length;
+    u32             capacity;
+    struct Layout **buffer;
+} LayoutTuple;
 
-void local_create(Local *restrict local, u32 ssa);
-
-#endif // !EXP_IMR_LOCAL_H
+#endif // EXP_IMR_LAYOUT_TUPLE_H

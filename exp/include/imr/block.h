@@ -17,7 +17,7 @@
 #ifndef EXP_IMR_BYTECODE_H
 #define EXP_IMR_BYTECODE_H
 
-#include "imr/instruction.h"
+#include "imr/block/instruction.h"
 
 /**
  * @brief represents a section of instructions.
@@ -26,19 +26,19 @@
  * the structure. What is a name which is independant of the
  * underlying implementation? Chunk? Instructions? Block?
  */
-typedef struct Bytecode {
+typedef struct Block {
     u32          length;
     u32          capacity;
     Instruction *buffer;
-} Bytecode;
+} Block;
 
-void bytecode_create(Bytecode *restrict bytecode);
-void bytecode_destroy(Bytecode *restrict bytecode);
+void bytecode_create(Block *restrict bytecode);
+void bytecode_destroy(Block *restrict bytecode);
 
-void bytecode_append(Bytecode *restrict bytecode, Instruction I);
+void bytecode_append(Block *restrict bytecode, Instruction I);
 
 struct Context;
 void print_bytecode(String *restrict string,
-                    Bytecode const *restrict bc,
+                    Block const *restrict bc,
                     struct Context *restrict context);
 #endif // !EXP_IMR_BYTECODE_H

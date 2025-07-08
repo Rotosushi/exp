@@ -14,21 +14,26 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_IMR_LAYOUT_H
+#define EXP_IMR_LAYOUT_H
 
-/**
- * @file env/frame.h
- */
+#include "imr/layout/tuple.h"
 
-#ifndef EXP_ENV_FRAME_H
-#define EXP_ENV_FRAME_H
+typedef enum LayoutKind {
+    LAYOUT_KIND_PRIMARY,
+    LAYOUT_KIND_PADDING,
+    LAYOUT_KIND_TUPLE,
+} LayoutKind;
 
-#include "imr/value/function.h"
+typedef union LayoutData {
+    LayoutPrimary primary;
+    u64           padding;
+    LayoutTuple   tuple;
+} LayoutData;
 
-typedef struct Frame {
-    Function const *function;
-    u32             index;
-    u32             offset;
-    u32             size;
-} Frame;
+typedef struct Layout {
+    LayoutKind kind;
+    LayoutData data;
+} Layout;
 
-#endif // !EXP_ENV_FRAME_H
+#endif // !EXP_IMR_LAYOUT_H

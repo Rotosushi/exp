@@ -17,8 +17,8 @@
 #ifndef EXP_IMR_FUNCTION_H
 #define EXP_IMR_FUNCTION_H
 
-#include "imr/bytecode.h"
-#include "imr/locals.h"
+#include "imr/block.h"
+#include "imr/value/function/locals.h"
 #include "support/string_view.h"
 
 typedef struct FormalArgumentList {
@@ -45,7 +45,7 @@ typedef struct Function {
     StringView         name;
     FormalArgumentList arguments;
     Locals             locals;
-    Bytecode           body;
+    Block              body;
     Local             *result;
 } Function;
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2025 cade-weinberg
 //
 // This file is part of exp.
 //
@@ -15,23 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file imr/subject.h
- * @brief defines a struct which is simple a function, context
- * pointer pair. Useful whenever we need a context pointer and a
- * function pointer togther, such as when we are inferring types,
- * or validating bytecode.
- */
+#ifndef EXP_IMR_LOCAL_H
+#define EXP_IMR_LOCAL_H
 
-#ifndef EXP_IMR_SUBJECT_H
-#define EXP_IMR_SUBJECT_H
+#include "imr/type.h"
+#include "imr/value/function/lifetime.h"
 
-#include "env/context.h"
-#include "imr/function.h"
+typedef struct Local {
+    u32         ssa;
+    StringView  name;
+    Lifetime    lifetime;
+    Type const *type;
+} Local;
 
-typedef struct Subject {
-    Function *function;
-    Context  *context;
-} Subject;
+void local_create(Local *restrict local, u32 ssa);
 
-#endif // EXP_IMR_SUBJECT_H
+#endif // !EXP_IMR_LOCAL_H

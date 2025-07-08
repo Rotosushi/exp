@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imr/instruction.h"
+#include "imr/block/instruction.h"
 #include "env/context.h"
 #include "support/assert.h"
 #include "support/unreachable.h"

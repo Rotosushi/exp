@@ -389,7 +389,7 @@ static bool validate_dot(Instruction instruction,
     exp_assert_always(operand_is_index(operand_C(instruction)));
     u64 index = operand_as_index(operand_C(instruction));
     exp_assert_always(index <= u32_MAX);
-    exp_assert_always(tuple_type_index_in_bounds(tuple, (u32)index));
+    exp_assert_always(type_tuple_index_in_bounds(tuple, (u32)index));
 
     Type const *element_type = tuple_type_at(tuple, (u32)index);
     exp_assert_always(type_equality(element_type, A_type));

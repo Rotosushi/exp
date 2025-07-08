@@ -542,14 +542,14 @@ Type const *context_i64_type(Context *context) {
     return type_interner_i64_type(&(context->type_interner));
 }
 
-Type const *context_tuple_type(Context *context, TupleType tuple) {
+Type const *context_tuple_type(Context *context, TypeTuple tuple) {
     assert(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple);
 }
 
 Type const *context_function_type(Context    *context,
                                   Type const *return_type,
-                                  TupleType   argument_types) {
+                                  TypeTuple   argument_types) {
     assert(context != nullptr);
     return type_interner_function_type(
         &context->type_interner, return_type, argument_types);
@@ -710,12 +710,12 @@ Type const *context_type_of_function(Context *restrict context,
     assert(function != NULL);
     assert(function->result != NULL);
 
-    TupleType argument_types;
-    tuple_type_create(&argument_types);
+    TypeTuple argument_types;
+    type_tuple_create(&argument_types);
     for (u64 i = 0; i < function->arguments.length; ++i) {
         Local      *formal_argument = function->arguments.list[i];
         Type const *argument_type   = formal_argument->type;
-        tuple_type_append(&argument_types, argument_type);
+        type_tuple_append(&argument_types, argument_type);
     }
 
     return context_function_type(
@@ -728,12 +728,12 @@ Type const *context_type_of_tuple(Context *restrict context,
     exp_assert(context != NULL);
     exp_assert(function != NULL);
     exp_assert(tuple != NULL);
-    TupleType tuple_type;
-    tuple_type_create(&tuple_type);
+    TypeTuple tuple_type;
+    type_tuple_create(&tuple_type);
     for (u64 i = 0; i < tuple->length; ++i) {
         Type const *T =
             context_type_of_operand(context, function, tuple->elements[i]);
-        tuple_type_append(&tuple_type, T);
+        type_tuple_append(&tuple_type, T);
     }
     return context_tuple_type(context, tuple_type);
 }

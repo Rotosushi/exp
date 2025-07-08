@@ -17,39 +17,39 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imr/function_type.h"
+#include "imr/type/function.h"
 #include "imr/type.h"
 #include "support/assert.h"
 
-void function_type_create(FunctionType *restrict function,
+void type_function_create(TypeFunction *restrict function,
                           Type const *return_type,
-                          TupleType   arguments) {
+                          TypeTuple   arguments) {
     exp_assert(function != NULL);
     function->return_type    = return_type;
     function->argument_types = arguments;
 }
 
-void function_type_destroy(FunctionType *restrict function) {
+void type_function_destroy(TypeFunction *restrict function) {
     exp_assert(function != NULL);
     function->return_type = NULL;
-    tuple_type_destroy(&function->argument_types);
+    type_tuple_destroy(&function->argument_types);
 }
 
-bool function_type_equal(FunctionType const *A, FunctionType const *B) {
+bool type_function_equal(TypeFunction const *A, TypeFunction const *B) {
     exp_assert(A != NULL);
     exp_assert(B != NULL);
     if (A == B) { return 1; }
 
     if (!type_equality(A->return_type, B->return_type)) { return 0; }
 
-    return tuple_type_equal(&A->argument_types, &B->argument_types);
+    return type_tuple_equal(&A->argument_types, &B->argument_types);
 }
 
-void print_function_type(String *restrict string,
-                         FunctionType const *restrict function_type) {
+void print_type_function(String *restrict string,
+                         TypeFunction const *restrict function_type) {
     string_append(string, SV("fn "));
-    TupleType const *tuple_type = &function_type->argument_types;
-    print_tuple_type(string, tuple_type);
+    TypeTuple const *tuple_type = &function_type->argument_types;
+    print_type_tuple(string, tuple_type);
     string_append(string, SV(" -> "));
     print_type(string, function_type->return_type);
 }

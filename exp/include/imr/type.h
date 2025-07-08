@@ -18,22 +18,12 @@
 #define EXP_IMR_TYPE_H
 #include <stdbool.h>
 
-#include "imr/function_type.h"
-#include "imr/tuple_type.h"
+#include "imr/type/composite.h"
+#include "imr/type/primary.h"
 
 typedef enum TypeKind {
-    TYPE_KIND_NIL,
-    TYPE_KIND_BOOL,
-    TYPE_KIND_U8,
-    TYPE_KIND_U16,
-    TYPE_KIND_U32,
-    TYPE_KIND_U64,
-    TYPE_KIND_I8,
-    TYPE_KIND_I16,
-    TYPE_KIND_I32,
-    TYPE_KIND_I64,
-    TYPE_KIND_TUPLE,
-    TYPE_KIND_FUNCTION,
+    TYPE_KIND_PRIMARY,
+    TYPE_KIND_COMPOSITE,
 } TypeKind;
 
 /**
@@ -109,9 +99,8 @@ typedef enum TypeKind {
 typedef struct Type {
     TypeKind kind;
     union {
-        u8           scalar;
-        TupleType    tuple;
-        FunctionType function;
+        TypePrimary   primary;
+        TypeComposite composite;
     };
 } Type;
 
@@ -125,10 +114,10 @@ void type_create_i8(Type *restrict type);
 void type_create_i16(Type *restrict type);
 void type_create_i32(Type *restrict type);
 void type_create_i64(Type *restrict type);
-void type_create_tuple(Type *restrict type, TupleType tuple_type);
+void type_create_tuple(Type *restrict type, TypeTuple tuple);
 void type_create_function(Type *restrict type,
                           Type const *result,
-                          TupleType   args);
+                          TypeTuple   args);
 void type_destroy(Type *restrict type);
 
 bool type_equality(Type const *t1, Type const *t2);

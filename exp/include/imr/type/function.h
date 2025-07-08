@@ -14,29 +14,24 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_IMR_FUNCTION_TYPE_H
+#define EXP_IMR_FUNCTION_TYPE_H
 
-/**
- * @brief defines Tuple
- */
+#include "imr/type/tuple.h"
 
-#ifndef EXP_IMR_TUPLE_H
-#define EXP_IMR_TUPLE_H
+typedef struct TypeFunction {
+    struct Type const *return_type;
+    TypeTuple          argument_types;
+} TypeFunction;
 
-#include "imr/operand.h"
+void type_function_create(TypeFunction *restrict function,
+                          struct Type const *return_type,
+                          TypeTuple          arguments);
+void type_function_destroy(TypeFunction *restrict function);
 
-typedef struct Tuple {
-    u32      length;
-    u32      capacity;
-    Operand *elements;
-} Tuple;
+bool type_function_equal(TypeFunction const *A, TypeFunction const *B);
 
-void tuple_create(Tuple *restrict tuple);
-void tuple_destroy(Tuple *restrict tuple);
+void print_type_function(String *restrict string,
+                         TypeFunction const *restrict function);
 
-bool tuple_equal(Tuple const *A, Tuple const *B);
-bool tuple_index_in_bounds(Tuple const *restrict tuple, u32 index);
-
-void    tuple_append(Tuple *restrict tuple, Operand element);
-Operand tuple_at(Tuple const *restrict tuple, u32 index);
-
-#endif // !EXP_IMR_TUPLE_H
+#endif // !EXP_IMR_FUNCTION_TYPE_H

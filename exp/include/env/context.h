@@ -136,10 +136,10 @@ Type const *context_i8_type(Context *restrict context);
 Type const *context_i16_type(Context *restrict context);
 Type const *context_i32_type(Context *restrict context);
 Type const *context_i64_type(Context *restrict context);
-Type const *context_tuple_type(Context *restrict context, TupleType tuple);
+Type const *context_tuple_type(Context *restrict context, TypeTuple tuple);
 Type const *context_function_type(Context *restrict context,
                                   Type const *return_type,
-                                  TupleType   argument_types);
+                                  TypeTuple   argument_types);
 
 // Constants functions
 Value const *context_constant_nil(Context *restrict context);

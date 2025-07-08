@@ -233,7 +233,7 @@ static bool parse_tuple_type(Type const **restrict result,
     if (!nexttok(parser)) { return false; } // eat '('
 
     TupleType tuple_type;
-    tuple_type_create(&tuple_type);
+    type_tuple_create(&tuple_type);
 
     bool found_comma = false;
     do {

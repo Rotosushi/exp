@@ -22,84 +22,75 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-void type_create_nil(Type *restrict type) {
+static void type_create_primary(Type *restrict type, TypePrimary primary) {
     exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_NIL, .scalar = 0};
+    type->kind    = TYPE_KIND_PRIMARY;
+    type->primary = primary;
+}
+
+static void type_create_composite(Type *restrict type,
+                                  TypeComposite composite) {
+    exp_assert(type != NULL);
+    type->kind      = TYPE_KIND_COMPOSITE;
+    type->composite = composite;
+}
+
+void type_create_nil(Type *restrict type) {
+    type_create_primary(type, type_primary_nil());
 }
 
 void type_create_bool(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_BOOL, .scalar = 0};
+    type_create_primary(type, type_primary_bool());
 }
 
 void type_create_u8(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_U8, .scalar = 0};
+    type_create_primary(type, type_primary_u8());
 }
 
 void type_create_u16(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_U16, .scalar = 0};
+    type_create_primary(type, type_primary_u16());
 }
 
 void type_create_u32(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_U32, .scalar = 0};
+    type_create_primary(type, type_primary_u32());
 }
 
 void type_create_u64(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_U64, .scalar = 0};
+    type_create_primary(type, type_primary_u64());
 }
 
 void type_create_i8(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_I8, .scalar = 0};
+    type_create_primary(type, type_primary_i8());
 }
 
 void type_create_i16(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_I16, .scalar = 0};
+    type_create_primary(type, type_primary_i16());
 }
 
 void type_create_i32(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_I32, .scalar = 0};
+    type_create_primary(type, type_primary_i32());
 }
 
 void type_create_i64(Type *restrict type) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_I64, .scalar = 0};
+    type_create_primary(type, type_primary_i64());
 }
 
-void type_create_tuple(Type *restrict type, TupleType tuple) {
-    exp_assert(type != NULL);
-    *type = (Type){.kind = TYPE_KIND_TUPLE, .tuple = tuple};
+void type_create_tuple(Type *restrict type, TypeTuple tuple) {
+    type_create_composite(type, type_composite_tuple(tuple));
 }
 
 void type_create_function(Type *restrict type,
                           Type const *result,
-                          TupleType   args) {
-    exp_assert(type != NULL);
-    *type = (Type){
-        .kind = TYPE_KIND_FUNCTION, .function = (FunctionType){result, args}
-    };
+                          TypeTuple   args) {
+    type_create_composite(type, type_composite_function(result, args));
 }
 
 void type_destroy(Type *restrict type) {
     exp_assert(type != NULL);
     switch (type->kind) {
-    case TYPE_KIND_TUPLE: {
-        tuple_type_destroy(&type->tuple);
-        break;
-    }
+    case TYPE_KIND_COMPOSITE: type_composite_destroy(&type->composite); break;
 
-    case TYPE_KIND_FUNCTION: {
-        tuple_type_destroy(&type->function.argument_types);
-        break;
-    }
-
-    // #NOTE: no other types dynamically allocate
+    // #NOTE: no primary types dynamically allocate
     default: break;
     }
 }
@@ -110,78 +101,43 @@ bool type_equality(Type const *A, Type const *B) {
     if (A->kind != B->kind) { return 0; }
 
     switch (A->kind) {
-    case TYPE_KIND_TUPLE: return tuple_type_equal(&A->tuple, &B->tuple);
-    case TYPE_KIND_FUNCTION:
-        return function_type_equal(&A->function, &B->function);
+    case TYPE_KIND_PRIMARY:
+        return type_primary_equality(A->primary, B->primary);
+
+    case TYPE_KIND_COMPOSITE:
+        return type_composite_equality(&A->composite, &B->composite);
 
     // #NOTE: scalar types are equal when their kinds are equal
     default: return true;
     }
 }
 
-bool type_is_primary(Type const *restrict T) {
-    exp_assert(T != NULL);
-    switch (T->kind) {
-    case TYPE_KIND_NIL:
-    case TYPE_KIND_BOOL:
-    case TYPE_KIND_U8:
-    case TYPE_KIND_U16:
-    case TYPE_KIND_U32:
-    case TYPE_KIND_U64:
-    case TYPE_KIND_I8:
-    case TYPE_KIND_I16:
-    case TYPE_KIND_I32:
-    case TYPE_KIND_I64:  return true;
-
-    default: return false;
-    }
+bool type_is_primary(Type const *restrict type) {
+    exp_assert(type != NULL);
+    return type->kind == TYPE_KIND_PRIMARY;
 }
 
 bool type_is_composite(Type const *restrict type) {
     exp_assert(type != NULL);
-    switch (type->kind) {
-    case TYPE_KIND_TUPLE:
-    case TYPE_KIND_FUNCTION: return true;
-
-    default: return false;
-    }
+    return type->kind == TYPE_KIND_COMPOSITE;
 }
 
 bool type_is_integral(Type const *restrict type) {
     exp_assert(type != NULL);
-    switch (type->kind) {
-    case TYPE_KIND_U8:
-    case TYPE_KIND_U16:
-    case TYPE_KIND_U32:
-    case TYPE_KIND_U64:
-    case TYPE_KIND_I8:
-    case TYPE_KIND_I16:
-    case TYPE_KIND_I32:
-    case TYPE_KIND_I64: return true;
-
-    default: return false;
-    }
+    if (!type_is_primary(type)) { return false; }
+    return type_primary_is_integral(type->primary);
 }
 
-bool type_is_callable(Type const *restrict T) {
-    exp_assert(T != NULL);
-    switch (T->kind) {
-    case TYPE_KIND_FUNCTION: return true;
-    default:                 return false;
-    }
+bool type_is_callable(Type const *restrict type) {
+    exp_assert(type != NULL);
+    if (!type_is_composite(type)) { return false; }
+    return type_composite_is_callable(&type->composite);
 }
 
 bool type_is_index(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
-    case TYPE_KIND_U8:
-    case TYPE_KIND_U16:
-    case TYPE_KIND_U32:
-    case TYPE_KIND_U64:
-    case TYPE_KIND_I8:
-    case TYPE_KIND_I16:
-    case TYPE_KIND_I32:
-    case TYPE_KIND_I64: return true;
+    case TYPE_KIND_PRIMARY: return type_primary_is_index(T->primary);
 
     default: return false;
     }
@@ -190,26 +146,17 @@ bool type_is_index(Type const *restrict T) {
 bool type_is_indexable(Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
-    case TYPE_KIND_TUPLE: return true;
-    default:              return false;
+    case TYPE_KIND_COMPOSITE: return type_composite_is_indexable(&T->composite);
+
+    default: return false;
     }
 }
 
 void print_type(String *restrict string, Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
-    case TYPE_KIND_NIL:      string_append(string, SV("nil")); break;
-    case TYPE_KIND_BOOL:     string_append(string, SV("bool")); break;
-    case TYPE_KIND_U8:       string_append(string, SV("u8")); break;
-    case TYPE_KIND_U16:      string_append(string, SV("u16")); break;
-    case TYPE_KIND_U32:      string_append(string, SV("u32")); break;
-    case TYPE_KIND_U64:      string_append(string, SV("u64")); break;
-    case TYPE_KIND_I8:       string_append(string, SV("i8")); break;
-    case TYPE_KIND_I16:      string_append(string, SV("i16")); break;
-    case TYPE_KIND_I32:      string_append(string, SV("i32")); break;
-    case TYPE_KIND_I64:      string_append(string, SV("i64")); break;
-    case TYPE_KIND_TUPLE:    print_tuple_type(string, &T->tuple); break;
-    case TYPE_KIND_FUNCTION: print_function_type(string, &T->function); break;
+    case TYPE_KIND_PRIMARY:   print_type_primary(string, T->primary);
+    case TYPE_KIND_COMPOSITE: print_type_composite(string, &T->composite);
 
     default: EXP_UNREACHABLE();
     }

@@ -29,39 +29,44 @@ void x86_codegen_initialize_local_from_tuple(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 void x86_codegen_initialize_local_from_lambda(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 void x86_codegen_initialize_local_from_local(
     x86_Allocation *restrict allocation,
     u32 ssa,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 void x86_codegen_initialize_local_from_label(
     x86_Allocation *restrict allocation,
     ConstantString const *restrict label,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context);
 
 void x86_codegen_initialize_local_from_value(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context) {
     exp_assert(allocation != NULL);
     exp_assert(value != NULL);
-    exp_assert(function != NULL);
+    exp_assert(x86_function != NULL);
     exp_assert(context != NULL);
 
     exp_assert(x86_allocation_alive(allocation, block_index));
@@ -71,68 +76,68 @@ void x86_codegen_initialize_local_from_value(
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: break; // don't initialize
     case VALUE_KIND_NIL:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_nil()));
         break;
 
     case VALUE_KIND_BOOL:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_bool(value->bool_)));
         break;
 
     case VALUE_KIND_U8:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u8(value->u8_)));
         break;
 
     case VALUE_KIND_U16:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u16(value->u16_)));
         break;
 
     case VALUE_KIND_U32:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u32(value->u32_)));
         break;
 
     case VALUE_KIND_U64:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u64(value->u64_)));
         break;
 
     case VALUE_KIND_I8:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i8(value->i8_)));
         break;
 
     case VALUE_KIND_I16:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i16(value->i16_)));
         break;
 
     case VALUE_KIND_I32:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i32(value->i32_)));
         break;
 
     case VALUE_KIND_I64:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i64(value->i64_)));
         break;
 
     case VALUE_KIND_TUPLE:
         x86_codegen_initialize_local_from_tuple(
-            allocation, value, block_index, function, context);
+            allocation, value, block_index, function, x86_function, context);
         break;
 
     case VALUE_KIND_FUNCTION:
@@ -140,7 +145,7 @@ void x86_codegen_initialize_local_from_value(
         // for capturing any context are equivalent to function pointers. so we
         // silently implement them as such here.
         x86_codegen_initialize_local_from_lambda(
-            allocation, value, block_index, function, context);
+            allocation, value, block_index, function, x86_function, context);
         break;
 
     default: EXP_UNREACHABLE();
@@ -151,10 +156,11 @@ void x86_codegen_initialize_local_from_operand(
     x86_Allocation *restrict allocation,
     Operand operand,
     u32     block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context) {
     exp_assert(allocation != NULL);
-    exp_assert(function != NULL);
+    exp_assert(x86_function != NULL);
     exp_assert(context != NULL);
 
     exp_assert(x86_allocation_alive(allocation, block_index));
@@ -163,75 +169,87 @@ void x86_codegen_initialize_local_from_operand(
         // Initialize a local from another local, this can be implemented as
         // a copy.
     case OPERAND_KIND_SSA:
-        x86_codegen_initialize_local_from_local(
-            allocation, operand.data.ssa, block_index, function, context);
+        x86_codegen_initialize_local_from_local(allocation,
+                                                operand.data.ssa,
+                                                block_index,
+                                                function,
+                                                x86_function,
+                                                context);
         break;
 
     case OPERAND_KIND_LABEL:
-        x86_codegen_initialize_local_from_label(
-            allocation, operand.data.label, block_index, function, context);
+        x86_codegen_initialize_local_from_label(allocation,
+                                                operand.data.label,
+                                                block_index,
+                                                function,
+                                                x86_function,
+                                                context);
         break;
 
     case OPERAND_KIND_CONSTANT:
-        x86_codegen_initialize_local_from_value(
-            allocation, operand.data.constant, block_index, function, context);
+        x86_codegen_initialize_local_from_value(allocation,
+                                                operand.data.constant,
+                                                block_index,
+                                                function,
+                                                x86_function,
+                                                context);
 
     case OPERAND_KIND_NIL:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_nil()));
         break;
 
     case OPERAND_KIND_BOOL:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_bool(operand.data.bool_)));
         break;
 
     case OPERAND_KIND_U8:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u8(operand.data.u8_)));
         break;
 
     case OPERAND_KIND_U16:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u16(operand.data.u16_)));
         break;
 
     case OPERAND_KIND_U32:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u32(operand.data.u32_)));
         break;
 
     case OPERAND_KIND_U64:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_u64(operand.data.u64_)));
         break;
 
     case OPERAND_KIND_I8:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i8(operand.data.i8_)));
         break;
 
     case OPERAND_KIND_I16:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i16(operand.data.i16_)));
         break;
 
     case OPERAND_KIND_I32:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i32(operand.data.i32_)));
         break;
 
     case OPERAND_KIND_I64:
-        x86_function_append(function,
+        x86_function_append(x86_function,
                             x86_mov(x86_operand_location(allocation->location),
                                     x86_operand_i64(operand.data.i64_)));
         break;
@@ -241,7 +259,7 @@ void x86_codegen_initialize_local_from_operand(
 }
 
 StringView unique_name_for_initializer(x86_Allocation *restrict allocation,
-                                       x86_Function *restrict function,
+                                       x86_Function *restrict x86_function,
                                        Context *restrict context) {
     // the name of the function, plus the name of the local,
     // should be enough to create a unique initializer name.
@@ -254,7 +272,7 @@ StringView unique_name_for_initializer(x86_Allocation *restrict allocation,
     // - Polymorphic functions break this.
     String name;
     string_initialize(&name);
-    string_append(&name, function->name);
+    string_append(&name, x86_function->name);
     string_append(&name, SV("_"));
     string_append(&name, allocation->name);
     string_append(&name, SV("_initializer"));
@@ -274,7 +292,8 @@ void x86_codegen_initialize_local_from_tuple(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
+    Function *restrict function,
+    x86_Function *restrict x86_function,
     Context *restrict context) {
     exp_assert(allocation != NULL);
     exp_assert(value != NULL);
@@ -282,31 +301,35 @@ void x86_codegen_initialize_local_from_tuple(
     exp_assert(context != NULL);
 
     StringView name =
-        unique_name_for_initializer(allocation, function, context);
+        unique_name_for_initializer(allocation, x86_function, context);
     Symbol *initializer = x86_context_initializer_at(context, name);
     initializer->value  = value;
+    initializer->type   = value->type;
 }
 
 void x86_codegen_initialize_local_from_lambda(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    x86_Function *restrict function,
-    Context *restrict context);
+    Function *restrict function,
+    x86_Function *restrict x86_function,
+    Context *restrict context) {}
 
 void x86_codegen_initialize_local_from_local(
     x86_Allocation *restrict allocation,
     u32 ssa,
     u32 block_index,
-    x86_Function *restrict function,
-    Context *restrict context);
+    Function *restrict function,
+    x86_Function *restrict x86_function,
+    Context *restrict context) {}
 
 void x86_codegen_initialize_local_from_label(
     x86_Allocation *restrict allocation,
     ConstantString const *restrict label,
     u32 block_index,
-    x86_Function *restrict function,
-    Context *restrict context);
+    Function *restrict function,
+    x86_Function *restrict x86_function,
+    Context *restrict context) {}
 
 // static void
 // x86_codegen_load_i64(x86_Address *dst, i64 value, x86_Context *x64_context) {

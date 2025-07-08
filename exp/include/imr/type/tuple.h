@@ -21,19 +21,19 @@
 
 struct Type;
 
-typedef struct TupleType {
+typedef struct TypeTuple {
     u32                 length;
     u32                 capacity;
     struct Type const **types;
-} TupleType;
+} TypeTuple;
 
-void tuple_type_create(TupleType *restrict tuple);
-void tuple_type_destroy(TupleType *restrict tuple_type);
-bool tuple_type_equal(TupleType const *A, TupleType const *B);
-bool tuple_type_index_in_bounds(TupleType const *restrict tuple, u32 index);
-void tuple_type_append(TupleType *restrict tuple_type, struct Type const *type);
-struct Type const *tuple_type_at(TupleType const *restrict tuple, u32 index);
+void type_tuple_create(TypeTuple *restrict tuple);
+void type_tuple_destroy(TypeTuple *restrict tuple_type);
+bool type_tuple_equal(TypeTuple const *A, TypeTuple const *B);
+bool type_tuple_index_in_bounds(TypeTuple const *restrict tuple, u32 index);
+void type_tuple_append(TypeTuple *restrict tuple_type, struct Type const *type);
+struct Type const *type_tuple_at(TypeTuple const *restrict tuple, u32 index);
 
-void print_tuple_type(String *restrict string, TupleType const *restrict tuple);
+void print_type_tuple(String *restrict string, TypeTuple const *restrict tuple);
 
 #endif // !EXP_IMR_TUPLE_TYPE_H

@@ -19,19 +19,19 @@
 #include <stddef.h>
 
 #include "env/context.h"
-#include "imr/bytecode.h"
+#include "imr/block.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
 
-void bytecode_create(Bytecode *restrict bytecode) {
+void bytecode_create(Block *restrict bytecode) {
     exp_assert(bytecode != NULL);
     bytecode->length   = 0;
     bytecode->capacity = 0;
     bytecode->buffer   = NULL;
 }
 
-void bytecode_destroy(Bytecode *restrict bytecode) {
+void bytecode_destroy(Block *restrict bytecode) {
     exp_assert(bytecode != NULL);
     bytecode->length   = 0;
     bytecode->capacity = 0;
@@ -39,17 +39,17 @@ void bytecode_destroy(Bytecode *restrict bytecode) {
     bytecode->buffer = NULL;
 }
 
-static bool bytecode_full(Bytecode *restrict bytecode) {
+static bool bytecode_full(Block *restrict bytecode) {
     return bytecode->capacity <= (bytecode->length + 1);
 }
 
-static void bytecode_grow(Bytecode *restrict bytecode) {
+static void bytecode_grow(Block *restrict bytecode) {
     Growth_u32 g = array_growth_u32(bytecode->capacity, sizeof(Instruction));
     bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
     bytecode->capacity = g.new_capacity;
 }
 
-void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
+void bytecode_append(Block *restrict bytecode, Instruction I) {
     if (bytecode_full(bytecode)) { bytecode_grow(bytecode); }
 
     bytecode->buffer[bytecode->length] = I;
@@ -57,7 +57,7 @@ void bytecode_append(Bytecode *restrict bytecode, Instruction I) {
 }
 
 void print_bytecode(String *restrict string,
-                    Bytecode const *restrict bc,
+                    Block const *restrict bc,
                     struct Context *restrict context) {
     // walk the entire buffer and print each instruction
     for (u32 i = 0; i < bc->length; ++i) {

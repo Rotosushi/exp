@@ -64,7 +64,7 @@ static bool infer_types_constant(Type const **result,
     case VALUE_KIND_TUPLE: {
         Tuple const *tuple = &constant->tuple;
         TupleType    tuple_type;
-        tuple_type_create(&tuple_type);
+        type_tuple_create(&tuple_type);
         for (u32 index = 0; index < tuple->length; ++index) {
             Operand     element      = tuple->elements[index];
             Type const *element_type = NULL;
