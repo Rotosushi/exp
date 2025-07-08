@@ -14,20 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
+#define EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
 
-#ifndef EXP_CODEGEN_X86_ENV_CONTEXT_H
-#define EXP_CODEGEN_X86_ENV_CONTEXT_H
+#include "codegen/x86/imr/location.h"
+#include "imr/layout.h"
 
-#include "env/context.h"
-#include "env/symbol_table.h"
+x86_PtrKind x86_ptr_kind_of(Layout const *restrict layout);
 
-typedef struct x86_Context {
-    SymbolTable initializers;
-} x86_Context;
-
-void *x86_context_allocate();
-void  x86_context_deallocate(void *restrict context);
-
-Symbol *x86_context_initializer_at(Context *restrict context, StringView name);
-
-#endif // !EXP_CODEGEN_X86_ENV_CONTEXT_H
+#endif // !EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
