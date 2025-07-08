@@ -18,6 +18,7 @@
 #define EXP_IMR_TYPE_H
 #include <stdbool.h>
 
+#include "imr/layout.h"
 #include "imr/type/composite.h"
 #include "imr/type/primary.h"
 
@@ -102,22 +103,27 @@ typedef struct Type {
         TypePrimary   primary;
         TypeComposite composite;
     };
+    Layout const *layout;
 } Type;
 
-void type_create_nil(Type *restrict type);
-void type_create_bool(Type *restrict type);
-void type_create_u8(Type *restrict type);
-void type_create_u16(Type *restrict type);
-void type_create_u32(Type *restrict type);
-void type_create_u64(Type *restrict type);
-void type_create_i8(Type *restrict type);
-void type_create_i16(Type *restrict type);
-void type_create_i32(Type *restrict type);
-void type_create_i64(Type *restrict type);
-void type_create_tuple(Type *restrict type, TypeTuple tuple);
+struct Context;
+void type_create_nil(Type *restrict type, struct Context *restrict context);
+void type_create_bool(Type *restrict type, struct Context *restrict context);
+void type_create_u8(Type *restrict type, struct Context *restrict context);
+void type_create_u16(Type *restrict type, struct Context *restrict context);
+void type_create_u32(Type *restrict type, struct Context *restrict context);
+void type_create_u64(Type *restrict type, struct Context *restrict context);
+void type_create_i8(Type *restrict type, struct Context *restrict context);
+void type_create_i16(Type *restrict type, struct Context *restrict context);
+void type_create_i32(Type *restrict type, struct Context *restrict context);
+void type_create_i64(Type *restrict type, struct Context *restrict context);
+void type_create_tuple(Type *restrict type,
+                       TypeTuple tuple,
+                       struct Context *restrict context);
 void type_create_function(Type *restrict type,
                           Type const *result,
-                          TypeTuple   args);
+                          TypeTuple   args,
+                          struct Context *restrict context);
 void type_destroy(Type *restrict type);
 
 bool type_equality(Type const *t1, Type const *t2);

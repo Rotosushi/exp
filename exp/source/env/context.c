@@ -793,6 +793,12 @@ LayoutPrimary context_layout_of_primary(Context *restrict context,
                           target->align_of(&primary));
 }
 
+Layout const *context_layout_of(Context *restrict context, Type const *type) {
+    exp_assert(context != NULL);
+    exp_assert(type != NULL);
+    return layout_interner_layout_of(&context->layout_interner, type);
+}
+
 bool context_at_top_level(Context const *restrict context) {
     assert(context != NULL);
     return context->frames.size == 1;

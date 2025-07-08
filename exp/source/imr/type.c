@@ -18,71 +18,80 @@
  */
 #include <stdlib.h>
 
+#include "env/context.h"
 #include "imr/type.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-static void type_create_primary(Type *restrict type, TypePrimary primary) {
+static void type_create_primary(Type *restrict type,
+                                TypePrimary primary,
+                                Context *restrict context) {
     exp_assert(type != NULL);
     type->kind    = TYPE_KIND_PRIMARY;
     type->primary = primary;
+    type->layout  = context_layout_of(context, type);
 }
 
 static void type_create_composite(Type *restrict type,
-                                  TypeComposite composite) {
+                                  TypeComposite composite,
+                                  Context *restrict context) {
     exp_assert(type != NULL);
     type->kind      = TYPE_KIND_COMPOSITE;
     type->composite = composite;
+    type->layout    = context_layout_of(context, type);
 }
 
-void type_create_nil(Type *restrict type) {
-    type_create_primary(type, type_primary_nil());
+void type_create_nil(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_nil(), context);
 }
 
-void type_create_bool(Type *restrict type) {
-    type_create_primary(type, type_primary_bool());
+void type_create_bool(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_bool(), context);
 }
 
-void type_create_u8(Type *restrict type) {
-    type_create_primary(type, type_primary_u8());
+void type_create_u8(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_u8(), context);
 }
 
-void type_create_u16(Type *restrict type) {
-    type_create_primary(type, type_primary_u16());
+void type_create_u16(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_u16(), context);
 }
 
-void type_create_u32(Type *restrict type) {
-    type_create_primary(type, type_primary_u32());
+void type_create_u32(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_u32(), context);
 }
 
-void type_create_u64(Type *restrict type) {
-    type_create_primary(type, type_primary_u64());
+void type_create_u64(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_u64(), context);
 }
 
-void type_create_i8(Type *restrict type) {
-    type_create_primary(type, type_primary_i8());
+void type_create_i8(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_i8(), context);
 }
 
-void type_create_i16(Type *restrict type) {
-    type_create_primary(type, type_primary_i16());
+void type_create_i16(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_i16(), context);
 }
 
-void type_create_i32(Type *restrict type) {
-    type_create_primary(type, type_primary_i32());
+void type_create_i32(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_i32(), context);
 }
 
-void type_create_i64(Type *restrict type) {
-    type_create_primary(type, type_primary_i64());
+void type_create_i64(Type *restrict type, Context *restrict context) {
+    type_create_primary(type, type_primary_i64(), context);
 }
 
-void type_create_tuple(Type *restrict type, TypeTuple tuple) {
-    type_create_composite(type, type_composite_tuple(tuple));
+void type_create_tuple(Type *restrict type,
+                       TypeTuple tuple,
+                       Context *restrict context) {
+    type_create_composite(type, type_composite_tuple(tuple), context);
 }
 
 void type_create_function(Type *restrict type,
                           Type const *result,
-                          TypeTuple   args) {
-    type_create_composite(type, type_composite_function(result, args));
+                          TypeTuple   args,
+                          Context *restrict context) {
+    type_create_composite(type, type_composite_function(result, args), context);
 }
 
 void type_destroy(Type *restrict type) {
