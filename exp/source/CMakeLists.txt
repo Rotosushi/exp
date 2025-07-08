@@ -85,6 +85,9 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/imr/block/instruction.c
   ${EXP_SOURCE_DIR}/imr/block/operand.c
+  ${EXP_SOURCE_DIR}/imr/layout/primary.c
+  ${EXP_SOURCE_DIR}/imr/layout/tuple.c
+  ${EXP_SOURCE_DIR}/imr/layout.c
   ${EXP_SOURCE_DIR}/imr/type/composite.c
   ${EXP_SOURCE_DIR}/imr/type/function.c
   ${EXP_SOURCE_DIR}/imr/type/primary.c

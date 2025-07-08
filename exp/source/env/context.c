@@ -129,6 +129,11 @@ void *context_get_target_context(Context const *restrict context) {
     return context->options.target_context;
 }
 
+Target *context_get_target(Context const *restrict context) {
+    exp_assert(context != NULL);
+    return context->options.target;
+}
+
 i32 context_compile_source(Context *restrict context, StringView source_path) {
     exp_assert(context != NULL);
     string_assign(&context->source_path, source_path);
@@ -780,16 +785,12 @@ Type const *context_type_of_operand(Context *restrict context,
     }
 }
 
-u64 context_size_of(Context *restrict context, Type const *type) {
+LayoutPrimary context_layout_of_primary(Context *restrict context,
+                                        TypePrimary primary) {
     exp_assert(context != NULL);
-    exp_assert(type != NULL);
-    return context->options.target->size_of(context, type);
-}
-
-u64 context_align_of(Context *restrict context, Type const *type) {
-    exp_assert(context != NULL);
-    exp_assert(type != NULL);
-    return context->options.target->align_of(context, type);
+    Target *target = context_get_target(context);
+    return layout_primary(target->size_of(&primary),
+                          target->align_of(&primary));
 }
 
 bool context_at_top_level(Context const *restrict context) {

@@ -18,14 +18,23 @@
 #define EXP_IMR_LAYOUT_TUPLE_H
 
 #include "imr/layout/primary.h"
+#include "imr/type/tuple.h"
 
 struct Layout;
 
 typedef struct LayoutTuple {
-    LayoutPrimary   primary;
-    u32             length;
-    u32             capacity;
-    struct Layout **buffer;
+    LayoutPrimary         primary;
+    u32                   length;
+    u32                   capacity;
+    struct Layout const **buffer;
 } LayoutTuple;
+
+struct LayoutInterner;
+
+void layout_tuple_create(LayoutTuple *restrict layout,
+                         TypeTuple const *restrict tuple,
+                         struct LayoutInterner *restrict interner);
+
+void layout_tuple_destroy(LayoutTuple *restrict layout);
 
 #endif // EXP_IMR_LAYOUT_TUPLE_H

@@ -21,6 +21,7 @@
 #include "env/context_options.h"
 #include "env/error.h"
 #include "env/frames.h"
+#include "env/layout_interner.h"
 #include "env/stack.h"
 #include "env/string_interner.h"
 #include "env/symbol_table.h"
@@ -35,6 +36,7 @@ typedef struct Context {
     String         source_path;
     StringInterner string_interner;
     TypeInterner   type_interner;
+    LayoutInterner layout_interner;
     SymbolTable    global_symbol_table;
     Constants      constants;
     Stack          stack;
@@ -64,7 +66,8 @@ bool context_shall_cleanup_object_artifact(Context const *restrict context);
 
 void context_print_compile_actions(Context const *restrict context);
 
-void *context_get_target_context(Context const *restrict context);
+void   *context_get_target_context(Context const *restrict context);
+Target *context_get_target(Context const *restrict context);
 
 // Compilation Helpers
 i32 context_compile_source(Context *restrict context, StringView source);
@@ -194,8 +197,8 @@ Type const *context_type_of_operand(Context *restrict context,
                                     Function const *restrict function,
                                     Operand operand);
 
-u64 context_size_of(Context *restrict context, Type const *type);
-u64 context_align_of(Context *restrict context, Type const *type);
+LayoutPrimary context_layout_of_primary(Context *restrict context,
+                                        TypePrimary primary);
 
 // Evaluation helpers
 bool context_at_top_level(Context const *restrict context);

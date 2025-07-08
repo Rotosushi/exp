@@ -31,12 +31,14 @@
 struct String;
 struct Symbol;
 struct Context;
-struct Type;
+struct TypePrimary;
 
-typedef u64 (*size_of_fn)(struct Context *restrict context,
-                          struct Type const *type);
-typedef u64 (*align_of_fn)(struct Context *restrict context,
-                           struct Type const *type);
+// #NOTE: we factor out the target size-of
+// and align-of which handles composite types, because it's the
+// same algorithm for any target. The only target dependent
+// information is the size and alignment of the primary types.
+typedef u64 (*size_of_fn)(struct TypePrimary const *type);
+typedef u64 (*align_of_fn)(struct TypePrimary const *type);
 
 // #NOTE with this signature we are forced into combining
 // code generation with emission. However, this removes

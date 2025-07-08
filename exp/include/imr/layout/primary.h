@@ -24,4 +24,8 @@ typedef struct LayoutPrimary {
     u64 alignment;
 } LayoutPrimary;
 
+inline LayoutPrimary layout_primary(u64 size, u64 alignment) {
+    return (LayoutPrimary){.size = size, .alignment = alignment};
+}
+
 #endif // !EXP_IMR_LAYOUT_PRIMARY_H

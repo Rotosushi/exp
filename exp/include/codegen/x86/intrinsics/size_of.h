@@ -18,8 +18,7 @@
 #define EXP_INTRINSICS_SIZEOF_H
 #include <stddef.h>
 
-#include "env/context.h"
-#include "imr/type.h"
+#include "imr/type/primary.h"
 
 /**
  * @brief returns the x86-64 size in bytes of the given type
@@ -29,6 +28,6 @@
  * @param type
  * @return u64
  */
-u64 x86_size_of(Context *restrict context, Type const *restrict type);
+u64 x86_size_of(TypePrimary const *restrict type);
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

@@ -36,4 +36,15 @@ typedef struct Layout {
     LayoutData data;
 } Layout;
 
+void layout_create_primary(Layout *restrict layout, LayoutPrimary primary);
+void layout_create_padding(Layout *restrict layout, u64 length);
+void layout_create_tuple(Layout *restrict layout,
+                         TypeTuple const *restrict tuple,
+                         struct LayoutInterner *restrict interner);
+
+void layout_destroy(Layout *restrict layout);
+
+u64 layout_size_of(Layout const *restrict layout);
+u64 layout_align_of(Layout const *restrict layout);
+
 #endif // !EXP_IMR_LAYOUT_H

@@ -18,12 +18,22 @@
  */
 
 #include "codegen/x86/intrinsics/size_of.h"
-#include "codegen/x86/env/context.h"
 #include "support/assert.h"
+#include "support/unreachable.h"
 
-u64 x86_size_of(Context *restrict context, Type const *restrict type) {
-    exp_assert(context != NULL);
+u64 x86_size_of(TypePrimary const *restrict type) {
     exp_assert(type != NULL);
-    x86_Layout const *layout = x86_context_layout_of_type(context, type);
-    return x86_layout_size_of(layout);
+    switch (type->kind) {
+    case TYPE_PRIMARY_KIND_NIL:  return 1;
+    case TYPE_PRIMARY_KIND_BOOL: return 1;
+    case TYPE_PRIMARY_KIND_U8:   return 1;
+    case TYPE_PRIMARY_KIND_U16:  return 2;
+    case TYPE_PRIMARY_KIND_U32:  return 4;
+    case TYPE_PRIMARY_KIND_U64:  return 8;
+    case TYPE_PRIMARY_KIND_I8:   return 1;
+    case TYPE_PRIMARY_KIND_I16:  return 2;
+    case TYPE_PRIMARY_KIND_I32:  return 4;
+    case TYPE_PRIMARY_KIND_I64:  return 8;
+    default:                     EXP_UNREACHABLE();
+    }
 }
