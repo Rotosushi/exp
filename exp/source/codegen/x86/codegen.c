@@ -78,10 +78,8 @@ i32 x86_codegen(String *restrict buffer,
     case TYPE_KIND_I32:
     case TYPE_KIND_I64:
     case TYPE_KIND_TUPLE: {
-        x86_Layout const *layout =
-            x86_context_layout_of_type(context, symbol->type);
-        u64 size      = x86_layout_size_of(layout);
-        u64 alignment = x86_layout_align_of(layout);
+        u64 size      = layout_size_of(symbol->type->layout);
+        u64 alignment = layout_align_of(symbol->type->layout);
         gas_directive_data(buffer);
         gas_directive_globl(symbol->name, buffer);
         gas_directive_balign(alignment, buffer);

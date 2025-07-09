@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "adt/graph.h"
+#include "adt/sparse_digraph.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/panic.h"
@@ -51,7 +51,7 @@ SparseDigraph sparse_digraph_create() {
     SparseDigraph g;
     g.length   = 0;
     g.capacity = 0;
-    g.list     = NULL;
+    g.buffer   = NULL;
     return g;
 }
 
@@ -59,21 +59,21 @@ void sparse_digraph_initialize(SparseDigraph *restrict g) {
     assert(g != NULL);
     g->length   = 0;
     g->capacity = 0;
-    g->list     = NULL;
+    g->buffer   = NULL;
 }
 
 void sparse_digraph_destroy(SparseDigraph *restrict g) {
     assert(g != NULL);
 
     for (u64 i = 0; i < g->length; ++i) {
-        Edge *edge = g->list[i];
+        Edge *edge = g->buffer[i];
         if (edge != NULL) { edge_destroy(edge); }
     }
 
     g->length   = 0;
     g->capacity = 0;
-    deallocate(g->list);
-    g->list = NULL;
+    deallocate(g->buffer);
+    g->buffer = NULL;
 }
 
 static bool sparse_digraph_full(SparseDigraph *restrict graph) {
@@ -82,7 +82,7 @@ static bool sparse_digraph_full(SparseDigraph *restrict graph) {
 
 static void sparse_digraph_grow(SparseDigraph *restrict graph) {
     Growth_u64 g    = array_growth_u64(graph->capacity, sizeof(Edge *));
-    graph->list     = reallocate(graph->list, g.alloc_size);
+    graph->buffer   = reallocate(graph->buffer, g.alloc_size);
     graph->capacity = g.new_capacity;
 }
 
@@ -91,8 +91,8 @@ u64 sparse_digraph_add_vertex(SparseDigraph *restrict graph) {
 
     if (sparse_digraph_full(graph)) { sparse_digraph_grow(graph); }
 
-    u64 vertex          = graph->length;
-    graph->list[vertex] = NULL;
+    u64 vertex            = graph->length;
+    graph->buffer[vertex] = NULL;
     graph->length += 1;
     return vertex;
 }
@@ -104,7 +104,7 @@ void sparse_digraph_add_edge(SparseDigraph *restrict graph,
     assert((source < graph->length) && "source vertex does not exist.");
     assert((target < graph->length) && "target vertex does not exist.");
 
-    Edge **edge = graph->list + source;
+    Edge **edge = graph->buffer + source;
     if (*edge == NULL) {
         *edge = edge_create(target, NULL);
     } else {
@@ -149,8 +149,8 @@ VertexList sparse_digraph_vertex_fanout(SparseDigraph *restrict graph,
     assert(graph != NULL);
     assert((vertex < graph->length) && "vertex does not exist.");
 
-    VertexList vl = vertex_list_create();
-    Edge *edge    = graph->list[vertex];
+    VertexList vl   = vertex_list_create();
+    Edge      *edge = graph->buffer[vertex];
     while (edge != NULL) {
         vertext_list_append(&vl, edge->target);
         edge = edge->next;
@@ -172,7 +172,7 @@ VertexList sparse_digraph_vertex_fanin(SparseDigraph *restrict graph,
 
     VertexList vl = vertex_list_create();
     for (u64 i = 0; i < graph->length; ++i) {
-        Edge *edge = graph->list[i];
+        Edge *edge = graph->buffer[i];
         if ((i != vertex) && (edge != NULL) &&
             list_contains_vertex(edge, vertex)) {
             vertext_list_append(&vl, i);

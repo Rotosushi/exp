@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/adt/dynamic_bitset.c
   ${EXP_SOURCE_DIR}/adt/graph.c
 
   ${EXP_SOURCE_DIR}/analysis/infer_types.c
@@ -87,7 +88,6 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/block/operand.c
   ${EXP_SOURCE_DIR}/imr/layout/primary.c
   ${EXP_SOURCE_DIR}/imr/layout/tuple.c
-  ${EXP_SOURCE_DIR}/imr/layout.c
   ${EXP_SOURCE_DIR}/imr/type/composite.c
   ${EXP_SOURCE_DIR}/imr/type/function.c
   ${EXP_SOURCE_DIR}/imr/type/primary.c
@@ -96,8 +96,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/imr/value/function/locals.c
   ${EXP_SOURCE_DIR}/imr/value/function.c
   ${EXP_SOURCE_DIR}/imr/value/tuple.c
-  ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/block.c
+  ${EXP_SOURCE_DIR}/imr/layout.c
+  ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 
   ${EXP_SOURCE_DIR}/scanning/lexer.c

@@ -14,34 +14,35 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_GRAPH_H
-#define EXP_UTILITY_GRAPH_H
+#ifndef EXP_ADT_SPARSE_DIGRAPH_H
+#define EXP_ADT_SPARSE_DIGRAPH_H
 
 #include "support/scalar.h"
 
+// #TODO: Edge can be refactored into a array list instead of a linked list.
 typedef struct Edge {
-    u64 target;
+    u64          target;
     struct Edge *next;
 } Edge;
 
 typedef struct SparseDigraph {
-    u64 length;
-    u64 capacity;
-    Edge **list;
+    u64    length;
+    u64    capacity;
+    Edge **buffer;
 } SparseDigraph;
 
 SparseDigraph sparse_digraph_create();
-void sparse_digraph_initialize(SparseDigraph *restrict graph);
-void sparse_digraph_destroy(SparseDigraph *restrict graph);
+void          sparse_digraph_initialize(SparseDigraph *restrict graph);
+void          sparse_digraph_destroy(SparseDigraph *restrict graph);
 
-u64 sparse_digraph_add_vertex(SparseDigraph *restrict graph);
+u64  sparse_digraph_add_vertex(SparseDigraph *restrict graph);
 void sparse_digraph_add_edge(SparseDigraph *restrict graph,
                              u64 source,
                              u64 target);
 
 typedef struct VertexList {
-    u64 count;
-    u64 capacity;
+    u64  count;
+    u64  capacity;
     u64 *list;
 } VertexList;
 
@@ -69,4 +70,4 @@ VertexList sparse_digraph_vertex_fanout(SparseDigraph *restrict graph,
 VertexList sparse_digraph_vertex_fanin(SparseDigraph *restrict graph,
                                        u64 vertex);
 
-#endif // !EXP_UTILITY_GRAPH_H
+#endif // !EXP_ADT_SPARSE_DIGRAPH_H
