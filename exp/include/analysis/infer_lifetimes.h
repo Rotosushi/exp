@@ -18,7 +18,7 @@
 #ifndef EXP_ANALYSIS_INFER_LIFETIMES_H
 #define EXP_ANALYSIS_INFER_LIFETIMES_H
 
-#include "imr/function.h"
+#include "imr/value/function.h"
 
 /**
  * @brief fills in the lifetime information of the SSA locals.

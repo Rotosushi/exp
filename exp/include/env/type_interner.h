@@ -68,7 +68,7 @@ typedef struct TypeInterner {
  *
  * @return TypeInterner
  */
-TypeInterner type_interner_create();
+TypeInterner type_interner_create(struct Context *restrict context);
 
 /**
  * @brief destroy a TypeInterner
@@ -88,10 +88,12 @@ Type const *type_interner_i16_type(TypeInterner *restrict type_interner);
 Type const *type_interner_i32_type(TypeInterner *restrict type_interner);
 Type const *type_interner_i64_type(TypeInterner *restrict type_interner);
 Type const *type_interner_tuple_type(TypeInterner *restrict type_interer,
-                                     TypeTuple tuple);
+                                     TypeTuple tuple,
+                                     struct Context *restrict context);
 
 Type const *type_interner_function_type(TypeInterner *restrict type_interner,
                                         Type const *return_type,
-                                        TypeTuple   argument_types);
+                                        TypeTuple   argument_types,
+                                        struct Context *restrict context);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

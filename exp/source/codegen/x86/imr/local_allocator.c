@@ -18,10 +18,10 @@
  */
 
 #include "codegen/x86/imr/local_allocator.h"
-#include "codegen/x86/imr/detail/allocations.h"
-#include "codegen/x86/imr/detail/incoming_argument_allocator.h"
-#include "codegen/x86/imr/detail/register_allocator.h"
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/local_allocator/allocations.h"
+#include "codegen/x86/imr/local_allocator/incoming_argument_allocator.h"
+#include "codegen/x86/imr/local_allocator/register_allocator.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
@@ -76,22 +76,20 @@ void x86_local_allocator_release_expired(x86_LocalAllocator *restrict allocator,
 x86_Allocation *
 x86_local_allocator_allocate_local(x86_LocalAllocator *restrict allocator,
                                    Local const *restrict local,
-                                   u32 block_index,
-                                   Context *restrict context) {
+                                   u32 block_index) {
     exp_assert(allocator != NULL);
     exp_assert(local != NULL);
-    exp_assert(context != NULL);
 
     x86_local_allocator_release_expired(allocator, block_index);
 
     x86_Allocation *allocation =
-        x86_allocations_append(&allocator->allocations, local, context);
+        x86_allocations_append(&allocator->allocations, local);
 
     // #NOTE: When we add an "address of" operator, we must handle
     //  the fact that locals can live in registers, and thus may not
     //  have a valid address at all.
 
-    u64 size = x86_layout_size_of(allocation->layout);
+    u64 size = x86_allocation_size_of(allocation);
     if ((x86_gpr_valid_size(size)) &&
         (x86_register_allocator_allocate_to_next_available(
             &allocator->register_allocator, allocation))) {
@@ -111,15 +109,13 @@ x86_local_allocator_allocate_local(x86_LocalAllocator *restrict allocator,
 x86_Allocation *x86_local_allocator_allocate_result(
     x86_LocalAllocator *restrict local_allocator,
     Local const *restrict local,
-    Context *restrict context,
     x86_FormalArgumentList *restrict x86_arguments) {
     exp_assert(local_allocator != NULL);
     exp_assert(local != NULL);
-    exp_assert(context != NULL);
     exp_assert(x86_arguments != NULL);
 
     x86_Allocation *allocation =
-        x86_allocations_append(&local_allocator->allocations, local, context);
+        x86_allocations_append(&local_allocator->allocations, local);
     u64 size = x86_allocation_size_of(allocation);
     if (x86_gpr_valid_size(size)) {
         // #HACK: since we know the result is going into rAX
@@ -195,11 +191,9 @@ x86_argument_buffer_append(x86_ArgumentBuffer *restrict argument_buffer,
 void x86_local_allocator_allocate_incoming_arguments(
     x86_LocalAllocator *restrict local_allocator,
     FormalArgumentList const *restrict arguments,
-    Context *restrict context,
     x86_FormalArgumentList *restrict x86_arguments) {
     exp_assert(local_allocator != NULL);
     exp_assert(arguments != NULL);
-    exp_assert(context != NULL);
     exp_assert(x86_arguments != NULL);
 
     x86_ArgumentBuffer staging;
@@ -208,8 +202,8 @@ void x86_local_allocator_allocate_incoming_arguments(
     for (u32 index = 0; index < arguments->length; ++index) {
         Local *local = arguments->list[index];
 
-        x86_Allocation *allocation = x86_allocations_append(
-            &local_allocator->allocations, local, context);
+        x86_Allocation *allocation =
+            x86_allocations_append(&local_allocator->allocations, local);
 
         x86_formal_argument_list_append(x86_arguments, allocation);
 

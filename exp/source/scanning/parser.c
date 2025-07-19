@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 #include "env/error.h"
-#include "imr/operand.h"
-#include "imr/tuple.h"
+#include "imr/block/operand.h"
+#include "imr/value/tuple.h"
 #include "scanning/lexer.h"
 #include "scanning/parser.h"
 #include "support/assert.h"
@@ -232,7 +232,7 @@ static bool parse_tuple_type(Type const **restrict result,
     assert(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; } // eat '('
 
-    TupleType tuple_type;
+    TypeTuple tuple_type;
     type_tuple_create(&tuple_type);
 
     bool found_comma = false;
@@ -241,7 +241,7 @@ static bool parse_tuple_type(Type const **restrict result,
         if (!parse_type(&element, parser)) { return false; }
         assert(element != NULL);
 
-        tuple_type_append(&tuple_type, element);
+        type_tuple_append(&tuple_type, element);
 
         switch (expect(parser, TOK_COMMA)) {
         case EXPECT_RESULT_SUCCESS:         found_comma = true; break;
@@ -262,7 +262,7 @@ static bool parse_tuple_type(Type const **restrict result,
     // a tuple type of length 1 is equivalent to that type.
     if (tuple_type.length == 1) {
         *result = tuple_type.types[0];
-        tuple_type_destroy(&tuple_type);
+        type_tuple_destroy(&tuple_type);
     } else {
         *result = context_tuple_type(parser->context, tuple_type);
     }

@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/detail/incoming_argument_allocator.h"
+#include "codegen/x86/imr/local_allocator/incoming_argument_allocator.h"
 #include "support/assert.h"
 
 void x86_incoming_argument_allocator_create(

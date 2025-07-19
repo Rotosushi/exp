@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 
 
 set(SOURCE_FILES 
+  ${EXP_SOURCE_DIR}/adt/dynamic_bitset_matrix.c
   ${EXP_SOURCE_DIR}/adt/dynamic_bitset.c
-  ${EXP_SOURCE_DIR}/adt/graph.c
+  ${EXP_SOURCE_DIR}/adt/sparse_digraph.c
 
   ${EXP_SOURCE_DIR}/analysis/infer_types.c
   ${EXP_SOURCE_DIR}/analysis/infer_lifetimes.c
@@ -40,22 +41,24 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/allocations.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/incoming_argument_allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/register_allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/register_pool.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/detail/stack_allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation/location.c
+
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/body/block.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/body/instruction.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/body/operand.c
+
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator/allocations.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator/incoming_argument_allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator/register_allocator.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator/register_pool.c
+  ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator/stack_allocator.c
 
   ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/block.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/body.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/function.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/instruction.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/layout.c
+  #${EXP_SOURCE_DIR}/codegen/x86/imr/layout.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/location.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
-  ${EXP_SOURCE_DIR}/codegen/x86/imr/operand.c
+  #${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
   
 

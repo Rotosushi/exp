@@ -21,12 +21,12 @@
 #include "scanning/parser.h"
 #include "support/io.h"
 #include "support/string.h"
+#include "test_context.h"
 #include "test_resources.h"
 
 static i32 test_parse(StringView path) {
-    ContextOptions options = {};
-    Context        context;
-    context_create(&context, &options);
+    Context context;
+    test_context_create(&context);
 
     Parser parser;
     parser_create(&parser, &context);

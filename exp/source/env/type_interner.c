@@ -61,18 +61,18 @@ static void type_list_append(TypeList *restrict type_list,
     type_list->buffer[type_list->size++] = type;
 }
 
-TypeInterner type_interner_create() {
+TypeInterner type_interner_create(struct Context *restrict context) {
     TypeInterner type_interner;
-    type_create_nil(&type_interner.nil_type);
-    type_create_bool(&type_interner.bool_type);
-    type_create_u8(&type_interner.u8_type);
-    type_create_u16(&type_interner.u16_type);
-    type_create_u32(&type_interner.u32_type);
-    type_create_u64(&type_interner.u64_type);
-    type_create_i8(&type_interner.i8_type);
-    type_create_i16(&type_interner.i16_type);
-    type_create_i32(&type_interner.i32_type);
-    type_create_i64(&type_interner.i64_type);
+    type_create_nil(&type_interner.nil_type, context);
+    type_create_bool(&type_interner.bool_type, context);
+    type_create_u8(&type_interner.u8_type, context);
+    type_create_u16(&type_interner.u16_type, context);
+    type_create_u32(&type_interner.u32_type, context);
+    type_create_u64(&type_interner.u64_type, context);
+    type_create_i8(&type_interner.i8_type, context);
+    type_create_i16(&type_interner.i16_type, context);
+    type_create_i32(&type_interner.i32_type, context);
+    type_create_i64(&type_interner.i64_type, context);
     type_list_create(&type_interner.tuple_types);
     type_list_create(&type_interner.function_types);
     return type_interner;
@@ -136,21 +136,23 @@ Type const *type_interner_i64_type(TypeInterner *restrict type_interner) {
 }
 
 Type const *type_interner_tuple_type(TypeInterner *restrict type_interner,
-                                     TupleType tuple) {
+                                     TypeTuple tuple,
+                                     struct Context *restrict context) {
     assert(type_interner != NULL);
     Type *type = allocate(sizeof(Type));
-    type_create_tuple(type, tuple);
+    type_create_tuple(type, tuple, context);
     type_list_append(&type_interner->tuple_types, type);
     return type;
 }
 
 Type const *type_interner_function_type(TypeInterner *restrict type_interner,
                                         Type const *return_type,
-                                        TupleType   argument_types) {
+                                        TypeTuple   argument_types,
+                                        struct Context *restrict context) {
     assert(type_interner != NULL);
     assert(return_type != NULL);
     Type *type = allocate(sizeof(Type));
-    type_create_function(type, return_type, argument_types);
+    type_create_function(type, return_type, argument_types, context);
     type_list_append(&type_interner->function_types, type);
     return type;
 }

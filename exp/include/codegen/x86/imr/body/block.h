@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X86_BYTECODE_H
 #define EXP_BACKEND_X86_BYTECODE_H
 
-#include "codegen/x86/imr/instruction.h"
+#include "codegen/x86/imr/body/instruction.h"
 #include "support/string.h"
 
 /*

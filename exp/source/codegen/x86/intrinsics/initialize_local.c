@@ -193,6 +193,7 @@ void x86_codegen_initialize_local_from_operand(
                                                 function,
                                                 x86_function,
                                                 context);
+        break;
 
     case OPERAND_KIND_NIL:
         x86_function_append(x86_function,

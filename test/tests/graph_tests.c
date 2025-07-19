@@ -18,7 +18,7 @@
  */
 #include <stdlib.h>
 
-#include "adt/graph.h"
+#include "adt/sparse_digraph.h"
 
 static bool list_contains(VertexList *restrict vl, u64 vertex) {
     for (u64 i = 0; i < vl->length; ++i) {

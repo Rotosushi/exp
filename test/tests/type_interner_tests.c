@@ -18,23 +18,25 @@
  */
 #include <stdlib.h>
 
-#include "env/type_interner.h"
+#include "test_context.h"
 
 i32 type_interner_tests([[maybe_unused]] i32   argc,
                         [[maybe_unused]] char *argv[]) {
-    TypeInterner ti      = type_interner_create();
-    bool         failure = 0;
+    Context context;
+    test_context_create(&context);
 
-    Type const *t0 = type_interner_i64_type(&ti);
-    Type const *t1 = type_interner_i64_type(&ti);
+    bool failure = 0;
+
+    Type const *t0 = context_i64_type(&context);
+    Type const *t1 = context_i64_type(&context);
     failure |= !type_equality(t0, t1);
     failure |= t0 != t1;
 
-    Type const *t2 = type_interner_nil_type(&ti);
+    Type const *t2 = context_nil_type(&context);
     failure |= type_equality(t2, t0);
     failure |= t0 == t2;
 
-    type_interner_destroy(&ti);
+    context_destroy(&context);
     if (failure) {
         return EXIT_FAILURE;
     } else {

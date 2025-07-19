@@ -34,8 +34,8 @@ typedef struct SymbolTable {
     Symbol **elements;
 } SymbolTable;
 
-SymbolTable symbol_table_create();
-void        symbol_table_destroy(SymbolTable *restrict symbol_table);
+void symbol_table_create(SymbolTable *restrict symbol_table);
+void symbol_table_destroy(SymbolTable *restrict symbol_table);
 
 Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name);
 

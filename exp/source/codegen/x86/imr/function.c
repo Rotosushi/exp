@@ -20,7 +20,6 @@
 #include "codegen/x86/imr/function.h"
 #include "codegen/x86/imr/allocation.h"
 #include "codegen/x86/imr/local_allocator.h"
-#include "codegen/x86/intrinsics/size_of.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
@@ -141,8 +140,7 @@ void x86_function_append(x86_Function *restrict function,
 }
 
 void x86_function_setup(x86_Function *restrict x86_function,
-                        Function const *restrict function,
-                        Context *restrict context) {
+                        Function const *restrict function) {
     exp_assert(x86_function != NULL);
     exp_assert(function != NULL);
 
@@ -161,13 +159,11 @@ void x86_function_setup(x86_Function *restrict x86_function,
 
     x86_local_allocator_allocate_result(&x86_function->local_allocator,
                                         function->result,
-                                        context,
                                         &x86_function->arguments);
 
     x86_local_allocator_allocate_incoming_arguments(
         &x86_function->local_allocator,
         &function->arguments,
-        context,
         &x86_function->arguments);
 
     u32 block = x86_function_append_block(x86_function);

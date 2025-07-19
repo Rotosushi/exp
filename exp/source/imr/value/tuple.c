@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imr/tuple.h"
+#include "imr/value/tuple.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"

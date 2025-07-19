@@ -18,11 +18,8 @@
 #ifndef EXP_CODEGEN_X86_VALUE_H
 #define EXP_CODEGEN_X86_VALUE_H
 
-#include "codegen/x86/imr/layout.h"
 #include "imr/value.h"
 
-void print_x86_value(String *restrict buffer,
-                     Value const *restrict value,
-                     x86_Layout const *layout);
+void print_x86_value(String *restrict buffer, Value const *restrict value);
 
 #endif // !EXP_CODEGEN_X86_VALUE_H

@@ -19,8 +19,10 @@
 
 #include "analysis/validate.h"
 #include "env/context.h"
-#include "imr/function.h"
+#include "imr/type.h"
+#include "imr/type/composite.h"
 #include "imr/value.h"
+#include "imr/value/function.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
 #include "support/unreachable.h"
@@ -258,20 +260,22 @@ static bool validate_call(Instruction instruction,
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(B_type != NULL);
-    exp_assert_always(B_type->kind == TYPE_KIND_FUNCTION);
-    FunctionType const *callee = &B_type->function;
+    exp_assert_always(B_type->kind == TYPE_KIND_COMPOSITE);
+    exp_assert_always(B_type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    TypeFunction const *callee = &B_type->composite.data.function;
 
     Type const *return_type = callee->return_type;
     exp_assert_always(return_type != NULL);
     exp_assert_always(type_equality(return_type, A_type));
 
-    TupleType const *formal_args = &callee->argument_types;
+    TypeTuple const *formal_args = &callee->argument_types;
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
     exp_assert_always(C_type != NULL);
-    exp_assert_always(C_type->kind == TYPE_KIND_TUPLE);
-    TupleType const *actual_args = &C_type->tuple;
+    exp_assert_always(C_type->kind == TYPE_KIND_COMPOSITE);
+    exp_assert_always(C_type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    TypeTuple const *actual_args = &C_type->composite.data.tuple;
 
     exp_assert_always(formal_args->length == actual_args->length);
 
@@ -344,15 +348,16 @@ static bool validate_arithmetic_unop(Instruction instruction,
     Type const *underlying_type =
         context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(underlying_type != NULL);
-    switch (underlying_type->kind) {
-    case TYPE_KIND_U8:
-    case TYPE_KIND_U16:
-    case TYPE_KIND_U32:
-    case TYPE_KIND_U64:
-    case TYPE_KIND_I8:
-    case TYPE_KIND_I16:
-    case TYPE_KIND_I32:
-    case TYPE_KIND_I64:
+    exp_assert_always(underlying_type->kind == TYPE_KIND_PRIMARY);
+    switch (underlying_type->primary.kind) {
+    case TYPE_PRIMARY_KIND_U8:
+    case TYPE_PRIMARY_KIND_U16:
+    case TYPE_PRIMARY_KIND_U32:
+    case TYPE_PRIMARY_KIND_U64:
+    case TYPE_PRIMARY_KIND_I8:
+    case TYPE_PRIMARY_KIND_I16:
+    case TYPE_PRIMARY_KIND_I32:
+    case TYPE_PRIMARY_KIND_I64:
         return validate_unop(instruction,
                              block_index,
                              function,
@@ -379,8 +384,9 @@ static bool validate_dot(Instruction instruction,
         context_type_of_operand(context, function, operand_B(instruction));
     exp_assert_always(type_is_indexable(B_type));
 
-    exp_assert_always(B_type->kind == TYPE_KIND_TUPLE);
-    TupleType const *tuple = &B_type->tuple;
+    exp_assert_always(B_type->kind == TYPE_KIND_COMPOSITE);
+    exp_assert_always(B_type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    TypeTuple const *tuple = &B_type->composite.data.tuple;
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
@@ -391,7 +397,7 @@ static bool validate_dot(Instruction instruction,
     exp_assert_always(index <= u32_MAX);
     exp_assert_always(type_tuple_index_in_bounds(tuple, (u32)index));
 
-    Type const *element_type = tuple_type_at(tuple, (u32)index);
+    Type const *element_type = type_tuple_at(tuple, (u32)index);
     exp_assert_always(type_equality(element_type, A_type));
     return true;
 }
@@ -484,7 +490,7 @@ bool validate(Function const *restrict expression, Context *restrict context) {
     exp_assert(expression != NULL);
     exp_assert(context != NULL);
 
-    Bytecode const *block = &expression->body;
+    Block const *block = &expression->body;
     for (u32 index = 0; index < block->length; ++index) {
         if (!validate_instruction(
                 block->buffer[index], index, expression, context)) {

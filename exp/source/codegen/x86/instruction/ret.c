@@ -40,70 +40,70 @@ void x86_codegen_ret(Instruction          instruction,
     // register 0.
     case OPERAND_KIND_NIL:
         x86_Operand operand =
-            x86_operand_location(x86_function->return_location);
+            x86_operand_location(x86_function->result->location);
         x86_function_append(x86_function, x86_xor(operand, operand));
         break;
 
     case OPERAND_KIND_BOOL:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_bool(instruction.B_data.bool_)));
         break;
 
     case OPERAND_KIND_U8:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_u8(instruction.B_data.u8_)));
         break;
 
     case OPERAND_KIND_U16:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_u16(instruction.B_data.u16_)));
         break;
 
     case OPERAND_KIND_U32:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_u32(instruction.B_data.u32_)));
         break;
 
     case OPERAND_KIND_U64:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_u64(instruction.B_data.u64_)));
         break;
 
     case OPERAND_KIND_I8:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_i8(instruction.B_data.i8_)));
         break;
 
     case OPERAND_KIND_I16:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_i16(instruction.B_data.i16_)));
         break;
 
     case OPERAND_KIND_I32:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_i32(instruction.B_data.i32_)));
         break;
 
     case OPERAND_KIND_I64:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(x86_function->return_location),
+            x86_mov(x86_operand_location(x86_function->result->location),
                     x86_operand_i64(instruction.B_data.i64_)));
         break;
     }

@@ -51,12 +51,12 @@ void context_create(Context *restrict context,
     context->options                = *options;
     context->options.target_context = options->target->context_allocate();
     string_initialize(&(context->source_path));
-    context->current_error       = error_create();
-    context->global_symbol_table = symbol_table_create();
+    context->current_error = error_create();
+    symbol_table_create(&context->global_symbol_table);
     constants_create(&context->constants, context);
     stack_create(&context->stack);
     context->string_interner = string_interner_create();
-    context->type_interner   = type_interner_create();
+    context->type_interner   = type_interner_create(context);
 }
 
 void context_destroy(Context *context) {
@@ -549,7 +549,7 @@ Type const *context_i64_type(Context *context) {
 
 Type const *context_tuple_type(Context *context, TypeTuple tuple) {
     assert(context != nullptr);
-    return type_interner_tuple_type(&context->type_interner, tuple);
+    return type_interner_tuple_type(&context->type_interner, tuple, context);
 }
 
 Type const *context_function_type(Context    *context,
@@ -557,7 +557,7 @@ Type const *context_function_type(Context    *context,
                                   TypeTuple   argument_types) {
     assert(context != nullptr);
     return type_interner_function_type(
-        &context->type_interner, return_type, argument_types);
+        &context->type_interner, return_type, argument_types, context);
 }
 
 Value const *context_constant_nil(Context *restrict context) {
@@ -789,8 +789,8 @@ LayoutPrimary context_layout_of_primary(Context *restrict context,
                                         TypePrimary primary) {
     exp_assert(context != NULL);
     Target *target = context_get_target(context);
-    return layout_primary(target->size_of(&primary),
-                          target->align_of(&primary));
+    return layout_primary(target->size_of_primary(&primary),
+                          target->align_of_primary(&primary));
 }
 
 Layout const *context_layout_of(Context *restrict context, Type const *type) {

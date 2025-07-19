@@ -23,15 +23,13 @@
 #include "support/unreachable.h"
 
 static void print_x86_tuple(String *restrict buffer,
-                            Value const *restrict value,
-                            x86_Layout const *layout);
+                            Value const *restrict value);
 
-void print_x86_value(String *restrict buffer,
-                     Value const *restrict value,
-                     x86_Layout const *layout) {
+void print_x86_value(String *restrict buffer, Value const *restrict value) {
+    Layout const *layout = value->type->layout;
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED:
-        gas_directive_zero(x86_layout_size_of(layout), buffer);
+        gas_directive_zero(layout_size_of(layout), buffer);
         break;
     case VALUE_KIND_NIL:   gas_directive_u8(0, buffer); break;
     case VALUE_KIND_BOOL:  gas_directive_u8(value->bool_, buffer); break;
@@ -43,46 +41,47 @@ void print_x86_value(String *restrict buffer,
     case VALUE_KIND_I16:   gas_directive_i16(value->i16_, buffer); break;
     case VALUE_KIND_I32:   gas_directive_i32(value->i32_, buffer); break;
     case VALUE_KIND_I64:   gas_directive_i64(value->i64_, buffer); break;
-    case VALUE_KIND_TUPLE: print_x86_tuple(buffer, value, layout); break;
+    case VALUE_KIND_TUPLE: print_x86_tuple(buffer, value); break;
     default:               EXP_UNREACHABLE();
     }
 }
 
-static void print_x86_element(String *restrict buffer,
-                              Operand           element,
-                              x86_Layout const *layout);
+static void print_x86_element(String *restrict buffer, Operand element);
 
 static void print_x86_tuple(String *restrict buffer,
-                            Value const *restrict value,
-                            x86_Layout const *layout) {
+                            Value const *restrict value) {
+    Type const *type = value->type;
+    exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
     Tuple const *tuple = &value->tuple;
+
+    Layout const *layout = type->layout;
     // It is safe to access this as if it was a tuple layout,
     // unless I made a silly mistake, or some memory was corrupted.
-    exp_assert_debug(layout->kind == X86_LAYOUT_KIND_TUPLE);
-    x86_TupleLayout const *tuple_layout = &layout->data.tuple;
+    exp_assert_debug(layout->kind == LAYOUT_KIND_TUPLE);
+    LayoutTuple const *tuple_layout = &layout->data.tuple;
     // So, the length of the tuple and it's layout should be the "same"
     // except that the layout takes into account the padding that must be
     // present between elements. and these take up element slots.
     // Thus the layout length is the same or greater than.
     for (u32 tuple_index = 0, layout_index = 0; tuple_index < tuple->length;
          ++tuple_index, ++layout_index) {
-        Operand           element        = tuple->elements[tuple_index];
-        x86_Layout const *element_layout = tuple_layout->buffer[layout_index];
-        print_x86_element(buffer, element, element_layout);
+        Operand element = tuple->elements[tuple_index];
+        print_x86_element(buffer, element);
         if (tuple_index >= (tuple->length - 1)) { continue; }
 
         exp_assert(layout_index < (tuple_layout->length - 1));
-        x86_Layout const *next_layout = tuple_layout->buffer[layout_index + 1];
-        if (next_layout->kind != X86_LAYOUT_KIND_PADDING) { continue; }
+        Layout const *next_layout = tuple_layout->buffer[layout_index + 1];
+        if (next_layout->kind != LAYOUT_KIND_PADDING) { continue; }
 
         gas_directive_zero(next_layout->data.padding, buffer);
         ++layout_index;
+        // Since we "know" that the layout length is the same or less,
+        // this assertion should never fire.
+        exp_assert_debug(layout_index < tuple_layout->length);
     }
 }
 
-static void print_x86_element(String *restrict buffer,
-                              Operand           element,
-                              x86_Layout const *layout) {
+static void print_x86_element(String *restrict buffer, Operand element) {
     switch (element.kind) {
     case OPERAND_KIND_SSA:
     case OPERAND_KIND_LABEL:
@@ -90,7 +89,7 @@ static void print_x86_element(String *restrict buffer,
         break;
 
     case OPERAND_KIND_CONSTANT:
-        print_x86_value(buffer, element.data.constant, layout);
+        print_x86_value(buffer, element.data.constant);
         break;
 
     case OPERAND_KIND_NIL:  gas_directive_u8(0, buffer); break;

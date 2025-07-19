@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imr/local.h"
+#include "imr/value/function/local.h"
 #include "support/assert.h"
 
 void local_create(Local *restrict local, u32 ssa) {

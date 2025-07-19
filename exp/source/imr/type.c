@@ -164,8 +164,10 @@ bool type_is_indexable(Type const *restrict T) {
 void print_type(String *restrict string, Type const *restrict T) {
     exp_assert(T != NULL);
     switch (T->kind) {
-    case TYPE_KIND_PRIMARY:   print_type_primary(string, T->primary);
-    case TYPE_KIND_COMPOSITE: print_type_composite(string, &T->composite);
+    case TYPE_KIND_PRIMARY: print_type_primary(string, T->primary); break;
+    case TYPE_KIND_COMPOSITE:
+        print_type_composite(string, &T->composite);
+        break;
 
     default: EXP_UNREACHABLE();
     }

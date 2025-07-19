@@ -17,15 +17,11 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/detail/register_pool.h"
+#include "test_context.h"
+#include "support/assert.h"
 
-extern void x86_register_pool_initialize(x86_RegisterPool *restrict pool);
-extern bool x86_register_pool_gpr_check(x86_RegisterPool const *restrict pool,
-                                        x86_GPR gpr);
-extern bool x86_register_pool_gpr_aquire(x86_RegisterPool *restrict pool,
-                                         x86_GPR gpr);
-extern bool
-x86_register_pool_gpr_aquire_next_available(x86_RegisterPool *restrict pool,
-                                            u8 *restrict gpr_index);
-extern bool x86_register_pool_gpr_release(x86_RegisterPool *restrict pool,
-                                          x86_GPR gpr);
+void test_context_create(Context *restrict context) {
+    exp_assert(context != NULL);
+    ContextOptions options = {};
+    context_create(context, &options);
+}

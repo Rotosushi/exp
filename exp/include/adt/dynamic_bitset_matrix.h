@@ -20,9 +20,9 @@
 #include "support/scalar.h"
 
 typedef struct DynamicBitsetMatrix {
-    u64   rows;
-    u64   columns;
-    u64 **buffer;
+    u64  rows;
+    u64  columns;
+    u64 *buffer;
 } DynamicBitsetMatrix;
 
 void dynamic_bitset_matrix_create(DynamicBitsetMatrix *restrict matrix);
@@ -38,7 +38,7 @@ void dynamic_bitset_matrix_set(DynamicBitsetMatrix *restrict matrix,
 void dynamic_bitset_matrix_clear(DynamicBitsetMatrix *restrict matrix,
                                  u64 row,
                                  u64 column);
-void dynamic_bitset_matrix_check(DynamicBitsetMatrix *restrict matrix,
+bool dynamic_bitset_matrix_check(DynamicBitsetMatrix *restrict matrix,
                                  u64 row,
                                  u64 column);
 

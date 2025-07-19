@@ -5,3 +5,6 @@ And the result is always placed in rDX:rAX. This means that in order to select t
 ## Strategy
 As of right now, we only support un-optimized code generation (O0). To achieve this
 We use a variant of a classic (circa 1960) strategy for code generation. The "Macro Expansion" technique. Whereby a given [[bytecode]] instruction is simply expanded into one or more target assembly instructions. We have explicitly programmed the expansion, and one technique for making the compiler support multiple targets would be to generate the expansions programmatically. However, given the historically known limitations of this technique, it seems pointless to put in all of that work for something so limited. If we were to upgrade the approach to codegen I think shifting to a more modern technique would be smarter.
+
+
+## Codegen using Graph Covering and PBQP

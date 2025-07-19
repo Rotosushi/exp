@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "env/context.h"
-#include "imr/function.h"
+#include "imr/value/function.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 

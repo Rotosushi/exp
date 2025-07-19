@@ -37,8 +37,8 @@ struct TypePrimary;
 // and align-of which handles composite types, because it's the
 // same algorithm for any target. The only target dependent
 // information is the size and alignment of the primary types.
-typedef u64 (*size_of_fn)(struct TypePrimary const *type);
-typedef u64 (*align_of_fn)(struct TypePrimary const *type);
+typedef u64 (*size_of_primary_fn)(struct TypePrimary const *type);
+typedef u64 (*align_of_primary_fn)(struct TypePrimary const *type);
 
 // #NOTE with this signature we are forced into combining
 // code generation with emission. However, this removes
@@ -64,8 +64,8 @@ typedef struct Target {
     StringView            object_extension;
     StringView            library_extension;
     StringView            executable_extension;
-    size_of_fn            size_of;
-    align_of_fn           align_of;
+    size_of_primary_fn    size_of_primary;
+    align_of_primary_fn   align_of_primary;
     header_fn             header;
     codegen_fn            codegen;
     footer_fn             footer;

@@ -30,8 +30,7 @@ void x86_allocations_create(x86_Allocations *restrict allocations);
 void x86_allocations_destroy(x86_Allocations *restrict allocations);
 
 x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
-                                       Local const *restrict local,
-                                       Context *restrict context);
+                                       Local const *restrict local);
 
 x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
                                    u32 ssa);

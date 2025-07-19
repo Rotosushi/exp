@@ -19,9 +19,10 @@
 
 #include "codegen/x86/codegen.h"
 #include "codegen/GAS/directives.h"
-#include "codegen/x86/env/context.h"
 #include "codegen/x86/function.h"
 #include "codegen/x86/value.h"
+#include "imr/type.h"
+#include "imr/type/composite.h"
 #include "support/assert.h"
 #include "support/config.h"
 #include "support/unreachable.h"
@@ -48,15 +49,32 @@ i32 x86_header(String *restrict buffer, Context *restrict context) {
     return 0;
 }
 
-i32 x86_codegen(String *restrict buffer,
-                Symbol const *restrict symbol,
-                Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+i32 x86_codegen_primary(String *restrict buffer,
+                        Symbol const *restrict symbol,
+                        [[maybe_unused]] Context *restrict context) {
+    u64 size      = layout_size_of(symbol->type->layout);
+    u64 alignment = layout_align_of(symbol->type->layout);
+    gas_directive_data(buffer);
+    gas_directive_globl(symbol->name, buffer);
+    gas_directive_balign(alignment, buffer);
+    gas_directive_type(symbol->name, STT_OBJECT, buffer);
+    gas_directive_size(symbol->name, size, buffer);
+    gas_directive_label(symbol->name, buffer);
+    print_x86_value(buffer, symbol->value);
+    return 0;
+}
 
-    switch (symbol->type->kind) {
-    // text section
-    case TYPE_KIND_FUNCTION:
+i32 x86_codegen_composite(String *restrict buffer,
+                          Symbol const *restrict symbol,
+                          Context *restrict context) {
+    Value const         *value     = symbol->value;
+    Type const          *type      = value->type;
+    TypeComposite const *composite = &type->composite;
+    switch (composite->kind) {
+    case TYPE_COMPOSITE_KIND_TUPLE:
+        return x86_codegen_primary(buffer, symbol, context);
+
+    case TYPE_COMPOSITE_KIND_FUNCTION:
         gas_directive_text(buffer);
         gas_directive_globl(symbol->name, buffer);
         gas_directive_balign(8, buffer);
@@ -64,31 +82,22 @@ i32 x86_codegen(String *restrict buffer,
         gas_directive_label(symbol->name, buffer);
         print_x86_function(buffer, symbol->value, context);
         gas_directive_size_label_relative(symbol->name, buffer);
-        break;
+        return 0;
 
-    // data section
-    case TYPE_KIND_NIL:
-    case TYPE_KIND_BOOL:
-    case TYPE_KIND_U8:
-    case TYPE_KIND_U16:
-    case TYPE_KIND_U32:
-    case TYPE_KIND_U64:
-    case TYPE_KIND_I8:
-    case TYPE_KIND_I16:
-    case TYPE_KIND_I32:
-    case TYPE_KIND_I64:
-    case TYPE_KIND_TUPLE: {
-        u64 size      = layout_size_of(symbol->type->layout);
-        u64 alignment = layout_align_of(symbol->type->layout);
-        gas_directive_data(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(alignment, buffer);
-        gas_directive_type(symbol->name, STT_OBJECT, buffer);
-        gas_directive_size(symbol->name, size, buffer);
-        gas_directive_label(symbol->name, buffer);
-        print_x86_value(buffer, symbol->value, layout);
-        break;
+    default: EXP_UNREACHABLE();
     }
+}
+
+i32 x86_codegen(String *restrict buffer,
+                Symbol const *restrict symbol,
+                Context *restrict context) {
+    exp_assert(buffer != NULL);
+    exp_assert(context != NULL);
+
+    switch (symbol->type->kind) {
+    case TYPE_KIND_PRIMARY: return x86_codegen_primary(buffer, symbol, context);
+    case TYPE_KIND_COMPOSITE:
+        return x86_codegen_composite(buffer, symbol, context);
 
     default: EXP_UNREACHABLE();
     }

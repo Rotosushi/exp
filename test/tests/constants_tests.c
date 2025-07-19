@@ -18,11 +18,11 @@
  */
 #include <time.h>
 
-#include "env/constants.h"
 #include "support/random.h"
+#include "test_context.h"
 
-i32 test_constant_i64(Constants *restrict values, i64 i64_) {
-    Value const *value = constants_i64(values, i64_);
+i32 test_constant_i64(Context *restrict context, i64 i64_) {
+    Value const *value = context_constant_i64(context, i64_);
 
     return ((value->kind == VALUE_KIND_I64) && (value->i64_ == i64_)) ? 0 : 1;
 }
@@ -30,16 +30,16 @@ i32 test_constant_i64(Constants *restrict values, i64 i64_) {
 i32 constants_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char *argv[]) {
     XorShiftR128PlusState rng;
     xorshiftr128plus_seed(&rng, (u64)time(NULL));
-    Constants constants;
-    constants_create(&constants);
+    Context context;
+    test_context_create(&context);
     i32 result = 0;
 
     // #TODO:
-    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
-    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
-    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
-    result += test_constant_i64(&constants, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&context, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&context, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&context, (i64)xorshiftr128plus_next(&rng));
+    result += test_constant_i64(&context, (i64)xorshiftr128plus_next(&rng));
 
-    constants_destroy(&constants);
+    context_destroy(&context);
     return result;
 }

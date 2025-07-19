@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/detail/register_allocator.h"
+#include "codegen/x86/imr/local_allocator/register_allocator.h"
 #include "support/allocation.h"
 
 void x86_register_allocator_create(
@@ -63,7 +63,7 @@ bool x86_register_allocator_allocate_to_next_available(
         return false;
     }
 
-    u64 size = x86_layout_size_of(allocation->layout);
+    u64 size = x86_allocation_size_of(allocation);
     exp_assert_debug(x86_gpr_valid_size(size));
     x86_GPR gpr           = x86_gpr_with_size(gpr_index, size);
     allocation->location  = x86_location_gpr(gpr);

@@ -14,13 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
+#ifndef EXP_TEST_CONTEXT_H
+#define EXP_TEST_CONTEXT_H
 
-#ifndef EXP_CODEGEN_IR_INTRINSICS_H
-#define EXP_CODEGEN_IR_INTRINSICS_H
+#include "env/context.h"
 
-#include "imr/type/primary.h"
+void test_context_create(Context *restrict context);
 
-u64 ir_size_of_primary(TypePrimary const *restrict type);
-u64 ir_align_of_primary(TypePrimary const *restrict type);
-
-#endif // !EXP_CODEGEN_IR_INTRINSICS_H
+#endif // !EXP_TEST_CONTEXT_H

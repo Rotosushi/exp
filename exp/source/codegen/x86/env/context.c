@@ -25,26 +25,16 @@
 void *x86_context_allocate() {
     x86_Context *context = callocate(1, sizeof(x86_Context));
     exp_assert_debug(context != NULL);
-    x86_layouts_create(&context->layouts);
+    symbol_table_create(&context->initializers);
     return context;
 }
 
 void x86_context_deallocate(void *restrict context) {
     exp_assert(context != NULL);
     x86_Context *x86_context = (x86_Context *)context;
-    x86_layouts_destroy(&x86_context->layouts);
+    symbol_table_destroy(&x86_context->initializers);
 
     deallocate(context);
-}
-
-x86_Layout const *x86_context_layout_of_type(Context *restrict context,
-                                             Type const *type) {
-    exp_assert(context != NULL);
-    exp_assert(type != NULL);
-    x86_Context *x86_context =
-        (x86_Context *)context_get_target_context(context);
-
-    return x86_layouts_layout_of_type(&x86_context->layouts, type);
 }
 
 Symbol *x86_context_initializer_at(Context *restrict context, StringView name) {

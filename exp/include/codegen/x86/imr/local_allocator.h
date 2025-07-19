@@ -17,10 +17,11 @@
 #ifndef EXP_CODEGEN_X86_IMR_LOCAL_ALLOCATOR_H
 #define EXP_CODEGEN_X86_IMR_LOCAL_ALLOCATOR_H
 
-#include "codegen/x86/imr/detail/allocations.h"
-#include "codegen/x86/imr/detail/incoming_argument_allocator.h"
-#include "codegen/x86/imr/detail/register_allocator.h"
-#include "codegen/x86/imr/detail/stack_allocator.h"
+#include "codegen/x86/imr/local_allocator/allocations.h"
+#include "codegen/x86/imr/local_allocator/incoming_argument_allocator.h"
+#include "codegen/x86/imr/local_allocator/register_allocator.h"
+#include "codegen/x86/imr/local_allocator/stack_allocator.h"
+#include "imr/value/function.h"
 
 /**
  * @brief manages where SSA locals are allocated
@@ -88,20 +89,17 @@ void x86_local_allocator_release_expired(x86_LocalAllocator *restrict allocator,
 x86_Allocation *
 x86_local_allocator_allocate_local(x86_LocalAllocator *restrict local_allocator,
                                    Local const *restrict local,
-                                   u32 block_index,
-                                   Context *restrict context);
+                                   u32 block_index);
 
 struct x86_FormalArgumentList;
 x86_Allocation *x86_local_allocator_allocate_result(
     x86_LocalAllocator *restrict local_allocator,
     Local const *restrict local,
-    Context *restrict context,
     struct x86_FormalArgumentList *restrict x86_arguments);
 
 void x86_local_allocator_allocate_incoming_arguments(
     x86_LocalAllocator *restrict local_allocator,
     FormalArgumentList const *restrict arguments,
-    Context *restrict context,
     struct x86_FormalArgumentList *restrict x86_arguments);
 
 #endif // !EXP_CODEGEN_X86_IMR_LOCAL_ALLOCATOR_H

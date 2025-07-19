@@ -19,8 +19,7 @@
 
 #include "codegen/x86/imr/body.h"
 #include "codegen/x86/imr/local_allocator.h"
-#include "env/context.h"
-#include "imr/function.h"
+#include "imr/value/function.h"
 
 typedef struct x86_FormalArgumentList {
     u8               length;
@@ -44,8 +43,7 @@ void x86_function_create(x86_Function *restrict function);
 void x86_function_destroy(x86_Function *restrict function);
 
 void x86_function_setup(x86_Function *restrict x86_function,
-                        Function const *restrict function,
-                        Context *restrict context);
+                        Function const *restrict function);
 
 x86_Allocation *x86_function_formal_argument_at(x86_Function *restrict function,
                                                 u8 index);

@@ -49,9 +49,9 @@ static bool evaluate_instruction(Instruction instruction,
 }
 
 bool evaluate_top_frame(Context *restrict context) {
-    bool            success = true;
-    Frame          *frame   = context_frames_top(context);
-    Bytecode const *body    = &frame->function->body;
+    bool         success = true;
+    Frame       *frame   = context_frames_top(context);
+    Block const *body    = &frame->function->body;
     for (; frame->index < body->length; ++frame->index) {
         if (!evaluate_instruction(body->buffer[frame->index], frame, context)) {
             success = false;

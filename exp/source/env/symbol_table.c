@@ -14,26 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 
 #include "env/symbol_table.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/hash.h"
 
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
-SymbolTable symbol_table_create() {
-    SymbolTable symbol_table;
-    symbol_table.capacity = symbol_table.count = 0;
-    symbol_table.elements                      = NULL;
-    return symbol_table;
+void symbol_table_create(SymbolTable *restrict symbol_table) {
+    exp_assert(symbol_table != NULL);
+    symbol_table->capacity = symbol_table->count = 0;
+    symbol_table->elements                       = NULL;
 }
 
 void symbol_table_destroy(SymbolTable *restrict symbol_table) {
-    assert(symbol_table != NULL);
+    exp_assert(symbol_table != NULL);
 
     for (u64 i = 0; i < symbol_table->capacity; ++i) {
         Symbol *element = symbol_table->elements[i];
@@ -91,7 +90,7 @@ static bool symbol_table_full(SymbolTable *restrict symbol_table) {
 }
 
 Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
-    assert(symbol_table != NULL);
+    exp_assert(symbol_table != NULL);
 
     if (symbol_table_full(symbol_table)) { symbol_table_grow(symbol_table); }
 

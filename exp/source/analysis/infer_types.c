@@ -22,6 +22,7 @@
 #include "analysis/infer_types.h"
 #include "env/context.h"
 #include "imr/type.h"
+#include "imr/type/composite.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
@@ -63,7 +64,7 @@ static bool infer_types_constant(Type const **result,
 
     case VALUE_KIND_TUPLE: {
         Tuple const *tuple = &constant->tuple;
-        TupleType    tuple_type;
+        TypeTuple    tuple_type;
         type_tuple_create(&tuple_type);
         for (u32 index = 0; index < tuple->length; ++index) {
             Operand     element      = tuple->elements[index];
@@ -75,7 +76,7 @@ static bool infer_types_constant(Type const **result,
                                      element.data)) {
                 return false;
             }
-            tuple_type_append(&tuple_type, element_type);
+            type_tuple_append(&tuple_type, element_type);
         }
         return success(result, context_tuple_type(context, tuple_type));
     }
@@ -204,8 +205,10 @@ static bool infer_types_call(Type const **result,
         return context_failure_type_is_not_callable(context, Bty);
     }
 
-    FunctionType const *function_type = &Bty->function;
-    TupleType const    *formal_types  = &function_type->argument_types;
+    exp_assert_debug(Bty->kind == TYPE_KIND_COMPOSITE);
+    exp_assert_debug(Bty->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    TypeFunction const *function_type = &Bty->composite.data.function;
+    TypeTuple const    *formal_types  = &function_type->argument_types;
     exp_assert_debug(I.C_kind == OPERAND_KIND_CONSTANT);
     Value const *value = I.C_data.constant;
     exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
@@ -250,7 +253,9 @@ static bool infer_types_dot(Type const **result,
         return context_failure_type_is_not_indexable(context, Bty);
     }
 
-    TupleType const *tuple = &Bty->tuple;
+    exp_assert_debug(Bty->kind == TYPE_KIND_COMPOSITE);
+    exp_assert_debug(Bty->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    TypeTuple const *tuple = &Bty->composite.data.tuple;
     Operand          C     = operand(I.C_kind, I.C_data);
 
     if (!operand_is_index(C)) {
@@ -259,7 +264,7 @@ static bool infer_types_dot(Type const **result,
 
     u64 index = operand_as_index(C);
     exp_assert(index < u32_MAX);
-    if (!tuple_type_index_in_bounds(tuple, (u32)index)) {
+    if (!type_tuple_index_in_bounds(tuple, (u32)index)) {
         return context_failure_index_out_of_bounds(
             context, tuple->length, index);
     }
@@ -374,7 +379,7 @@ static bool infer_types_function(Type const **restrict result,
                                  Function *restrict function,
                                  Context *restrict context) {
     Type const  *return_type = NULL;
-    Bytecode    *body        = &function->body;
+    Block       *body        = &function->body;
     Instruction *ip          = body->buffer;
     for (u32 idx = 0; idx < body->length; ++idx) {
         Instruction I = ip[idx];

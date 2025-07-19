@@ -18,8 +18,7 @@
  */
 
 #include "analysis/infer_lifetimes.h"
-#include "imr/function.h"
-#include "imr/instruction.h"
+#include "imr/block/instruction.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
@@ -93,7 +92,7 @@ static void infer_lifetime_ABC(Instruction I,
 
 bool infer_lifetimes(Function *restrict function) {
     exp_assert(function != NULL);
-    Bytecode *body = &function->body;
+    Block *body = &function->body;
 
     for (u8 i = 0; i < function->arguments.length; ++i) {
         Local *arg          = function->arguments.list[i];

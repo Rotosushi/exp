@@ -114,7 +114,7 @@ void sparse_digraph_add_edge(SparseDigraph *restrict graph,
 
 void vertex_list_destroy(VertexList *restrict vl) {
     vl->capacity = 0;
-    vl->count    = 0;
+    vl->length   = 0;
     deallocate(vl->list);
     vl->list = NULL;
 }
@@ -122,13 +122,13 @@ void vertex_list_destroy(VertexList *restrict vl) {
 static VertexList vertex_list_create() {
     VertexList vl;
     vl.capacity = 0;
-    vl.count    = 0;
+    vl.length   = 0;
     vl.list     = NULL;
     return vl;
 }
 
 static bool vertex_list_full(VertexList *restrict vl) {
-    return vl->capacity <= (vl->count + 1);
+    return vl->capacity <= (vl->length + 1);
 }
 
 static void vertex_list_grow(VertexList *restrict vl) {
@@ -140,8 +140,7 @@ static void vertex_list_grow(VertexList *restrict vl) {
 static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
     if (vertex_list_full(vl)) { vertex_list_grow(vl); }
 
-    vl->list[vl->count] = vertex;
-    vl->count += 1;
+    vl->list[vl->length++] = vertex;
 }
 
 VertexList sparse_digraph_vertex_fanout(SparseDigraph *restrict graph,

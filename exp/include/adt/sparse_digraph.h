@@ -41,7 +41,7 @@ void sparse_digraph_add_edge(SparseDigraph *restrict graph,
                              u64 target);
 
 typedef struct VertexList {
-    u64  count;
+    u64  length;
     u64  capacity;
     u64 *list;
 } VertexList;

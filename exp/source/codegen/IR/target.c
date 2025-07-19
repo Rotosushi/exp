@@ -19,6 +19,7 @@
 
 #include "codegen/IR/target.h"
 #include "codegen/IR/codegen.h"
+#include "codegen/IR/intrinsics.h"
 
 void *ir_context_allocate() { return NULL; }
 void  ir_context_deallocate([[maybe_unused]] void *restrict context) { return; }
@@ -30,6 +31,8 @@ Target ir_target_info = {
     .object_extension     = {      .length = sizeof("") - 1,       .ptr = ""},
     .library_extension    = {      .length = sizeof("") - 1,       .ptr = ""},
     .executable_extension = {      .length = sizeof("") - 1,       .ptr = ""},
+    .size_of_primary      = ir_size_of_primary,
+    .align_of_primary     = ir_align_of_primary,
     .header               = ir_header,
     .codegen              = ir_codegen,
     .footer               = ir_footer,

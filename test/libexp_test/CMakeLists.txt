@@ -19,6 +19,7 @@ cmake_minimum_required(VERSION 3.20)
 set(LIBEXP_TEST_SOURCES
   ${EXP_TEST_DIR}/libexp_test/test_exp.c
   ${EXP_TEST_DIR}/libexp_test/test_resources.c
+  ${EXP_TEST_DIR}/libexp_test/test_context.c
 )
 
 add_library(exp_test ${LIBEXP_TEST_SOURCES})

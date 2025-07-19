@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/detail/allocations.h"
+#include "codegen/x86/imr/local_allocator/allocations.h"
 #include "codegen/x86/imr/allocation.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
@@ -49,13 +49,12 @@ static void x86_allocations_grow(x86_Allocations *restrict allocations) {
 }
 
 x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
-                                       Local const *restrict local,
-                                       Context *restrict context) {
+                                       Local const *restrict local) {
     if (x86_allocations_full(allocations)) {
         x86_allocations_grow(allocations);
     }
 
-    x86_Allocation *allocation = x86_allocation_allocate(local, context);
+    x86_Allocation *allocation = x86_allocation_allocate(local);
     exp_assert(allocation->ssa < allocations->capacity);
 
     allocations->buffer[allocation->ssa] = allocation;

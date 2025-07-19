@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X64_INSTRUCTION_H
 #define EXP_BACKEND_X64_INSTRUCTION_H
 
-#include "codegen/x86/imr/operand.h"
+#include "codegen/x86/imr/body/operand.h"
 
 typedef enum x86_Opcode : u8 {
     X86_OPCODE_RET,

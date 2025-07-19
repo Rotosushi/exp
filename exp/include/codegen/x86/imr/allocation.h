@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X86_ALLOCATION_H
 #define EXP_BACKEND_X86_ALLOCATION_H
 
-#include "codegen/x86/imr/location.h"
+#include "codegen/x86/imr/allocation/location.h"
 #include "imr/value/function/local.h"
 
 typedef struct x86_Allocation {
