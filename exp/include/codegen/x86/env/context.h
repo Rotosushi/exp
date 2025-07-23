@@ -25,8 +25,9 @@ typedef struct x86_Context {
     SymbolTable initializers;
 } x86_Context;
 
-void *x86_context_allocate();
-void  x86_context_deallocate(void *restrict context);
+void        *x86_context_allocate();
+void         x86_context_deallocate(void *restrict context);
+SymbolTable *x86_context_initializers(void *restrict context);
 
 Symbol *x86_context_initializer_at(Context *restrict context, StringView name);
 

@@ -30,6 +30,7 @@
 
 struct String;
 struct Symbol;
+struct SymbolTable;
 struct Context;
 struct TypePrimary;
 
@@ -54,23 +55,25 @@ typedef i32 (*footer_fn)(struct String *restrict buffer,
 
 typedef void *(*context_allocate_fn)();
 typedef void (*context_deallocate_fn)(void *restrict context);
+typedef struct SymbolTable *(*context_initializers_fn)(void *restrict context);
 
 // #TODO: This structure needs to be broken up into more components
 // for supporting target specific CPU features.
 typedef struct Target {
-    StringView            tag;
-    StringView            triple;
-    StringView            assembly_extension;
-    StringView            object_extension;
-    StringView            library_extension;
-    StringView            executable_extension;
-    size_of_primary_fn    size_of_primary;
-    align_of_primary_fn   align_of_primary;
-    header_fn             header;
-    codegen_fn            codegen;
-    footer_fn             footer;
-    context_allocate_fn   context_allocate;
-    context_deallocate_fn context_deallocate;
+    StringView              tag;
+    StringView              triple;
+    StringView              assembly_extension;
+    StringView              object_extension;
+    StringView              library_extension;
+    StringView              executable_extension;
+    size_of_primary_fn      size_of_primary;
+    align_of_primary_fn     align_of_primary;
+    header_fn               header;
+    codegen_fn              codegen;
+    footer_fn               footer;
+    context_allocate_fn     context_allocate;
+    context_deallocate_fn   context_deallocate;
+    context_initializers_fn context_initializers;
 } Target;
 
 #endif // !EXP_CODEGEN_TARGET_H

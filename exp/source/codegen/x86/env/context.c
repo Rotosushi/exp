@@ -43,3 +43,10 @@ Symbol *x86_context_initializer_at(Context *restrict context, StringView name) {
         (x86_Context *)context_get_target_context(context);
     return symbol_table_at(&x86_context->initializers, name);
 }
+
+SymbolTable *x86_context_initializers(void *restrict context) {
+    exp_assert(context != NULL);
+    x86_Context *x86_context =
+        (x86_Context *)context_get_target_context((Context *)context);
+    return &x86_context->initializers;
+}

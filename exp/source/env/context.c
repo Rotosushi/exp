@@ -124,6 +124,12 @@ bool context_shall_cleanup_object_artifact(Context const *context) {
     return context->options.cleanup_object_artifact;
 }
 
+SymbolTable *context_get_target_initializers(Context const *restrict context) {
+    exp_assert(context != NULL);
+    return context->options.target->context_initializers(
+        context->options.target_context);
+}
+
 void *context_get_target_context(Context const *restrict context) {
     exp_assert(context != NULL);
     return context->options.target_context;
@@ -193,21 +199,44 @@ i32 context_compile_source(Context *restrict context, StringView source_path) {
 i32 context_create_assembly_artifact(Context *restrict context) {
     exp_assert(context != NULL);
     Target *target = context->options.target;
-    String  buffer;
-    string_initialize(&buffer);
-    target->header(&buffer, context);
+    String  header;
+    string_initialize(&header);
+    target->header(&header, context);
 
-    SymbolTable *table = &context->global_symbol_table;
-    for (u64 index = 0; index < table->capacity; ++index) {
-        Symbol *symbol = table->elements[index];
+    String footer;
+    string_initialize(&footer);
+    target->footer(&footer, context);
+
+    String user_code;
+    string_initialize(&user_code);
+    SymbolTable *symbols = &context->global_symbol_table;
+    for (u64 index = 0; index < symbols->capacity; ++index) {
+        Symbol *symbol = symbols->elements[index];
         if (symbol == NULL) { continue; }
 
-        target->codegen(&buffer, symbol, context);
+        target->codegen(&user_code, symbol, context);
 
-        string_append(&buffer, SV("\n"));
+        string_append(&user_code, SV("\n"));
     }
 
-    target->footer(&buffer, context);
+    String user_initializers;
+    string_initialize(&user_initializers);
+    SymbolTable *initializers = context_get_target_initializers(context);
+    for (u64 index = 0; index < initializers->capacity; ++index) {
+        Symbol *initializer = initializers->elements[index];
+        if (initializer == NULL) { continue; }
+
+        target->codegen(&user_initializers, initializer, context);
+
+        string_append(&user_initializers, SV("\n"));
+    }
+
+    String assembly;
+    string_initialize(&assembly);
+    string_append(&assembly, string_to_view(&header));
+    string_append(&assembly, string_to_view(&user_initializers));
+    string_append(&assembly, string_to_view(&user_code));
+    string_append(&assembly, string_to_view(&footer));
 
     String assembly_path;
     string_initialize(&assembly_path);
@@ -215,9 +244,12 @@ i32 context_create_assembly_artifact(Context *restrict context) {
                               context_source_path(context),
                               target->assembly_extension);
 
-    file_write_all(&buffer, string_to_view(&assembly_path));
+    file_write_all(&assembly, string_to_view(&assembly_path));
 
-    string_destroy(&buffer);
+    string_destroy(&header);
+    string_destroy(&user_initializers);
+    string_destroy(&user_code);
+    string_destroy(&footer);
     string_destroy(&assembly_path);
     return 0;
 }

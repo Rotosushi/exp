@@ -289,6 +289,14 @@ StringView unique_name_for_initializer(x86_Allocation *restrict allocation,
 // invalidation of the iterators used when emitting the current
 // environment.
 // - We could use a seperate "initializers" symbol table.
+// How do we then add these initializers to the final assembly file?
+// we have to break up the current flow of how we emit assembly.
+// we have to place the initializers in their own string.
+// and place all regular symbols into their own string.
+// and create the final string of the files contents after doing both of
+// those.
+// which means we also need to place the header and footer into their
+// own strings?
 void x86_codegen_initialize_local_from_tuple(
     x86_Allocation *restrict allocation,
     Value const *restrict value,

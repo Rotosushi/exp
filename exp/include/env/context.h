@@ -66,8 +66,9 @@ bool context_shall_cleanup_object_artifact(Context const *restrict context);
 
 void context_print_compile_actions(Context const *restrict context);
 
-void   *context_get_target_context(Context const *restrict context);
-Target *context_get_target(Context const *restrict context);
+SymbolTable *context_get_target_initializers(Context const *restrict context);
+void        *context_get_target_context(Context const *restrict context);
+Target      *context_get_target(Context const *restrict context);
 
 // Compilation Helpers
 i32 context_compile_source(Context *restrict context, StringView source);

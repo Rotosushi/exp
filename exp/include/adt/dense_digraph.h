@@ -14,22 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
-#define EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
+#ifndef EXP_ADT_DENSE_DIGRAPH_H
+#define EXP_ADT_DENSE_DIGRAPH_H
 
-#include "codegen/x86/imr/allocation/location.h"
-#include "imr/layout.h"
+#include "support/scalar.h"
 
-/**
- * @brief return the correct pointer kind annotation necessary
- * for the given layout.
- *
- * in intel style x86-64 assembly memory operands are annotated
- * with the size of thie object being addressed. For instance,
- * if the memory points to a byte the operand is a `BYTE PTR`
- * or if the memory points to a 64 bit integer the operand
- * is a `QWORD PTR`
- */
-x86_PtrKind x86_ptr_kind_of(Layout const *restrict layout);
+typedef struct DenseDigraph {
+    u64  length;
+    u64  capacity;
+    u64 *buffer;
+} DenseDigraph;
 
-#endif // !EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
+#endif // !EXP_ADT_DENSE_DIGRAPH_H
