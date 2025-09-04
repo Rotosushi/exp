@@ -66,6 +66,7 @@ x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
  * "intrinsics" like size_of are also used as atoms within code generation.
  * so maybe it's an "is-a" relationship. :)
  * intrinsics "are" atoms, but atoms "are not necessarily" intrinsics.
+ * they could be "scaffolding" 
  *
  */
 

@@ -37,4 +37,7 @@ void layout_tuple_create(LayoutTuple *restrict layout,
 
 void layout_tuple_destroy(LayoutTuple *restrict layout);
 
+u64 layout_tuple_get_element_offset(LayoutTuple const *restrict layout,
+                                    u32 index);
+
 #endif // EXP_IMR_LAYOUT_TUPLE_H

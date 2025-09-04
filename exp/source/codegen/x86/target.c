@@ -38,7 +38,6 @@ Target x86_target_info = {
     .footer               = x86_footer,
     .context_allocate     = x86_context_allocate,
     .context_deallocate   = x86_context_deallocate,
-    .context_initializers = x86_context_initializers
 };
 
 Target *x86_target = &x86_target_info;

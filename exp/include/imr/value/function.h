@@ -42,11 +42,11 @@ typedef struct FormalArgumentList {
  */
 
 typedef struct Function {
-    StringView         name;
-    FormalArgumentList arguments;
-    Locals             locals;
-    Block              body;
-    Local             *result;
+    ConstantString const *name;
+    FormalArgumentList    arguments;
+    Locals                locals;
+    Block                 body;
+    Local                *result;
 } Function;
 
 void function_create(Function *restrict function);

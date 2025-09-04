@@ -26,6 +26,10 @@ x86_Operand x86_operand(x86_OperandKind kind, x86_OperandData data) {
     return (x86_Operand){.kind = kind, .data = data};
 }
 
+x86_Operand x86_operand_rip(ConstantString const *label) {
+    return (x86_Operand){.kind = X86_OPERAND_KIND_RIP, .data.label = label};
+}
+
 x86_Operand x86_operand_location(x86_Location location) {
     return (x86_Operand){.kind          = X86_OPERAND_KIND_LOCATION,
                          .data.location = location};

@@ -19,19 +19,12 @@
 
 #include "codegen/x86/intrinsics/initialize_local.h"
 #include "codegen/x86/env/context.h"
+#include "codegen/x86/intrinsics/copy.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
 #include "support/string.h"
 #include "support/unreachable.h"
-
-void x86_codegen_initialize_local_from_tuple(
-    x86_Allocation *restrict allocation,
-    Value const *restrict value,
-    u32 block_index,
-    Function *restrict function,
-    x86_Function *restrict x86_function,
-    Context *restrict context);
 
 void x86_codegen_initialize_local_from_lambda(
     x86_Allocation *restrict allocation,
@@ -70,86 +63,6 @@ void x86_codegen_initialize_local_from_value(
     exp_assert(context != NULL);
 
     exp_assert(x86_allocation_alive(allocation, block_index));
-
-    // if the value is a primary type then we can use an instruction
-    // to initialize the local in whatever location it resides.
-    switch (value->kind) {
-    case VALUE_KIND_UNINITIALIZED: break; // don't initialize
-    case VALUE_KIND_NIL:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_nil()));
-        break;
-
-    case VALUE_KIND_BOOL:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_bool(value->bool_)));
-        break;
-
-    case VALUE_KIND_U8:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_u8(value->u8_)));
-        break;
-
-    case VALUE_KIND_U16:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_u16(value->u16_)));
-        break;
-
-    case VALUE_KIND_U32:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_u32(value->u32_)));
-        break;
-
-    case VALUE_KIND_U64:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_u64(value->u64_)));
-        break;
-
-    case VALUE_KIND_I8:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_i8(value->i8_)));
-        break;
-
-    case VALUE_KIND_I16:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_i16(value->i16_)));
-        break;
-
-    case VALUE_KIND_I32:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_i32(value->i32_)));
-        break;
-
-    case VALUE_KIND_I64:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(allocation->location),
-                                    x86_operand_i64(value->i64_)));
-        break;
-
-    case VALUE_KIND_TUPLE:
-        x86_codegen_initialize_local_from_tuple(
-            allocation, value, block_index, function, x86_function, context);
-        break;
-
-    case VALUE_KIND_FUNCTION:
-        // #NOTE: We allow local functions via lambdas. Lambdas without support
-        // for capturing any context are equivalent to function pointers. so we
-        // silently implement them as such here.
-        x86_codegen_initialize_local_from_lambda(
-            allocation, value, block_index, function, x86_function, context);
-        break;
-
-    default: EXP_UNREACHABLE();
-    }
 }
 
 void x86_codegen_initialize_local_from_operand(
@@ -259,63 +172,16 @@ void x86_codegen_initialize_local_from_operand(
     }
 }
 
-StringView unique_name_for_initializer(x86_Allocation *restrict allocation,
-                                       x86_Function *restrict x86_function,
-                                       Context *restrict context) {
-    // the name of the function, plus the name of the local,
-    // should be enough to create a unique initializer name.
-    // as long as the function name is itself unique, and
-    // the local name itself is unique.
-    // #TODO
-    // - Name shadowing break this
-    // - Namespaced functions need to have the namespace added here
-    // - Function overloading break this
-    // - Polymorphic functions break this.
-    String name;
-    string_initialize(&name);
-    string_append(&name, x86_function->name);
-    string_append(&name, SV("_"));
-    string_append(&name, allocation->name);
-    string_append(&name, SV("_initializer"));
-    ConstantString const *label =
-        context_intern(context, string_to_view(&name));
-    return constant_string_to_view(label);
-}
-
-// #NOTE: We initialize local tuples by allocating the tuple into the
-// global constants section and performing a copy into the allocations
-// location. How do we accomplish this however? We cannot add these
-// initializers to the global symbol table, as this can cause
-// invalidation of the iterators used when emitting the current
-// environment.
-// - We could use a seperate "initializers" symbol table.
-// How do we then add these initializers to the final assembly file?
-// we have to break up the current flow of how we emit assembly.
-// we have to place the initializers in their own string.
-// and place all regular symbols into their own string.
-// and create the final string of the files contents after doing both of
-// those.
-// which means we also need to place the header and footer into their
-// own strings?
-void x86_codegen_initialize_local_from_tuple(
-    x86_Allocation *restrict allocation,
-    Value const *restrict value,
-    u32 block_index,
-    Function *restrict function,
-    x86_Function *restrict x86_function,
-    Context *restrict context) {
-    exp_assert(allocation != NULL);
-    exp_assert(value != NULL);
-    exp_assert(function != NULL);
-    exp_assert(context != NULL);
-
-    StringView name =
-        unique_name_for_initializer(allocation, x86_function, context);
-    Symbol *initializer = x86_context_initializer_at(context, name);
-    initializer->value  = value;
-    initializer->type   = value->type;
-}
-
+/**
+ * For now the semantics of a lambda is whatever happens when you implement them
+ * as light syntax over a c function pointer.
+ * I think this means:
+ * - they are callable
+ * - they are unique scopes, in particular if one is defined in-line they cannot
+ *   see or interact with the scope in which they are defined. (except global
+ * scope).
+ * -
+ */
 void x86_codegen_initialize_local_from_lambda(
     x86_Allocation *restrict allocation,
     Value const *restrict value,

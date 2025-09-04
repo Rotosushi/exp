@@ -83,6 +83,8 @@ x86_Location x86_location_address_indexed(
  */
 bool x86_location_equality(x86_Location A, x86_Location B);
 
+x86_Location x86_location_address_increment(x86_Location location, i32 offset);
+
 void print_x86_location(String *restrict buffer, x86_Location location);
 
 #endif // !EXP_BACKEND_X86_LOCATION_H

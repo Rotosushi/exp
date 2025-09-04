@@ -31,7 +31,7 @@ void x86_formal_argument_list_append(x86_FormalArgumentList *restrict arguments,
                                      x86_Allocation *allocation);
 
 typedef struct x86_Function {
-    StringView             name;
+    ConstantString const  *name;
     x86_FormalArgumentList arguments;
     x86_Body               body;
     x86_LocalAllocator     local_allocator;

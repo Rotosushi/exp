@@ -42,4 +42,8 @@ u64 x86_allocation_align_of(x86_Allocation const *restrict allocation);
 x86_PtrKind
 x86_allocation_ptr_kind_of(x86_Allocation const *restrict allocation);
 
+x86_Location
+x86_allocation_get_element_ptr(x86_Allocation const *restrict allocation,
+                               u64 index);
+
 #endif // !EXP_BACKEND_X86_ALLOCATION_H

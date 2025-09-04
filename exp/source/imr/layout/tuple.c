@@ -22,6 +22,7 @@
 #include "imr/type.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/panic.h"
 
 static void layout_tuple_initialize(LayoutTuple *restrict layout) {
@@ -104,6 +105,9 @@ static void layout_tuple_append_element(LayoutTuple *restrict layout,
 void layout_tuple_create(LayoutTuple *restrict layout,
                          TypeTuple const *restrict tuple,
                          LayoutInterner *restrict interner) {
+    exp_assert(layout != NULL);
+    exp_assert(tuple != NULL);
+    exp_assert(interner != NULL);
     Type const   *element_type   = NULL;
     Type const   *next_type      = NULL;
     Layout const *element_layout = NULL;
@@ -129,6 +133,35 @@ void layout_tuple_create(LayoutTuple *restrict layout,
 }
 
 void layout_tuple_destroy(LayoutTuple *restrict layout) {
+    exp_assert(layout != NULL);
     deallocate(layout->buffer);
     layout_tuple_initialize(layout);
+}
+
+u64 layout_tuple_get_element_offset(LayoutTuple const *restrict layout, u32 n) {
+    exp_assert(layout != NULL);
+
+    u64 offset = 0;
+    for (u32 index = 0, count = 0; index < layout->length; ++index, ++count) {
+        Layout const *element = layout->buffer[index];
+        switch (element->kind) {
+        case LAYOUT_KIND_TUPLE:
+            offset += element->data.tuple.primary.size;
+            count += 1;
+            break;
+
+        case LAYOUT_KIND_PRIMARY:
+            offset += element->data.primary.size;
+            count += 1;
+            break;
+
+        case LAYOUT_KIND_PADDING: offset += element->data.padding; break;
+
+        default: unreachable();
+        }
+
+        if (count >= n) { break; }
+    }
+
+    return offset;
 }

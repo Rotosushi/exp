@@ -19,16 +19,12 @@
 #define EXP_CODEGEN_X86_ENV_CONTEXT_H
 
 #include "env/context.h"
-#include "env/symbol_table.h"
 
 typedef struct x86_Context {
-    SymbolTable initializers;
+    u8 empty;
 } x86_Context;
 
-void        *x86_context_allocate();
-void         x86_context_deallocate(void *restrict context);
-SymbolTable *x86_context_initializers(void *restrict context);
-
-Symbol *x86_context_initializer_at(Context *restrict context, StringView name);
+void *x86_context_allocate();
+void  x86_context_deallocate(void *restrict context);
 
 #endif // !EXP_CODEGEN_X86_ENV_CONTEXT_H

@@ -21,6 +21,7 @@
 #include "support/constant_string.h"
 
 typedef enum x86_OperandKind : u8 {
+    X86_OPERAND_KIND_RIP,
     X86_OPERAND_KIND_LOCATION,
     X86_OPERAND_KIND_LABEL,
     X86_OPERAND_KIND_NIL,
@@ -56,13 +57,14 @@ typedef struct x86_Operand {
 } x86_Operand;
 
 x86_Operand x86_operand(x86_OperandKind kind, x86_OperandData data);
+x86_Operand x86_operand_rip(ConstantString const *label);
 x86_Operand x86_operand_location(x86_Location location);
 x86_Operand x86_operand_location_gpr(x86_GPR gpr);
 x86_Operand
 x86_operand_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset);
 x86_Operand x86_operand_location_address_indexed(
     x86_GPR base, x86_PtrKind ptr_kind, x86_GPR index, u8 scale, i32 offset);
-x86_Operand x86_operand_label(ConstantString const *cs);
+x86_Operand x86_operand_label(ConstantString const *label);
 x86_Operand x86_operand_nil();
 x86_Operand x86_operand_bool(bool bool_);
 x86_Operand x86_operand_u8(u8 u8_);

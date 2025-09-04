@@ -95,6 +95,14 @@ bool x86_location_equality(x86_Location A, x86_Location B) {
     }
 }
 
+x86_Location x86_location_address_increment(x86_Location location, i32 offset) {
+    exp_assert(location.is_address);
+    if (__builtin_add_overflow(location.offset, offset, &location.offset)) {
+        PANIC("address increment overflow.");
+    }
+    return location;
+}
+
 // effective address: ptr_kind [base + index * scale + offset]
 static void print_x86_address(String *restrict buffer, x86_Location address) {
     string_append(buffer, x86_ptr_kind_mnemonic(address.ptr_kind));

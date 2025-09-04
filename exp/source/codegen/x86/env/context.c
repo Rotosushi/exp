@@ -18,35 +18,17 @@
  */
 
 #include "codegen/x86/env/context.h"
-#include "env/context.h"
 #include "support/allocation.h"
 #include "support/assert.h"
 
 void *x86_context_allocate() {
     x86_Context *context = callocate(1, sizeof(x86_Context));
     exp_assert_debug(context != NULL);
-    symbol_table_create(&context->initializers);
     return context;
 }
 
 void x86_context_deallocate(void *restrict context) {
     exp_assert(context != NULL);
-    x86_Context *x86_context = (x86_Context *)context;
-    symbol_table_destroy(&x86_context->initializers);
 
     deallocate(context);
-}
-
-Symbol *x86_context_initializer_at(Context *restrict context, StringView name) {
-    exp_assert(context != NULL);
-    x86_Context *x86_context =
-        (x86_Context *)context_get_target_context(context);
-    return symbol_table_at(&x86_context->initializers, name);
-}
-
-SymbolTable *x86_context_initializers(void *restrict context) {
-    exp_assert(context != NULL);
-    x86_Context *x86_context =
-        (x86_Context *)context_get_target_context((Context *)context);
-    return &x86_context->initializers;
 }

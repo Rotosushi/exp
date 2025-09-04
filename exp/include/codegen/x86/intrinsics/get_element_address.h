@@ -19,8 +19,8 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 #define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
+#include "codegen/x86/imr/allocation/location.h"
 #include "codegen/x86/imr/layout.h"
-#include "codegen/x86/imr/location.h"
 
 /**
  * @brief Get the address of an element in a tuple.
