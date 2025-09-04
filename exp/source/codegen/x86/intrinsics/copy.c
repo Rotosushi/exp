@@ -40,27 +40,30 @@ static void x86_codegen_copy_tuple(x86_Location dst,
 // if the size to copy is larger than some limit, we want to
 // call the builtin memcpy library function. This function
 // is always linked into the resulting binary.
-void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
-                                 x86_Allocation *restrict src,
-                                 [[maybe_unused]] u64 block_index,
-                                 x86_Function *restrict function,
-                                 [[maybe_unused]] Context *restrict context) {
-    if (dst->location.is_address && src->location.is_address) {
-        PANIC("unimplemented!");
-        // call _exp_byte_copy library routine.
+void x86_codegen_copy(x86_Location dst,
+                      x86_Location src,
+                      Type const  *type,
+                      u64          block_index,
+                      x86_Function *restrict x86_function,
+                      Context *restrict context) {
+    if (!dst.is_address || !src.is_address) {
+        // if one or the other allocations is not an address, then they must be
+        // register sized, because they are allocated to a register, and since
+        // one of them is in a register, or both of them are we are able to
+        // construct a valid x86 mov instruction to handle the copy.
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_location(src)));
         return;
     }
 
-    // if one or the other allocations is not an address, then they must be
-    // register sized, because they are allocated to a register, and since one
-    // of them is in a register, or both of them are we are able to construct a
-    // valid x86 mov instruction to handle the copy.
-    x86_function_append(function,
-                        x86_mov(x86_operand_location(dst->location),
-                                x86_operand_location(src->location)));
+    // otherwise we have to handle the copy, mem to mem.
+    // we can call out to the memcpy library routine.
+    // or we can emit instructions to manually copy the
+    // data. it's our choice here.
 }
 
-void x86_codegen_copy_value(x86_Allocation *restrict dst,
+void x86_codegen_copy_value(x86_Location dst,
                             Value const *restrict value,
                             u64 block_index,
                             x86_Function *restrict x86_function,
@@ -72,66 +75,65 @@ void x86_codegen_copy_value(x86_Allocation *restrict dst,
     case VALUE_KIND_NIL:
         x86_function_append(
             x86_function,
-            x86_mov(x86_operand_location(dst->location), x86_operand_nil()));
+            x86_mov(x86_operand_location(dst), x86_operand_nil()));
         break;
 
     case VALUE_KIND_BOOL:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_bool(value->bool_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_bool(value->bool_)));
         break;
 
     case VALUE_KIND_U8:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_u8(value->u8_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_u8(value->u8_)));
         break;
 
     case VALUE_KIND_U16:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_u16(value->u16_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_u16(value->u16_)));
         break;
 
     case VALUE_KIND_U32:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_u32(value->u32_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_u32(value->u32_)));
         break;
 
     case VALUE_KIND_U64:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_u64(value->u64_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_u64(value->u64_)));
         break;
 
     case VALUE_KIND_I8:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_i8(value->i8_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_i8(value->i8_)));
         break;
 
     case VALUE_KIND_I16:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_i16(value->i16_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_i16(value->i16_)));
         break;
 
     case VALUE_KIND_I32:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_i32(value->i32_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_i32(value->i32_)));
         break;
 
     case VALUE_KIND_I64:
-        x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
-                                    x86_operand_i64(value->i64_)));
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_i64(value->i64_)));
         break;
 
     case VALUE_KIND_TUPLE:
-
-        x86_codegen_copy_value(dst, value, block_index, x86_function, context);
+        x86_codegen_copy_tuple(dst, value, block_index, x86_function, context);
         break;
 
     case VALUE_KIND_FUNCTION:
@@ -141,7 +143,7 @@ void x86_codegen_copy_value(x86_Allocation *restrict dst,
         exp_assert(value->kind == VALUE_KIND_FUNCTION);
         Function const *function = &value->function;
         x86_function_append(x86_function,
-                            x86_mov(x86_operand_location(dst->location),
+                            x86_mov(x86_operand_location(dst),
                                     x86_operand_rip(function->name)));
         break;
 
@@ -152,9 +154,105 @@ void x86_codegen_copy_value(x86_Allocation *restrict dst,
 static void x86_codegen_copy_operand(x86_Location dst,
                                      Operand      operand,
                                      u64          block_index,
-                                     x86_Function *restrict function,
+                                     x86_Function *restrict x86_function,
                                      Context *restrict context) {
-    return;
+    switch (operand.kind) {
+    case OPERAND_KIND_LABEL: {
+        x86_Allocation *local =
+            x86_function_allocation_named(x86_function, operand.data.label);
+        exp_assert(local != NULL);
+        // #TODO: global lookup can become copy from
+        // rip relative address. whats tricky is the type to copy.
+        x86_codegen_copy(dst,
+                         local->location,
+                         local->type,
+                         block_index,
+                         x86_function,
+                         context);
+        break;
+    }
+
+    case OPERAND_KIND_CONSTANT: {
+        x86_codegen_copy_value(
+            dst, operand.data.constant, block_index, x86_function, context);
+        break;
+    }
+
+    case OPERAND_KIND_SSA: {
+        x86_Allocation *local =
+            x86_function_allocation_at(x86_function, operand.data.ssa);
+        exp_assert(local != NULL);
+        x86_codegen_copy(dst,
+                         local->location,
+                         local->type,
+                         block_index,
+                         x86_function,
+                         context);
+        break;
+    }
+
+    case OPERAND_KIND_NIL:
+        x86_function_append(
+            x86_function,
+            x86_mov(x86_operand_location(dst), x86_operand_nil()));
+        break;
+
+    case OPERAND_KIND_BOOL:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_bool(operand.data.bool_)));
+        break;
+
+    case OPERAND_KIND_U8:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_u8(operand.data.u8_)));
+        break;
+
+    case OPERAND_KIND_U16:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_u16(operand.data.u16_)));
+        break;
+
+    case OPERAND_KIND_U32:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_u32(operand.data.u32_)));
+        break;
+
+    case OPERAND_KIND_U64:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_u64(operand.data.u64_)));
+        break;
+
+    case OPERAND_KIND_I8:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_i8(operand.data.i8_)));
+        break;
+
+    case OPERAND_KIND_I16:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_i16(operand.data.i16_)));
+        break;
+
+    case OPERAND_KIND_I32:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_i32(operand.data.i32_)));
+        break;
+
+    case OPERAND_KIND_I64:
+        x86_function_append(x86_function,
+                            x86_mov(x86_operand_location(dst),
+                                    x86_operand_i64(operand.data.i64_)));
+        break;
+
+    default: unreachable();
+    }
 }
 
 static void x86_codegen_copy_tuple(x86_Location dst,

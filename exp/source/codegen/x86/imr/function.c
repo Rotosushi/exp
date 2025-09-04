@@ -90,6 +90,14 @@ x86_Allocation *x86_function_allocation_at(x86_Function *restrict x86_function,
                                              ssa);
 }
 
+x86_Allocation *
+x86_function_allocation_named(x86_Function *restrict x86_function,
+                              ConstantString const *name) {
+    exp_assert(x86_function != NULL);
+    return x86_local_allocator_allocation_named(&x86_function->local_allocator,
+                                                name);
+}
+
 void x86_function_insert_block(x86_Function *restrict x86_function,
                                u32 position) {
     exp_assert(x86_function != NULL);

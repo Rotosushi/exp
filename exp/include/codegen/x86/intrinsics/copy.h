@@ -19,17 +19,17 @@
 #ifndef EXP_BACKEND_X86_INTRINSICS_H
 #define EXP_BACKEND_X86_INTRINSICS_H
 
-#include "codegen/x86/imr/allocation.h"
 #include "codegen/x86/imr/function.h"
 #include "env/context.h"
 
-void x86_codegen_copy_allocation(x86_Allocation *restrict dst,
-                                 x86_Allocation *restrict src,
-                                 u64 block_index,
-                                 x86_Function *restrict x86_function,
-                                 Context *restrict context);
+void x86_codegen_copy(x86_Location dst,
+                      x86_Location src,
+                      Type const  *type,
+                      u64          block_index,
+                      x86_Function *restrict x86_function,
+                      Context *restrict context);
 
-void x86_codegen_copy_value(x86_Allocation *restrict dst,
+void x86_codegen_copy_value(x86_Location dst,
                             Value const *restrict value,
                             u64 block_index,
                             x86_Function *restrict x86_function,

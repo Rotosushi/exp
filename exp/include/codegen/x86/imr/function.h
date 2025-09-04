@@ -51,6 +51,9 @@ x86_Allocation *x86_function_formal_argument_at(x86_Function *restrict function,
 x86_Allocation *x86_function_allocation_at(x86_Function *restrict function,
                                            u32 ssa);
 
+x86_Allocation *x86_function_allocation_named(x86_Function *restrict function,
+                                              ConstantString const *name);
+
 void x86_function_insert_block(x86_Function *restrict function, u32 position);
 void x86_function_prepend_block(x86_Function *restrict function);
 u32  x86_function_append_block(x86_Function *restrict function);

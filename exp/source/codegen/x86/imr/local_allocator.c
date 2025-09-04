@@ -53,6 +53,13 @@ x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
     return x86_allocations_at(&local_allocator->allocations, ssa);
 }
 
+x86_Allocation *x86_local_allocator_allocation_named(
+    x86_LocalAllocator *restrict local_allocator, ConstantString const *name) {
+    exp_assert(local_allocator != NULL);
+    exp_assert(name != NULL);
+    return x86_allocations_named(&local_allocator->allocations, name);
+}
+
 void x86_local_allocator_aquire_gpr(x86_LocalAllocator *restrict allocator,
                                     x86_GPR gpr) {
     exp_assert(allocator != NULL);

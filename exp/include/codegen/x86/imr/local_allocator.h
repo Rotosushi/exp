@@ -43,6 +43,9 @@ x86_Allocation *
 x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
                                   u32 ssa);
 
+x86_Allocation *x86_local_allocator_allocation_named(
+    x86_LocalAllocator *restrict local_allocator, ConstantString const *name);
+
 /*
  * #NOTE: Does it really make sense for the allocator to be adding instructions
  * to the function's body? Shouldn't the allocators concern simply be
@@ -66,7 +69,7 @@ x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
  * "intrinsics" like size_of are also used as atoms within code generation.
  * so maybe it's an "is-a" relationship. :)
  * intrinsics "are" atoms, but atoms "are not necessarily" intrinsics.
- * they could be "scaffolding" 
+ * they could be "scaffolding"
  *
  */
 

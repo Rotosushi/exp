@@ -22,6 +22,7 @@
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
+#include "support/constant_string.h"
 
 void x86_allocations_create(x86_Allocations *restrict allocations) {
     allocations->length   = 0;
@@ -70,4 +71,20 @@ x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
     x86_Allocation *allocation = allocations->buffer[ssa];
     exp_assert(allocation != NULL);
     return allocation;
+}
+
+x86_Allocation *x86_allocations_named(x86_Allocations *restrict allocations,
+                                      ConstantString const *name) {
+    exp_assert(allocations != NULL);
+    exp_assert(name != NULL);
+
+    StringView view = constant_string_to_view(name);
+
+    for (u32 index = 0; index < allocations->length; ++index) {
+        x86_Allocation *allocation = allocations->buffer[index];
+        exp_assert(allocation != NULL);
+        if (string_view_equal(view, allocation->name)) { return allocation; }
+    }
+
+    return NULL;
 }

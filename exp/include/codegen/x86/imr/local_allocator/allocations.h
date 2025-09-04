@@ -18,6 +18,7 @@
 #define EXP_CODEGEN_X86_IMR_ALLOCATIONS_H
 
 #include "codegen/x86/imr/allocation.h"
+#include "support/constant_string.h"
 
 typedef struct x86_Allocations {
     u32              length;
@@ -34,5 +35,8 @@ x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
 
 x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
                                    u32 ssa);
+
+x86_Allocation *x86_allocations_named(x86_Allocations *restrict allocations,
+                                      ConstantString const *name);
 
 #endif // !EXP_CODEGEN_X86_IMR_ALLOCATIONS_H
