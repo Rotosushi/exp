@@ -159,7 +159,7 @@ void x86_function_setup(x86_Function *restrict x86_function,
     // #NOTE: #OPTIMIZATION: when the function uses no stack space, we can use
     // these registers as general purpose. So long as we save/restore them
     // before returning to another functions frame.
-    // #NOTE: #OPTIMIZATION: if the frame size is static then, we can
+    // #NOTE: #OPTIMIZATION: if the frame size is static then we can
     // get away with only using the RBP register. Which frees up the RSP for
     // general usage.
     x86_local_allocator_aquire_gpr(&x86_function->local_allocator, X86_GPR_RSP);

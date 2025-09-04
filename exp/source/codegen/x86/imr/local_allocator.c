@@ -129,8 +129,8 @@ x86_Allocation *x86_local_allocator_allocate_result(
         // and it's the result, we know it does not need
         // to be valid until after the return instruction is generated.
         // at which point the function cannot interfere with it's value.
-        // and since it's value is not known until the return instruction
-        // is generated, the result value cannot be interfered with by the
+        // and since it's value is not valid until the return instruction
+        // is executed, the result value cannot be interfered with by the
         // rest of the function. Therefore we can just assign it's location
         // without informing the register allocator, allowing the register
         // allocator to use the register as normal, potentially allowing the
@@ -148,7 +148,7 @@ x86_Allocation *x86_local_allocator_allocate_result(
     exp_assert_always(allocation->location.is_address);
     exp_assert_always(x86_gpr_overlap(allocation->location.base, X86_GPR_RDI));
     x86_register_allocator_aquire_gpr(&local_allocator->register_allocator,
-                                      X86_GPR_RSI);
+                                      X86_GPR_RDI);
     x86_formal_argument_list_append(x86_arguments, allocation);
     return allocation;
 }

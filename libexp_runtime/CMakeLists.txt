@@ -26,7 +26,7 @@ add_library(exp_runtime_start
 
 set(EXP_LIBEXP_RUNTIME_SOURCES
   ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_syscalls.s
-  ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_byte.s
+  ${EXP_LIBEXP_RUNTIME_DIR}/source/exp_memory.s
 )
 
 add_library(exp_runtime

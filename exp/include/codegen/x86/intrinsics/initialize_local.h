@@ -28,7 +28,6 @@ void x86_codegen_initialize_local_from_value(
     x86_Allocation *restrict allocation,
     Value const *restrict value,
     u32 block_index,
-    Function *restrict function,
     x86_Function *restrict x86_function,
     Context *restrict context);
 

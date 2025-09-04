@@ -1,12 +1,12 @@
-.file "exp_byte.s"
+.file "exp_memory.s"
 
-// void _exp_byte_copy(u8 *restrict dst, u8 *restrict src, u64 count)
+// void __exp_memcpy(u8 *restrict dst, u8 *restrict src, u64 count)
 // %rdi - dst
 // %rsi - src
 // %rdx - count
-.globl _exp_byte_copy
-.type _exp_byte_copy, @function
-_exp_byte_copy:
+.globl __exp_memcpy
+.type __exp_memcpy, @function
+__exp_memcpy:
   // if count == 0: return
   testq %rdx, %rdx
   jz byte_done
@@ -15,7 +15,7 @@ _exp_byte_copy:
   rep movsb
 byte_done:
   ret
-.size _exp_byte_copy, .-_exp_byte_copy
+.size __exp_memcpy, .-__exp_memcpy
 
 .globl _exp_byte_copy_word
 .type _exp_byte_copy_word, @function

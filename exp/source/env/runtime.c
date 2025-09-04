@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Cade Weinberg
+ * Copyright (C) 2025 Cade Weinberg
  *
  * This file is part of exp.
  *
@@ -14,12 +14,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with exp.  If not, see <http://www.gnu.org/licenses/>.
+ * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "support/scalar.h"
+#include "env/runtime.h"
+#include "imr/value.h"
+#include "support/assert.h"
 
-void _exp_byte_copy(u8 *restrict dst, u8 const *restrict src, u64 count);
-
-void _exp_byte_copy_word(u8 *restrict dst, u8 const *restrict src, u64 count);
-
+void initialize_runtime_symbols(SymbolTable *restrict table) {
+    exp_assert(table != NULL);
+}

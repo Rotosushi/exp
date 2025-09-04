@@ -19,17 +19,11 @@
 #include <assert.h>
 
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/intrinsics/call.h"
 #include "codegen/x86/intrinsics/copy.h"
 #include "imr/type.h"
 #include "support/assert.h"
-#include "support/message.h"
 #include "support/unreachable.h"
-
-static void x86_codegen_copy_operand(x86_Location dst,
-                                     Operand      operand,
-                                     u64          block_index,
-                                     x86_Function *restrict function,
-                                     Context *restrict context);
 
 static void x86_codegen_copy_tuple(x86_Location dst,
                                    Value const *restrict value,
@@ -37,9 +31,6 @@ static void x86_codegen_copy_tuple(x86_Location dst,
                                    x86_Function *restrict function,
                                    Context *restrict context);
 
-// if the size to copy is larger than some limit, we want to
-// call the builtin memcpy library function. This function
-// is always linked into the resulting binary.
 void x86_codegen_copy(x86_Location dst,
                       x86_Location src,
                       Type const  *type,
@@ -57,10 +48,24 @@ void x86_codegen_copy(x86_Location dst,
         return;
     }
 
-    // otherwise we have to handle the copy, mem to mem.
-    // we can call out to the memcpy library routine.
-    // or we can emit instructions to manually copy the
-    // data. it's our choice here.
+    u64 size = layout_size_of(type->layout);
+
+    x86_Tuple args;
+    x86_tuple_create(&args);
+    x86_tuple_append(&args, x86_operand_location(dst));
+    x86_tuple_append(&args, x86_operand_location(src));
+    x86_tuple_append(&args, x86_operand_u64(size));
+
+    Symbol *symbol = context_global_symbol_lookup(context, SV("__exp_memcpy"));
+    exp_assert(symbol != NULL);
+    exp_assert(symbol->type->kind == TYPE_KIND_COMPOSITE);
+    exp_assert(symbol->type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    exp_assert(symbol->value->kind == VALUE_KIND_FUNCTION);
+    Function const *callee = &symbol->value->function;
+
+    x86_codegen_call(callee, &args, block_index, x86_function, context);
+
+    x86_tuple_destroy(&args);
 }
 
 void x86_codegen_copy_value(x86_Location dst,
@@ -151,11 +156,11 @@ void x86_codegen_copy_value(x86_Location dst,
     }
 }
 
-static void x86_codegen_copy_operand(x86_Location dst,
-                                     Operand      operand,
-                                     u64          block_index,
-                                     x86_Function *restrict x86_function,
-                                     Context *restrict context) {
+void x86_codegen_copy_operand(x86_Location dst,
+                              Operand      operand,
+                              u64          block_index,
+                              x86_Function *restrict x86_function,
+                              Context *restrict context) {
     switch (operand.kind) {
     case OPERAND_KIND_LABEL: {
         x86_Allocation *local =

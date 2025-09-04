@@ -29,6 +29,12 @@ void x86_codegen_copy(x86_Location dst,
                       x86_Function *restrict x86_function,
                       Context *restrict context);
 
+void x86_codegen_copy_operand(x86_Location dst,
+                              Operand      operand,
+                              u64          block_index,
+                              x86_Function *restrict x86_function,
+                              Context *restrict context);
+
 void x86_codegen_copy_value(x86_Location dst,
                             Value const *restrict value,
                             u64 block_index,
