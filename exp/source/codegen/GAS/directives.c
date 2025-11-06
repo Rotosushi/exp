@@ -49,7 +49,8 @@ void gas_directive_noexecstack(String *restrict str) {
      * states that ".note.GNU-stack" marks the stack as noexec, only that
      * "... and the .note.GNU-stack section may have the executable (x)
      *  flag added". which implies to me that the .note... has something
-     * to do with marking the stack as exec or noexec.)
+     * to do with marking the stack as exec or noexec. and it appears within
+     * the emitted assembly from a call to GCC)
      */
     StringView noexecstack = SV("\t.section .note.GNU-stack,\"\",@progbits\n");
     string_append(str, noexecstack);

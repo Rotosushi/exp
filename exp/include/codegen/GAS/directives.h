@@ -119,23 +119,88 @@ typedef enum STT_Type {
     STT_COMMON,
 } STT_Type;
 
+/**
+ * @brief informs the assembler about the type of the given symbol.
+ * STT_FUNC refers to functions, STT_OBJECT refers to all kinds of data.
+ * STT_TLS is thread local storage for all kinds of data. and
+ * STT_COMMON allows the assembler to merger the allocations for data
+ * which have the same name.
+ */
 void gas_directive_type(StringView name,
                         STT_Type   kind,
                         String *restrict buffer);
 
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a u8 uses the .byte directive
+ */
 void gas_directive_u8(u8 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a i8 uses the .byte directive
+ */
 void gas_directive_i8(i8 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a u16 uses the .short directive
+ */
 void gas_directive_u16(u16 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a i16 uses the .short directive
+ */
 void gas_directive_i16(i16 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a u32 uses the .int directive
+ */
 void gas_directive_u32(u32 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a i32 uses the .int directive
+ */
 void gas_directive_i32(i32 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a u64 uses the .quad directive
+ */
 void gas_directive_u64(u64 value, String *restrict buffer);
+
+/**
+ * @brief helper function to emit a value into the executable.
+ *
+ * @note a i64 uses the .quad directive
+ */
 void gas_directive_i64(i64 value, String *restrict buffer);
 
+/**
+ * @brief causes the assembler to emit <bytes> zero bytes into
+ * the object file
+ */
 void gas_directive_zero(u64 bytes, String *restrict buffer);
 
+/**
+ * @brief causes the assembler to emit a c-style null terminated string
+ * into the executable.
+ */
 void gas_directive_string(StringView sv, String *restrict buffer);
 
+/**
+ * @brief adds a label at the current point within the assembly file.
+ */
 void gas_directive_label(StringView name, String *restrict buffer);
 
 #endif // !EXP_BACKEND_GAS_DIRECTIVES_H

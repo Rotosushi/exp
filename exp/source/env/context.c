@@ -185,6 +185,7 @@ i32 context_compile_source(Context *restrict context, StringView source_path) {
     }
 
     // #NOTE: at this point, the source file has been fully compiled into IR.
+    // all of which is held within the context.
     // So we can move on to the creation of build artifacts.
     string_destroy(&buffer);
     return 0;
