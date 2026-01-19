@@ -56,7 +56,7 @@ static struct bytes_data generate_data() {
     return data;
 }
 
-i32 exp_byte_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
+i32 exp_memory_tests([[maybe_unused]] i32 argc, [[maybe_unused]] char **argv) {
     struct bytes_data data = generate_data();
 
     if (test_exp_memcpy(data.src, data.length) == EXIT_FAILURE) {

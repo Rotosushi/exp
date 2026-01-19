@@ -84,3 +84,11 @@ x86_Block *x86_body_at(x86_Body *restrict body, u32 index) {
     exp_assert(index < body->length);
     return body->buffer + index;
 }
+
+void print_x86_body(String *restrict string, x86_Body const *restrict body) {
+    exp_assert(string != NULL);
+    exp_assert(body != NULL);
+    for (u32 index = 0; index < body->length; ++index) {
+        print_x86_block(string, body->buffer + index);
+    }
+}

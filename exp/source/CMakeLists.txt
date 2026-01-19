@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 
-set(SOURCE_FILES 
+set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/dynamic_bitset_matrix.c
   ${EXP_SOURCE_DIR}/adt/dynamic_bitset.c
   ${EXP_SOURCE_DIR}/adt/sparse_digraph.c
@@ -9,14 +9,14 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/analysis/infer_types.c
   ${EXP_SOURCE_DIR}/analysis/infer_lifetimes.c
   ${EXP_SOURCE_DIR}/analysis/validate.c
-  
+
   ${EXP_SOURCE_DIR}/codegen/GAS/directives.c
-  
+
   ${EXP_SOURCE_DIR}/codegen/IR/codegen.c
   ${EXP_SOURCE_DIR}/codegen/IR/directives.c
   ${EXP_SOURCE_DIR}/codegen/IR/intrinsics.c
   ${EXP_SOURCE_DIR}/codegen/IR/target.c
-  
+
   ${EXP_SOURCE_DIR}/codegen/x86/codegen.c
   ${EXP_SOURCE_DIR}/codegen/x86/function.c
   ${EXP_SOURCE_DIR}/codegen/x86/target.c
@@ -25,9 +25,11 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/env/context.c
 
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/align_of.c
-  #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/call.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/copy.c
   #${EXP_SOURCE_DIR}/codegen/x86/intrinsics/get_element_address.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/initialize_local.c
+  ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/ptr_kind_of.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/size_of.c
 
   #${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
@@ -60,18 +62,19 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/imr/local_allocator.c
   #${EXP_SOURCE_DIR}/codegen/x86/imr/locations.c
   ${EXP_SOURCE_DIR}/codegen/x86/imr/registers.c
-  
+
 
   ${EXP_SOURCE_DIR}/env/cli_options.c
+  ${EXP_SOURCE_DIR}/env/constants.c
   ${EXP_SOURCE_DIR}/env/context.c
   ${EXP_SOURCE_DIR}/env/error.c
   ${EXP_SOURCE_DIR}/env/frames.c
   ${EXP_SOURCE_DIR}/env/labels.c
+  ${EXP_SOURCE_DIR}/env/layout_interner.c
   ${EXP_SOURCE_DIR}/env/stack.c
   ${EXP_SOURCE_DIR}/env/string_interner.c
   ${EXP_SOURCE_DIR}/env/symbol_table.c
   ${EXP_SOURCE_DIR}/env/type_interner.c
-  ${EXP_SOURCE_DIR}/env/constants.c
 
   ${EXP_SOURCE_DIR}/evaluate/instruction/add.c
   ${EXP_SOURCE_DIR}/evaluate/instruction/call.c
@@ -111,7 +114,7 @@ set(SOURCE_FILES
 add_library(exp_common
   ${SOURCE_FILES}
 )
-target_include_directories(exp_common PUBLIC 
+target_include_directories(exp_common PUBLIC
   ${EXP_INCLUDE_DIR}
   ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}
 )
@@ -119,7 +122,7 @@ target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
 target_link_libraries(exp_common PUBLIC exp_support)
 
-add_executable(exp 
+add_executable(exp
   ${EXP_SOURCE_DIR}/main.c
 )
 target_include_directories(exp PUBLIC ${EXP_INCLUDE_DIR})

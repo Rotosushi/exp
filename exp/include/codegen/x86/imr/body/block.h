@@ -42,6 +42,15 @@ typedef struct x86_Block {
     u32              length;
     u32              capacity;
     x86_Instruction *buffer;
+    //  #TODO: When we emit a function's block, the block needs a label
+    //         such that we can identify it within the assembler with a
+    //         label, such that jump instructions can target the block.
+    //         This requires a unique name per block, which we can either
+    //         construct at the time of printing, via
+    //         <function_name><block_index> or we can construct it when we
+    //         create the block, with a default of <function_name><block_index>
+    //         allowing for an override if that is ever desired.
+    //    StringView       name;
 } x86_Block;
 
 void x86_block_create(x86_Block *restrict block);
