@@ -1,5 +1,33 @@
 cmake_minimum_required(VERSION 3.20)
 
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  OUTPUT_VARIABLE EXP_GIT_REVISION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+string(TIMESTAMP EXP_BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+set(EXP_VERSION_STRING "")
+string(APPEND EXP_VERSION_STRING
+"exp version ("
+${EXP_VERSION_MAJOR}
+"."
+${EXP_VERSION_MINOR}
+"."
+${EXP_VERSION_PATCH}
+") built at ("
+${EXP_BUILD_TIME}
+") git revision ("
+${EXP_GIT_REVISION}
+")"
+)
+
+configure_file(
+  ${EXP_INCLUDE_DIR}/support/config.h.in
+  ${EXP_INCLUDE_DIR}/support/config.h
+)
+
 
 set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/adt/dynamic_bitset_matrix.c
@@ -109,6 +137,23 @@ set(SOURCE_FILES
 
   ${EXP_SOURCE_DIR}/scanning/lexer.c
   ${EXP_SOURCE_DIR}/scanning/parser.c
+
+  ${EXP_SOURCE_DIR}/support/allocation.c
+  ${EXP_SOURCE_DIR}/support/array_growth.c
+  ${EXP_SOURCE_DIR}/support/bitset.c
+  ${EXP_SOURCE_DIR}/support/cli_option_parser.c
+  ${EXP_SOURCE_DIR}/support/constant_string.c
+  ${EXP_SOURCE_DIR}/support/hash.c
+  ${EXP_SOURCE_DIR}/support/io.c
+  ${EXP_SOURCE_DIR}/support/message.c
+  ${EXP_SOURCE_DIR}/support/nearest_power.c
+  ${EXP_SOURCE_DIR}/support/numeric_conversions.c
+  ${EXP_SOURCE_DIR}/support/panic.c
+  ${EXP_SOURCE_DIR}/support/process.c
+  ${EXP_SOURCE_DIR}/support/random.c
+  ${EXP_SOURCE_DIR}/support/scalar.c
+  ${EXP_SOURCE_DIR}/support/string_view.c
+  ${EXP_SOURCE_DIR}/support/string.c
 )
 
 add_library(exp_common
@@ -116,11 +161,9 @@ add_library(exp_common
 )
 target_include_directories(exp_common PUBLIC
   ${EXP_INCLUDE_DIR}
-  ${EXP_LIBEXP_SUPPORT_INCLUDE_DIR}
 )
 target_compile_options(exp_common PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_common PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_common PUBLIC exp_support)
 
 add_executable(exp
   ${EXP_SOURCE_DIR}/main.c
