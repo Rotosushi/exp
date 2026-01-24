@@ -28,6 +28,15 @@
  * @param type
  * @return u64
  */
-u64 x86_size_of(TypePrimary const *restrict type);
+u64 x86_size_of_primary(TypePrimary const *restrict type);
+
+/**
+ * @brief returns the x86-64 size in bytes of a function pointer.
+ *
+ * @note this is 8, equal to the size of a machine word
+ *
+ * @return u64
+ */
+u64 x86_size_of_function();
 
 #endif // !EXP_INTRINSICS_SIZEOF_H

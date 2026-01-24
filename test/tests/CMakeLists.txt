@@ -43,7 +43,7 @@ target_include_directories(exp_tests PUBLIC
 )
 target_compile_options(exp_tests PUBLIC ${EXP_COMPILE_OPTIONS})
 target_link_options(exp_tests PUBLIC ${EXP_LINK_OPTIONS})
-target_link_libraries(exp_tests PUBLIC exp_common exp_test exp_runtime m)
+target_link_libraries(exp_tests PUBLIC exp_common exp_test exprt m)
 
 foreach (test ${TestsToRun})
   get_filename_component (TestName ${test} NAME_WE)

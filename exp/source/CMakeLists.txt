@@ -152,6 +152,7 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/support/process.c
   ${EXP_SOURCE_DIR}/support/random.c
   ${EXP_SOURCE_DIR}/support/scalar.c
+  ${EXP_SOURCE_DIR}/support/stacktrace.c
   ${EXP_SOURCE_DIR}/support/string_view.c
   ${EXP_SOURCE_DIR}/support/string.c
 )

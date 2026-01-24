@@ -41,6 +41,7 @@ typedef struct LayoutInterner {
     Layout     i16_;
     Layout     i32_;
     Layout     i64_;
+    Layout     function;
     LayoutList padding;
     LayoutList tuple;
 } LayoutInterner;

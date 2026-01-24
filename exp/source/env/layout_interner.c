@@ -113,6 +113,9 @@ void layout_interner_create(LayoutInterner *restrict interner,
     layout_create_primary(
         &interner->i64_,
         context_layout_of_primary(context, type_primary_i64()));
+    layout_create_function(&interner->function,
+                           context_layout_of_function(context));
+
     layout_list_create(&interner->padding);
     layout_list_create(&interner->tuple);
 }
@@ -164,11 +167,11 @@ layout_interner_layout_of_composite(LayoutInterner *restrict interner,
         layout_create_tuple(layout, &type->composite.data.tuple, interner);
     }
 
-    // we don't compute a layout for functions, as the size is not
-    // known until after they are assembled, though their alignment
-    // is always 8. (machine word size aligned)
-    case TYPE_COMPOSITE_KIND_FUNCTION:
-    default:                           EXP_UNREACHABLE();
+    case TYPE_COMPOSITE_KIND_FUNCTION: {
+        return &interner->function;
+    }
+
+    default: EXP_UNREACHABLE();
     }
 }
 

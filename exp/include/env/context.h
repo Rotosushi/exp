@@ -200,6 +200,8 @@ Type const *context_type_of_operand(Context *restrict context,
 LayoutPrimary context_layout_of_primary(Context *restrict context,
                                         TypePrimary primary);
 
+LayoutPrimary context_layout_of_function(Context *restrict context);
+
 Layout const *context_layout_of(Context *restrict context, Type const *type);
 
 // Evaluation helpers

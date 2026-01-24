@@ -21,7 +21,7 @@
 #include "support/assert.h"
 #include "support/unreachable.h"
 
-u64 x86_size_of(TypePrimary const *restrict type) {
+u64 x86_size_of_primary(TypePrimary const *restrict type) {
     exp_assert(type != NULL);
     switch (type->kind) {
     case TYPE_PRIMARY_KIND_NIL:  return 1;
@@ -37,3 +37,5 @@ u64 x86_size_of(TypePrimary const *restrict type) {
     default:                     EXP_UNREACHABLE();
     }
 }
+
+u64 x86_size_of_function() { return 8; }

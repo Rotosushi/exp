@@ -64,6 +64,20 @@ i32 x86_codegen_primary(String *restrict buffer,
     return 0;
 }
 
+i32 x86_codegen_function(String *restrict buffer,
+                         Symbol const *restrict symbol,
+                         Context *restrict context) {
+    u64 alignment = layout_align_of(symbol->type->layout);
+    gas_directive_text(buffer);
+    gas_directive_globl(symbol->name, buffer);
+    gas_directive_balign(alignment, buffer);
+    gas_directive_type(symbol->name, STT_FUNC, buffer);
+    gas_directive_label(symbol->name, buffer);
+    print_x86_function(buffer, symbol->value, context);
+    gas_directive_size_label_relative(symbol->name, buffer);
+    return 0;
+}
+
 i32 x86_codegen_composite(String *restrict buffer,
                           Symbol const *restrict symbol,
                           Context *restrict context) {
@@ -75,14 +89,7 @@ i32 x86_codegen_composite(String *restrict buffer,
         return x86_codegen_primary(buffer, symbol, context);
 
     case TYPE_COMPOSITE_KIND_FUNCTION:
-        gas_directive_text(buffer);
-        gas_directive_globl(symbol->name, buffer);
-        gas_directive_balign(8, buffer);
-        gas_directive_type(symbol->name, STT_FUNC, buffer);
-        gas_directive_label(symbol->name, buffer);
-        print_x86_function(buffer, symbol->value, context);
-        gas_directive_size_label_relative(symbol->name, buffer);
-        return 0;
+        return x86_codegen_function(buffer, symbol, context);
 
     default: EXP_UNREACHABLE();
     }

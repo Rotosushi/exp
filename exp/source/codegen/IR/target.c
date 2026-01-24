@@ -21,9 +21,6 @@
 #include "codegen/IR/codegen.h"
 #include "codegen/IR/intrinsics.h"
 
-void *ir_context_allocate() { return NULL; }
-void  ir_context_deallocate([[maybe_unused]] void *restrict context) { return; }
-
 Target ir_target_info = {
     .tag                  = {    .length = sizeof("ir") - 1,     .ptr = "ir"},
     .triple               = {.length = sizeof("exp-ir") - 1, .ptr = "exp-ir"},
@@ -36,8 +33,6 @@ Target ir_target_info = {
     .header               = ir_header,
     .codegen              = ir_codegen,
     .footer               = ir_footer,
-    .context_allocate     = ir_context_allocate,
-    .context_deallocate   = ir_context_deallocate
 };
 
 Target *ir_target = &ir_target_info;

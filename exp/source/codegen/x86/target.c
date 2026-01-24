@@ -19,7 +19,6 @@
 
 #include "codegen/x86/target.h"
 #include "codegen/x86/codegen.h"
-#include "codegen/x86/env/context.h"
 #include "codegen/x86/intrinsics/align_of.h"
 #include "codegen/x86/intrinsics/size_of.h"
 
@@ -31,13 +30,13 @@ Target x86_target_info = {
     .object_extension     = {                   .length = sizeof("o") - 1,      .ptr = "o"},
     .library_extension    = {                   .length = sizeof("a") - 1,      .ptr = "a"},
     .executable_extension = {                    .length = sizeof("") - 1,       .ptr = ""},
-    .size_of_primary      = x86_size_of,
-    .align_of_primary     = x86_align_of,
+    .size_of_primary      = x86_size_of_primary,
+    .size_of_function     = x86_size_of_function,
+    .align_of_primary     = x86_align_of_primary,
+    .align_of_function    = x86_align_of_function,
     .header               = x86_header,
     .codegen              = x86_codegen,
     .footer               = x86_footer,
-    .context_allocate     = x86_context_allocate,
-    .context_deallocate   = x86_context_deallocate,
 };
 
 Target *x86_target = &x86_target_info;

@@ -37,6 +37,11 @@ void layout_create_tuple(Layout *restrict layout,
     layout_tuple_create(&layout->data.tuple, tuple, interner);
 }
 
+void layout_create_function(Layout *restrict layout, LayoutPrimary primary) {
+    layout->kind         = LAYOUT_KIND_FUNCTION;
+    layout->data.primary = primary;
+}
+
 void layout_destroy(Layout *restrict layout) {
     switch (layout->kind) {
     case LAYOUT_KIND_TUPLE: layout_tuple_destroy(&layout->data.tuple);
@@ -47,9 +52,10 @@ void layout_destroy(Layout *restrict layout) {
 
 u64 layout_size_of(Layout const *restrict layout) {
     switch (layout->kind) {
-    case LAYOUT_KIND_PRIMARY: return layout->data.primary.size;
-    case LAYOUT_KIND_TUPLE:   return layout->data.tuple.primary.size;
-    case LAYOUT_KIND_PADDING: return layout->data.padding;
+    case LAYOUT_KIND_PRIMARY:  return layout->data.primary.size;
+    case LAYOUT_KIND_TUPLE:    return layout->data.tuple.primary.size;
+    case LAYOUT_KIND_PADDING:  return layout->data.padding;
+    case LAYOUT_KIND_FUNCTION: return layout->data.primary.size;
 
     default: EXP_UNREACHABLE();
     }
@@ -57,9 +63,10 @@ u64 layout_size_of(Layout const *restrict layout) {
 
 u64 layout_align_of(Layout const *restrict layout) {
     switch (layout->kind) {
-    case LAYOUT_KIND_PRIMARY: return layout->data.primary.alignment;
-    case LAYOUT_KIND_TUPLE:   return layout->data.tuple.primary.alignment;
-    case LAYOUT_KIND_PADDING: return 1;
+    case LAYOUT_KIND_PRIMARY:  return layout->data.primary.alignment;
+    case LAYOUT_KIND_TUPLE:    return layout->data.tuple.primary.alignment;
+    case LAYOUT_KIND_PADDING:  return 1;
+    case LAYOUT_KIND_FUNCTION: return layout->data.primary.alignment;
 
     default: EXP_UNREACHABLE();
     }

@@ -25,6 +25,7 @@
 #include "support/debug.h"
 #include "support/message.h"
 #include "support/panic.h"
+#include "support/stacktrace.h"
 
 [[noreturn]] void panic(StringView msg, const char *file, i32 line) {
     exp_assert(file != NULL);
@@ -41,6 +42,8 @@
     msgbuf[msglen] = '\0';
     message(
         MESSAGE_FATAL, file, (u64)line, string_view(msgbuf, msglen), stderr);
+
+    print_trace(stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }
@@ -75,6 +78,8 @@
 
     message(
         MESSAGE_FATAL, file, (u64)line, string_view(msgbuf, buflen), stderr);
+
+    print_trace(stderr);
     EXP_BREAK();
     exit(EXIT_FAILURE);
 }

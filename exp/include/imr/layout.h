@@ -23,6 +23,7 @@ typedef enum LayoutKind {
     LAYOUT_KIND_PRIMARY,
     LAYOUT_KIND_PADDING,
     LAYOUT_KIND_TUPLE,
+    LAYOUT_KIND_FUNCTION,
 } LayoutKind;
 
 typedef union LayoutData {
@@ -41,6 +42,7 @@ void layout_create_padding(Layout *restrict layout, u64 length);
 void layout_create_tuple(Layout *restrict layout,
                          TypeTuple const *restrict tuple,
                          struct LayoutInterner *restrict interner);
+void layout_create_function(Layout *restrict layout, LayoutPrimary primary);
 
 void layout_destroy(Layout *restrict layout);
 

@@ -37,9 +37,12 @@ struct TypePrimary;
 // #NOTE: we factor out the target size-of
 // and align-of which handles composite types, because it's the
 // same algorithm for any target. The only target dependent
-// information is the size and alignment of the primary types.
+// information is the size and alignment of the primary types,
+// and the alignment requirements of functions.
 typedef u64 (*size_of_primary_fn)(struct TypePrimary const *type);
 typedef u64 (*align_of_primary_fn)(struct TypePrimary const *type);
+typedef u64 (*size_of_function_fn)();
+typedef u64 (*align_of_function_fn)();
 
 // #NOTE with this signature we are forced into combining
 // code generation with emission. However, this removes
@@ -53,25 +56,22 @@ typedef i32 (*header_fn)(struct String *restrict buffer,
 typedef i32 (*footer_fn)(struct String *restrict buffer,
                          struct Context *restrict context);
 
-typedef void *(*context_allocate_fn)();
-typedef void (*context_deallocate_fn)(void *restrict context);
-
 // #TODO: This structure needs to be broken up into more components
 // for supporting target specific CPU features.
 typedef struct Target {
-    StringView            tag;
-    StringView            triple;
-    StringView            assembly_extension;
-    StringView            object_extension;
-    StringView            library_extension;
-    StringView            executable_extension;
-    size_of_primary_fn    size_of_primary;
-    align_of_primary_fn   align_of_primary;
-    header_fn             header;
-    codegen_fn            codegen;
-    footer_fn             footer;
-    context_allocate_fn   context_allocate;
-    context_deallocate_fn context_deallocate;
+    StringView           tag;
+    StringView           triple;
+    StringView           assembly_extension;
+    StringView           object_extension;
+    StringView           library_extension;
+    StringView           executable_extension;
+    size_of_primary_fn   size_of_primary;
+    size_of_function_fn  size_of_function;
+    align_of_primary_fn  align_of_primary;
+    align_of_function_fn align_of_function;
+    header_fn            header;
+    codegen_fn           codegen;
+    footer_fn            footer;
 } Target;
 
 #endif // !EXP_CODEGEN_TARGET_H

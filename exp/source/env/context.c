@@ -48,8 +48,7 @@ void context_create(Context *restrict context,
                     ContextOptions *restrict options) {
     assert(context != nullptr);
     assert(options != nullptr);
-    context->options                = *options;
-    context->options.target_context = options->target->context_allocate();
+    context->options = *options;
     string_initialize(&(context->source_path));
     context->current_error = error_create();
     symbol_table_create(&context->global_symbol_table);
@@ -61,8 +60,6 @@ void context_create(Context *restrict context,
 
 void context_destroy(Context *context) {
     assert(context != nullptr);
-    context->options.target->context_deallocate(
-        context->options.target_context);
     string_destroy(&(context->source_path));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
@@ -282,8 +279,8 @@ i32 context_create_executable_artifact(Context *restrict context) {
         "-o",
         string_to_cstring(&executable_path),
         ("-L" EXP_LIBEXP_RUNTIME_BINARY_DIR),
-        "-lexp_runtime_start",
-        "-lexp_runtime",
+        "-lexprt_start",
+        "-lexprt",
         string_to_cstring(&object_path),
         NULL,
     };
@@ -793,6 +790,13 @@ LayoutPrimary context_layout_of_primary(Context *restrict context,
     Target *target = context_get_target(context);
     return layout_primary(target->size_of_primary(&primary),
                           target->align_of_primary(&primary));
+}
+
+LayoutPrimary context_layout_of_function(Context *restrict context) {
+    exp_assert(context != NULL);
+    Target *target = context_get_target(context);
+    return layout_primary(target->size_of_function(),
+                          target->align_of_function());
 }
 
 Layout const *context_layout_of(Context *restrict context, Type const *type) {

@@ -14,29 +14,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_INTRINSICS_ALIGNOF_H
-#define EXP_INTRINSICS_ALIGNOF_H
-#include <stddef.h>
+#ifndef EXP_SUPPORT_STACKTRACE_H
+#define EXP_SUPPORT_STACKTRACE_H
 
-#include "imr/type/primary.h"
+#include <stdio.h>
 
-/**
- * @brief returns the x86-64 alignment of the <type>
- *
- * @note this is the number of bytes to align a <value> with <type> to.
- *
- * @param type
- * @return u64
- */
-u64 x86_align_of_primary(TypePrimary const *restrict type);
+// #TODO: portability concerns to non-POSIX systems.
 
-/**
- * @brief returns the x86-64 alignment of functions
- *
- * @note this is 8, equal to the word size of the processor.
- *
- * @return u64
- */
-u64 x86_align_of_function();
+void print_trace(FILE *restrict out);
 
-#endif // !EXP_INTRINSICS_ALIGNOF_H
+#endif // !EXP_SUPPORT_STACKTRACE_H

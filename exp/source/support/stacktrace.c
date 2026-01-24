@@ -14,29 +14,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_INTRINSICS_ALIGNOF_H
-#define EXP_INTRINSICS_ALIGNOF_H
-#include <stddef.h>
 
-#include "imr/type/primary.h"
+#include "support/stacktrace.h"
 
-/**
- * @brief returns the x86-64 alignment of the <type>
- *
- * @note this is the number of bytes to align a <value> with <type> to.
- *
- * @param type
- * @return u64
- */
-u64 x86_align_of_primary(TypePrimary const *restrict type);
+#include <execinfo.h>
 
-/**
- * @brief returns the x86-64 alignment of functions
- *
- * @note this is 8, equal to the word size of the processor.
- *
- * @return u64
- */
-u64 x86_align_of_function();
+#define EXP_MAX_FRAMES 200
 
-#endif // !EXP_INTRINSICS_ALIGNOF_H
+static void *frames[EXP_MAX_FRAMES] = {};
+
+void print_trace(FILE *restrict out) {
+    int fd            = fileno(out);
+    int actual_frames = backtrace(frames, EXP_MAX_FRAMES);
+    backtrace_symbols_fd(frames, actual_frames, fd);
+}
