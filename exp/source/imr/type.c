@@ -88,10 +88,11 @@ void type_create_tuple(Type *restrict type,
 }
 
 void type_create_function(Type *restrict type,
+                          Type const *argument,
                           Type const *result,
-                          TypeTuple   args,
                           Context *restrict context) {
-    type_create_composite(type, type_composite_function(result, args), context);
+    type_create_composite(
+        type, type_composite_function(argument, result), context);
 }
 
 void type_destroy(Type *restrict type) {

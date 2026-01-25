@@ -41,6 +41,13 @@ struct TypePrimary;
 // and the alignment requirements of functions.
 typedef u64 (*size_of_primary_fn)(struct TypePrimary const *type);
 typedef u64 (*align_of_primary_fn)(struct TypePrimary const *type);
+//  #NOTE: The size and alignment of functions,  are for now,  the
+//  size and alignment of function pointers. it just so happens that
+//  on the x86-64 platform the alignment requirements of functions
+//  in assembly, are the same as the alignment requirements of function
+//  pointers in assembly. one of the design goals of this language is
+//  functions as first class citizens within the language. and this
+//  feels like a step in that direction.
 typedef u64 (*size_of_function_fn)();
 typedef u64 (*align_of_function_fn)();
 

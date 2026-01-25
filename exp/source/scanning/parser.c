@@ -274,7 +274,7 @@ static bool parse_type(Type const **restrict result, Parser *restrict parser) {
 
     switch (parser->curtok) {
     // composite types
-    case TOK_BEGIN_PAREN: return parse_tuple_type(result, parser);
+    case TOK_BEGIN_PAREN: parse_tuple_type(result, parser); break;
 
     // scalar types
     case TOK_NIL:       *result = context_nil_type(parser->context); break;
@@ -290,6 +290,20 @@ static bool parse_type(Type const **restrict result, Parser *restrict parser) {
     case TOK_TYPE_I64:  *result = context_i64_type(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);
+    }
+
+    switch (expect(parser, TOK_RIGHT_ARROW)) {
+    case EXPECT_RESULT_SUCCESS: {
+        Type const *return_type = NULL;
+        if (!parse_type(&return_type, parser)) { return false; }
+
+        *result = context_function_type(parser->context, *result, return_type);
+        break;
+    }
+
+    case EXPECT_RESULT_TOKEN_NOT_FOUND: break;
+    case EXPECT_RESULT_FAILURE:         return false;
+    default:                            EXP_UNREACHABLE();
     }
 
     if (!nexttok(parser)) { return false; } // eat scalar-type
@@ -667,16 +681,8 @@ binop(Operand *restrict result, Operand left, Parser *restrict parser) {
 
 static bool
 call(Operand *restrict result, Operand left, Parser *restrict parser) {
-    Tuple argument_list;
-    tuple_create(&argument_list);
-
-    if (!parse_tuple(&argument_list, parser)) { return false; }
-
-    Value const *tuple = context_constant_tuple(
-        parser->context, argument_list, parser->function);
-    Operand actual_arguments = operand_constant(tuple);
-
-    *result = parser_emit_call(parser, left, actual_arguments);
+    if (!parens(result, parser)) { return false; }
+    *result = parser_emit_call(parser, left, *result);
     return true;
 }
 

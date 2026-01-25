@@ -28,7 +28,7 @@ void type_composite_destroy(TypeComposite *restrict composite) {
         break;
 
     case TYPE_COMPOSITE_KIND_FUNCTION:
-        type_tuple_destroy(&composite->data.function.argument_types);
+        type_function_destroy(&composite->data.function);
         break;
 
     default: EXP_UNREACHABLE();
@@ -36,9 +36,8 @@ void type_composite_destroy(TypeComposite *restrict composite) {
 }
 
 extern TypeComposite type_composite_tuple(TypeTuple tuple);
-extern TypeComposite
-type_composite_function(struct Type const *restrict result_type,
-                        TypeTuple arguments);
+extern TypeComposite type_composite_function(struct Type const *argument,
+                                             struct Type const *result);
 
 bool type_composite_equality(TypeComposite const *restrict A,
                              TypeComposite const *restrict B) {

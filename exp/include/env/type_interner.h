@@ -92,8 +92,8 @@ Type const *type_interner_tuple_type(TypeInterner *restrict type_interer,
                                      struct Context *restrict context);
 
 Type const *type_interner_function_type(TypeInterner *restrict type_interner,
-                                        Type const *return_type,
-                                        TypeTuple   argument_types,
+                                        Type const *argument,
+                                        Type const *result,
                                         struct Context *restrict context);
 
 #endif // !EXP_ENV_TYPE_INTERNER_H

@@ -23,4 +23,7 @@
 u64 ir_size_of_primary(TypePrimary const *restrict type);
 u64 ir_align_of_primary(TypePrimary const *restrict type);
 
+u64 ir_size_of_function();
+u64 ir_align_of_function();
+
 #endif // !EXP_CODEGEN_IR_INTRINSICS_H

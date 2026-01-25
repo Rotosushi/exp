@@ -552,11 +552,11 @@ Type const *context_tuple_type(Context *context, TypeTuple tuple) {
 }
 
 Type const *context_function_type(Context    *context,
-                                  Type const *return_type,
-                                  TypeTuple   argument_types) {
+                                  Type const *argument,
+                                  Type const *result) {
     assert(context != nullptr);
     return type_interner_function_type(
-        &context->type_interner, return_type, argument_types, context);
+        &context->type_interner, argument, result, context);
 }
 
 Value const *context_constant_nil(Context *restrict context) {
@@ -714,6 +714,18 @@ Type const *context_type_of_function(Context *restrict context,
     assert(function != NULL);
     assert(function->result != NULL);
 
+    Type const *result = function->result->type;
+
+    if (function->arguments.length == 0) {
+        return context_function_type(
+            context, context_nil_type(context), result);
+    }
+
+    if (function->arguments.length == 1) {
+        return context_function_type(
+            context, function->arguments.list[0]->type, result);
+    }
+
     TypeTuple argument_types;
     type_tuple_create(&argument_types);
     for (u64 i = 0; i < function->arguments.length; ++i) {
@@ -722,8 +734,8 @@ Type const *context_type_of_function(Context *restrict context,
         type_tuple_append(&argument_types, argument_type);
     }
 
-    return context_function_type(
-        context, function->result->type, argument_types);
+    Type const *argument = context_tuple_type(context, argument_types);
+    return context_function_type(context, argument, result);
 }
 
 Type const *context_type_of_tuple(Context *restrict context,

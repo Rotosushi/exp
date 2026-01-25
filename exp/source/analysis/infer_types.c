@@ -190,6 +190,88 @@ static bool infer_types_ret(Type const **result,
     return infer_types_operand(result, function, context, I.B_kind, I.B_data);
 }
 
+static bool verify_argument(Type const *formal,
+                            Type const *actual,
+                            Context *restrict context) {
+    switch (formal->kind) {
+    case TYPE_KIND_PRIMARY: {
+        if (!type_equality(formal, actual)) {
+            return context_failure_mismatch_type(context, formal, actual);
+        }
+        break;
+    }
+
+    case TYPE_KIND_COMPOSITE: {
+        if (actual->kind != TYPE_KIND_COMPOSITE) {
+            return context_failure_mismatch_type(context, formal, actual);
+        }
+
+        switch (formal->composite.kind) {
+        case TYPE_COMPOSITE_KIND_TUPLE: {
+            if (actual->composite.kind != TYPE_COMPOSITE_KIND_TUPLE) {
+                return context_failure_mismatch_type(context, formal, actual);
+            }
+
+            TypeTuple const *formal_tuple = &formal->composite.data.tuple;
+            TypeTuple const *actual_tuple = &actual->composite.data.tuple;
+
+            if (formal_tuple->length != actual_tuple->length) {
+                return context_failure_mismatch_argument_count(
+                    context, formal_tuple->length, actual_tuple->length);
+            }
+
+            for (u32 index = 0; index < formal_tuple->length; ++index) {
+                Type const *formal_argument = formal_tuple->types[index];
+                Type const *actual_argument = actual_tuple->types[index];
+
+                if (!type_equality(formal_argument, actual_argument)) {
+                    return context_failure_mismatch_type(
+                        context, formal_argument, actual_argument);
+                }
+
+                break;
+            }
+
+            break;
+        }
+
+        case TYPE_COMPOSITE_KIND_FUNCTION: {
+            if (actual->composite.kind != TYPE_COMPOSITE_KIND_FUNCTION) {
+                return context_failure_mismatch_type(context, formal, actual);
+            }
+
+            TypeFunction const *formal_function =
+                &formal->composite.data.function;
+            TypeFunction const *actual_function =
+                &actual->composite.data.function;
+
+            Type const *formal_result = formal_function->result;
+            Type const *actual_result = actual_function->result;
+
+            if (!type_equality(formal_result, actual_result)) {
+                return context_failure_mismatch_type(
+                    context, formal_result, actual_result);
+            }
+
+            Type const *formal_argument = formal_function->argument;
+            Type const *actual_argument = actual_function->argument;
+
+            if (!type_equality(formal_argument, actual_argument)) {
+                return context_failure_mismatch_type(
+                    context, formal_argument, actual_argument);
+            }
+
+            break;
+        }
+
+        default: EXP_UNREACHABLE();
+        }
+    }
+    }
+
+    return true;
+}
+
 static bool infer_types_call(Type const **result,
                              Function *restrict function,
                              Context *restrict context,
@@ -208,34 +290,15 @@ static bool infer_types_call(Type const **result,
     exp_assert_debug(Bty->kind == TYPE_KIND_COMPOSITE);
     exp_assert_debug(Bty->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
     TypeFunction const *function_type = &Bty->composite.data.function;
-    TypeTuple const    *formal_types  = &function_type->argument_types;
+    Type const         *formal        = function_type->argument;
     exp_assert_debug(I.C_kind == OPERAND_KIND_CONSTANT);
-    Value const *value = I.C_data.constant;
-    exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
-    Tuple const *actual_args = &value->tuple;
+    Value const *value  = I.C_data.constant;
+    Type const  *actual = value->type;
 
-    if (formal_types->length != actual_args->length) {
-        return context_failure_mismatch_argument_count(
-            context, formal_types->length, actual_args->length);
-    }
+    if (!verify_argument(formal, actual, context)) { return false; }
 
-    for (u8 i = 0; i < actual_args->length; ++i) {
-        Type const *formal_type = formal_types->types[i];
-        Operand     operand     = actual_args->elements[i];
-        Type const *actual_type;
-        if (!infer_types_operand(
-                &actual_type, function, context, operand.kind, operand.data)) {
-            return false;
-        }
-
-        if (!type_equality(actual_type, formal_type)) {
-            return context_failure_mismatch_type(
-                context, formal_type, actual_type);
-        }
-    }
-
-    local->type = function_type->return_type;
-    return success(result, function_type->return_type);
+    local->type = function_type->result;
+    return success(result, function_type->result);
 }
 
 static bool infer_types_dot(Type const **result,

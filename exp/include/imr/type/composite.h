@@ -41,14 +41,12 @@ inline TypeComposite type_composite_tuple(TypeTuple tuple) {
     return (TypeComposite){TYPE_COMPOSITE_KIND_TUPLE, {tuple}};
 }
 
-inline TypeComposite
-type_composite_function(struct Type const *restrict result_type,
-                        TypeTuple arguments) {
-    TypeComposite result = {
-        TYPE_COMPOSITE_KIND_FUNCTION,
-        .data.function = {result_type, arguments}
+inline TypeComposite type_composite_function(struct Type const *argument,
+                                             struct Type const *result) {
+    TypeComposite type = {
+        TYPE_COMPOSITE_KIND_FUNCTION, .data.function = {argument, result}
     };
-    return result;
+    return type;
 }
 
 bool type_composite_equality(TypeComposite const *restrict A,

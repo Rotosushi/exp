@@ -146,13 +146,14 @@ Type const *type_interner_tuple_type(TypeInterner *restrict type_interner,
 }
 
 Type const *type_interner_function_type(TypeInterner *restrict type_interner,
-                                        Type const *return_type,
-                                        TypeTuple   argument_types,
+                                        Type const *argument,
+                                        Type const *result,
                                         struct Context *restrict context) {
     assert(type_interner != NULL);
-    assert(return_type != NULL);
+    assert(result != NULL);
+    assert(argument != NULL);
     Type *type = allocate(sizeof(Type));
-    type_create_function(type, return_type, argument_types, context);
+    type_create_function(type, argument, result, context);
     type_list_append(&type_interner->function_types, type);
     return type;
 }

@@ -165,6 +165,7 @@ layout_interner_layout_of_composite(LayoutInterner *restrict interner,
 
         Layout *layout = allocate(sizeof(Layout));
         layout_create_tuple(layout, &type->composite.data.tuple, interner);
+        return layout;
     }
 
     case TYPE_COMPOSITE_KIND_FUNCTION: {

@@ -17,16 +17,18 @@
 #ifndef EXP_IMR_FUNCTION_TYPE_H
 #define EXP_IMR_FUNCTION_TYPE_H
 
-#include "imr/type/tuple.h"
+#include "support/string.h"
+
+struct Type;
 
 typedef struct TypeFunction {
-    struct Type const *return_type;
-    TypeTuple          argument_types;
+    struct Type const *argument;
+    struct Type const *result;
 } TypeFunction;
 
 void type_function_create(TypeFunction *restrict function,
-                          struct Type const *return_type,
-                          TypeTuple          arguments);
+                          struct Type const *arguments,
+                          struct Type const *result);
 void type_function_destroy(TypeFunction *restrict function);
 
 bool type_function_equal(TypeFunction const *A, TypeFunction const *B);

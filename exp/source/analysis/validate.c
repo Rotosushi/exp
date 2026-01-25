@@ -27,6 +27,10 @@
 #include "support/constant_string.h"
 #include "support/unreachable.h"
 
+// instead of asserting validation constraints, how about we create
+// a pattern around an error object, similar to how we handle parse
+// errors.
+
 static bool validate_local(Local const *restrict local,
                            u32 block_index,
                            Function const *restrict function) {
@@ -244,6 +248,88 @@ static bool validate_ret(Instruction instruction,
     return true;
 }
 
+static bool validate_argument(Type const *formal,
+                              Type const *actual,
+                              Context *restrict context) {
+    switch (formal->kind) {
+    case TYPE_KIND_PRIMARY: {
+        if (!type_equality(formal, actual)) {
+            return context_failure_mismatch_type(context, formal, actual);
+        }
+        break;
+    }
+
+    case TYPE_KIND_COMPOSITE: {
+        if (actual->kind != TYPE_KIND_COMPOSITE) {
+            return context_failure_mismatch_type(context, formal, actual);
+        }
+
+        switch (formal->composite.kind) {
+        case TYPE_COMPOSITE_KIND_TUPLE: {
+            if (actual->composite.kind != TYPE_COMPOSITE_KIND_TUPLE) {
+                return context_failure_mismatch_type(context, formal, actual);
+            }
+
+            TypeTuple const *formal_tuple = &formal->composite.data.tuple;
+            TypeTuple const *actual_tuple = &actual->composite.data.tuple;
+
+            if (formal_tuple->length != actual_tuple->length) {
+                return context_failure_mismatch_argument_count(
+                    context, formal_tuple->length, actual_tuple->length);
+            }
+
+            for (u32 index = 0; index < formal_tuple->length; ++index) {
+                Type const *formal_argument = formal_tuple->types[index];
+                Type const *actual_argument = actual_tuple->types[index];
+
+                if (!type_equality(formal_argument, actual_argument)) {
+                    return context_failure_mismatch_type(
+                        context, formal_argument, actual_argument);
+                }
+
+                break;
+            }
+
+            break;
+        }
+
+        case TYPE_COMPOSITE_KIND_FUNCTION: {
+            if (actual->composite.kind != TYPE_COMPOSITE_KIND_FUNCTION) {
+                return context_failure_mismatch_type(context, formal, actual);
+            }
+
+            TypeFunction const *formal_function =
+                &formal->composite.data.function;
+            TypeFunction const *actual_function =
+                &actual->composite.data.function;
+
+            Type const *formal_result = formal_function->result;
+            Type const *actual_result = actual_function->result;
+
+            if (!type_equality(formal_result, actual_result)) {
+                return context_failure_mismatch_type(
+                    context, formal_result, actual_result);
+            }
+
+            Type const *formal_argument = formal_function->argument;
+            Type const *actual_argument = actual_function->argument;
+
+            if (!type_equality(formal_argument, actual_argument)) {
+                return context_failure_mismatch_type(
+                    context, formal_argument, actual_argument);
+            }
+
+            break;
+        }
+
+        default: EXP_UNREACHABLE();
+        }
+    }
+    }
+
+    return true;
+}
+
 static bool validate_call(Instruction instruction,
                           u32         block_index,
                           Function const *restrict function,
@@ -264,29 +350,15 @@ static bool validate_call(Instruction instruction,
     exp_assert_always(B_type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
     TypeFunction const *callee = &B_type->composite.data.function;
 
-    Type const *return_type = callee->return_type;
+    Type const *return_type = callee->result;
     exp_assert_always(return_type != NULL);
     exp_assert_always(type_equality(return_type, A_type));
-
-    TypeTuple const *formal_args = &callee->argument_types;
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
     exp_assert_always(C_type != NULL);
-    exp_assert_always(C_type->kind == TYPE_KIND_COMPOSITE);
-    exp_assert_always(C_type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
-    TypeTuple const *actual_args = &C_type->composite.data.tuple;
 
-    exp_assert_always(formal_args->length == actual_args->length);
-
-    for (u32 index = 0; index < formal_args->length; ++index) {
-        Type const *formal_arg = formal_args->types[index];
-        exp_assert_always(formal_arg != NULL);
-        Type const *actual_arg = actual_args->types[index];
-        exp_assert_always(actual_arg != NULL);
-
-        exp_assert_always(type_equality(formal_arg, actual_arg));
-    }
+    if (!validate_argument(callee->argument, C_type, context)) { return false; }
 
     return true;
 }

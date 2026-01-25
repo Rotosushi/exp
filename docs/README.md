@@ -43,26 +43,58 @@ written is the lack of an abstract syntax tree. Instead the parser directly crea
 ## [[Language]]
 
 In broad strokes, my idea for this language started after I wrote my first interpreter.
-I followed a book, (I can't remember the name exactly, will update if/when I find/remember it) That used the lambda calculus to explain computation. I wrote a simple lambda calculus calculator with builtin support for integers, as the only scalar type, and functions as the only 
-construct. I then tested this calculator against some basic constructs, like the functions for true and false, and for natural numbers plus addition and multiplication. And it worked, I was
-really impressed, even though it was such a well studied area of computer science. Then I learned about a lot more functional concepts, like continuations and tail-recursion which can be used to simulate infinite recursion within finite stack space, and coroutines, which can be used to cleanly express multiprocessing concepts. I was inspired! I wanted to write my own versions of such things. I studied C programming in school, and it remains the language I am most fluent in. So, I wanted to combine these two things, one that I was comfortable with, and one that I was just learning. I wanted to bring the lambda calculus down to the level of the C programming language. or, equivalently, bring the C programming language up to the level of the lambda calculus. I wanted to write a low level language with Lambdas as the core language construct. To say the least, I have strayed from this initial inspiration. There is much to learn about how programming languages work, and I have been very curious about learning as much as I can. 
-To elaborate just a bit more, I was thinking along the lines of how C++ adds classes to C's toolkit, and you get a new language, which has much more expressive power for higher level abstractions. In the same way I thought, if you start with something very like C and add lambdas, you might just get a new language that was rather interesting.
-So, from the perspective of adding lambdas my idea was this, each function in the language has the same type as always `* -> *` and, from the perspective of the C language it has the type `void * (*)(void *)` where the return pointer is actually a caller allocated stack slot,
-and the argument pointer is a structure something like, (in pseudo-C):
+I followed a book, (I can't remember the name exactly, will update if/when I find/remember it, 
+Update: Pretty sure it's 
+	Understanding Computation: From Simple Machines to Impossible Programs;
+	Tom Stuart. ISBN: 1449329276
+) That used the lambda calculus to explain computation. I wrote a simple lambda calculus calculator
+with builtin support for integers, as the only scalar type, and functions as the only 
+construct. I then tested this calculator against some basic constructs, like the functions 
+for true and false, and for natural numbers plus addition and multiplication. And it worked, 
+I was really impressed, even though it was such a well studied area of computer science. 
+Then I learned about a lot more functional concepts, like continuations and tail-recursion which 
+can be used to simulate infinite recursion within finite stack space, and coroutines, which can be used to cleanly express multiprocessing concepts. I was inspired! I wanted to write my own versions of such things. I studied C programming in school, and it remains the language I am most fluent in. So, I wanted to combine these two things, one that I was comfortable with, and one that I was just learning. I wanted to bring the lambda calculus down to the level of the C programming language. or, equivalently, bring the C programming language up to the level of the lambda calculus. I wanted to write a low level language with Lambdas as the core language construct.
+To elaborate just a bit more, I was thinking along the lines of how C++ adds classes (and function overloading,
+namespaces, templates, etc...) to C's toolkit, and you get a new language, which has much more expressive power for higher level abstractions. In the same way I thought, if you start with something very like C and add lambdas, you might just get a new language that is rather interesting.
+So, from the perspective of adding lambdas my idea was this, each function in the language has the same type 
+always `* -> *` and, from the perspective of the C language it has the type `void * (*)(void *)` where the return pointer is actually a caller allocated stack slot,
+and then a closure object is something like:
 
 ```
 struct {
-	u8 argument_count;
+	void *function_ptr;
+	u64 argument_count;
+	u64 result_size;
+	u64 agument_size;
 	u64 argument_offsets[argument_count];
-	u8 argument_space[size_of_all_arguments_combined];
+	u8 buffer[result_size + argument_size];
 };
-
 ```
+calling a closure object means:
+	1) allocate `result_size + argument_size` space on the stack
+	2) `memcpy` buffer onto the stack (only the argument section of the buffer)
+		the return section can be zeroed, or the buffer can be zeroed and then
+		we just `memcpy` the whole thing, which in effect zeroes the result space.
+	3) jump to `function_ptr`
+	then on return
+	4) pop `argument_size` off the stack
+	5) `result` should reside within the callee stack frame at this point, and we 
+		have succeeded
+		
+partial application of a closure object is tricky.
 
-This is as far as I have gotten. There is still the question of encoding the types of each argument. But as you can see, I am attempting to define a structure which gives enough information to a call site, such that a single section of target assembly has enough information to call a function generically. I don't know if it is possible, That was just the goal.
-Then you could have a generic function in assembly, that was compiled once, and acted as if it was polymorphic. Because it calls closure objects, not directly linked functions.
+we have to support the most general case, which in our language, without polymorphism,
+is the partial application of a function from within a function, which is then returned 
+as the result of the function. where the types of everything are known at compile time.
 
-To circle back, The language as it stands now is more of a different take on the C programming language. In my head it is looking more and more like Zig, with a few minor differences. Which is somewhat disheartening if I want the language to be novel and widespread in it's use. But is also very inspiring, because I am having ideas which other people have had and also think are worth doing. That is very validating.
+fn partial(f : (i64, i64) -> i64, a: i64) -> (i64 -> i64) {
+	return f(a);
+}
+
+in this case, we are given a closure object, (and this has to be what happens when we 
+treat a function as an argument. we have to allocate a closure.)
+
+
 
 ## [[Codegen]]
 

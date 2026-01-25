@@ -22,17 +22,17 @@
 #include "support/assert.h"
 
 void type_function_create(TypeFunction *restrict function,
-                          Type const *return_type,
-                          TypeTuple   arguments) {
+                          Type const *argument,
+                          Type const *result) {
     exp_assert(function != NULL);
-    function->return_type    = return_type;
-    function->argument_types = arguments;
+    function->argument = argument;
+    function->result   = result;
 }
 
 void type_function_destroy(TypeFunction *restrict function) {
     exp_assert(function != NULL);
-    function->return_type = NULL;
-    type_tuple_destroy(&function->argument_types);
+    function->argument = NULL;
+    function->result   = NULL;
 }
 
 bool type_function_equal(TypeFunction const *A, TypeFunction const *B) {
@@ -40,16 +40,14 @@ bool type_function_equal(TypeFunction const *A, TypeFunction const *B) {
     exp_assert(B != NULL);
     if (A == B) { return 1; }
 
-    if (!type_equality(A->return_type, B->return_type)) { return 0; }
-
-    return type_tuple_equal(&A->argument_types, &B->argument_types);
+    if (!type_equality(A->result, B->result)) { return 0; }
+    return type_equality(A->argument, B->argument);
 }
 
 void print_type_function(String *restrict string,
                          TypeFunction const *restrict function_type) {
     string_append(string, SV("fn "));
-    TypeTuple const *tuple_type = &function_type->argument_types;
-    print_type_tuple(string, tuple_type);
+    print_type(string, function_type->argument);
     string_append(string, SV(" -> "));
-    print_type(string, function_type->return_type);
+    print_type(string, function_type->result);
 }

@@ -55,3 +55,7 @@ u64 ir_align_of_primary(TypePrimary const *restrict primary) {
     default:                     EXP_UNREACHABLE();
     }
 }
+
+u64 ir_size_of_function() { return 8; }
+
+u64 ir_align_of_function() { return 8; }

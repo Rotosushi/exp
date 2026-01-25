@@ -122,7 +122,7 @@ void type_create_tuple(Type *restrict type,
                        struct Context *restrict context);
 void type_create_function(Type *restrict type,
                           Type const *result,
-                          TypeTuple   args,
+                          Type const *args,
                           struct Context *restrict context);
 void type_destroy(Type *restrict type);
 
