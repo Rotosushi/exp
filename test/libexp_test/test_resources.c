@@ -1,10 +1,10 @@
 
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/config.h"
 #include "support/io.h"
 #include "support/message.h"
@@ -15,7 +15,7 @@ void test_resources_gather(TestResources *test_resources,
                            char const    *directory);
 
 void test_resources_initialize(TestResources *test_resources) {
-    assert(test_resources != nullptr);
+    EXP_ASSERT(test_resources != nullptr);
     test_resources->count    = 0;
     test_resources->capacity = 0;
     test_resources->buffer   = nullptr;
@@ -23,7 +23,7 @@ void test_resources_initialize(TestResources *test_resources) {
 }
 
 void test_resources_terminate(TestResources *test_resources) {
-    assert(test_resources != nullptr);
+    EXP_ASSERT(test_resources != nullptr);
     for (u64 index = 0; index < test_resources->count; ++index) {
         string_destroy(test_resources->buffer + index);
     }
@@ -34,12 +34,12 @@ void test_resources_terminate(TestResources *test_resources) {
 }
 
 static bool test_resources_full(TestResources *test_resources) {
-    assert(test_resources != nullptr);
+    EXP_ASSERT(test_resources != nullptr);
     return (test_resources->count + 1) >= test_resources->capacity;
 }
 
 static void test_resources_grow(TestResources *test_resources) {
-    assert(test_resources != nullptr);
+    EXP_ASSERT(test_resources != nullptr);
     Growth_u64 g = array_growth_u64(test_resources->capacity, sizeof(String));
     test_resources->buffer   = reallocate(test_resources->buffer, g.alloc_size);
     test_resources->capacity = g.new_capacity;
@@ -47,9 +47,9 @@ static void test_resources_grow(TestResources *test_resources) {
 
 void test_resources_append(TestResources *test_resources,
                            String const  *resource) {
-    assert(test_resources != nullptr);
-    assert(resource != nullptr);
-    assert(!string_empty(resource));
+    EXP_ASSERT(test_resources != nullptr);
+    EXP_ASSERT(resource != nullptr);
+    EXP_ASSERT(!string_empty(resource));
     if (test_resources_full(test_resources)) {
         test_resources_grow(test_resources);
     }
@@ -68,24 +68,16 @@ void test_resources_append(TestResources *test_resources,
 
 void test_resources_gather(TestResources *test_resources,
                            char const    *directory) {
-    assert(test_resources != nullptr);
-    assert(directory != nullptr);
+    EXP_ASSERT(test_resources != nullptr);
+    EXP_ASSERT(directory != nullptr);
 
     DIR *resource_directory = opendir(directory);
     if (resource_directory == nullptr) {
-        message(MESSAGE_ERROR, NULL, 0, SV("opendir failed"), stderr);
-        message(MESSAGE_STATUS, NULL, 0, SV("directory: "), stderr);
-        message(MESSAGE_STATUS,
-                NULL,
-                0,
-                string_view_from_cstring(directory),
-                stderr);
-        message(MESSAGE_STATUS, NULL, 0, SV("errno:"), stderr);
-        message(MESSAGE_STATUS,
-                NULL,
-                0,
-                string_view_from_cstring(strerror(errno)),
-                stderr);
+        message(MESSAGE_ERROR, "opendir failed", stderr);
+        message(MESSAGE_STATUS, "directory: ", stderr);
+        message(MESSAGE_STATUS, directory, stderr);
+        message(MESSAGE_STATUS, "errno:", stderr);
+        message(MESSAGE_STATUS, strerror(errno), stderr);
         return;
     }
 

@@ -27,14 +27,14 @@
 #include "support/assert.h"
 
 void x86_local_allocator_create(x86_LocalAllocator *restrict allocator) {
-    exp_assert(allocator != NULL);
+    EXP_ASSERT(allocator != NULL);
     x86_register_allocator_create(&allocator->register_allocator);
     x86_stack_allocator_create(&allocator->stack_allocator);
     x86_allocations_create(&allocator->allocations);
 }
 
 void x86_local_allocator_destroy(x86_LocalAllocator *restrict allocator) {
-    exp_assert(allocator != NULL);
+    EXP_ASSERT(allocator != NULL);
     x86_register_allocator_destroy(&allocator->register_allocator);
     x86_stack_allocator_destroy(&allocator->stack_allocator);
     x86_allocations_destroy(&allocator->allocations);
@@ -42,33 +42,33 @@ void x86_local_allocator_destroy(x86_LocalAllocator *restrict allocator) {
 
 i32 x86_local_allocator_stack_size(
     x86_LocalAllocator *restrict local_allocator) {
-    exp_assert(local_allocator != NULL);
+    EXP_ASSERT(local_allocator != NULL);
     return x86_stack_allocator_stack_size(&local_allocator->stack_allocator);
 }
 
 x86_Allocation *
 x86_local_allocator_allocation_at(x86_LocalAllocator *restrict local_allocator,
                                   u32 ssa) {
-    exp_assert(local_allocator != NULL);
+    EXP_ASSERT(local_allocator != NULL);
     return x86_allocations_at(&local_allocator->allocations, ssa);
 }
 
 x86_Allocation *x86_local_allocator_allocation_named(
     x86_LocalAllocator *restrict local_allocator, ConstantString const *name) {
-    exp_assert(local_allocator != NULL);
-    exp_assert(name != NULL);
+    EXP_ASSERT(local_allocator != NULL);
+    EXP_ASSERT(name != NULL);
     return x86_allocations_named(&local_allocator->allocations, name);
 }
 
 void x86_local_allocator_aquire_gpr(x86_LocalAllocator *restrict allocator,
                                     x86_GPR gpr) {
-    exp_assert(allocator != NULL);
+    EXP_ASSERT(allocator != NULL);
     x86_register_allocator_aquire_gpr(&allocator->register_allocator, gpr);
 }
 
 void x86_local_allocator_release_gpr(x86_LocalAllocator *restrict allocator,
                                      x86_GPR gpr) {
-    exp_assert(allocator != NULL);
+    EXP_ASSERT(allocator != NULL);
     x86_register_allocator_aquire_gpr(&allocator->register_allocator, gpr);
 }
 
@@ -84,8 +84,8 @@ x86_Allocation *
 x86_local_allocator_allocate_local(x86_LocalAllocator *restrict allocator,
                                    Local const *restrict local,
                                    u32 block_index) {
-    exp_assert(allocator != NULL);
-    exp_assert(local != NULL);
+    EXP_ASSERT(allocator != NULL);
+    EXP_ASSERT(local != NULL);
 
     x86_local_allocator_release_expired(allocator, block_index);
 
@@ -117,9 +117,9 @@ x86_Allocation *x86_local_allocator_allocate_result(
     x86_LocalAllocator *restrict local_allocator,
     Local const *restrict local,
     x86_FormalArgumentList *restrict x86_arguments) {
-    exp_assert(local_allocator != NULL);
-    exp_assert(local != NULL);
-    exp_assert(x86_arguments != NULL);
+    EXP_ASSERT(local_allocator != NULL);
+    EXP_ASSERT(local != NULL);
+    EXP_ASSERT(x86_arguments != NULL);
 
     x86_Allocation *allocation =
         x86_allocations_append(&local_allocator->allocations, local);
@@ -143,10 +143,10 @@ x86_Allocation *x86_local_allocator_allocate_result(
     // #HACK however, if the result is caller allocated then we must inform
     // both the register allocator and the incoming argument allocator.
     // of the new first argument in rSI
-    exp_assert_always(x86_incoming_argument_allocator_allocate_register(
+    EXP_ASSERT(x86_incoming_argument_allocator_allocate_register(
         &local_allocator->incoming_argument_allocator, allocation));
-    exp_assert_always(allocation->location.is_address);
-    exp_assert_always(x86_gpr_overlap(allocation->location.base, X86_GPR_RDI));
+    EXP_ASSERT(allocation->location.is_address);
+    EXP_ASSERT(x86_gpr_overlap(allocation->location.base, X86_GPR_RDI));
     x86_register_allocator_aquire_gpr(&local_allocator->register_allocator,
                                       X86_GPR_RDI);
     x86_formal_argument_list_append(x86_arguments, allocation);
@@ -199,9 +199,9 @@ void x86_local_allocator_allocate_incoming_arguments(
     x86_LocalAllocator *restrict local_allocator,
     FormalArgumentList const *restrict arguments,
     x86_FormalArgumentList *restrict x86_arguments) {
-    exp_assert(local_allocator != NULL);
-    exp_assert(arguments != NULL);
-    exp_assert(x86_arguments != NULL);
+    EXP_ASSERT(local_allocator != NULL);
+    EXP_ASSERT(arguments != NULL);
+    EXP_ASSERT(x86_arguments != NULL);
 
     x86_ArgumentBuffer staging;
     x86_argument_buffer_create(&staging);
@@ -220,7 +220,7 @@ void x86_local_allocator_allocate_incoming_arguments(
             continue;
         }
 
-        exp_assert(!allocation->location.is_address);
+        EXP_ASSERT(!allocation->location.is_address);
         x86_GPR gpr = allocation->location.gpr;
         x86_register_allocator_aquire_gpr(&local_allocator->register_allocator,
                                           gpr);

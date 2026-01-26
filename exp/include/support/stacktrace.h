@@ -21,6 +21,11 @@
 
 // #TODO: portability concerns to non-POSIX systems.
 
+/**
+ * @brief at the point of call,  prints out up to 200 stack frames
+ * above the current one. filename, function, line number and return
+ * address.
+ */
 void print_trace(FILE *restrict out);
 
 #endif // !EXP_SUPPORT_STACKTRACE_H

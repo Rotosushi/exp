@@ -25,10 +25,13 @@
 
 #include <stddef.h>
 
-#include "support/panic.h"
+[[noreturn]] int assert_failed(char const *expression,
+                               char const *function,
+                               char const *file,
+                               long        line);
 
 /**
- * @def ASSERT(cond)
+ * @def EXP_ASSERT(cond)
  * @brief Asserts that the condition is true.
  *
  * @note if EXP_REMOVE_ASSERTS is defined, this macro will expand to nothing.
@@ -37,13 +40,16 @@
  */
 
 #if defined EXP_REMOVE_ASSERTS
-#define exp_assert(cond) ((void)0)
+#define EXP_ASSERT(cond) ((void)0)
 #else
-#define exp_assert(cond) ((cond) || (PANIC("assertion failed: " #cond), 0))
+#define EXP_ASSERT(cond)                                                       \
+    do {                                                                       \
+        if (!(cond)) { assert_failed(#cond, __func__, __FILE__, __LINE__); }     \
+    } while (false)
 #endif // !NDEBUG
 
 /**
- * @def ASSERT_DEBUG(cond)
+ * @def EXP_ASSERT_DEBUG(cond)
  * @brief Asserts that the condition is true
  *
  * @note if NDEBUG is defined, this macro will expand to nothing.
@@ -51,20 +57,22 @@
  */
 
 #if defined NDEBUG || defined EXP_REMOVE_ASSERTS
-#define exp_assert_debug(cond) ((void)0)
+#define EXP_ASSERT_DEBUG(cond) ((void)0)
 #else
-#define exp_assert_debug(cond) exp_assert(cond)
+#define EXP_ASSERT_DEBUG(cond) EXP_ASSERT(cond)
 #endif // !NDEBUG
 
 /**
- * @def ASSERT_ALWAYS(cond)
+ * @def EXP_ASSERT_ALWAYS(cond)
  * @brief Asserts that the condition is true.
  *
  * @note this macro will always be checked, regardless of NDEBUG or
  * EXP_REMOVE_ASSERTS.
  */
 
-#define exp_assert_always(cond)                                                \
-    ((cond) || (PANIC("assertion failed: " #cond), 0))
+#define EXP_ASSERT_ALWAYS(cond)                                                \
+    do {                                                                       \
+        if (!(cond)) { assert_failed(#cond, __func__, __FILE__, __LINE__); }   \
+    } while (false)
 
 #endif // !EXP_SUPPORT_ASSERT_H

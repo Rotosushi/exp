@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdlib.h>
 
 #include "adt/sparse_digraph.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/panic.h"
 
 static Edge *edge_create(u64 target, Edge *next) {
@@ -32,7 +32,7 @@ static Edge *edge_create(u64 target, Edge *next) {
 }
 
 static void edge_destroy(Edge *restrict edge) {
-    assert(edge != NULL);
+    EXP_ASSERT(edge != NULL);
     Edge *tmp = NULL;
     while (edge->next != NULL) {
         tmp        = edge->next;
@@ -56,14 +56,14 @@ SparseDigraph sparse_digraph_create() {
 }
 
 void sparse_digraph_initialize(SparseDigraph *restrict g) {
-    assert(g != NULL);
+    EXP_ASSERT(g != NULL);
     g->length   = 0;
     g->capacity = 0;
     g->buffer   = NULL;
 }
 
 void sparse_digraph_destroy(SparseDigraph *restrict g) {
-    assert(g != NULL);
+    EXP_ASSERT(g != NULL);
 
     for (u64 i = 0; i < g->length; ++i) {
         Edge *edge = g->buffer[i];
@@ -87,7 +87,7 @@ static void sparse_digraph_grow(SparseDigraph *restrict graph) {
 }
 
 u64 sparse_digraph_add_vertex(SparseDigraph *restrict graph) {
-    assert(graph != NULL);
+    EXP_ASSERT(graph != NULL);
 
     if (sparse_digraph_full(graph)) { sparse_digraph_grow(graph); }
 
@@ -100,9 +100,9 @@ u64 sparse_digraph_add_vertex(SparseDigraph *restrict graph) {
 void sparse_digraph_add_edge(SparseDigraph *restrict graph,
                              u64 source,
                              u64 target) {
-    assert(graph != NULL);
-    assert((source < graph->length) && "source vertex does not exist.");
-    assert((target < graph->length) && "target vertex does not exist.");
+    EXP_ASSERT(graph != NULL);
+    EXP_ASSERT((source < graph->length) && "source vertex does not exist.");
+    EXP_ASSERT((target < graph->length) && "target vertex does not exist.");
 
     Edge **edge = graph->buffer + source;
     if (*edge == NULL) {
@@ -145,8 +145,8 @@ static void vertext_list_append(VertexList *restrict vl, u64 vertex) {
 
 VertexList sparse_digraph_vertex_fanout(SparseDigraph *restrict graph,
                                         u64 vertex) {
-    assert(graph != NULL);
-    assert((vertex < graph->length) && "vertex does not exist.");
+    EXP_ASSERT(graph != NULL);
+    EXP_ASSERT((vertex < graph->length) && "vertex does not exist.");
 
     VertexList vl   = vertex_list_create();
     Edge      *edge = graph->buffer[vertex];
@@ -167,7 +167,7 @@ static bool list_contains_vertex(Edge *edge, u64 vertex) {
 
 VertexList sparse_digraph_vertex_fanin(SparseDigraph *restrict graph,
                                        u64 vertex) {
-    assert(graph != NULL);
+    EXP_ASSERT(graph != NULL);
 
     VertexList vl = vertex_list_create();
     for (u64 i = 0; i < graph->length; ++i) {

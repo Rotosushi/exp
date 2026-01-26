@@ -139,7 +139,9 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/scanning/parser.c
 
   ${EXP_SOURCE_DIR}/support/allocation.c
+  ${EXP_SOURCE_DIR}/support/arithmetic.c
   ${EXP_SOURCE_DIR}/support/array_growth.c
+  ${EXP_SOURCE_DIR}/support/assert.c
   ${EXP_SOURCE_DIR}/support/bitset.c
   ${EXP_SOURCE_DIR}/support/cli_option_parser.c
   ${EXP_SOURCE_DIR}/support/constant_string.c

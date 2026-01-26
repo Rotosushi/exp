@@ -55,8 +55,8 @@
  * and have that be the result of evaluation. But, This is only useful in
  * the context of a REPL, where we want to display the result of evaluation.
  * in this context we are only ever compiling the source code to a Target
- * assembly. Okay, it is also useful if we want to perform a ?strength
- * reduction? (is that what it's called?) Where we replace a call to a pure
+ * assembly. Okay, it is also useful if we want to perform a strength
+ * reduction (is that what it's called?) Where we replace a call to a pure
  * function with comptime arguments with the result of it's evaluation. However,
  * in that case we would be calling a function, and thus there would be a return
  * statement, and thus we could pop the result off the stack.
@@ -65,13 +65,12 @@
 bool evaluate(Value const **result,
               Function *restrict expression,
               Context *restrict context) {
-    exp_assert(expression != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(expression != NULL);
+    EXP_ASSERT(context != NULL);
 
     if (!infer_types(expression, context)) { return false; }
     if (!infer_lifetimes(expression)) { return false; }
-
-    exp_assert_debug(validate(expression, context));
+    if (!validate(expression, context)) { return false; }
 
     Frame frame;
     frame.function = expression;
@@ -83,7 +82,7 @@ bool evaluate(Value const **result,
     bool success = evaluate_top_frame(context);
     // We expect that whatever instruction sequence was just evaluated,
     // the result will be left on the top of the stack.
-    exp_assert(context_stack_size(context) == 1);
+    EXP_ASSERT(context_stack_size(context) == 1);
     *result = context_stack_pop(context);
 
     return success;

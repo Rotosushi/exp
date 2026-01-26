@@ -23,21 +23,21 @@
 #include "support/assert.h"
 
 void frames_create(Frames *restrict frames) {
-    exp_assert(frames != NULL);
+    EXP_ASSERT(frames != NULL);
     frames->size     = 0;
     frames->capacity = 0;
     frames->buffer   = NULL;
 }
 
 void frames_destroy(Frames *restrict frames) {
-    exp_assert(frames != NULL);
+    EXP_ASSERT(frames != NULL);
 
     deallocate(frames->buffer);
     frames_create(frames);
 }
 
 bool frames_empty(Frames const *restrict frames) {
-    exp_assert(frames != NULL);
+    EXP_ASSERT(frames != NULL);
     return frames->size == 0;
 }
 
@@ -52,19 +52,19 @@ static void frames_grow(Frames *restrict frames) {
 }
 
 void frames_push(Frames *restrict frames, Frame frame) {
-    exp_assert(frames != NULL);
-    exp_assert(frame.function != NULL);
+    EXP_ASSERT(frames != NULL);
+    EXP_ASSERT(frame.function != NULL);
     if (frames_full(frames)) { frames_grow(frames); }
     frames->buffer[frames->size++] = frame;
 }
 
 Frame *frames_top(Frames const *restrict frames) {
-    exp_assert(frames != NULL);
-    exp_assert(!frames_empty(frames));
+    EXP_ASSERT(frames != NULL);
+    EXP_ASSERT(!frames_empty(frames));
     return frames->buffer + (frames->size - 1);
 }
 
 void frames_pop(Frames *restrict frames) {
-    exp_assert(frames != NULL);
+    EXP_ASSERT(frames != NULL);
     frames->size -= 1;
 }

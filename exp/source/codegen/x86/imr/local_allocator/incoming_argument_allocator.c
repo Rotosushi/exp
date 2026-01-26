@@ -22,7 +22,7 @@
 
 void x86_incoming_argument_allocator_create(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator) {
-    exp_assert(incoming_argument_allocator != NULL);
+    EXP_ASSERT(incoming_argument_allocator != NULL);
     incoming_argument_allocator->registers_used = 0;
     x86_stack_allocator_create(&incoming_argument_allocator->stack_arguments);
     // #HACK: Since we know that the stack slots for arguments are above the
@@ -36,7 +36,7 @@ void x86_incoming_argument_allocator_create(
 
 void x86_incoming_argument_allocator_destroy(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator) {
-    exp_assert(incoming_argument_allocator != NULL);
+    EXP_ASSERT(incoming_argument_allocator != NULL);
     incoming_argument_allocator->registers_used = 0;
     x86_stack_allocator_destroy(&incoming_argument_allocator->stack_arguments);
 }
@@ -44,8 +44,8 @@ void x86_incoming_argument_allocator_destroy(
 bool x86_incoming_argument_allocator_allocate_register(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator,
     x86_Allocation *restrict allocation) {
-    exp_assert(incoming_argument_allocator != NULL);
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(incoming_argument_allocator != NULL);
+    EXP_ASSERT(allocation != NULL);
     if (incoming_argument_allocator->registers_used >= 6) { return false; }
 
     u64 size = x86_allocation_size_of(allocation);
@@ -60,8 +60,8 @@ bool x86_incoming_argument_allocator_allocate_register(
 void x86_incoming_argument_allocator_allocate_stack(
     x86_IncomingArgumentAllocator *restrict incoming_argument_allocator,
     x86_Allocation *restrict allocation) {
-    exp_assert(incoming_argument_allocator != NULL);
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(incoming_argument_allocator != NULL);
+    EXP_ASSERT(allocation != NULL);
 
     // #NOTE: While the stack_allocator accounts for removing allocations
     // in the middle of a functions runtime, that will never happen, However

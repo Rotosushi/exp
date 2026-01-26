@@ -17,18 +17,16 @@
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include "support/random.h"
 #include "support/assert.h"
 
 void splitmix64_seed(SplitMix64State *restrict state, u64 seed) {
-    exp_assert(state != nullptr);
+    EXP_ASSERT(state != nullptr);
     state->state = seed;
 }
 
 u64 splitmix64_next(SplitMix64State *state) {
-    exp_assert(state != nullptr);
+    EXP_ASSERT(state != nullptr);
     u64 result = (state->state += 0x9E3779B97F4A7C15);
     result     = (result ^ (result >> 30)) * 0xBF58476D1CE4E5B9;
     result     = (result ^ (result >> 27)) * 0x94D049BB133111EB;
@@ -36,14 +34,14 @@ u64 splitmix64_next(SplitMix64State *state) {
 }
 
 void xorshiftr128plus_seed(XorShiftR128PlusState *state, u64 seed) {
-    exp_assert(state != nullptr);
+    EXP_ASSERT(state != nullptr);
     SplitMix64State splitmix64_state = {.state = seed};
     state->state[0]                  = splitmix64_next(&splitmix64_state);
     state->state[1]                  = splitmix64_next(&splitmix64_state);
 }
 
 static bool nonzero_state(XorShiftR128PlusState *state) {
-    exp_assert(state != nullptr);
+    EXP_ASSERT(state != nullptr);
     if (state->state[0] != 0) return true;
     return state->state[1] != 0;
 }
@@ -54,9 +52,9 @@ static bool nonzero_state(XorShiftR128PlusState *state) {
  *  https://en.wikipedia.org/wiki/Xorshift
  */
 u64 xorshiftr128plus_next(XorShiftR128PlusState *state) {
-    exp_assert(state != nullptr);
-    exp_assert(nonzero_state(state));
-    u64 x           = state->state[0];
+    EXP_ASSERT(state != nullptr);
+    EXP_ASSERT(nonzero_state(state));
+    u64       x     = state->state[0];
     u64 const y     = state->state[1];
     state->state[0] = y;
     x ^= x << 23;
@@ -65,4 +63,3 @@ u64 xorshiftr128plus_next(XorShiftR128PlusState *state) {
     state->state[1] = x + y;
     return x;
 }
-

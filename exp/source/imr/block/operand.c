@@ -25,68 +25,30 @@
 #include "support/string.h"
 #include "support/unreachable.h"
 
-Operand operand(OperandKind kind, OperandData data) {
-    return (Operand){.kind = kind, .data = data};
-}
-
-Operand operand_ssa(u32 ssa) {
-    return (Operand){.kind = OPERAND_KIND_SSA, .data.ssa = ssa};
-}
-
-Operand operand_constant(Value const *constant) {
-    return (Operand){.kind = OPERAND_KIND_CONSTANT, .data.constant = constant};
-}
-
-Operand operand_label(ConstantString const *label) {
-    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = label};
-}
-
-Operand operand_nil() {
-    return (Operand){.kind = OPERAND_KIND_NIL, .data.nil = 0};
-}
-
-Operand operand_bool(bool bool_) {
-    return (Operand){.kind = OPERAND_KIND_BOOL, .data.bool_ = bool_};
-}
-
-Operand operand_u8(u8 u8_) {
-    return (Operand){.kind = OPERAND_KIND_U8, .data.u8_ = u8_};
-}
-
-Operand operand_u16(u16 u16_) {
-    return (Operand){.kind = OPERAND_KIND_U16, .data.u16_ = u16_};
-}
-
-Operand operand_u32(u32 u32_) {
-    return (Operand){.kind = OPERAND_KIND_U32, .data.u32_ = u32_};
-}
-
-Operand operand_u64(u64 u64_) {
-    return (Operand){.kind = OPERAND_KIND_U64, .data.u64_ = u64_};
-}
-
-Operand operand_i8(i8 i8_) {
-    return (Operand){.kind = OPERAND_KIND_I8, .data.i8_ = i8_};
-}
-
-Operand operand_i16(i16 i16_) {
-    return (Operand){.kind = OPERAND_KIND_I16, .data.i16_ = i16_};
-}
-
-Operand operand_i32(i32 i32_) {
-    return (Operand){.kind = OPERAND_KIND_I32, .data.i32_ = i32_};
-}
-
-Operand operand_i64(i64 i64_) {
-    return (Operand){.kind = OPERAND_KIND_I64, .data.i64_ = i64_};
-}
+extern Operand operand(OperandKind kind, OperandData data);
+extern Operand operand_local(u32 ssa);
+extern Operand operand_constant(Value const *constant);
+extern Operand operand_type(Type const *type);
+extern Operand operand_label(ConstantString const *label);
+extern Operand operand_nil();
+extern Operand operand_bool(bool bool_);
+extern Operand operand_u8(u8 u8_);
+extern Operand operand_u16(u16 u16_);
+extern Operand operand_u32(u32 u32_);
+extern Operand operand_u64(u64 u64_);
+extern Operand operand_i8(i8 i8_);
+extern Operand operand_i16(i16 i16_);
+extern Operand operand_i32(i32 i32_);
+extern Operand operand_i64(i64 i64_);
 
 bool operand_equality(Operand A, Operand B) {
     if (A.kind != B.kind) { return false; }
 
     switch (A.kind) {
-    case OPERAND_KIND_SSA:      return A.data.ssa == B.data.ssa;
+    case OPERAND_KIND_LOCAL:    return A.data.local == B.data.local;
     case OPERAND_KIND_CONSTANT: return A.data.constant == B.data.constant;
+    case OPERAND_KIND_TYPE:     return A.data.type == B.data.type;
+    case OPERAND_KIND_LABEL:    return A.data.label == B.data.label;
     case OPERAND_KIND_NIL:      return true;
     case OPERAND_KIND_BOOL:     return A.data.bool_ == B.data.bool_;
     case OPERAND_KIND_U8:       return A.data.u8_ == B.data.u8_;
@@ -97,7 +59,6 @@ bool operand_equality(Operand A, Operand B) {
     case OPERAND_KIND_I16:      return A.data.i16_ == B.data.i16_;
     case OPERAND_KIND_I32:      return A.data.i32_ == B.data.i32_;
     case OPERAND_KIND_I64:      return A.data.i64_ == B.data.i64_;
-    case OPERAND_KIND_LABEL:    return A.data.label == B.data.label;
     default:                    EXP_UNREACHABLE();
     }
 }
@@ -117,7 +78,7 @@ bool operand_is_index(Operand A) {
 }
 
 u64 operand_as_index(Operand A) {
-    exp_assert(operand_is_index(A));
+    EXP_ASSERT(operand_is_index(A));
     switch (A.kind) {
     case OPERAND_KIND_U8:  return A.data.u8_;
     case OPERAND_KIND_U16: return A.data.u16_;
@@ -132,16 +93,14 @@ u64 operand_as_index(Operand A) {
     }
 }
 
-static void print_operand_ssa(String *restrict string, u32 ssa) {
+static void print_operand_local(String *restrict string, u32 ssa) {
     string_append(string, SV("%"));
     string_append_u64(string, ssa);
 }
 
 static void print_operand_value(String *restrict string,
                                 Value const *constant,
-                                Context *restrict context) {
-    print_value(string, constant, context);
-}
+                                Context *restrict context) {}
 
 static void print_operand_label(String *restrict string,
                                 ConstantString const *restrict cs) {
@@ -152,11 +111,16 @@ static void print_operand_label(String *restrict string,
 void print_operand(String *restrict string,
                    Operand operand,
                    Context *restrict context) {
+    EXP_ASSERT(string != NULL);
+    EXP_ASSERT(context != NULL);
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: print_operand_ssa(string, operand.data.ssa); break;
-    case OPERAND_KIND_CONSTANT:
-        print_operand_value(string, operand.data.constant, context);
+    case OPERAND_KIND_LOCAL:
+        print_operand_local(string, operand.data.local);
         break;
+    case OPERAND_KIND_CONSTANT:
+        print_value(string, operand.data.constant, context);
+        break;
+    case OPERAND_KIND_TYPE: print_type(string, operand.data.type); break;
     case OPERAND_KIND_LABEL:
         print_operand_label(string, operand.data.label);
         break;

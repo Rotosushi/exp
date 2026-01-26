@@ -35,13 +35,13 @@ void x86_register_allocator_destroy(
 
 void x86_register_allocator_aquire_gpr(
     x86_RegisterAllocator *restrict register_allocator, x86_GPR gpr) {
-    exp_assert(register_allocator != NULL);
+    EXP_ASSERT(register_allocator != NULL);
     x86_register_pool_gpr_aquire(&register_allocator->pool, gpr);
 }
 
 void x86_register_allocator_release_gpr(
     x86_RegisterAllocator *restrict register_allocator, x86_GPR gpr) {
-    exp_assert(register_allocator != NULL);
+    EXP_ASSERT(register_allocator != NULL);
     x86_register_pool_gpr_release(&register_allocator->pool, gpr);
 }
 
@@ -64,7 +64,7 @@ bool x86_register_allocator_allocate_to_next_available(
     }
 
     u64 size = x86_allocation_size_of(allocation);
-    exp_assert_debug(x86_gpr_valid_size(size));
+    EXP_ASSERT(x86_gpr_valid_size(size));
     x86_GPR gpr           = x86_gpr_with_size(gpr_index, size);
     allocation->location  = x86_location_gpr(gpr);
     gpr_buffer[gpr_index] = allocation;
@@ -89,7 +89,7 @@ static void x86_register_allocator_gpr_release_expired(
 
 void x86_register_allocator_release_expired(
     x86_RegisterAllocator *restrict register_allocator, u32 block_index) {
-    exp_assert(register_allocator != NULL);
+    EXP_ASSERT(register_allocator != NULL);
     // #NOTE we have no way of verifying the block_index as valid at this
     // point, so it simply has to be a precondition.
     x86_register_allocator_gpr_release_expired(register_allocator, block_index);

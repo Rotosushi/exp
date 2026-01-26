@@ -28,6 +28,7 @@
 #include "evaluate/instruction/neg.h"
 #include "evaluate/instruction/ret.h"
 #include "evaluate/instruction/sub.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 static bool evaluate_instruction(Instruction instruction,
@@ -49,6 +50,7 @@ static bool evaluate_instruction(Instruction instruction,
 }
 
 bool evaluate_top_frame(Context *restrict context) {
+    EXP_ASSERT(context != NULL);
     bool         success = true;
     Frame       *frame   = context_frames_top(context);
     Block const *body    = &frame->function->body;

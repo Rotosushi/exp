@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "support/allocation.h"
+#include "support/arithmetic.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/io.h"
 #include "support/numeric_conversions.h"
 #include "support/panic.h"
@@ -37,7 +38,7 @@ String string_create() {
 }
 
 void string_initialize(String *restrict str) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     str->length    = 0;
     str->capacity  = sizeof(char *);
     str->buffer[0] = '\0';
@@ -48,7 +49,7 @@ static bool string_is_small(String const *restrict str) {
 }
 
 void string_destroy(String *restrict str) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     if (!string_is_small(str)) {
         deallocate(str->ptr);
         str->ptr = NULL;
@@ -58,7 +59,7 @@ void string_destroy(String *restrict str) {
 }
 
 StringView string_to_view(String const *restrict str) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     StringView sv = string_view_create();
     sv            = string_view(string_to_cstring(str), str->length);
     return sv;
@@ -127,12 +128,12 @@ String string_from_file(FILE *restrict file) {
 }
 
 bool string_empty(String const *restrict string) {
-    assert(string != NULL);
+    EXP_ASSERT(string != NULL);
     return string->length == 0;
 }
 
 bool string_eq(String const *restrict str, StringView sv) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     if (str->length != sv.length) { return 0; }
 
     if (string_is_small(str)) {
@@ -143,7 +144,7 @@ bool string_eq(String const *restrict str, StringView sv) {
 }
 
 void string_resize(String *restrict str, u64 capacity) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     if (string_is_small(str)) {
         if (capacity >= sizeof(char *)) {
             char *buf     = callocate(capacity, sizeof(char));
@@ -180,8 +181,8 @@ void string_append(String *restrict str, StringView sv) {
 }
 
 void string_append_string(String *restrict dst, String const *restrict src) {
-    assert(dst != NULL);
-    assert(src != NULL);
+    EXP_ASSERT(dst != NULL);
+    EXP_ASSERT(src != NULL);
     string_append(dst, string_to_view(src));
 }
 
@@ -215,9 +216,9 @@ void string_append_u64(String *restrict str, u64 u) {
   4 offset > 0, (offset + length) < str->length
 */
 void string_erase(String *restrict str, u64 offset, u64 length) {
-    assert(str != NULL);
-    assert(offset <= str->length);
-    assert((offset + length) <= str->length);
+    EXP_ASSERT(str != NULL);
+    EXP_ASSERT(offset <= str->length);
+    EXP_ASSERT((offset + length) <= str->length);
 
     if ((offset == 0) && (length == str->length)) {
         // erase the entire buffer
@@ -271,8 +272,8 @@ void string_erase(String *restrict str, u64 offset, u64 length) {
   case 4, we have to resize the existing buffer, then we can write
 */
 void string_insert(String *restrict str, u64 offset, StringView sv) {
-    assert(str != NULL);
-    assert(offset <= str->length);
+    EXP_ASSERT(str != NULL);
+    EXP_ASSERT(offset <= str->length);
 
     if ((offset + sv.length) >= str->capacity) {
         string_resize(str, (offset + sv.length) + str->length);
@@ -290,7 +291,7 @@ void string_insert(String *restrict str, u64 offset, StringView sv) {
 }
 
 void string_replace_extension(String *restrict str, StringView ext) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     // the string is something like
     // /some/kind/of/file.txt
     // or
@@ -340,7 +341,7 @@ void string_replace_extension(String *restrict str, StringView ext) {
 }
 
 StringView string_extension(String const *restrict str) {
-    assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     u64         length = str->length;
     u64         cursor = length;
     char const *buffer = string_is_small(str) ? str->buffer : str->ptr;

@@ -22,7 +22,7 @@
 #include "support/unreachable.h"
 
 u64 x86_size_of_primary(TypePrimary const *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     switch (type->kind) {
     case TYPE_PRIMARY_KIND_NIL:  return 1;
     case TYPE_PRIMARY_KIND_BOOL: return 1;

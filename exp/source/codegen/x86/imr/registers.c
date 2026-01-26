@@ -128,7 +128,7 @@ StringView x86_gpr_mnemonic(x86_GPR gpr) {
 }
 
 static x86_GPR size_to_gpr(x86_GPR base, u64 size) {
-    exp_assert_debug(x86_gpr_valid_size(size));
+    EXP_ASSERT_DEBUG(x86_gpr_valid_size(size));
     switch (size) {
     case 0:  EXP_UNREACHABLE();
     case 1:  return base + 1;
@@ -144,8 +144,8 @@ static x86_GPR size_to_gpr(x86_GPR base, u64 size) {
 }
 
 x86_GPR x86_gpr_with_size(u8 gpr_index, u64 size) {
-    exp_assert(gpr_index < 16);
-    exp_assert(x86_gpr_valid_size(size));
+    EXP_ASSERT(gpr_index < 16);
+    EXP_ASSERT(x86_gpr_valid_size(size));
     switch (gpr_index) {
     case 0:  return size_to_gpr(X86_GPR_rAX, size);
     case 1:  return size_to_gpr(X86_GPR_rBX, size);
@@ -168,7 +168,7 @@ x86_GPR x86_gpr_with_size(u8 gpr_index, u64 size) {
 }
 
 x86_GPR x86_gpr_resize(x86_GPR gpr, u64 size) {
-    exp_assert(x86_gpr_valid_size(size));
+    EXP_ASSERT(x86_gpr_valid_size(size));
     switch (gpr) {
     case X86_GPR_rAX:
     case X86_GPR_AL:
@@ -271,7 +271,7 @@ x86_GPR x86_gpr_resize(x86_GPR gpr, u64 size) {
 }
 
 x86_GPR x86_gpr_for_argument(u8 argument_index, u64 size) {
-    exp_assert(x86_gpr_valid_size(size));
+    EXP_ASSERT(x86_gpr_valid_size(size));
     switch (argument_index) {
     case 0: return x86_gpr_with_size(x86_gpr_to_index(X86_GPR_rDI), size);
     case 1: return x86_gpr_with_size(x86_gpr_to_index(X86_GPR_rSI), size);

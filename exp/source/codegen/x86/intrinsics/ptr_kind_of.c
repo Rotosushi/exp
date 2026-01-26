@@ -17,9 +17,11 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "codegen/x86/intrinsics/ptr_kind_of.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 x86_PtrKind x86_ptr_kind_of_primary(LayoutPrimary const *restrict primary) {
+    EXP_ASSERT(primary != NULL);
     // #NOTE: when would we want to return a byte pointer to a larger
     // allocation?
     switch (primary->alignment) {
@@ -44,6 +46,7 @@ x86_PtrKind x86_ptr_kind_of_primary(LayoutPrimary const *restrict primary) {
 }
 
 x86_PtrKind x86_ptr_kind_of_tuple(LayoutTuple const *restrict tuple) {
+    EXP_ASSERT(tuple != NULL);
     switch (tuple->primary.alignment) {
     case 0:  EXP_UNREACHABLE();
     case 1:  return X86_BYTE_PTR;
@@ -59,6 +62,7 @@ x86_PtrKind x86_ptr_kind_of_tuple(LayoutTuple const *restrict tuple) {
 }
 
 x86_PtrKind x86_ptr_kind_of(Layout const *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case LAYOUT_KIND_PRIMARY:
         return x86_ptr_kind_of_primary(&layout->data.primary);

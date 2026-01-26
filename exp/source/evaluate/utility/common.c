@@ -35,7 +35,7 @@ bool evaluate_label_to_constant(Value const **restrict result,
         break;
 
     case LOOKUP_RESULT_GLOBAL:
-        exp_assert_debug(lookup.global->value != NULL);
+        EXP_ASSERT_DEBUG(lookup.global->value != NULL);
         *result = lookup.global->value;
         break;
 
@@ -50,8 +50,8 @@ bool evaluate_operand_to_constant(Value const **restrict result,
                                   Frame      *frame,
                                   Context *restrict context) {
     switch (kind) {
-    case OPERAND_KIND_SSA: {
-        *result = context_stack_peek(context, frame->offset, data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        *result = context_stack_peek(context, frame->offset, data.local);
         break;
     }
 

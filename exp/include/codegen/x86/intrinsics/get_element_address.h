@@ -20,7 +20,7 @@
 #define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
 #include "codegen/x86/imr/allocation/location.h"
-#include "codegen/x86/imr/layout.h"
+#include "imr/layout.h"
 
 /**
  * @brief Get the address of an element in a tuple.
@@ -36,6 +36,6 @@
  * element of an array, a structure, or a union type.
  */
 x86_Location
-x86_get_element_address(x86_Location *src, x86_Layout const *layout, u64 index);
+x86_get_element_address(x86_Location *src, Layout const *layout, u64 index);
 
 #endif // !EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H

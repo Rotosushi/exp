@@ -22,8 +22,9 @@
 #include "support/string.h"
 
 typedef enum OperandKind : u8 {
-    OPERAND_KIND_SSA,
+    OPERAND_KIND_LOCAL,
     OPERAND_KIND_CONSTANT,
+    OPERAND_KIND_TYPE,
     OPERAND_KIND_LABEL,
     OPERAND_KIND_NIL,
     OPERAND_KIND_BOOL,
@@ -38,10 +39,12 @@ typedef enum OperandKind : u8 {
 } OperandKind;
 
 struct Value;
+struct Type;
 
 typedef union OperandData {
-    u32                   ssa;
+    u32                   local;
     struct Value const   *constant;
+    struct Type const    *type;
     ConstantString const *label;
     u8                    nil;
     bool                  bool_;
@@ -62,20 +65,65 @@ typedef struct Operand {
 
 struct Context;
 
-Operand operand(OperandKind kind, OperandData data);
-Operand operand_ssa(u32 local);
-Operand operand_constant(struct Value const *constant);
-Operand operand_label(ConstantString const *label);
-Operand operand_nil();
-Operand operand_bool(bool bool_);
-Operand operand_u8(u8 u8_);
-Operand operand_u16(u16 u16_);
-Operand operand_u32(u32 u32_);
-Operand operand_u64(u64 u64_);
-Operand operand_i8(i8 i8_);
-Operand operand_i16(i16 i16_);
-Operand operand_i32(i32 i32_);
-Operand operand_i64(i64 i64_);
+inline Operand operand(OperandKind kind, OperandData data) {
+    return (Operand){.kind = kind, .data = data};
+}
+
+inline Operand operand_local(u32 local) {
+    return (Operand){.kind = OPERAND_KIND_LOCAL, .data.local = local};
+}
+
+inline Operand operand_constant(struct Value const *constant) {
+    return (Operand){.kind = OPERAND_KIND_CONSTANT, .data.constant = constant};
+}
+
+inline Operand operand_type(struct Type const *type) {
+    return (Operand){.kind = OPERAND_KIND_TYPE, .data.type = type};
+}
+
+inline Operand operand_label(ConstantString const *label) {
+    return (Operand){.kind = OPERAND_KIND_LABEL, .data.label = label};
+}
+
+inline Operand operand_nil() {
+    return (Operand){.kind = OPERAND_KIND_NIL, .data.nil = 0};
+}
+
+inline Operand operand_bool(bool bool_) {
+    return (Operand){.kind = OPERAND_KIND_BOOL, .data.bool_ = bool_};
+}
+
+inline Operand operand_u8(u8 u8_) {
+    return (Operand){.kind = OPERAND_KIND_U8, .data.u8_ = u8_};
+}
+
+inline Operand operand_u16(u16 u16_) {
+    return (Operand){.kind = OPERAND_KIND_U16, .data.u16_ = u16_};
+}
+
+inline Operand operand_u32(u32 u32_) {
+    return (Operand){.kind = OPERAND_KIND_U32, .data.u32_ = u32_};
+}
+
+inline Operand operand_u64(u64 u64_) {
+    return (Operand){.kind = OPERAND_KIND_U64, .data.u64_ = u64_};
+}
+
+inline Operand operand_i8(i8 i8_) {
+    return (Operand){.kind = OPERAND_KIND_I8, .data.i8_ = i8_};
+}
+
+inline Operand operand_i16(i16 i16_) {
+    return (Operand){.kind = OPERAND_KIND_I16, .data.i16_ = i16_};
+}
+
+inline Operand operand_i32(i32 i32_) {
+    return (Operand){.kind = OPERAND_KIND_I32, .data.i32_ = i32_};
+}
+
+inline Operand operand_i64(i64 i64_) {
+    return (Operand){.kind = OPERAND_KIND_I64, .data.i64_ = i64_};
+}
 
 bool operand_equality(Operand A, Operand B);
 bool operand_is_index(Operand A);

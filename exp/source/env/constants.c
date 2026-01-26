@@ -65,7 +65,7 @@ static Value const *constant_list_append(ConstantList *restrict list,
 
 void constants_create(Constants *restrict constants,
                       struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     constants->nil    = value_allocate_nil(context);
     constants->true_  = value_allocate_bool(true, context);
     constants->false_ = value_allocate_bool(false, context);
@@ -82,7 +82,7 @@ void constants_create(Constants *restrict constants,
 }
 
 void constants_destroy(Constants *restrict constants) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     value_deallocate(constants->nil);
     value_deallocate(constants->true_);
     value_deallocate(constants->false_);
@@ -99,24 +99,25 @@ void constants_destroy(Constants *restrict constants) {
 }
 
 Value const *constants_nil(Constants *restrict constants) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     return constants->nil;
 }
 
 Value const *constants_true(Constants *restrict constants) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     return constants->true_;
 }
 
 Value const *constants_false(Constants *restrict constants) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
     return constants->false_;
 }
 
 Value const *constants_u8(Constants *restrict constants,
                           u8 u8_,
                           struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->u8_list,
                                 value_allocate_u8(u8_, context));
 }
@@ -124,7 +125,8 @@ Value const *constants_u8(Constants *restrict constants,
 Value const *constants_u16(Constants *restrict constants,
                            u16 u16_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->u16_list,
                                 value_allocate_u16(u16_, context));
 }
@@ -132,7 +134,8 @@ Value const *constants_u16(Constants *restrict constants,
 Value const *constants_u32(Constants *restrict constants,
                            u32 u32_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->u32_list,
                                 value_allocate_u32(u32_, context));
 }
@@ -140,7 +143,8 @@ Value const *constants_u32(Constants *restrict constants,
 Value const *constants_u64(Constants *restrict constants,
                            u64 u64_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->u64_list,
                                 value_allocate_u64(u64_, context));
 }
@@ -148,7 +152,8 @@ Value const *constants_u64(Constants *restrict constants,
 Value const *constants_i8(Constants *restrict constants,
                           i8 i8_,
                           struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->i8_list,
                                 value_allocate_i8(i8_, context));
 }
@@ -156,7 +161,8 @@ Value const *constants_i8(Constants *restrict constants,
 Value const *constants_i16(Constants *restrict constants,
                            i16 i16_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->i16_list,
                                 value_allocate_i16(i16_, context));
 }
@@ -164,7 +170,8 @@ Value const *constants_i16(Constants *restrict constants,
 Value const *constants_i32(Constants *restrict constants,
                            i32 i32_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->i32_list,
                                 value_allocate_i32(i32_, context));
 }
@@ -172,7 +179,8 @@ Value const *constants_i32(Constants *restrict constants,
 Value const *constants_i64(Constants *restrict constants,
                            i64 i64_,
                            struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->i64_list,
                                 value_allocate_i64(i64_, context));
 }
@@ -181,7 +189,8 @@ Value const *constants_tuple(Constants *restrict constants,
                              Tuple tuple,
                              Function *restrict function,
                              struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->tuple_list,
                                 value_allocate_tuple(tuple, function, context));
 }
@@ -189,7 +198,8 @@ Value const *constants_tuple(Constants *restrict constants,
 Value const *constants_function(Constants *restrict constants,
                                 Function function,
                                 struct Context *restrict context) {
-    exp_assert(constants != NULL);
+    EXP_ASSERT(constants != NULL);
+    EXP_ASSERT(context != NULL);
     return constant_list_append(&constants->u8_list,
                                 value_allocate_function(function, context));
 }

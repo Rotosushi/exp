@@ -23,14 +23,14 @@
 #include "support/assert.h"
 
 void locals_create(Locals *restrict locals) {
-    exp_assert(locals != NULL);
+    EXP_ASSERT(locals != NULL);
     locals->size     = 0;
     locals->capacity = 0;
     locals->buffer   = NULL;
 }
 
 void locals_destroy(Locals *restrict locals) {
-    exp_assert(locals != NULL);
+    EXP_ASSERT(locals != NULL);
     deallocate(locals->buffer);
     locals_create(locals);
 }
@@ -46,6 +46,7 @@ static void locals_grow(Locals *restrict locals) {
 }
 
 u32 locals_declare(Locals *restrict locals) {
+    EXP_ASSERT(locals != NULL);
     if (locals_full(locals)) { locals_grow(locals); }
     Local *local = locals->buffer + locals->size;
     local_create(local, locals->size++);
@@ -53,12 +54,13 @@ u32 locals_declare(Locals *restrict locals) {
 }
 
 Local *locals_lookup(Locals const *restrict locals, u32 ssa) {
-    exp_assert(locals != NULL);
-    exp_assert(ssa < locals->size);
+    EXP_ASSERT(locals != NULL);
+    EXP_ASSERT(ssa < locals->size);
     return locals->buffer + ssa;
 }
 
 Local *locals_lookup_name(Locals const *restrict locals, StringView name) {
+    EXP_ASSERT(locals != NULL);
     for (u32 index = 0; index < locals->size; ++index) {
         if (string_view_equal(locals->buffer[index].name, name)) {
             return locals->buffer + index;

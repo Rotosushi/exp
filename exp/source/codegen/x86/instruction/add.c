@@ -25,7 +25,7 @@
 // operations. We need to make sure that the result of the operation is
 // never the memory location of a local variable. Since that would modify
 // the value of the local variable.
-
+/*
 static void x86_codegen_add_ssa(Instruction  I,
                                 u64          block_index,
                                 Local       *local,
@@ -216,4 +216,4 @@ void x86_codegen_add(Instruction I,
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
     }
-}
+}*/

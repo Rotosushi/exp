@@ -32,7 +32,7 @@ bool evaluate_ret(Instruction instruction,
                                       context)) {
         return false;
     }
-    exp_assert(constant != NULL);
+    EXP_ASSERT(constant != NULL);
 
     // pop the locals associated with the current frame off the stack.
     context_stack_pop_n(context, frame->size);

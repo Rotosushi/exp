@@ -19,6 +19,7 @@
 
 #include "evaluate/instruction/mod.h"
 #include "evaluate/utility/common.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
 
@@ -27,7 +28,7 @@ static bool mod_value_value(Value const **restrict A,
                             Value const *restrict C,
                             Context *restrict context) {
     // #TODO: Integer Promotion rules
-    exp_assert_always(B->kind == C->kind);
+    EXP_ASSERT_ALWAYS(B->kind == C->kind);
 
     switch (B->kind) {
     case VALUE_KIND_U8: {
@@ -86,49 +87,49 @@ static bool mod_value_operand(Value const **restrict A,
 
     switch (B->kind) {
     case VALUE_KIND_U8: {
-        exp_assert_always(C.kind == OPERAND_KIND_U8);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U8);
         *A = context_constant_u8(context, B->u8_ % C.data.u8_);
         break;
     }
 
     case VALUE_KIND_U16: {
-        exp_assert_always(C.kind == OPERAND_KIND_U16);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U16);
         *A = context_constant_u16(context, B->u16_ % C.data.u16_);
         break;
     }
 
     case VALUE_KIND_U32: {
-        exp_assert_always(C.kind == OPERAND_KIND_U32);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U32);
         *A = context_constant_u32(context, B->u32_ % C.data.u32_);
         break;
     }
 
     case VALUE_KIND_U64: {
-        exp_assert_always(C.kind == OPERAND_KIND_U64);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U64);
         *A = context_constant_u64(context, B->u64_ % C.data.u64_);
         break;
     }
 
     case VALUE_KIND_I8: {
-        exp_assert_always(C.kind == OPERAND_KIND_I8);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I8);
         *A = context_constant_i8(context, B->i8_ % C.data.i8_);
         break;
     }
 
     case VALUE_KIND_I16: {
-        exp_assert_always(C.kind == OPERAND_KIND_I16);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I16);
         *A = context_constant_i16(context, B->i16_ % C.data.i16_);
         break;
     }
 
     case VALUE_KIND_I32: {
-        exp_assert_always(C.kind == OPERAND_KIND_I32);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I32);
         *A = context_constant_i32(context, B->i32_ % C.data.i32_);
         break;
     }
 
     case VALUE_KIND_I64: {
-        exp_assert_always(C.kind == OPERAND_KIND_I64);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I64);
         *A = context_constant_i64(context, B->i64_ % C.data.i64_);
         break;
     }
@@ -149,49 +150,49 @@ static bool mod_operand_value(Value const **restrict A,
 
     switch (C->kind) {
     case VALUE_KIND_U8: {
-        exp_assert_always(B.kind == OPERAND_KIND_U8);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U8);
         *A = context_constant_u8(context, B.data.u8_ % C->u8_);
         break;
     }
 
     case VALUE_KIND_U16: {
-        exp_assert_always(B.kind == OPERAND_KIND_U16);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U16);
         *A = context_constant_u16(context, B.data.u16_ % C->u16_);
         break;
     }
 
     case VALUE_KIND_U32: {
-        exp_assert_always(B.kind == OPERAND_KIND_U32);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U32);
         *A = context_constant_u32(context, B.data.u32_ % C->u32_);
         break;
     }
 
     case VALUE_KIND_U64: {
-        exp_assert_always(B.kind == OPERAND_KIND_U64);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U64);
         *A = context_constant_u64(context, B.data.u64_ % C->u64_);
         break;
     }
 
     case VALUE_KIND_I8: {
-        exp_assert_always(B.kind == OPERAND_KIND_I8);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I8);
         *A = context_constant_i8(context, B.data.i8_ % C->i8_);
         break;
     }
 
     case VALUE_KIND_I16: {
-        exp_assert_always(B.kind == OPERAND_KIND_I16);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I16);
         *A = context_constant_i16(context, B.data.i16_ % C->i16_);
         break;
     }
 
     case VALUE_KIND_I32: {
-        exp_assert_always(B.kind == OPERAND_KIND_I32);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I32);
         *A = context_constant_i32(context, B.data.i32_ % C->i32_);
         break;
     }
 
     case VALUE_KIND_I64: {
-        exp_assert_always(B.kind == OPERAND_KIND_I64);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I64);
         *A = context_constant_i64(context, B.data.i64_ % C->i64_);
         break;
     }
@@ -209,15 +210,15 @@ static bool mod_operand_operand(Value const **restrict A,
                                 Frame *restrict frame,
                                 Context *restrict context) {
     // #TODO: Integer Promotion Rules
-    exp_assert_always(B.kind == C.kind);
+    EXP_ASSERT_ALWAYS(B.kind == C.kind);
 
     switch (B.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_KIND_LOCAL: {
         Value const *B_value =
-            context_stack_peek(context, frame->offset, B.data.ssa);
+            context_stack_peek(context, frame->offset, B.data.local);
 
         Value const *C_value =
-            context_stack_peek(context, frame->offset, C.data.ssa);
+            context_stack_peek(context, frame->offset, C.data.local);
 
         return mod_value_value(A, B_value, C_value, context);
     }
@@ -237,7 +238,7 @@ static bool mod_operand_operand(Value const **restrict A,
                                         context)) {
             return false;
         }
-        exp_assert_debug(B_value != NULL);
+        EXP_ASSERT_ALWAYS(B_value != NULL);
 
         Value const *C_value = NULL;
         if (!evaluate_label_to_constant(&C_value,
@@ -246,7 +247,7 @@ static bool mod_operand_operand(Value const **restrict A,
                                         context)) {
             return false;
         }
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_ALWAYS(C_value != NULL);
 
         return mod_value_value(A, B_value, C_value, context);
     }
@@ -303,16 +304,16 @@ static bool evaluate_mod_value(Instruction instruction,
                                Value const *restrict B_value,
                                Value const **restrict A) {
     switch (instruction.C_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *C_value =
-            context_stack_peek(context, frame->offset, instruction.C_data.ssa);
-        exp_assert_debug(C_value != NULL);
+    case OPERAND_KIND_LOCAL: {
+        Value const *C_value = context_stack_peek(
+            context, frame->offset, instruction.C_data.local);
+        EXP_ASSERT_ALWAYS(C_value != NULL);
         return mod_value_value(A, B_value, C_value, context);
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value const *C_value = instruction.C_data.constant;
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_ALWAYS(C_value != NULL);
         return mod_value_value(A, B_value, C_value, context);
     }
 
@@ -325,7 +326,7 @@ static bool evaluate_mod_value(Instruction instruction,
                 context)) {
             return false;
         }
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_ALWAYS(C_value != NULL);
         return mod_value_value(A, B_value, C_value, context);
     }
 
@@ -355,9 +356,9 @@ static bool evaluate_mod_immediate(Instruction instruction,
                                    Value const **restrict A) {
     // we know that B is an immediate value
     switch (instruction.C_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *C_value =
-            context_stack_peek(context, frame->offset, instruction.C_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Value const *C_value = context_stack_peek(
+            context, frame->offset, instruction.C_data.local);
 
         return mod_operand_value(
             A,
@@ -416,29 +417,35 @@ static bool evaluate_mod_immediate(Instruction instruction,
 bool evaluate_mod(Instruction instruction,
                   Frame *restrict frame,
                   Context *restrict context) {
-    exp_assert(frame != NULL);
-    exp_assert(context != NULL);
-    exp_assert_debug(instruction.opcode == OPCODE_MOD);
-    exp_assert_debug(instruction.A_kind == OPERAND_KIND_SSA);
-    Local *A = function_lookup_local(frame->function, instruction.A_data.ssa);
-    exp_assert_debug(A != NULL);
-    exp_assert_debug(A->type != NULL);
+    EXP_ASSERT(frame != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT_DEBUG(instruction.opcode == OPCODE_MOD);
+    EXP_ASSERT_DEBUG(instruction.A_kind == OPERAND_KIND_LOCAL);
+    Local *A = function_lookup_local(frame->function, instruction.A_data.local);
+    EXP_ASSERT_DEBUG(A != NULL);
+    EXP_ASSERT_DEBUG(A->type != NULL);
 
     Value const *A_value = NULL;
     switch (instruction.B_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *B_value =
-            context_stack_peek(context, frame->offset, instruction.B_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Value const *B_value = context_stack_peek(
+            context, frame->offset, instruction.B_data.local);
 
-        return evaluate_mod_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mod_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value const *B_value = instruction.B_data.constant;
 
-        return evaluate_mod_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mod_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_LABEL: {
@@ -451,8 +458,11 @@ bool evaluate_mod(Instruction instruction,
             return false;
         }
 
-        return evaluate_mod_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mod_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_U8:

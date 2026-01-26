@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 
 #include "scanning/lexer.h"
+#include "support/assert.h"
 
 Lexer lexer_create() {
     Lexer lexer;
@@ -29,7 +29,7 @@ Lexer lexer_create() {
 }
 
 void lexer_init(Lexer *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     lexer->length = 0;
     lexer->buffer = lexer->cursor = lexer->token = NULL;
     lexer->source_location.file                  = SV("stdin");
@@ -38,23 +38,23 @@ void lexer_init(Lexer *restrict lexer) {
 }
 
 void lexer_reset(Lexer *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     lexer_init(lexer);
 }
 
 void lexer_set_view(Lexer *restrict lexer, StringView view) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     lexer->buffer = lexer->cursor = lexer->token = view.ptr;
     lexer->length                                = view.length;
 }
 
 void lexer_set_file(Lexer *restrict lexer, StringView file) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     lexer->source_location.file = file;
 }
 
 bool lexer_at_end(Lexer *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     return (u64)(lexer->cursor - lexer->buffer) >= lexer->length;
 }
 
@@ -63,26 +63,26 @@ static u64 lexer_current_text_length(Lexer const *restrict lexer) {
 }
 
 StringView lexer_current_text(Lexer const *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     StringView result =
         string_view(lexer->token, lexer_current_text_length(lexer));
     return result;
 }
 
 u64 lexer_current_line(Lexer const *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     return lexer->source_location.line;
 }
 
 u64 lexer_current_column(Lexer const *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     return lexer->source_location.column;
 }
 
 void lexer_current_source_location(Lexer const *restrict lexer,
                                    SourceLocation *restrict source_location) {
-    assert(lexer != NULL);
-    assert(source_location != NULL);
+    EXP_ASSERT(lexer != NULL);
+    EXP_ASSERT(source_location != NULL);
     *source_location = lexer->source_location;
 }
 
@@ -242,7 +242,7 @@ static Token lexer_identifier(Lexer *restrict lexer) {
 }
 
 Token lexer_scan(Lexer *restrict lexer) {
-    assert(lexer != NULL);
+    EXP_ASSERT(lexer != NULL);
     if (lexer_at_end(lexer)) { return TOK_END; }
 
     lexer_skip_whitespace(lexer);

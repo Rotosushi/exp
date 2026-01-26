@@ -38,8 +38,8 @@
  */
 
 i32 x86_header(String *restrict buffer, Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
     gas_directive_file(context_source_path(context), buffer);
     // #TODO: this needs to come from the arch specific section of the target.
     // else we leave it blank.
@@ -52,6 +52,9 @@ i32 x86_header(String *restrict buffer, Context *restrict context) {
 i32 x86_codegen_primary(String *restrict buffer,
                         Symbol const *restrict symbol,
                         [[maybe_unused]] Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
     u64 size      = layout_size_of(symbol->type->layout);
     u64 alignment = layout_align_of(symbol->type->layout);
     gas_directive_data(buffer);
@@ -67,6 +70,9 @@ i32 x86_codegen_primary(String *restrict buffer,
 i32 x86_codegen_function(String *restrict buffer,
                          Symbol const *restrict symbol,
                          Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
     u64 alignment = layout_align_of(symbol->type->layout);
     gas_directive_text(buffer);
     gas_directive_globl(symbol->name, buffer);
@@ -81,6 +87,9 @@ i32 x86_codegen_function(String *restrict buffer,
 i32 x86_codegen_composite(String *restrict buffer,
                           Symbol const *restrict symbol,
                           Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
     Value const         *value     = symbol->value;
     Type const          *type      = value->type;
     TypeComposite const *composite = &type->composite;
@@ -98,8 +107,9 @@ i32 x86_codegen_composite(String *restrict buffer,
 i32 x86_codegen(String *restrict buffer,
                 Symbol const *restrict symbol,
                 Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
 
     switch (symbol->type->kind) {
     case TYPE_KIND_PRIMARY: return x86_codegen_primary(buffer, symbol, context);
@@ -114,8 +124,8 @@ i32 x86_codegen(String *restrict buffer,
 }
 
 i32 x86_footer(String *restrict buffer, Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
     gas_directive_noexecstack(buffer);
     gas_directive_ident(SV(EXP_VERSION_STRING), buffer);
     return 0;

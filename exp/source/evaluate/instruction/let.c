@@ -24,13 +24,15 @@
 bool evaluate_let(Instruction instruction,
                   Frame      *frame,
                   Context *restrict context) {
-    exp_assert_debug(instruction.opcode == OPCODE_LET);
-    exp_assert_debug(instruction.A_kind == OPERAND_KIND_SSA);
+    EXP_ASSERT(frame != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT_DEBUG(instruction.opcode == OPCODE_LET);
+    EXP_ASSERT_DEBUG(instruction.A_kind == OPERAND_KIND_LOCAL);
     Local *local =
-        function_lookup_local(frame->function, instruction.A_data.ssa);
-    exp_assert_debug(local != NULL);
-    exp_assert_debug(!string_view_empty(local->name));
-    exp_assert_debug(local->type != NULL);
+        function_lookup_local(frame->function, instruction.A_data.local);
+    EXP_ASSERT_DEBUG(local != NULL);
+    EXP_ASSERT_DEBUG(!string_view_empty(local->name));
+    EXP_ASSERT_DEBUG(local->type != NULL);
 
     // retrieve the value we are going to associate with the local name.
     // note that we expect any instructions which create/update/modify
@@ -43,14 +45,14 @@ bool evaluate_let(Instruction instruction,
                                       context)) {
         return false;
     }
-    exp_assert_debug(constant != NULL);
+    EXP_ASSERT_DEBUG(constant != NULL);
 
     // Are we defining a global name?
     if (context_at_top_level(context)) {
         Symbol *global = context_global_symbol_lookup(context, local->name);
-        exp_assert_debug(string_view_equal(global->name, local->name));
-        exp_assert_debug(global->type == NULL);
-        exp_assert_debug(global->value == NULL);
+        EXP_ASSERT_DEBUG(string_view_equal(global->name, local->name));
+        EXP_ASSERT_DEBUG(global->type == NULL);
+        EXP_ASSERT_DEBUG(global->value == NULL);
         global->name  = local->name;
         global->type  = local->type;
         global->value = constant;

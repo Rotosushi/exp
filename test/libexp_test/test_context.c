@@ -21,7 +21,7 @@
 #include "support/assert.h"
 
 void test_context_create(Context *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     ContextOptions options = {};
     context_create(context, &options);
 }

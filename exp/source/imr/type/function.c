@@ -24,20 +24,20 @@
 void type_function_create(TypeFunction *restrict function,
                           Type const *argument,
                           Type const *result) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     function->argument = argument;
     function->result   = result;
 }
 
 void type_function_destroy(TypeFunction *restrict function) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     function->argument = NULL;
     function->result   = NULL;
 }
 
 bool type_function_equal(TypeFunction const *A, TypeFunction const *B) {
-    exp_assert(A != NULL);
-    exp_assert(B != NULL);
+    EXP_ASSERT(A != NULL);
+    EXP_ASSERT(B != NULL);
     if (A == B) { return 1; }
 
     if (!type_equality(A->result, B->result)) { return 0; }
@@ -46,6 +46,8 @@ bool type_function_equal(TypeFunction const *A, TypeFunction const *B) {
 
 void print_type_function(String *restrict string,
                          TypeFunction const *restrict function_type) {
+    EXP_ASSERT(string != NULL);
+    EXP_ASSERT(function_type != NULL);
     string_append(string, SV("fn "));
     print_type(string, function_type->argument);
     string_append(string, SV(" -> "));

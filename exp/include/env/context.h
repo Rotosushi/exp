@@ -119,11 +119,19 @@ bool context_failure_unsigned_overflow(Context *restrict context,
                                        Type const * type,
                                        u64 A,
                                        u64 B);
+bool context_failure_unsigned_division_by_zero(Context *restrict context,
+                                               Type const *type,
+                                               u64         A,
+                                               u64         B);
 bool context_failure_signed_overflow(Context *restrict context,
                                      StringView operator,
                                      Type const * type,
                                      i64 A,
                                      i64 B);
+bool context_failure_signed_division_by_zero(Context *restrict context,
+                                             Type const *type,
+                                             i64         A,
+                                             i64         B);
 
 // string interner functions
 ConstantString *context_intern(Context *restrict context, StringView sv);
@@ -197,6 +205,7 @@ Type const *context_type_of_operand(Context *restrict context,
                                     Function const *restrict function,
                                     Operand operand);
 
+// Type Layout functions.
 LayoutPrimary context_layout_of_primary(Context *restrict context,
                                         TypePrimary primary);
 

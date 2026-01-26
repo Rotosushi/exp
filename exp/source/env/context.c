@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 
 #include "env/context.h"
 #include "env/context_options.h"
 #include "evaluate/evaluate.h"
 #include "scanning/parser.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/config.h"
 #include "support/io.h"
@@ -46,8 +46,8 @@ static void generate_path_from_source(String *restrict target,
 
 void context_create(Context *restrict context,
                     ContextOptions *restrict options) {
-    assert(context != nullptr);
-    assert(options != nullptr);
+    EXP_ASSERT(context != nullptr);
+    EXP_ASSERT(options != nullptr);
     context->options = *options;
     string_initialize(&(context->source_path));
     context->current_error = error_create();
@@ -59,7 +59,7 @@ void context_create(Context *restrict context,
 }
 
 void context_destroy(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     string_destroy(&(context->source_path));
     string_interner_destroy(&(context->string_interner));
     type_interner_destroy(&(context->type_interner));
@@ -71,68 +71,68 @@ void context_destroy(Context *context) {
 
 void context_print_compile_actions(Context const *restrict context) {
     if (context_shall_create_assembly_artifact(context)) {
-        status(SV("create assembly artifact"), stdout);
+        message(MESSAGE_STATUS, "create assembly artifact", stdout);
     }
 
     if (context_shall_create_object_artifact(context)) {
-        status(SV("create object artifact:"), stdout);
+        message(MESSAGE_STATUS, "create object artifact", stdout);
     }
 
     if (context_shall_create_executable_artifact(context)) {
-        status(SV("create executable artifact:"), stdout);
+        message(MESSAGE_STATUS, "create executable artifact", stdout);
     }
 
     if (context_shall_cleanup_assembly_artifact(context)) {
-        status(SV("cleanup assembly artifact"), stdout);
+        message(MESSAGE_STATUS, "cleanup assembly artifact", stdout);
     }
 
     if (context_shall_cleanup_object_artifact(context)) {
-        status(SV("cleanup object artifact"), stdout);
+        message(MESSAGE_STATUS, "cleanup object artifact", stdout);
     }
 }
 
 bool context_shall_prolix(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.prolix;
 }
 
 bool context_shall_create_assembly_artifact(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.create_assembly_artifact;
 }
 
 bool context_shall_create_object_artifact(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.create_object_artifact;
 }
 
 bool context_shall_create_executable_artifact(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.create_executable_artifact;
 }
 
 bool context_shall_cleanup_assembly_artifact(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.cleanup_assembly_artifact;
 }
 
 bool context_shall_cleanup_object_artifact(Context const *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return context->options.cleanup_object_artifact;
 }
 
 void *context_get_target_context(Context const *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return context->options.target_context;
 }
 
 Target *context_get_target(Context const *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return context->options.target;
 }
 
 i32 context_compile_source(Context *restrict context, StringView source_path) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     string_assign(&context->source_path, source_path);
 
     String buffer;
@@ -189,7 +189,7 @@ i32 context_compile_source(Context *restrict context, StringView source_path) {
 }
 
 i32 context_create_assembly_artifact(Context *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     Target *target = context->options.target;
     String  assembly;
     string_initialize(&assembly);
@@ -222,7 +222,7 @@ i32 context_create_assembly_artifact(Context *restrict context) {
 }
 
 i32 context_create_object_artifact(Context *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     Target *target = context->options.target;
 
     String assembly_path;
@@ -254,7 +254,7 @@ i32 context_create_object_artifact(Context *restrict context) {
 }
 
 i32 context_create_executable_artifact(Context *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     Target *target = context->options.target;
 
     String object_path;
@@ -294,7 +294,7 @@ i32 context_create_executable_artifact(Context *restrict context) {
 }
 
 void context_cleanup_assembly_artifact(Context *restrict context) {
-    exp_assert(context);
+    EXP_ASSERT(context);
     Target *target = context->options.target;
 
     String path;
@@ -308,7 +308,7 @@ void context_cleanup_assembly_artifact(Context *restrict context) {
 }
 
 void context_cleanup_object_artifact(Context *restrict context) {
-    exp_assert(context);
+    EXP_ASSERT(context);
     Target *target = context->options.target;
 
     String path;
@@ -322,14 +322,14 @@ void context_cleanup_object_artifact(Context *restrict context) {
 }
 
 StringView context_source_path(Context const *restrict context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_to_view(&(context->source_path));
 }
 
 void context_print_error(Context const *restrict context,
                          StringView file,
                          u64        line) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     error_print(&context->current_error, file, line);
 }
 
@@ -474,6 +474,22 @@ bool context_failure_unsigned_overflow(Context *restrict context,
         context, ERROR_EVALUATION_UNSIGNED_OVERFLOW, buffer);
 }
 
+bool context_failure_unsigned_division_by_zero(Context *restrict context,
+                                               Type const *type,
+                                               u64         A,
+                                               u64         B) {
+    String buffer = string_create();
+    string_append(&buffer, SV("Expression ["));
+    string_append_u64(&buffer, A);
+    string_append(&buffer, SV(" / "));
+    string_append_u64(&buffer, B);
+    string_append(&buffer, SV("] Underlying Type ["));
+    print_type(&buffer, type);
+    string_append(&buffer, SV("]"));
+    return context_failure_string(
+        context, ERROR_EVALUATION_UNSIGNED_DIVISION_BY_ZERO, buffer);
+}
+
 bool context_failure_signed_overflow(Context *restrict context,
                                      StringView operator,
                                      Type const * type,
@@ -491,194 +507,210 @@ bool context_failure_signed_overflow(Context *restrict context,
         context, ERROR_EVALUATION_SIGNED_OVERFLOW, buffer);
 }
 
+bool context_failure_signed_division_by_zero(Context *restrict context,
+                                             Type const *type,
+                                             i64         A,
+                                             i64         B) {
+    String buffer = string_create();
+    string_append(&buffer, SV("Expression ["));
+    string_append_i64(&buffer, A);
+    string_append(&buffer, SV(" / "));
+    string_append_i64(&buffer, B);
+    string_append(&buffer, SV("] Underlying Type ["));
+    print_type(&buffer, type);
+    string_append(&buffer, SV("]"));
+    return context_failure_string(
+        context, ERROR_EVALUATION_SIGNED_DIVISION_BY_ZERO, buffer);
+}
+
 ConstantString *context_intern(Context *context, StringView sv) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return string_interner_insert(&(context->string_interner), sv);
 }
 
 Type const *context_nil_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
 Type const *context_bool_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_bool_type(&(context->type_interner));
 }
 
 Type const *context_u8_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_u8_type(&(context->type_interner));
 }
 
 Type const *context_u16_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_u16_type(&(context->type_interner));
 }
 
 Type const *context_u32_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_u32_type(&(context->type_interner));
 }
 
 Type const *context_u64_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_u64_type(&(context->type_interner));
 }
 
 Type const *context_i8_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_i8_type(&(context->type_interner));
 }
 
 Type const *context_i16_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_i16_type(&(context->type_interner));
 }
 
 Type const *context_i32_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_i32_type(&(context->type_interner));
 }
 
 Type const *context_i64_type(Context *context) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_i64_type(&(context->type_interner));
 }
 
 Type const *context_tuple_type(Context *context, TypeTuple tuple) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple, context);
 }
 
 Type const *context_function_type(Context    *context,
                                   Type const *argument,
                                   Type const *result) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return type_interner_function_type(
         &context->type_interner, argument, result, context);
 }
 
 Value const *context_constant_nil(Context *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_nil(&context->constants);
 }
 
 Value const *context_constant_true(Context *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_true(&context->constants);
 }
 
 Value const *context_constant_false(Context *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_false(&context->constants);
 }
 
 Value const *context_constant_u8(Context *restrict context, u8 u8_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_u8(&context->constants, u8_, context);
 }
 
 Value const *context_constant_u16(Context *restrict context, u16 u16_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_u16(&context->constants, u16_, context);
 }
 
 Value const *context_constant_u32(Context *restrict context, u32 u32_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_u32(&context->constants, u32_, context);
 }
 
 Value const *context_constant_u64(Context *restrict context, u64 u64_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_u64(&context->constants, u64_, context);
 }
 
 Value const *context_constant_i8(Context *restrict context, i8 i8_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_i8(&context->constants, i8_, context);
 }
 
 Value const *context_constant_i16(Context *restrict context, i16 i16_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_i16(&context->constants, i16_, context);
 }
 
 Value const *context_constant_i32(Context *restrict context, i32 i32_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_i32(&context->constants, i32_, context);
 }
 
 Value const *context_constant_i64(Context *restrict context, i64 i64_) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_i64(&context->constants, i64_, context);
 }
 
 Value const *context_constant_tuple(Context *restrict context,
                                     Tuple tuple,
                                     Function *restrict function) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_tuple(&context->constants, tuple, function, context);
 }
 
 Value const *context_constant_function(Context *restrict context,
                                        Function function) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return constants_function(&context->constants, function, context);
 }
 
 bool context_stack_empty(Context const *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return stack_empty(&context->stack);
 }
 
 u32 context_stack_size(Context const *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return stack_size(&context->stack);
 }
 
 void context_stack_push(Context *restrict context,
                         Value const *restrict value) {
-    assert(context != NULL);
-    assert(value != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(value != NULL);
     stack_push(&context->stack, value);
 }
 
 Value const *context_stack_pop(Context *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return stack_pop(&context->stack);
 }
 
 void context_stack_pop_n(Context *restrict context, u32 n) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     stack_pop_n(&context->stack, n);
 }
 
 Value const *
 context_stack_peek(Context const *restrict context, u32 offset, u32 index) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     u32 result = 0;
-    exp_assert_always(!__builtin_add_overflow(offset, index, &result));
+    EXP_ASSERT_ALWAYS(!add_u32(offset, index, &result));
     return stack_peek(&context->stack, result);
 }
 
 bool context_frames_empty(Context const *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return frames_empty(&context->frames);
 }
 
 void context_frames_push(Context *restrict context, Frame frame) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     frames_push(&context->frames, frame);
 }
 
 Frame *context_frames_top(Context const *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return frames_top(&context->frames);
 }
 
 void context_frames_pop(Context *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     frames_pop(&context->frames);
 }
 
@@ -710,9 +742,9 @@ Type const *context_type_of_value(Context *restrict context,
 
 Type const *context_type_of_function(Context *restrict context,
                                      Function const *restrict function) {
-    exp_assert(context != NULL);
-    assert(function != NULL);
-    assert(function->result != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(function != NULL);
+    EXP_ASSERT(function->result != NULL);
 
     Type const *result = function->result->type;
 
@@ -741,9 +773,9 @@ Type const *context_type_of_function(Context *restrict context,
 Type const *context_type_of_tuple(Context *restrict context,
                                   Function const *restrict function,
                                   Tuple const *restrict tuple) {
-    exp_assert(context != NULL);
-    exp_assert(function != NULL);
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(function != NULL);
+    EXP_ASSERT(tuple != NULL);
     TypeTuple tuple_type;
     type_tuple_create(&tuple_type);
     for (u64 i = 0; i < tuple->length; ++i) {
@@ -757,17 +789,19 @@ Type const *context_type_of_tuple(Context *restrict context,
 Type const *context_type_of_operand(Context *restrict context,
                                     Function const *restrict function,
                                     Operand operand) {
-    exp_assert(context != NULL);
-    exp_assert(function != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(function != NULL);
     switch (operand.kind) {
-    case OPERAND_KIND_SSA: {
-        Local *local = function_lookup_local(function, operand.data.ssa);
-        exp_assert_debug(local->type != NULL);
+    case OPERAND_KIND_LOCAL: {
+        Local *local = function_lookup_local(function, operand.data.local);
+        EXP_ASSERT_DEBUG(local->type != NULL);
         return local->type;
     }
 
     case OPERAND_KIND_CONSTANT:
         return context_type_of_value(context, function, operand.data.constant);
+
+    case OPERAND_KIND_TYPE: return operand.data.type;
 
     case OPERAND_KIND_LABEL: {
         StringView label = constant_string_to_view(operand.data.label);
@@ -798,27 +832,27 @@ Type const *context_type_of_operand(Context *restrict context,
 
 LayoutPrimary context_layout_of_primary(Context *restrict context,
                                         TypePrimary primary) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     Target *target = context_get_target(context);
     return layout_primary(target->size_of_primary(&primary),
                           target->align_of_primary(&primary));
 }
 
 LayoutPrimary context_layout_of_function(Context *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     Target *target = context_get_target(context);
     return layout_primary(target->size_of_function(),
                           target->align_of_function());
 }
 
 Layout const *context_layout_of(Context *restrict context, Type const *type) {
-    exp_assert(context != NULL);
-    exp_assert(type != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(type != NULL);
     return layout_interner_layout_of(&context->layout_interner, type);
 }
 
 bool context_at_top_level(Context const *restrict context) {
-    assert(context != NULL);
+    EXP_ASSERT(context != NULL);
     return context->frames.size == 1;
 }
 
@@ -837,8 +871,8 @@ static LookupResult lookup_result_global(Symbol *restrict global) {
 LookupResult context_lookup_label(Context *restrict context,
                                   Function const *restrict function,
                                   StringView label) {
-    exp_assert(context != NULL);
-    exp_assert(function != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(function != NULL);
 
     if (!context_at_top_level(context)) {
         Local *local = function_lookup_local_name(function, label);
@@ -855,39 +889,39 @@ void context_push_local_value(Context *restrict context,
                               Frame *restrict frame,
                               Local *restrict local,
                               Value const *restrict constant) {
-    exp_assert(context != NULL);
-    exp_assert(frame != NULL);
-    exp_assert(local != NULL);
-    exp_assert(constant != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT(frame != NULL);
+    EXP_ASSERT(local != NULL);
+    EXP_ASSERT(constant != NULL);
     context_stack_push(context, constant);
     frame->size += 1;
-    // assert that the given constant is correctly placed on the stack.
-    exp_assert_debug(constant ==
+    // EXP_ASSERT that the given constant is correctly placed on the stack.
+    EXP_ASSERT_DEBUG(constant ==
                      context_stack_peek(context, frame->offset, local->ssa));
 }
 
 Symbol *context_global_symbol_lookup(Context *context, StringView name) {
-    assert(context != nullptr);
+    EXP_ASSERT(context != nullptr);
     return symbol_table_at(&context->global_symbol_table, name);
 }
 
 // Value const *context_constants_at(Context *context, u32 index) {
-//     assert(context != nullptr);
+//     EXP_ASSERT(context != nullptr);
 //     return constants_at(&(context->constants), index);
 // }
 
 // u32 context_labels_insert(Context *context, StringView symbol) {
-//     assert(context != nullptr);
+//     EXP_ASSERT(context != nullptr);
 //     return labels_insert(&context->global_labels, symbol);
 // }
 
 // StringView context_labels_at(Context *context, u32 index) {
-//     assert(context != nullptr);
+//     EXP_ASSERT(context != nullptr);
 //     return labels_at(&context->global_labels, index);
 // }
 
 // Function *context_enter_function(Context *c, StringView name) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Symbol *element = symbol_table_at(&c->global_symbol_table, name);
 //     if (element->kind == SYMBOL_KIND_UNDEFINED) {
 //         element->kind = SYMBOL_KIND_FUNCTION;
@@ -898,8 +932,8 @@ Symbol *context_global_symbol_lookup(Context *context, StringView name) {
 // }
 
 // Function *context_current_function(Context *c) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return c->current_function;
 // }
 
@@ -908,103 +942,103 @@ Symbol *context_global_symbol_lookup(Context *context, StringView name) {
 // }
 
 // Local *context_declare_argument(Context *c) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return function_declare_argument(c->current_function);
 // }
 
 // Local *context_declare_local(Context *c) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return function_declare_local(c->current_function);
 // }
 
 // Local *context_lookup_argument(Context *c, u8 index) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return function_lookup_argument(c->current_function, index);
 // }
 
 // Local *context_lookup_local(Context *c, u32 ssa) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return function_lookup_local(c->current_function, ssa);
 // }
 
 // Local *context_lookup_local_name(Context *c, StringView name) {
-//     assert(c != nullptr);
-//     assert(c->current_function != nullptr);
+//     EXP_ASSERT(c != nullptr);
+//     EXP_ASSERT(c->current_function != nullptr);
 //     return function_lookup_local_name(c->current_function, name);
 // }
 
 // void context_leave_function(Context *c) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     c->current_function = nullptr;
 // }
 
 // void context_emit_return(Context *c, Operand B) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     bytecode_append(context_active_bytecode(c), instruction_return(B));
 // }
 
 // Operand context_emit_call(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_call(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_dot(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_dot(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_load(Context *c, Operand B) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_let(A, B));
 //     return A;
 // }
 
 // Operand context_emit_negate(Context *c, Operand B) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_neg(A, B));
 //     return A;
 // }
 
 // Operand context_emit_add(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_add(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_subtract(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_sub(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_multiply(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_mul(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_divide(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_div(A, B, C));
 //     return A;
 // }
 
 // Operand context_emit_modulus(Context *c, Operand B, Operand C) {
-//     assert(c != nullptr);
+//     EXP_ASSERT(c != nullptr);
 //     Operand A = operand_ssa(context_declare_local(c));
 //     bytecode_append(context_active_bytecode(c), instruction_mod(A, B, C));
 //     return A;

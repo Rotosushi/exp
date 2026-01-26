@@ -96,20 +96,24 @@ static bool infer_types_operand(Type const **result,
                                 OperandKind kind,
                                 OperandData data) {
     switch (kind) {
-    case OPERAND_KIND_SSA: {
-        Local      *local = function_lookup_local(function, data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Local      *local = function_lookup_local(function, data.local);
         Type const *type  = local->type;
         // #NOTE: since we are looking up a local, already defined,
         // by definition we must have inferred the type of it already.
         // the let instruction must come before this usage of the name.
         // therefore if the type is not filled in, this is a bug in
         // our implementation
-        exp_assert_debug(type != NULL);
+        EXP_ASSERT_DEBUG(type != NULL);
         return success(result, type);
     }
 
     case OPERAND_KIND_CONSTANT: {
         return infer_types_constant(result, function, context, data.constant);
+    }
+
+    case OPERAND_KIND_TYPE: {
+        return success(result, data.type);
     }
 
     case OPERAND_KIND_LABEL: {
@@ -129,7 +133,7 @@ static bool infer_types_operand(Type const **result,
             break;
         }
         }
-        exp_assert_debug(type != NULL);
+        EXP_ASSERT_DEBUG(type != NULL);
 
         return success(result, type);
     }
@@ -174,8 +178,9 @@ static bool infer_types_let(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    exp_assert_debug(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = function_lookup_local(function, I.A_data.ssa);
+    // #TODO: handle the ABC form of let expressions.
+    EXP_ASSERT_DEBUG(I.A_kind == OPERAND_KIND_LOCAL);
+    Local *local = function_lookup_local(function, I.A_data.local);
     if (!infer_types_operand(
             &local->type, function, context, I.B_kind, I.B_data)) {
         return false;
@@ -276,8 +281,8 @@ static bool infer_types_call(Type const **result,
                              Function *restrict function,
                              Context *restrict context,
                              Instruction I) {
-    exp_assert_debug(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = function_lookup_local(function, I.A_data.ssa);
+    EXP_ASSERT_DEBUG(I.A_kind == OPERAND_KIND_LOCAL);
+    Local      *local = function_lookup_local(function, I.A_data.local);
     Type const *Bty;
     if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
         return false;
@@ -287,11 +292,11 @@ static bool infer_types_call(Type const **result,
         return context_failure_type_is_not_callable(context, Bty);
     }
 
-    exp_assert_debug(Bty->kind == TYPE_KIND_COMPOSITE);
-    exp_assert_debug(Bty->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    EXP_ASSERT_DEBUG(Bty->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT_DEBUG(Bty->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
     TypeFunction const *function_type = &Bty->composite.data.function;
     Type const         *formal        = function_type->argument;
-    exp_assert_debug(I.C_kind == OPERAND_KIND_CONSTANT);
+    EXP_ASSERT_DEBUG(I.C_kind == OPERAND_KIND_CONSTANT);
     Value const *value  = I.C_data.constant;
     Type const  *actual = value->type;
 
@@ -305,8 +310,8 @@ static bool infer_types_dot(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    exp_assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = function_lookup_local(function, I.A_data.ssa);
+    EXP_ASSERT_DEBUG(I.A_kind == OPERAND_KIND_LOCAL);
+    Local      *local = function_lookup_local(function, I.A_data.local);
     Type const *Bty;
     if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
         return false;
@@ -316,8 +321,8 @@ static bool infer_types_dot(Type const **result,
         return context_failure_type_is_not_indexable(context, Bty);
     }
 
-    exp_assert_debug(Bty->kind == TYPE_KIND_COMPOSITE);
-    exp_assert_debug(Bty->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    EXP_ASSERT_DEBUG(Bty->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT_DEBUG(Bty->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
     TypeTuple const *tuple = &Bty->composite.data.tuple;
     Operand          C     = operand(I.C_kind, I.C_data);
 
@@ -326,7 +331,7 @@ static bool infer_types_dot(Type const **result,
     }
 
     u64 index = operand_as_index(C);
-    exp_assert(index < u32_MAX);
+    EXP_ASSERT_DEBUG(index < u32_MAX);
     if (!type_tuple_index_in_bounds(tuple, (u32)index)) {
         return context_failure_index_out_of_bounds(
             context, tuple->length, index);
@@ -342,8 +347,8 @@ static bool infer_types_unop(Type const **result,
                              Instruction I,
                              Type const *result_type,
                              Type const *argument_type) {
-    exp_assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = function_lookup_local(function, I.A_data.ssa);
+    EXP_ASSERT_DEBUG(I.A_kind == OPERAND_KIND_LOCAL);
+    Local *local = function_lookup_local(function, I.A_data.local);
     if (!infer_types_operand(
             &local->type, function, context, I.B_kind, I.B_data)) {
         return false;
@@ -373,8 +378,8 @@ static bool infer_types_binop(Type const **result,
                               Type const *lhs_type,
                               Type const *rhs_type) {
     // #TODO: Integer promotion rules
-    exp_assert(I.A_kind == OPERAND_KIND_SSA);
-    Local      *local = function_lookup_local(function, I.A_data.ssa);
+    EXP_ASSERT_DEBUG(I.A_kind == OPERAND_KIND_LOCAL);
+    Local      *local = function_lookup_local(function, I.A_data.local);
     Type const *Bty;
     if (!infer_types_operand(&Bty, function, context, I.B_kind, I.B_data)) {
         return false;
@@ -452,6 +457,16 @@ static bool infer_types_function(Type const **restrict result,
                 return false;
             }
 
+            // #NOTE: as it stands this line is preventing us from returning
+            // integer literals from a function. If the function is annotated
+            // with a type not equal to the implicit type of the integer
+            // literal.
+            //
+            // for instance, we expect the main subroutine to return a u8. as
+            // this is the return type which can be retrieved from the operating
+            // system. However, integer literals are implicitly an i64 unless
+            // their value forces them to be a u64.
+            //
             if ((function->result->type != NULL) &&
                 (!type_equality(function->result->type, return_type))) {
                 return context_failure_mismatch_type(
@@ -529,6 +544,9 @@ static bool infer_types_function(Type const **restrict result,
         }
     }
 
+    // #TODO: We want to create an "Expression" struct which directly
+    // represents an expression, instead of overloading the usage of
+    // function objects.
     // #NOTE: We are not accounting for the fact that a top level expression
     // is not required to have a return statement. And since we expect each
     // function to use their required return statement to give us something to

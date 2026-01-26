@@ -23,20 +23,20 @@
 #include "support/assert.h"
 
 void x86_block_create(x86_Block *restrict block) {
-    exp_assert(block != NULL);
+    EXP_ASSERT(block != NULL);
     block->length   = 0;
     block->capacity = 0;
     block->buffer   = NULL;
 }
 
 void x86_block_destroy(x86_Block *restrict block) {
-    exp_assert(block != NULL);
+    EXP_ASSERT(block != NULL);
     deallocate(block->buffer);
     x86_block_create(block);
 }
 
 u32 x86_block_current_offset(x86_Block *restrict block) {
-    exp_assert(block != NULL);
+    EXP_ASSERT(block != NULL);
     return block->length;
 }
 
@@ -53,9 +53,9 @@ static void x86_bytecode_grow(x86_Block *restrict block) {
 void x86_block_insert(x86_Block *restrict block,
                       x86_Instruction instruction,
                       u32             offset) {
-    exp_assert(block != NULL);
-    exp_assert(offset <= block->capacity);
-    exp_assert(offset <= block->length);
+    EXP_ASSERT(block != NULL);
+    EXP_ASSERT(offset <= block->capacity);
+    EXP_ASSERT(offset <= block->length);
     if (x86_bytecode_full(block)) { x86_bytecode_grow(block); }
 
     for (u32 index = block->length; index > offset; --index) {
@@ -67,18 +67,18 @@ void x86_block_insert(x86_Block *restrict block,
 }
 
 void x86_block_append(x86_Block *restrict block, x86_Instruction instruction) {
-    exp_assert(block != NULL);
+    EXP_ASSERT(block != NULL);
     x86_block_insert(block, instruction, block->length);
 }
 
 void x86_block_prepend(x86_Block *restrict block, x86_Instruction instruction) {
-    exp_assert(block != NULL);
+    EXP_ASSERT(block != NULL);
     x86_block_insert(block, instruction, 0);
 }
 
 void print_x86_block(String *restrict buffer, x86_Block const *restrict block) {
-    exp_assert(buffer != NULL);
-    exp_assert(block != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(block != NULL);
     for (u32 index = 0; index < block->length; ++index) {
         string_append(buffer, SV("\t"));
         print_x86_instruction(buffer, block->buffer[index]);

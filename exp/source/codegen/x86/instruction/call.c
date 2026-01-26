@@ -24,7 +24,7 @@
 #include "intrinsics/type_of.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
-
+/*
 typedef struct OperandArray {
     u8       size;
     u8       capacity;
@@ -152,4 +152,4 @@ void x86_codegen_call(Instruction I,
     x86_codegen_deallocate_stack_space_for_arguments(context, stack_space);
 
     operand_array_destroy(&stack_args);
-}
+}*/

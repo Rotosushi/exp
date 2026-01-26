@@ -45,7 +45,7 @@
  * (IDIV)[docs/Targets/x86-64/Instructions/General-Purpose/IDIV.md]
  *
  */
-
+/*
 static void x86_codegen_divide_ssa(Instruction  I,
                                    u64          block_index,
                                    Local       *local,
@@ -324,4 +324,4 @@ void x86_codegen_div(Instruction I,
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
     }
-}
+}*/

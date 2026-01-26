@@ -19,6 +19,7 @@
 
 #include "evaluate/instruction/mul.h"
 #include "evaluate/utility/common.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
 
@@ -27,12 +28,12 @@ static bool mul_value_value(Value const **restrict A,
                             Value const *restrict C,
                             Context *restrict context) {
     // #TODO: Integer Promotion rules
-    exp_assert_always(B->kind == C->kind);
+    EXP_ASSERT_ALWAYS(B->kind == C->kind);
 
     switch (B->kind) {
     case VALUE_KIND_U8: {
         u8 u8_;
-        if (__builtin_mul_overflow(B->u8_, C->u8_, &u8_)) {
+        if (mul_u8(B->u8_, C->u8_, &u8_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u8_type(context), B->u8_, C->u8_);
         }
@@ -42,7 +43,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_U16: {
         u16 u16_;
-        if (__builtin_mul_overflow(B->u16_, C->u16_, &u16_)) {
+        if (mul_u16(B->u16_, C->u16_, &u16_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u16_type(context), B->u16_, C->u16_);
         }
@@ -52,7 +53,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_U32: {
         u32 u32_;
-        if (__builtin_mul_overflow(B->u32_, C->u32_, &u32_)) {
+        if (mul_u32(B->u32_, C->u32_, &u32_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u32_type(context), B->u32_, C->u32_);
         }
@@ -62,7 +63,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_U64: {
         u64 u64_;
-        if (__builtin_mul_overflow(B->u64_, C->u64_, &u64_)) {
+        if (mul_u64(B->u64_, C->u64_, &u64_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u64_type(context), B->u64_, C->u64_);
         }
@@ -72,7 +73,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_I8: {
         i8 i8_;
-        if (__builtin_mul_overflow(B->i8_, C->i8_, &i8_)) {
+        if (mul_i8(B->i8_, C->i8_, &i8_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i8_type(context), B->i8_, C->i8_);
         }
@@ -82,7 +83,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_I16: {
         i16 i16_;
-        if (__builtin_mul_overflow(B->i16_, C->i16_, &i16_)) {
+        if (mul_i16(B->i16_, C->i16_, &i16_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i16_type(context), B->i16_, C->i16_);
         }
@@ -92,7 +93,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_I32: {
         i32 i32_;
-        if (__builtin_mul_overflow(B->i32_, C->i32_, &i32_)) {
+        if (mul_i32(B->i32_, C->i32_, &i32_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i32_type(context), B->i32_, C->i32_);
         }
@@ -102,7 +103,7 @@ static bool mul_value_value(Value const **restrict A,
 
     case VALUE_KIND_I64: {
         i64 i64_;
-        if (__builtin_mul_overflow(B->i64_, C->i64_, &i64_)) {
+        if (mul_i64(B->i64_, C->i64_, &i64_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i64_type(context), B->i64_, C->i64_);
         }
@@ -126,9 +127,9 @@ static bool mul_value_operand(Value const **restrict A,
 
     switch (B->kind) {
     case VALUE_KIND_U8: {
-        exp_assert_always(C.kind == OPERAND_KIND_U8);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U8);
         u8 u8_;
-        if (__builtin_mul_overflow(B->u8_, C.data.u8_, &u8_)) {
+        if (mul_u8(B->u8_, C.data.u8_, &u8_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u8_type(context), B->u8_, C.data.u8_);
         }
@@ -137,9 +138,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_U16: {
-        exp_assert_always(C.kind == OPERAND_KIND_U16);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U16);
         u16 u16_;
-        if (__builtin_mul_overflow(B->u16_, C.data.u16_, &u16_)) {
+        if (mul_u16(B->u16_, C.data.u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u16_type(context),
@@ -151,9 +152,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_U32: {
-        exp_assert_always(C.kind == OPERAND_KIND_U32);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U32);
         u32 u32_;
-        if (__builtin_mul_overflow(B->u32_, C.data.u32_, &u32_)) {
+        if (mul_u32(B->u32_, C.data.u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u32_type(context),
@@ -165,9 +166,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_U64: {
-        exp_assert_always(C.kind == OPERAND_KIND_U64);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_U64);
         u64 u64_;
-        if (__builtin_mul_overflow(B->u64_, C.data.u64_, &u64_)) {
+        if (mul_u64(B->u64_, C.data.u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u64_type(context),
@@ -179,9 +180,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_I8: {
-        exp_assert_always(C.kind == OPERAND_KIND_I8);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I8);
         i8 i8_;
-        if (__builtin_mul_overflow(B->i8_, C.data.i8_, &i8_)) {
+        if (mul_i8(B->i8_, C.data.i8_, &i8_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i8_type(context), B->i8_, C.data.i8_);
         }
@@ -190,9 +191,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_I16: {
-        exp_assert_always(C.kind == OPERAND_KIND_I16);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I16);
         i16 i16_;
-        if (__builtin_mul_overflow(B->i16_, C.data.i16_, &i16_)) {
+        if (mul_i16(B->i16_, C.data.i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i16_type(context),
@@ -204,9 +205,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_I32: {
-        exp_assert_always(C.kind == OPERAND_KIND_I32);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I32);
         i32 i32_;
-        if (__builtin_mul_overflow(B->i32_, C.data.i32_, &i32_)) {
+        if (mul_i32(B->i32_, C.data.i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i32_type(context),
@@ -218,9 +219,9 @@ static bool mul_value_operand(Value const **restrict A,
     }
 
     case VALUE_KIND_I64: {
-        exp_assert_always(C.kind == OPERAND_KIND_I64);
+        EXP_ASSERT_ALWAYS(C.kind == OPERAND_KIND_I64);
         i64 i64_;
-        if (__builtin_mul_overflow(B->i64_, C.data.i64_, &i64_)) {
+        if (mul_i64(B->i64_, C.data.i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i64_type(context),
@@ -247,9 +248,9 @@ static bool mul_operand_value(Value const **restrict A,
 
     switch (C->kind) {
     case VALUE_KIND_U8: {
-        exp_assert_always(B.kind == OPERAND_KIND_U8);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U8);
         u8 u8_;
-        if (__builtin_mul_overflow(B.data.u8_, C->u8_, &u8_)) {
+        if (mul_u8(B.data.u8_, C->u8_, &u8_)) {
             return context_failure_unsigned_overflow(
                 context, SV("*"), context_u8_type(context), B.data.u8_, C->u8_);
         }
@@ -258,9 +259,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_U16: {
-        exp_assert_always(B.kind == OPERAND_KIND_U16);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U16);
         u16 u16_;
-        if (__builtin_mul_overflow(B.data.u16_, C->u16_, &u16_)) {
+        if (mul_u16(B.data.u16_, C->u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u16_type(context),
@@ -272,9 +273,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_U32: {
-        exp_assert_always(B.kind == OPERAND_KIND_U32);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U32);
         u32 u32_;
-        if (__builtin_mul_overflow(B.data.u32_, C->u32_, &u32_)) {
+        if (mul_u32(B.data.u32_, C->u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u32_type(context),
@@ -286,9 +287,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_U64: {
-        exp_assert_always(B.kind == OPERAND_KIND_U64);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_U64);
         u64 u64_;
-        if (__builtin_mul_overflow(B.data.u64_, C->u64_, &u64_)) {
+        if (mul_u64(B.data.u64_, C->u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u64_type(context),
@@ -300,9 +301,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_I8: {
-        exp_assert_always(B.kind == OPERAND_KIND_I8);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I8);
         i8 i8_;
-        if (__builtin_mul_overflow(B.data.i8_, C->i8_, &i8_)) {
+        if (mul_i8(B.data.i8_, C->i8_, &i8_)) {
             return context_failure_signed_overflow(
                 context, SV("*"), context_i8_type(context), B.data.i8_, C->i8_);
         }
@@ -311,9 +312,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_I16: {
-        exp_assert_always(B.kind == OPERAND_KIND_I16);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I16);
         i16 i16_;
-        if (__builtin_mul_overflow(B.data.i16_, C->i16_, &i16_)) {
+        if (mul_i16(B.data.i16_, C->i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i16_type(context),
@@ -325,9 +326,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_I32: {
-        exp_assert_always(B.kind == OPERAND_KIND_I32);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I32);
         i32 i32_;
-        if (__builtin_mul_overflow(B.data.i32_, C->i32_, &i32_)) {
+        if (mul_i32(B.data.i32_, C->i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i32_type(context),
@@ -339,9 +340,9 @@ static bool mul_operand_value(Value const **restrict A,
     }
 
     case VALUE_KIND_I64: {
-        exp_assert_always(B.kind == OPERAND_KIND_I64);
+        EXP_ASSERT_ALWAYS(B.kind == OPERAND_KIND_I64);
         i64 i64_;
-        if (__builtin_mul_overflow(B.data.i64_, C->i64_, &i64_)) {
+        if (mul_i64(B.data.i64_, C->i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i64_type(context),
@@ -365,15 +366,15 @@ static bool mul_operand_operand(Value const **restrict A,
                                 Frame *restrict frame,
                                 Context *restrict context) {
     // #TODO: Integer Promotion Rules
-    exp_assert_always(B.kind == C.kind);
+    EXP_ASSERT_ALWAYS(B.kind == C.kind);
 
     switch (B.kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_KIND_LOCAL: {
         Value const *B_value =
-            context_stack_peek(context, frame->offset, B.data.ssa);
+            context_stack_peek(context, frame->offset, B.data.local);
 
         Value const *C_value =
-            context_stack_peek(context, frame->offset, C.data.ssa);
+            context_stack_peek(context, frame->offset, C.data.local);
 
         return mul_value_value(A, B_value, C_value, context);
     }
@@ -393,7 +394,7 @@ static bool mul_operand_operand(Value const **restrict A,
                                         context)) {
             return false;
         }
-        exp_assert_debug(B_value != NULL);
+        EXP_ASSERT_DEBUG(B_value != NULL);
 
         Value const *C_value = NULL;
         if (!evaluate_label_to_constant(&C_value,
@@ -402,14 +403,14 @@ static bool mul_operand_operand(Value const **restrict A,
                                         context)) {
             return false;
         }
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_DEBUG(C_value != NULL);
 
         return mul_value_value(A, B_value, C_value, context);
     }
 
     case OPERAND_KIND_U8: {
         u8 u8_;
-        if (__builtin_mul_overflow(B.data.u8_, C.data.u8_, &u8_)) {
+        if (mul_u8(B.data.u8_, C.data.u8_, &u8_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u8_type(context),
@@ -422,7 +423,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_U16: {
         u16 u16_;
-        if (__builtin_mul_overflow(B.data.u16_, C.data.u16_, &u16_)) {
+        if (mul_u16(B.data.u16_, C.data.u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u16_type(context),
@@ -435,7 +436,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_U32: {
         u32 u32_;
-        if (__builtin_mul_overflow(B.data.u32_, C.data.u32_, &u32_)) {
+        if (mul_u32(B.data.u32_, C.data.u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u32_type(context),
@@ -448,7 +449,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_U64: {
         u64 u64_;
-        if (__builtin_mul_overflow(B.data.u64_, C.data.u64_, &u64_)) {
+        if (mul_u64(B.data.u64_, C.data.u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("*"),
                                                      context_u64_type(context),
@@ -461,7 +462,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_I8: {
         i8 i8_;
-        if (__builtin_mul_overflow(B.data.i8_, C.data.i8_, &i8_)) {
+        if (mul_i8(B.data.i8_, C.data.i8_, &i8_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i8_type(context),
@@ -474,7 +475,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_I16: {
         i16 i16_;
-        if (__builtin_mul_overflow(B.data.i16_, C.data.i16_, &i16_)) {
+        if (mul_i16(B.data.i16_, C.data.i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i16_type(context),
@@ -487,7 +488,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_I32: {
         i32 i32_;
-        if (__builtin_mul_overflow(B.data.i32_, C.data.i32_, &i32_)) {
+        if (mul_i32(B.data.i32_, C.data.i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i32_type(context),
@@ -500,7 +501,7 @@ static bool mul_operand_operand(Value const **restrict A,
 
     case OPERAND_KIND_I64: {
         i64 i64_;
-        if (__builtin_mul_overflow(B.data.i64_, C.data.i64_, &i64_)) {
+        if (mul_i64(B.data.i64_, C.data.i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("*"),
                                                    context_i64_type(context),
@@ -523,16 +524,16 @@ static bool evaluate_mul_value(Instruction instruction,
                                Value const *restrict B_value,
                                Value const **restrict A) {
     switch (instruction.C_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *C_value =
-            context_stack_peek(context, frame->offset, instruction.C_data.ssa);
-        exp_assert_debug(C_value != NULL);
+    case OPERAND_KIND_LOCAL: {
+        Value const *C_value = context_stack_peek(
+            context, frame->offset, instruction.C_data.local);
+        EXP_ASSERT_DEBUG(C_value != NULL);
         return mul_value_value(A, B_value, C_value, context);
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value const *C_value = instruction.C_data.constant;
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_DEBUG(C_value != NULL);
         return mul_value_value(A, B_value, C_value, context);
     }
 
@@ -545,7 +546,7 @@ static bool evaluate_mul_value(Instruction instruction,
                 context)) {
             return false;
         }
-        exp_assert_debug(C_value != NULL);
+        EXP_ASSERT_DEBUG(C_value != NULL);
         return mul_value_value(A, B_value, C_value, context);
     }
 
@@ -575,9 +576,9 @@ static bool evaluate_mul_immediate(Instruction instruction,
                                    Value const **restrict A) {
     // we know that B is an immediate value
     switch (instruction.C_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *C_value =
-            context_stack_peek(context, frame->offset, instruction.C_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Value const *C_value = context_stack_peek(
+            context, frame->offset, instruction.C_data.local);
 
         return mul_operand_value(
             A,
@@ -636,29 +637,35 @@ static bool evaluate_mul_immediate(Instruction instruction,
 bool evaluate_mul(Instruction instruction,
                   Frame *restrict frame,
                   Context *restrict context) {
-    exp_assert(frame != NULL);
-    exp_assert(context != NULL);
-    exp_assert_debug(instruction.opcode == OPCODE_MUL);
-    exp_assert_debug(instruction.A_kind == OPERAND_KIND_SSA);
-    Local *A = function_lookup_local(frame->function, instruction.A_data.ssa);
-    exp_assert_debug(A != NULL);
-    exp_assert_debug(A->type != NULL);
+    EXP_ASSERT(frame != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT_DEBUG(instruction.opcode == OPCODE_MUL);
+    EXP_ASSERT_DEBUG(instruction.A_kind == OPERAND_KIND_LOCAL);
+    Local *A = function_lookup_local(frame->function, instruction.A_data.local);
+    EXP_ASSERT_DEBUG(A != NULL);
+    EXP_ASSERT_DEBUG(A->type != NULL);
 
     Value const *A_value = NULL;
     switch (instruction.B_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *B_value =
-            context_stack_peek(context, frame->offset, instruction.B_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Value const *B_value = context_stack_peek(
+            context, frame->offset, instruction.B_data.local);
 
-        return evaluate_mul_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mul_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_CONSTANT: {
         Value const *B_value = instruction.B_data.constant;
 
-        return evaluate_mul_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mul_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_LABEL: {
@@ -671,8 +678,11 @@ bool evaluate_mul(Instruction instruction,
             return false;
         }
 
-        return evaluate_mul_value(
-            instruction, frame, context, B_value, &A_value);
+        if (!evaluate_mul_value(
+                instruction, frame, context, B_value, &A_value)) {
+            return false;
+        }
+        break;
     }
 
     case OPERAND_KIND_U8:

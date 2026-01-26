@@ -19,11 +19,12 @@
 
 #include "adt/dynamic_bitset_matrix.h"
 #include "support/allocation.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/panic.h"
 
 void dynamic_bitset_matrix_create(DynamicBitsetMatrix *restrict matrix) {
-    exp_assert(matrix != NULL);
+    EXP_ASSERT(matrix != NULL);
     matrix->rows    = 0;
     matrix->columns = 0;
     matrix->buffer  = NULL;
@@ -37,14 +38,11 @@ void dynamic_bitset_matrix_destroy(DynamicBitsetMatrix *restrict matrix) {
 void dynamic_bitset_matrix_resize(DynamicBitsetMatrix *restrict matrix,
                                   u64 rows,
                                   u64 columns) {
-    exp_assert(matrix != NULL);
+    EXP_ASSERT(matrix != NULL);
     u64 alloc_size = 0;
-    if (__builtin_mul_overflow(rows, columns, &alloc_size)) {
-        PANIC("mul overflow");
-    }
+    if (mul_u64(rows, columns, &alloc_size)) { PANIC("mul overflow"); }
 
-    if (__builtin_mul_overflow(
-            alloc_size, sizeof(*matrix->buffer), &alloc_size)) {
+    if (mul_u64(alloc_size, sizeof(*matrix->buffer), &alloc_size)) {
         PANIC("mul overflow");
     }
 
@@ -62,7 +60,7 @@ static u64 bit_of_column(u64 column) { return column % 64; }
 void dynamic_bitset_matrix_set(DynamicBitsetMatrix *restrict matrix,
                                u64 row,
                                u64 column) {
-    exp_assert(matrix != NULL);
+    EXP_ASSERT(matrix != NULL);
     matrix->buffer[row_of_element(row) + element_of_column(column)] |=
         (1ULL << bit_of_column(column));
 }
@@ -70,7 +68,7 @@ void dynamic_bitset_matrix_set(DynamicBitsetMatrix *restrict matrix,
 void dynamic_bitset_matrix_clear(DynamicBitsetMatrix *restrict matrix,
                                  u64 row,
                                  u64 column) {
-    exp_assert(matrix != NULL);
+    EXP_ASSERT(matrix != NULL);
     matrix->buffer[row_of_element(row) + element_of_column(column)] &=
         ~(1ULL << bit_of_column(column));
 }
@@ -78,7 +76,7 @@ void dynamic_bitset_matrix_clear(DynamicBitsetMatrix *restrict matrix,
 bool dynamic_bitset_matrix_check(DynamicBitsetMatrix *restrict matrix,
                                  u64 row,
                                  u64 column) {
-    exp_assert(matrix != NULL);
+    EXP_ASSERT(matrix != NULL);
     return (matrix->buffer[row_of_element(row) + element_of_column(column)] >>
             bit_of_column(column)) &
            1ULL;

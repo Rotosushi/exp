@@ -26,7 +26,7 @@
 static void type_create_primary(Type *restrict type,
                                 TypePrimary primary,
                                 Context *restrict context) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     type->kind    = TYPE_KIND_PRIMARY;
     type->primary = primary;
     type->layout  = context_layout_of(context, type);
@@ -35,7 +35,7 @@ static void type_create_primary(Type *restrict type,
 static void type_create_composite(Type *restrict type,
                                   TypeComposite composite,
                                   Context *restrict context) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     type->kind      = TYPE_KIND_COMPOSITE;
     type->composite = composite;
     type->layout    = context_layout_of(context, type);
@@ -96,7 +96,7 @@ void type_create_function(Type *restrict type,
 }
 
 void type_destroy(Type *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     switch (type->kind) {
     case TYPE_KIND_COMPOSITE: type_composite_destroy(&type->composite); break;
 
@@ -106,8 +106,8 @@ void type_destroy(Type *restrict type) {
 }
 
 bool type_equality(Type const *A, Type const *B) {
-    exp_assert(A != NULL);
-    exp_assert(B != NULL);
+    EXP_ASSERT(A != NULL);
+    EXP_ASSERT(B != NULL);
     if (A->kind != B->kind) { return 0; }
 
     switch (A->kind) {
@@ -123,29 +123,29 @@ bool type_equality(Type const *A, Type const *B) {
 }
 
 bool type_is_primary(Type const *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     return type->kind == TYPE_KIND_PRIMARY;
 }
 
 bool type_is_composite(Type const *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     return type->kind == TYPE_KIND_COMPOSITE;
 }
 
 bool type_is_integral(Type const *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     if (!type_is_primary(type)) { return false; }
     return type_primary_is_integral(type->primary);
 }
 
 bool type_is_callable(Type const *restrict type) {
-    exp_assert(type != NULL);
+    EXP_ASSERT(type != NULL);
     if (!type_is_composite(type)) { return false; }
     return type_composite_is_callable(&type->composite);
 }
 
 bool type_is_index(Type const *restrict T) {
-    exp_assert(T != NULL);
+    EXP_ASSERT(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_PRIMARY: return type_primary_is_index(T->primary);
 
@@ -154,7 +154,7 @@ bool type_is_index(Type const *restrict T) {
 }
 
 bool type_is_indexable(Type const *restrict T) {
-    exp_assert(T != NULL);
+    EXP_ASSERT(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_COMPOSITE: return type_composite_is_indexable(&T->composite);
 
@@ -163,7 +163,7 @@ bool type_is_indexable(Type const *restrict T) {
 }
 
 void print_type(String *restrict string, Type const *restrict T) {
-    exp_assert(T != NULL);
+    EXP_ASSERT(T != NULL);
     switch (T->kind) {
     case TYPE_KIND_PRIMARY: print_type_primary(string, T->primary); break;
     case TYPE_KIND_COMPOSITE:

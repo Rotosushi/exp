@@ -25,8 +25,9 @@ void x86_codegen_ret(Instruction          instruction,
                      x86_Function *restrict x86_function,
                      [[maybe_unused]] Context *restrict context) {
     switch (instruction.B_kind) {
-    case OPERAND_KIND_SSA:
+    case OPERAND_KIND_LOCAL:
     case OPERAND_KIND_CONSTANT:
+    case OPERAND_KIND_TYPE:
     case OPERAND_KIND_LABEL:    EXP_UNREACHABLE(); break;
 
     // #NOTE: I am still considering this. Is it fine to not return anything

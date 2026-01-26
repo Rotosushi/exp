@@ -34,12 +34,12 @@
 static bool validate_local(Local const *restrict local,
                            u32 block_index,
                            Function const *restrict function) {
-    exp_assert_always(local->type != NULL);
+    EXP_ASSERT_ALWAYS(local->type != NULL);
     Lifetime bounds = {.start = 0, .end = function->body.length};
-    exp_assert_always(local->lifetime.start >= local->lifetime.end);
-    exp_assert_always(local->lifetime.start >= bounds.start);
-    exp_assert_always(local->lifetime.end <= bounds.end);
-    exp_assert_always(local->lifetime.start <= block_index);
+    EXP_ASSERT_ALWAYS(local->lifetime.start >= local->lifetime.end);
+    EXP_ASSERT_ALWAYS(local->lifetime.start >= bounds.start);
+    EXP_ASSERT_ALWAYS(local->lifetime.end <= bounds.end);
+    EXP_ASSERT_ALWAYS(local->lifetime.start <= block_index);
     return true;
 }
 
@@ -52,8 +52,8 @@ static bool validate_global(Symbol *restrict global,
                             u32 block_index,
                             Function const *restrict function,
                             Context *restrict context) {
-    exp_assert_always(!string_view_empty(global->name));
-    exp_assert_always(global->type != NULL);
+    EXP_ASSERT_ALWAYS(!string_view_empty(global->name));
+    EXP_ASSERT_ALWAYS(global->type != NULL);
     return validate_constant(global->value, block_index, function, context);
 }
 
@@ -123,9 +123,9 @@ static bool validate_operand(OperandKind kind,
                              Function const *restrict function,
                              Context *restrict context) {
     switch (kind) {
-    case OPERAND_KIND_SSA:
+    case OPERAND_KIND_LOCAL:
         return validate_local(
-            function_lookup_local(function, data.ssa), block_index, function);
+            function_lookup_local(function, data.local), block_index, function);
 
     case OPERAND_KIND_CONSTANT:
         return validate_constant(data.constant, block_index, function, context);
@@ -143,8 +143,9 @@ static bool validate_operand_A(Instruction instruction,
                                u32         block_index,
                                Function const *restrict function) {
     switch (instruction.A_kind) {
-    case OPERAND_KIND_SSA: {
-        Local *local = function_lookup_local(function, instruction.A_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Local *local =
+            function_lookup_local(function, instruction.A_data.local);
         validate_local(local, block_index, function);
         // #NOTE: in addition to catching the mismatch between the declaration
         //  of a particular local and the lifetime of that local, this check
@@ -153,8 +154,8 @@ static bool validate_operand_A(Instruction instruction,
         //  the first time, thus block_index would have to be greater than
         //  first_use. if it's less than, this is also an error, which is why we
         //  use == over <
-        exp_assert_always(local->lifetime.start == block_index);
-        exp_assert_always(local->lifetime.end >= block_index);
+        EXP_ASSERT_ALWAYS(local->lifetime.start == block_index);
+        EXP_ASSERT_ALWAYS(local->lifetime.end >= block_index);
         break;
     }
 
@@ -233,7 +234,7 @@ static bool validate_ret(Instruction instruction,
                          u32         block_index,
                          Function const *restrict function,
                          Context *restrict context) {
-    exp_assert_always(instruction.opcode == OPCODE_RET);
+    EXP_ASSERT_ALWAYS(instruction.opcode == OPCODE_RET);
 
     if (!validate_B(instruction, block_index, function, context)) {
         return false;
@@ -241,9 +242,9 @@ static bool validate_ret(Instruction instruction,
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(B_type != NULL);
+    EXP_ASSERT_ALWAYS(B_type != NULL);
 
-    exp_assert_always(type_equality(B_type, function->result->type));
+    EXP_ASSERT_ALWAYS(type_equality(B_type, function->result->type));
 
     return true;
 }
@@ -334,7 +335,7 @@ static bool validate_call(Instruction instruction,
                           u32         block_index,
                           Function const *restrict function,
                           Context *restrict context) {
-    exp_assert_always(instruction.opcode == OPCODE_CALL);
+    EXP_ASSERT_ALWAYS(instruction.opcode == OPCODE_CALL);
 
     if (!validate_ABC(instruction, block_index, function, context)) {
         return false;
@@ -345,18 +346,18 @@ static bool validate_call(Instruction instruction,
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(B_type != NULL);
-    exp_assert_always(B_type->kind == TYPE_KIND_COMPOSITE);
-    exp_assert_always(B_type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    EXP_ASSERT_ALWAYS(B_type != NULL);
+    EXP_ASSERT_ALWAYS(B_type->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT_ALWAYS(B_type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
     TypeFunction const *callee = &B_type->composite.data.function;
 
     Type const *return_type = callee->result;
-    exp_assert_always(return_type != NULL);
-    exp_assert_always(type_equality(return_type, A_type));
+    EXP_ASSERT_ALWAYS(return_type != NULL);
+    EXP_ASSERT_ALWAYS(type_equality(return_type, A_type));
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
-    exp_assert_always(C_type != NULL);
+    EXP_ASSERT_ALWAYS(C_type != NULL);
 
     if (!validate_argument(callee->argument, C_type, context)) { return false; }
 
@@ -373,13 +374,13 @@ static bool validate_let(Instruction instruction,
 
     Type const *A_type =
         context_type_of_operand(context, function, operand_A(instruction));
-    exp_assert_always(A_type != NULL);
+    EXP_ASSERT_ALWAYS(A_type != NULL);
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(B_type != NULL);
+    EXP_ASSERT_ALWAYS(B_type != NULL);
 
-    exp_assert_always(type_equality(A_type, B_type));
+    EXP_ASSERT_ALWAYS(type_equality(A_type, B_type));
     return true;
 }
 
@@ -395,12 +396,12 @@ static bool validate_unop(Instruction instruction,
 
     Type const *A_type =
         context_type_of_operand(context, function, operand_A(instruction));
-    exp_assert_always(type_equality(A_type, return_type));
+    EXP_ASSERT_ALWAYS(type_equality(A_type, return_type));
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(B_type != NULL);
-    exp_assert_always(type_equality(B_type, arg_type));
+    EXP_ASSERT_ALWAYS(B_type != NULL);
+    EXP_ASSERT_ALWAYS(type_equality(B_type, arg_type));
     return true;
 }
 
@@ -419,8 +420,8 @@ static bool validate_arithmetic_unop(Instruction instruction,
     // instruction.
     Type const *underlying_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(underlying_type != NULL);
-    exp_assert_always(underlying_type->kind == TYPE_KIND_PRIMARY);
+    EXP_ASSERT_ALWAYS(underlying_type != NULL);
+    EXP_ASSERT_ALWAYS(underlying_type->kind == TYPE_KIND_PRIMARY);
     switch (underlying_type->primary.kind) {
     case TYPE_PRIMARY_KIND_U8:
     case TYPE_PRIMARY_KIND_U16:
@@ -454,23 +455,23 @@ static bool validate_dot(Instruction instruction,
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(type_is_indexable(B_type));
+    EXP_ASSERT_ALWAYS(type_is_indexable(B_type));
 
-    exp_assert_always(B_type->kind == TYPE_KIND_COMPOSITE);
-    exp_assert_always(B_type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    EXP_ASSERT_ALWAYS(B_type->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT_ALWAYS(B_type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
     TypeTuple const *tuple = &B_type->composite.data.tuple;
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
-    exp_assert_always(type_is_index(C_type));
+    EXP_ASSERT_ALWAYS(type_is_index(C_type));
 
-    exp_assert_always(operand_is_index(operand_C(instruction)));
+    EXP_ASSERT_ALWAYS(operand_is_index(operand_C(instruction)));
     u64 index = operand_as_index(operand_C(instruction));
-    exp_assert_always(index <= u32_MAX);
-    exp_assert_always(type_tuple_index_in_bounds(tuple, (u32)index));
+    EXP_ASSERT_ALWAYS(index <= u32_MAX);
+    EXP_ASSERT_ALWAYS(type_tuple_index_in_bounds(tuple, (u32)index));
 
     Type const *element_type = type_tuple_at(tuple, (u32)index);
-    exp_assert_always(type_equality(element_type, A_type));
+    EXP_ASSERT_ALWAYS(type_equality(element_type, A_type));
     return true;
 }
 
@@ -487,17 +488,17 @@ static bool validate_binop(Instruction instruction,
 
     Type const *A_type =
         context_type_of_operand(context, function, operand_A(instruction));
-    exp_assert_always(type_equality(A_type, return_type));
+    EXP_ASSERT_ALWAYS(type_equality(A_type, return_type));
 
     Type const *B_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(B_type != NULL);
-    exp_assert_always(type_equality(B_type, left_type));
+    EXP_ASSERT_ALWAYS(B_type != NULL);
+    EXP_ASSERT_ALWAYS(type_equality(B_type, left_type));
 
     Type const *C_type =
         context_type_of_operand(context, function, operand_C(instruction));
-    exp_assert_always(C_type != NULL);
-    exp_assert_always(type_equality(C_type, right_type));
+    EXP_ASSERT_ALWAYS(C_type != NULL);
+    EXP_ASSERT_ALWAYS(type_equality(C_type, right_type));
 
     return true;
 }
@@ -508,7 +509,7 @@ static bool validate_arithmetic_binop(Instruction instruction,
                                       Context *restrict context) {
     Type const *underlying_type =
         context_type_of_operand(context, function, operand_B(instruction));
-    exp_assert_always(underlying_type != NULL);
+    EXP_ASSERT_ALWAYS(underlying_type != NULL);
     switch (instruction.B_kind) {
     case OPERAND_KIND_U8:
     case OPERAND_KIND_U16:
@@ -559,8 +560,8 @@ static bool validate_instruction(Instruction instruction,
 }
 
 bool validate(Function const *restrict expression, Context *restrict context) {
-    exp_assert(expression != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(expression != NULL);
+    EXP_ASSERT(context != NULL);
 
     Block const *block = &expression->body;
     for (u32 index = 0; index < block->length; ++index) {

@@ -23,7 +23,7 @@
 #include "codegen/x86/intrinsics/get_element_address.h"
 #include "codegen/x86/intrinsics/load.h"
 #include "support/unreachable.h"
-
+/*
 void x86_codegen_dot(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
@@ -69,4 +69,4 @@ void x86_codegen_dot(Instruction I,
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
     }
-}
+}*/

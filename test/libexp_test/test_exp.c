@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "support/arithmetic.h"
 #include "support/config.h"
 #include "support/io.h"
 #include "support/numeric_conversions.h"

@@ -21,6 +21,7 @@
 #include "codegen/x86/imr/function.h"
 #include "codegen/x86/instruction/ret.h"
 #include "imr/block.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 static void x86_codegen_function(x86_Function *restrict x86_function,
@@ -30,6 +31,9 @@ static void x86_codegen_function(x86_Function *restrict x86_function,
 void print_x86_function(String *restrict buffer,
                         Value const *restrict value,
                         Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(value != NULL);
+    EXP_ASSERT(context != NULL);
     Function const *function = &value->function;
     x86_Function    x86_function;
     x86_function_create(&x86_function);
@@ -46,6 +50,7 @@ static void x86_codegen_instruction(Instruction instruction,
 static void x86_codegen_function(x86_Function *restrict x86_function,
                                  Function const *restrict function,
                                  Context *restrict context) {
+
     x86_function_setup(x86_function, function);
     x86_function_header(x86_function);
     Block const *body = &function->body;

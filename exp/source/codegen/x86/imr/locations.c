@@ -23,26 +23,26 @@
 #include "support/assert.h"
 
 void x86_locations_create(x86_Locations *restrict locations) {
-    exp_assert(locations != NULL);
+    EXP_ASSERT(locations != NULL);
     locations->capacity = 0;
     locations->buffer   = NULL;
 }
 
 void x86_locations_destroy(x86_Locations *restrict locations) {
-    exp_assert(locations != NULL);
+    EXP_ASSERT(locations != NULL);
     deallocate(locations->buffer);
     x86_locations_create(locations);
 }
 
 void x86_locations_allocate(x86_Locations *restrict locations, u32 capacity) {
-    exp_assert(locations != NULL);
+    EXP_ASSERT(locations != NULL);
     locations->capacity = capacity;
     locations->buffer   = callocate(capacity, sizeof(*locations->buffer));
 }
 
 x86_Location *x86_locations_at(x86_Locations const *restrict locations,
                                u32 ssa) {
-    exp_assert(locations != NULL);
-    exp_assert(locations->capacity > ssa);
+    EXP_ASSERT(locations != NULL);
+    EXP_ASSERT(locations->capacity > ssa);
     return locations->buffer + ssa;
 }

@@ -18,6 +18,7 @@
  */
 
 #include "imr/type/primary.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 extern TypePrimary type_primary_nil();
@@ -52,6 +53,8 @@ bool type_primary_is_index(TypePrimary primary) {
 }
 
 void print_type_primary(String *restrict buffer, TypePrimary primary) {
+    EXP_ASSERT(buffer != NULL);
+
     switch (primary.kind) {
     case TYPE_PRIMARY_KIND_NIL:  string_append(buffer, SV("nil")); break;
     case TYPE_PRIMARY_KIND_BOOL: string_append(buffer, SV("bool")); break;

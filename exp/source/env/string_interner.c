@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +23,7 @@
 #include "env/string_interner.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 #include "support/hash.h"
 
 #define STRING_INTERNER_MAX_LOAD 0.75
@@ -37,7 +37,7 @@ StringInterner string_interner_create() {
 }
 
 void string_interner_destroy(StringInterner *restrict string_interner) {
-    assert(string_interner != NULL);
+    EXP_ASSERT(string_interner != NULL);
 
     if (string_interner->buffer == NULL) {
         string_interner->capacity = 0;
@@ -104,7 +104,7 @@ static bool string_interner_full(StringInterner *restrict string_interner) {
 
 ConstantString *string_interner_insert(StringInterner *restrict string_interner,
                                        StringView sv) {
-    assert(string_interner != NULL);
+    EXP_ASSERT(string_interner != NULL);
     if (string_interner_full(string_interner)) {
         string_interner_grow(string_interner);
     }

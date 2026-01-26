@@ -124,7 +124,7 @@ static void print_x86_instruction_AB(String *restrict buffer,
 
 void print_x86_instruction(String *restrict buffer,
                            x86_Instruction instruction) {
-    exp_assert(buffer != NULL);
+    EXP_ASSERT(buffer != NULL);
     switch (instruction.opcode) {
     case X86_OPCODE_RET: {
         string_append(buffer, SV("ret"));

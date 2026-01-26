@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Cade Weinberg
+// Copyright (C) 2025 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -13,16 +13,14 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_UTILITY_PANIC_H
-#define EXP_UTILITY_PANIC_H
+// along with exp.  If not, see <https://www.gnu.org/licenses/>.
 
-[[noreturn]] void
-panic(char const *msg, char const *function, char const *file, long line);
-[[noreturn]] void
-panic_errno(char const *msg, char const *function, char const *file, long line);
+#include "support/assert.h"
+#include "support/panic.h"
 
-#define PANIC(msg)       (panic((msg), __func__, __FILE__, __LINE__))
-#define PANIC_ERRNO(msg) (panic((msg), __func__, __FILE__, __LINE__))
-
-#endif // !EXP_UTILITY_PANIC_H
+int assert_failed(char const *expression,
+                  char const *function,
+                  char const *file,
+                  long        line) {
+    panic(expression, function, file, line);
+}

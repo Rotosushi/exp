@@ -17,6 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "support/array_growth.h"
+#include "support/arithmetic.h"
 #include "support/panic.h"
 
 /**

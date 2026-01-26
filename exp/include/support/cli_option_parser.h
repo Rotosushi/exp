@@ -25,6 +25,9 @@
 
 #include "support/scalar.h"
 
+// #TODO: helper routine to print an array of options.
+//
+
 typedef enum OptionArgumentKind {
     OPTION_ARGUMENT_NONE,
     OPTION_ARGUMENT_REQUIRED,
@@ -34,24 +37,24 @@ typedef enum OptionArgumentKind {
 typedef struct Option {
     char const *name;
     char const *description;
-    u8 argument_kind;
-    char short_name;
+    u8          argument_kind;
+    char        short_name;
 } Option;
 
 typedef struct OptionParser {
-    i32 option_index;
-    i32 option_count;
+    i32           option_index;
+    i32           option_count;
     Option const *options;
 } OptionParser;
 
 typedef struct OptionResult {
-    i32 option;
+    i32         option;
     char const *argument;
 } OptionResult;
 
 void option_parser_init(OptionParser *restrict parser,
                         Option const *options,
-                        i32 option_count);
+                        i32           option_count);
 
 OptionResult
 parse_option(OptionParser *restrict parser, i32 argc, char const *argv[]);

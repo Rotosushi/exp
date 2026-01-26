@@ -20,7 +20,7 @@
 
 #include "codegen/x86/instruction/mul.h"
 #include "support/unreachable.h"
-
+/*
 static void x86_codegen_multiply_ssa(Instruction  I,
                                      u64          block_index,
                                      Local       *local,
@@ -29,7 +29,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
     switch (I.C_kind) {
     case OPERAND_KIND_SSA: {
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
-        /*
+        *
          * #TODO: GPR location equality needs to take into account overlapping
          * registers. i.e. register a, ax, eax, rax, all refer to the "same"
          * register. so while the naieve equality will say eax and rax are
@@ -38,7 +38,7 @@ static void x86_codegen_multiply_ssa(Instruction  I,
          * #TODO: When dealing with a GPR in arithmetic operations, we need to
          * allow for the different sizes of available registers, based on the
          * size of the incoming operands.
-         */
+         *
         if (x86_location_equality(B->location, x86_location_gpr(X86_GPR_RAX))) {
             x86_context_allocate_from_active(context, local, B, block_index);
 
@@ -242,31 +242,32 @@ void x86_codegen_multiply_constant(Instruction  I,
 void x86_codegen_mul(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
-    /*
+    *
     #NOTE:
       imul takes a single reg/mem argument,
       and expects the other argument to be in %rax
       and stores the result in %rdx:%rax.
-    */
-    assert(I.A_kind == OPERAND_KIND_SSA);
-    Local *local = I.A_data.ssa;
-    switch (I.B_kind) {
-    case OPERAND_KIND_SSA: {
-        x86_codegen_multiply_ssa(I, block_index, local, context);
-        break;
-    }
-
-    case OPERAND_KIND_I64: {
-        x86_codegen_multiply_immediate(I, block_index, local, context);
-        break;
-    }
-
-    case OPERAND_KIND_CONSTANT: {
-        x86_codegen_multiply_constant(I, block_index, local, context);
-        break;
-    }
-
-    case OPERAND_KIND_LABEL:
-    default:                 EXP_UNREACHABLE();
-    }
+    *
+assert(I.A_kind == OPERAND_KIND_SSA);
+Local *local = I.A_data.ssa;
+switch (I.B_kind) {
+case OPERAND_KIND_SSA: {
+    x86_codegen_multiply_ssa(I, block_index, local, context);
+    break;
 }
+
+case OPERAND_KIND_I64: {
+    x86_codegen_multiply_immediate(I, block_index, local, context);
+    break;
+}
+
+case OPERAND_KIND_CONSTANT: {
+    x86_codegen_multiply_constant(I, block_index, local, context);
+    break;
+}
+
+case OPERAND_KIND_LABEL:
+default:                 EXP_UNREACHABLE();
+}
+}
+*/

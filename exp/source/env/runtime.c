@@ -22,5 +22,5 @@
 #include "support/assert.h"
 
 void initialize_runtime_symbols(SymbolTable *restrict table) {
-    exp_assert(table != NULL);
+    EXP_ASSERT(table != NULL);
 }

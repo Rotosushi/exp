@@ -16,22 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdlib.h>
 
 #include "env/type_interner.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 
 static void type_list_create(TypeList *restrict type_list) {
-    assert(type_list != NULL);
+    EXP_ASSERT(type_list != NULL);
     type_list->size     = 0;
     type_list->capacity = 0;
     type_list->buffer   = NULL;
 }
 
 static void type_list_destroy(TypeList *restrict type_list) {
-    assert(type_list != NULL);
+    EXP_ASSERT(type_list != NULL);
 
     for (u32 index = 0; index < type_list->size; ++index) {
         deallocate(type_list->buffer[index]);
@@ -41,12 +41,12 @@ static void type_list_destroy(TypeList *restrict type_list) {
 }
 
 static bool type_list_full(TypeList const *restrict type_list) {
-    assert(type_list != NULL);
+    EXP_ASSERT(type_list != NULL);
     return (type_list->size + 1) >= type_list->capacity;
 }
 
 static void type_list_grow(TypeList *restrict type_list) {
-    assert(type_list != NULL);
+    EXP_ASSERT(type_list != NULL);
     Growth_u32 g =
         array_growth_u32(type_list->capacity, sizeof(*type_list->buffer));
     type_list->buffer   = reallocate(type_list->buffer, g.alloc_size);
@@ -55,8 +55,8 @@ static void type_list_grow(TypeList *restrict type_list) {
 
 static void type_list_append(TypeList *restrict type_list,
                              Type *restrict type) {
-    assert(type_list != NULL);
-    assert(type != NULL);
+    EXP_ASSERT(type_list != NULL);
+    EXP_ASSERT(type != NULL);
     if (type_list_full(type_list)) { type_list_grow(type_list); }
     type_list->buffer[type_list->size++] = type;
 }
@@ -79,66 +79,66 @@ TypeInterner type_interner_create(struct Context *restrict context) {
 }
 
 void type_interner_destroy(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     type_list_destroy(&type_interner->tuple_types);
     type_list_destroy(&type_interner->function_types);
     return;
 }
 
 Type const *type_interner_nil_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->nil_type);
 }
 
 Type const *type_interner_bool_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->bool_type);
 }
 
 Type const *type_interner_u8_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->u8_type);
 }
 
 Type const *type_interner_u16_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->u16_type);
 }
 
 Type const *type_interner_u32_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->u32_type);
 }
 
 Type const *type_interner_u64_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->u64_type);
 }
 
 Type const *type_interner_i8_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->i8_type);
 }
 
 Type const *type_interner_i16_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->i16_type);
 }
 
 Type const *type_interner_i32_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->i32_type);
 }
 
 Type const *type_interner_i64_type(TypeInterner *restrict type_interner) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     return &(type_interner->i64_type);
 }
 
 Type const *type_interner_tuple_type(TypeInterner *restrict type_interner,
                                      TypeTuple tuple,
                                      struct Context *restrict context) {
-    assert(type_interner != NULL);
+    EXP_ASSERT(type_interner != NULL);
     Type *type = allocate(sizeof(Type));
     type_create_tuple(type, tuple, context);
     type_list_append(&type_interner->tuple_types, type);
@@ -149,9 +149,9 @@ Type const *type_interner_function_type(TypeInterner *restrict type_interner,
                                         Type const *argument,
                                         Type const *result,
                                         struct Context *restrict context) {
-    assert(type_interner != NULL);
-    assert(result != NULL);
-    assert(argument != NULL);
+    EXP_ASSERT(type_interner != NULL);
+    EXP_ASSERT(result != NULL);
+    EXP_ASSERT(argument != NULL);
     Type *type = allocate(sizeof(Type));
     type_create_function(type, argument, result, context);
     type_list_append(&type_interner->function_types, type);

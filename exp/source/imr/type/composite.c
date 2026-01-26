@@ -22,6 +22,7 @@
 #include "support/unreachable.h"
 
 void type_composite_destroy(TypeComposite *restrict composite) {
+    EXP_ASSERT(composite != NULL);
     switch (composite->kind) {
     case TYPE_COMPOSITE_KIND_TUPLE:
         type_tuple_destroy(&composite->data.tuple);
@@ -41,8 +42,8 @@ extern TypeComposite type_composite_function(struct Type const *argument,
 
 bool type_composite_equality(TypeComposite const *restrict A,
                              TypeComposite const *restrict B) {
-    exp_assert(A != NULL);
-    exp_assert(B != NULL);
+    EXP_ASSERT(A != NULL);
+    EXP_ASSERT(B != NULL);
     if (A->kind != B->kind) { return false; }
 
     switch (A->kind) {
@@ -56,17 +57,19 @@ bool type_composite_equality(TypeComposite const *restrict A,
 }
 
 bool type_composite_is_callable(TypeComposite const *restrict composite) {
-    exp_assert(composite != NULL);
+    EXP_ASSERT(composite != NULL);
     return composite->kind == TYPE_COMPOSITE_KIND_FUNCTION;
 }
 
 bool type_composite_is_indexable(TypeComposite const *restrict composite) {
-    exp_assert(composite != NULL);
+    EXP_ASSERT(composite != NULL);
     return composite->kind == TYPE_COMPOSITE_KIND_TUPLE;
 }
 
 void print_type_composite(String *restrict buffer,
                           TypeComposite const *restrict composite) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(composite != NULL);
     switch (composite->kind) {
     case TYPE_COMPOSITE_KIND_TUPLE:
         print_type_tuple(buffer, &composite->data.tuple);

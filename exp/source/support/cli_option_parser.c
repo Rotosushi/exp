@@ -26,9 +26,9 @@
 
 void option_parser_init(OptionParser *restrict parser,
                         Option const *options,
-                        i32 option_count) {
-    exp_assert(parser != NULL);
-    exp_assert(options != NULL);
+                        i32           option_count) {
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(options != NULL);
     parser->option_index = 1;
     parser->option_count = option_count;
     parser->options      = options;
@@ -48,7 +48,7 @@ static OptionResult end_of_arguments() {
 
 static OptionResult handle_option_argument(OptionParser *restrict parser,
                                            Option const *restrict option,
-                                           i32 argc,
+                                           i32         argc,
                                            char const *argv[]) {
     switch (option->argument_kind) {
     case OPTION_ARGUMENT_NONE: {
@@ -83,7 +83,7 @@ static OptionResult handle_option_argument(OptionParser *restrict parser,
 
 static OptionResult parse_short_option(OptionParser *restrict parser,
                                        char const *argument,
-                                       i32 argc,
+                                       i32         argc,
                                        char const *argv[]) {
     for (i32 index = 0; index < parser->option_count; ++index) {
         Option const *option = parser->options + index;
@@ -96,8 +96,8 @@ static OptionResult parse_short_option(OptionParser *restrict parser,
 
 static OptionResult parse_long_option(OptionParser *restrict parser,
                                       char const *argument,
-                                      u64 length,
-                                      i32 argc,
+                                      u64         length,
+                                      i32         argc,
                                       char const *argv[]) {
     for (i32 index = 0; index < parser->option_count; ++index) {
         Option const *option = parser->options + index;
@@ -110,8 +110,8 @@ static OptionResult parse_long_option(OptionParser *restrict parser,
 
 OptionResult
 parse_option(OptionParser *restrict parser, i32 argc, char const *argv[]) {
-    exp_assert(parser != NULL);
-    exp_assert(argv != NULL);
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(argv != NULL);
 
     if (parser->option_index >= argc) { return end_of_arguments(); }
     char const *arg = argv[parser->option_index];

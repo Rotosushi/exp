@@ -18,25 +18,30 @@
  */
 
 #include "codegen/IR/directives.h"
+#include "support/assert.h"
 
 void ir_directive_version(StringView version, String *restrict string) {
+    EXP_ASSERT(string != NULL);
     string_append(string, SV(".version "));
     string_append(string, version);
     string_append(string, SV("\n"));
 }
 
 void ir_directive_file(StringView path, String *restrict string) {
+    EXP_ASSERT(string != NULL);
     string_append(string, SV(".file "));
     string_append(string, path);
     string_append(string, SV("\n"));
 }
 
 void ir_directive_let(StringView name, String *restrict string) {
+    EXP_ASSERT(string != NULL);
     string_append(string, SV(".let"));
     string_append(string, name);
 }
 
 void ir_directive_comment(StringView comment, String *restrict string) {
+    EXP_ASSERT(string != NULL);
     string_append(string, SV("// "));
     string_append(string, comment);
     string_append(string, SV("\n"));

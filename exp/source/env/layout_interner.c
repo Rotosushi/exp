@@ -28,12 +28,14 @@
 #include "support/unreachable.h"
 
 static void layout_list_create(LayoutList *restrict list) {
+    EXP_ASSERT(list != NULL);
     list->length   = 0;
     list->capacity = 0;
     list->buffer   = NULL;
 }
 
 static void layout_list_destroy(LayoutList *restrict list) {
+    EXP_ASSERT(list != NULL);
     for (u32 index = 0; index < list->length; ++index) {
         Layout *layout = list->buffer[index].layout;
         layout_destroy(layout);
@@ -68,8 +70,8 @@ layout_list_lookup_padding(LayoutList const *restrict list,
                            u64 padding_length) {
     for (u32 index = 0; index < list->length; ++index) {
         LayoutListElement *element = list->buffer + index;
-        exp_assert(element->type == NULL);
-        exp_assert(element->layout->kind == LAYOUT_KIND_PADDING);
+        EXP_ASSERT(element->type == NULL);
+        EXP_ASSERT(element->layout->kind == LAYOUT_KIND_PADDING);
         if (padding_length == element->layout->data.padding) { return element; }
     }
     return NULL;
@@ -86,6 +88,8 @@ static void layout_list_append(LayoutList *restrict list,
 
 void layout_interner_create(LayoutInterner *restrict interner,
                             Context *restrict context) {
+    EXP_ASSERT(interner != NULL);
+    EXP_ASSERT(context != NULL);
     layout_create_primary(
         &interner->nil, context_layout_of_primary(context, type_primary_nil()));
     layout_create_primary(
@@ -121,12 +125,14 @@ void layout_interner_create(LayoutInterner *restrict interner,
 }
 
 void layout_interner_destroy(LayoutInterner *restrict interner) {
+    EXP_ASSERT(interner != NULL);
     layout_list_destroy(&interner->padding);
     layout_list_destroy(&interner->tuple);
 }
 
 Layout const *layout_interner_get_padding(LayoutInterner *restrict interner,
                                           u64 length) {
+    EXP_ASSERT(interner != NULL);
     LayoutListElement *element =
         layout_list_lookup_padding(&interner->padding, length);
     if (element != NULL) { return element->layout; }
@@ -140,6 +146,7 @@ Layout const *layout_interner_get_padding(LayoutInterner *restrict interner,
 Layout const *
 layout_interner_layout_of_primary(LayoutInterner *restrict interner,
                                   TypePrimary primary) {
+    EXP_ASSERT(interner != NULL);
     switch (primary.kind) {
     case TYPE_PRIMARY_KIND_NIL:  return &interner->nil;
     case TYPE_PRIMARY_KIND_BOOL: return &interner->bool_;
@@ -158,6 +165,8 @@ layout_interner_layout_of_primary(LayoutInterner *restrict interner,
 Layout const *
 layout_interner_layout_of_composite(LayoutInterner *restrict interner,
                                     Type const *restrict type) {
+    EXP_ASSERT(interner != NULL);
+    EXP_ASSERT(type != NULL);
     switch (type->kind) {
     case TYPE_COMPOSITE_KIND_TUPLE: {
         LayoutListElement *element = layout_list_lookup(&interner->tuple, type);
@@ -178,6 +187,8 @@ layout_interner_layout_of_composite(LayoutInterner *restrict interner,
 
 Layout const *layout_interner_layout_of(LayoutInterner *restrict interner,
                                         Type const *type) {
+    EXP_ASSERT(interner != NULL);
+    EXP_ASSERT(type != NULL);
     switch (type->kind) {
     case TYPE_KIND_PRIMARY:
         return layout_interner_layout_of_primary(interner, type->primary);

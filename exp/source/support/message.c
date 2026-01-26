@@ -25,7 +25,6 @@
 #include "support/assert.h"
 #include "support/io.h"
 #include "support/message.h"
-#include "support/numeric_conversions.h"
 
 #define LOG_FATAL_MSG   SV(ANSI_COLOR_RED "fatal" ANSI_COLOR_RESET)
 #define LOG_ERROR_MSG   SV(ANSI_COLOR_RED "error" ANSI_COLOR_RESET)
@@ -35,12 +34,8 @@
 #define BAD_LOG_LEVEL_MSG                                                      \
     SV(ANSI_COLOR_RED "unknown log level" ANSI_COLOR_RESET)
 
-void message(MessageLevel level,
-             const char *restrict file,
-             u64        line,
-             StringView message,
-             FILE *restrict stream) {
-    exp_assert(stream != NULL);
+void message(MessageLevel level, char const *message, FILE *restrict stream) {
+    EXP_ASSERT(stream != NULL);
     file_write(SV("["), stream);
 
     switch (level) {
@@ -52,48 +47,9 @@ void message(MessageLevel level,
     default:              file_write(BAD_LOG_LEVEL_MSG, stream); abort();
     }
 
-    if (file != NULL) {
-        file_write(SV(" @ "), stream);
-        file_write(string_view_from_cstring(file), stream);
-        file_write(SV(":"), stream);
-        file_write_u64(line, stream);
-    }
-
     file_write(SV("] "), stream);
-    file_write(message, stream);
+    file_write(string_view_from_cstring(message), stream);
     file_write(SV("\n"), stream);
-}
-
-void status(StringView msg, FILE *restrict stream) {
-    message(MESSAGE_STATUS, NULL, 0, msg, stream);
-}
-
-void status_u64(u64 value, FILE *restrict stream) {
-    u64  len = u64_safe_strlen(value);
-    char buf[len + 1];
-    u64_to_str(value, buf);
-    buf[len] = '\0';
-    message(MESSAGE_STATUS, NULL, 0, string_view(buf, len), stream);
-}
-
-void status_i64(i64 value, FILE *restrict stream) {
-    u64  len = i64_safe_strlen(value);
-    char buf[len + 1];
-    i64_to_str(value, buf);
-    buf[len] = '\0';
-    message(MESSAGE_STATUS, NULL, 0, string_view(buf, len), stream);
-}
-
-void status_command(StringView   cmd,
-                    i32          argc,
-                    char const **argv,
-                    FILE *restrict stream) {
-    status(SV("command: "), stream);
-    status(cmd, stream);
-    status(SV("args: "), stream);
-    for (i32 i = 0; argv[i] != NULL && (i < argc); ++i) {
-        status(string_view_from_cstring(argv[i]), stream);
-    }
 }
 
 #undef LOG_FATAL_MSG

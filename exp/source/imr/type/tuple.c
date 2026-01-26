@@ -24,14 +24,14 @@
 #include "support/assert.h"
 
 void type_tuple_create(TypeTuple *restrict tuple_type) {
-    exp_assert(tuple_type != NULL);
+    EXP_ASSERT(tuple_type != NULL);
     tuple_type->capacity = 0;
     tuple_type->length   = 0;
     tuple_type->types    = NULL;
 }
 
 void type_tuple_destroy(TypeTuple *restrict tuple_type) {
-    exp_assert(tuple_type != NULL);
+    EXP_ASSERT(tuple_type != NULL);
     tuple_type->capacity = 0;
     tuple_type->length   = 0;
     deallocate(tuple_type->types);
@@ -39,8 +39,8 @@ void type_tuple_destroy(TypeTuple *restrict tuple_type) {
 }
 
 bool type_tuple_equal(TypeTuple const *A, TypeTuple const *B) {
-    exp_assert(A != NULL);
-    exp_assert(B != NULL);
+    EXP_ASSERT(A != NULL);
+    EXP_ASSERT(B != NULL);
     if (A == B) { return 1; }
 
     if (A->length != B->length) { return 0; }
@@ -56,7 +56,7 @@ bool type_tuple_equal(TypeTuple const *A, TypeTuple const *B) {
 }
 
 bool type_tuple_index_in_bounds(TypeTuple const *restrict tuple, u32 index) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     return tuple->length > index;
 }
 
@@ -71,7 +71,8 @@ static void tuple_type_grow(TypeTuple *restrict tuple_type) {
 }
 
 void type_tuple_append(TypeTuple *restrict tuple_type, Type const *type) {
-    exp_assert(tuple_type != NULL);
+    EXP_ASSERT(tuple_type != NULL);
+    EXP_ASSERT(type != NULL);
 
     if (tuple_type_full(tuple_type)) { tuple_type_grow(tuple_type); }
 
@@ -80,13 +81,16 @@ void type_tuple_append(TypeTuple *restrict tuple_type, Type const *type) {
 }
 
 Type const *type_tuple_at(TypeTuple const *restrict tuple, u32 index) {
-    exp_assert(tuple != NULL);
-    exp_assert(type_tuple_index_in_bounds(tuple, index));
+    EXP_ASSERT(tuple != NULL);
+    EXP_ASSERT(type_tuple_index_in_bounds(tuple, index));
     return tuple->types[index];
 }
 
 void print_type_tuple(String *restrict string,
                       TypeTuple const *restrict tuple_type) {
+    EXP_ASSERT(string != NULL);
+    EXP_ASSERT(tuple_type != NULL);
+
     string_append(string, SV("("));
     for (u64 i = 0; i < tuple_type->length; ++i) {
         print_type(string, tuple_type->types[i]);

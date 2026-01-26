@@ -37,8 +37,7 @@ i32 process(char const *cmd, i32 argc, char const *argv[]) {
         // child process
         execvp(cmd, (char *const *)argv);
 
-        message(MESSAGE_ERROR, NULL, 0, SV("execvp failed"), stderr);
-        status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+        message(MESSAGE_ERROR, "execvp failed", stderr);
         abort();
     } else {
         // parent process
@@ -54,40 +53,32 @@ i32 process(char const *cmd, i32 argc, char const *argv[]) {
         }
 
         case CLD_KILLED: {
-            message(
-                MESSAGE_ERROR, NULL, 0, SV("child killed by signal."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "child killed by signal.", stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_DUMPED: {
-            message(MESSAGE_ERROR, NULL, 0, SV("child dumped core."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "child dumped core.", stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_STOPPED: {
-            message(MESSAGE_ERROR, NULL, 0, SV("child stopped."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "child stopped.", stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_TRAPPED: {
-            message(MESSAGE_ERROR, NULL, 0, SV("child trapped."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "child trapped.", stderr);
             return EXIT_FAILURE;
         }
 
         case CLD_CONTINUED: {
-            message(MESSAGE_ERROR, NULL, 0, SV("child continued."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "child continued.", stderr);
             return EXIT_FAILURE;
         }
 
         default: {
-            message(
-                MESSAGE_ERROR, NULL, 0, SV("unknown child status."), stderr);
-            status_command(string_view_from_cstring(cmd), argc, argv, stderr);
+            message(MESSAGE_ERROR, "unknown child status.", stderr);
             return EXIT_FAILURE;
         }
         }

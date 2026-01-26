@@ -24,11 +24,13 @@
 bool evaluate_dot(Instruction instruction,
                   Frame      *frame,
                   Context *restrict context) {
-    exp_assert_debug(instruction.opcode == OPCODE_DOT);
-    exp_assert_debug(instruction.A_kind == OPERAND_KIND_SSA);
-    Local *A = function_lookup_local(frame->function, instruction.A_data.ssa);
-    exp_assert_debug(A != NULL);
-    exp_assert_debug(A->type != NULL);
+    EXP_ASSERT(frame != NULL);
+    EXP_ASSERT(context != NULL);
+    EXP_ASSERT_DEBUG(instruction.opcode == OPCODE_DOT);
+    EXP_ASSERT_DEBUG(instruction.A_kind == OPERAND_KIND_LOCAL);
+    Local *A = function_lookup_local(frame->function, instruction.A_data.local);
+    EXP_ASSERT_DEBUG(A != NULL);
+    EXP_ASSERT_DEBUG(A->type != NULL);
 
     // retrieve the tuple from operand B
     Value const *tuple_value = NULL;
@@ -39,15 +41,15 @@ bool evaluate_dot(Instruction instruction,
                                       context)) {
         return false;
     }
-    exp_assert_debug(tuple_value->kind == VALUE_KIND_TUPLE);
+    EXP_ASSERT_DEBUG(tuple_value->kind == VALUE_KIND_TUPLE);
     Tuple const *tuple = &tuple_value->tuple;
 
-    exp_assert_debug(
+    EXP_ASSERT_DEBUG(
         operand_is_index(operand(instruction.C_kind, instruction.C_data)));
     u64 index =
         operand_as_index(operand(instruction.C_kind, instruction.C_data));
-    exp_assert_debug(index <= u32_MAX);
-    exp_assert_debug(tuple_index_in_bounds(tuple, (u32)index));
+    EXP_ASSERT_DEBUG(index <= u32_MAX);
+    EXP_ASSERT_DEBUG(tuple_index_in_bounds(tuple, (u32)index));
 
     // subscript the tuple to get the element
     Operand element = tuple_at(tuple, (u32)index);
@@ -63,7 +65,7 @@ bool evaluate_dot(Instruction instruction,
             &result, element.kind, element.data, frame, context)) {
         return false;
     }
-    exp_assert_debug(result != NULL);
+    EXP_ASSERT_DEBUG(result != NULL);
 
     // push the result onto the stack.
     context_push_local_value(context, frame, A, result);

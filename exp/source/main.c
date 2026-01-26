@@ -31,7 +31,7 @@ i32 main(i32 argc, char const *argv[], [[maybe_unused]] char *envv[]) {
     context_create(&context, &cli_options.context_options);
 
     if (context_shall_prolix(&context)) {
-        message(MESSAGE_STATUS, NULL, 0, SV("prolix mode enabled"), stdout);
+        message(MESSAGE_STATUS, "prolix mode enabled", stdout);
         context_print_compile_actions(&context);
     }
 

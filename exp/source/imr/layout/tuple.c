@@ -21,11 +21,14 @@
 #include "env/layout_interner.h"
 #include "imr/type.h"
 #include "support/allocation.h"
+#include "support/arithmetic.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
 #include "support/panic.h"
+#include "support/unreachable.h"
 
 static void layout_tuple_initialize(LayoutTuple *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     layout->primary  = layout_primary(0, 0);
     layout->length   = 0;
     layout->capacity = 0;
@@ -33,20 +36,20 @@ static void layout_tuple_initialize(LayoutTuple *restrict layout) {
 }
 
 static void layout_tuple_compute_size(LayoutTuple *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     u64 size = 0;
     for (u32 index = 0; index < layout->length; ++index) {
         Layout const *element_layout = layout->buffer[index];
         u64           element_size   = layout_size_of(element_layout);
 
-        if (__builtin_add_overflow(size, element_size, &size)) {
-            PANIC("size overflow");
-        }
+        if (add_u64(size, element_size, &size)) { PANIC("size overflow"); }
     }
 
     layout->primary.size = size;
 }
 
 static void layout_tuple_compute_alignment(LayoutTuple *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     u64 alignment = 0;
     for (u32 index = 0; index < layout->length; ++index) {
         Layout const *element_layout    = layout->buffer[index];
@@ -105,9 +108,9 @@ static void layout_tuple_append_element(LayoutTuple *restrict layout,
 void layout_tuple_create(LayoutTuple *restrict layout,
                          TypeTuple const *restrict tuple,
                          LayoutInterner *restrict interner) {
-    exp_assert(layout != NULL);
-    exp_assert(tuple != NULL);
-    exp_assert(interner != NULL);
+    EXP_ASSERT(layout != NULL);
+    EXP_ASSERT(tuple != NULL);
+    EXP_ASSERT(interner != NULL);
     Type const   *element_type   = NULL;
     Type const   *next_type      = NULL;
     Layout const *element_layout = NULL;
@@ -133,13 +136,13 @@ void layout_tuple_create(LayoutTuple *restrict layout,
 }
 
 void layout_tuple_destroy(LayoutTuple *restrict layout) {
-    exp_assert(layout != NULL);
+    EXP_ASSERT(layout != NULL);
     deallocate(layout->buffer);
     layout_tuple_initialize(layout);
 }
 
 u64 layout_tuple_get_element_offset(LayoutTuple const *restrict layout, u32 n) {
-    exp_assert(layout != NULL);
+    EXP_ASSERT(layout != NULL);
 
     u64 offset = 0;
     for (u32 index = 0, count = 0; index < layout->length; ++index, ++count) {
@@ -157,7 +160,7 @@ u64 layout_tuple_get_element_offset(LayoutTuple const *restrict layout, u32 n) {
 
         case LAYOUT_KIND_PADDING: offset += element->data.padding; break;
 
-        default: unreachable();
+        default: EXP_UNREACHABLE();
         }
 
         if (count >= n) { break; }

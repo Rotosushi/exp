@@ -57,10 +57,10 @@ void x86_codegen_copy(x86_Location dst,
     x86_tuple_append(&args, x86_operand_u64(size));
 
     Symbol *symbol = context_global_symbol_lookup(context, SV("__exp_memcpy"));
-    exp_assert(symbol != NULL);
-    exp_assert(symbol->type->kind == TYPE_KIND_COMPOSITE);
-    exp_assert(symbol->type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
-    exp_assert(symbol->value->kind == VALUE_KIND_FUNCTION);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(symbol->type->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT(symbol->type->composite.kind == TYPE_COMPOSITE_KIND_FUNCTION);
+    EXP_ASSERT(symbol->value->kind == VALUE_KIND_FUNCTION);
     Function const *callee = &symbol->value->function;
 
     x86_codegen_call(callee, &args, block_index, x86_function, context);
@@ -145,7 +145,7 @@ void x86_codegen_copy_value(x86_Location dst,
         // #NOTE: We allow local functions via lambdas. Lambdas without support
         // for capturing any context are equivalent to function pointers. so we
         // silently implement them as such here.
-        exp_assert(value->kind == VALUE_KIND_FUNCTION);
+        EXP_ASSERT(value->kind == VALUE_KIND_FUNCTION);
         Function const *function = &value->function;
         x86_function_append(x86_function,
                             x86_mov(x86_operand_location(dst),
@@ -165,7 +165,7 @@ void x86_codegen_copy_operand(x86_Location dst,
     case OPERAND_KIND_LABEL: {
         x86_Allocation *local =
             x86_function_allocation_named(x86_function, operand.data.label);
-        exp_assert(local != NULL);
+        EXP_ASSERT(local != NULL);
         // #TODO: global lookup can become copy from
         // rip relative address. whats tricky is the type to copy.
         x86_codegen_copy(dst,
@@ -183,10 +183,10 @@ void x86_codegen_copy_operand(x86_Location dst,
         break;
     }
 
-    case OPERAND_KIND_SSA: {
+    case OPERAND_KIND_LOCAL: {
         x86_Allocation *local =
-            x86_function_allocation_at(x86_function, operand.data.ssa);
-        exp_assert(local != NULL);
+            x86_function_allocation_at(x86_function, operand.data.local);
+        EXP_ASSERT(local != NULL);
         x86_codegen_copy(dst,
                          local->location,
                          local->type,
@@ -265,19 +265,19 @@ static void x86_codegen_copy_tuple(x86_Location dst,
                                    u64 block_index,
                                    x86_Function *restrict function,
                                    Context *restrict context) {
-    exp_assert(value->kind == VALUE_KIND_TUPLE);
+    EXP_ASSERT(value->kind == VALUE_KIND_TUPLE);
     Tuple const *tuple = &value->tuple;
     Type const  *type  = value->type;
-    exp_assert(type->kind == TYPE_KIND_COMPOSITE);
-    exp_assert(type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
+    EXP_ASSERT(type->kind == TYPE_KIND_COMPOSITE);
+    EXP_ASSERT(type->composite.kind == TYPE_COMPOSITE_KIND_TUPLE);
     Layout const *layout = type->layout;
-    exp_assert(layout->kind == LAYOUT_KIND_TUPLE);
+    EXP_ASSERT(layout->kind == LAYOUT_KIND_TUPLE);
     LayoutTuple const *layout_tuple = &layout->data.tuple;
 
     for (u32 index = 0; index < tuple->length; ++index) {
         u64 element_offset =
             layout_tuple_get_element_offset(layout_tuple, index);
-        exp_assert_always(element_offset < i32_MAX);
+        EXP_ASSERT_ALWAYS(element_offset < i32_MAX);
         x86_Location element_address =
             x86_location_address_increment(dst, (i32)element_offset);
         x86_codegen_copy_operand(element_address,

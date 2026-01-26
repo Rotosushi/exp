@@ -18,6 +18,7 @@
 #define EXP_IMR_INSTRUCTION_H
 
 #include "imr/block/operand.h"
+#include "support/assert.h"
 
 /*
  * #NOTE Control flow instructions which modify the instruction pointer
@@ -87,11 +88,17 @@
  * @brief the valid opcodes for instructions
  */
 typedef enum Opcode : u8 {
+    // keywords
     OPCODE_RET,
-    OPCODE_CALL,
     OPCODE_LET,
-    OPCODE_NEG,
+    OPCODE_AS,
+
+    // keysymbols
+    OPCODE_CALL,
     OPCODE_DOT,
+
+    // arithmetic symbols
+    OPCODE_NEG,
     OPCODE_ADD,
     OPCODE_SUB,
     OPCODE_MUL,
@@ -99,8 +106,15 @@ typedef enum Opcode : u8 {
     OPCODE_MOD,
 } Opcode;
 
+typedef enum Format : u8 {
+    FORMAT_B,
+    FORMAT_AB,
+    FORMAT_ABC,
+} Format;
+
 typedef struct Instruction {
     Opcode      opcode;
+    Format      format;
     OperandKind A_kind;
     OperandKind B_kind;
     OperandKind C_kind;
@@ -122,11 +136,15 @@ inline Operand operand_C(Instruction instruction) {
 }
 
 inline Instruction instruction_B(Opcode opcode, Operand B) {
-    return (Instruction){.opcode = opcode, .B_kind = B.kind, .B_data = B.data};
+    return (Instruction){.opcode = opcode,
+                         .format = FORMAT_B,
+                         .B_kind = B.kind,
+                         .B_data = B.data};
 }
 
 inline Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
     return (Instruction){.opcode = opcode,
+                         .format = FORMAT_AB,
                          .A_kind = A.kind,
                          .A_data = A.data,
                          .B_kind = B.kind,
@@ -136,6 +154,7 @@ inline Instruction instruction_AB(Opcode opcode, Operand A, Operand B) {
 inline Instruction
 instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
     return (Instruction){.opcode = opcode,
+                         .format = FORMAT_ABC,
                          .A_kind = A.kind,
                          .A_data = A.data,
                          .B_kind = B.kind,
@@ -144,16 +163,59 @@ instruction_ABC(Opcode opcode, Operand A, Operand B, Operand C) {
                          .C_data = C.data};
 }
 
-Instruction instruction_return(Operand result);
-Instruction instruction_call(Operand dst, Operand label, Operand args);
-Instruction instruction_let(Operand dst, Operand src);
-Instruction instruction_neg(Operand dst, Operand src);
-Instruction instruction_dot(Operand dst, Operand src, Operand index);
-Instruction instruction_add(Operand dst, Operand left, Operand right);
-Instruction instruction_sub(Operand dst, Operand left, Operand right);
-Instruction instruction_mul(Operand dst, Operand left, Operand right);
-Instruction instruction_div(Operand dst, Operand left, Operand right);
-Instruction instruction_mod(Operand dst, Operand left, Operand right);
+inline Instruction instruction_return(Operand result) {
+    return instruction_B(OPCODE_RET, result);
+}
+
+inline Instruction instruction_call(Operand dst, Operand label, Operand args) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_CALL, dst, label, args);
+}
+
+inline Instruction instruction_let(Operand dst, Operand type, Operand src) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_LET, dst, type, src);
+}
+
+inline Instruction instruction_as(Operand dst, Operand type, Operand src) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_AS, dst, type, src);
+}
+
+inline Instruction instruction_dot(Operand dst, Operand src, Operand index) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_DOT, dst, src, index);
+}
+
+inline Instruction instruction_neg(Operand dst, Operand src) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_AB(OPCODE_NEG, dst, src);
+}
+
+inline Instruction instruction_add(Operand dst, Operand left, Operand right) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_ADD, dst, left, right);
+}
+
+inline Instruction instruction_sub(Operand dst, Operand left, Operand right) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_SUB, dst, left, right);
+}
+
+inline Instruction instruction_mul(Operand dst, Operand left, Operand right) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_MUL, dst, left, right);
+}
+
+inline Instruction instruction_div(Operand dst, Operand left, Operand right) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_DIV, dst, left, right);
+}
+
+inline Instruction instruction_mod(Operand dst, Operand left, Operand right) {
+    EXP_ASSERT(dst.kind == OPERAND_KIND_LOCAL);
+    return instruction_ABC(OPCODE_MOD, dst, left, right);
+}
 
 struct Context;
 void print_instruction(String *restrict string,

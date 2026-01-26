@@ -41,7 +41,7 @@ static void x86_stack_space_padding(x86_StackSpace *restrict stack_space,
 
 static x86_Location
 x86_stack_space_location(x86_StackSpace *restrict stack_space) {
-    exp_assert(stack_space->kind == X86_STACK_SPACE_KIND_ALLOCATION);
+    EXP_ASSERT(stack_space->kind == X86_STACK_SPACE_KIND_ALLOCATION);
     return x86_location_address(
         X86_GPR_RBP,
         x86_allocation_ptr_kind_of(stack_space->data.allocation),
@@ -62,7 +62,7 @@ void x86_stack_allocator_destroy(x86_StackAllocator *restrict stack_allocator) {
 
 i32 x86_stack_allocator_stack_size(
     x86_StackAllocator *restrict stack_allocator) {
-    exp_assert(stack_allocator != NULL);
+    EXP_ASSERT(stack_allocator != NULL);
     return stack_allocator->size;
 }
 
@@ -82,8 +82,8 @@ x86_stack_allocator_grow(x86_StackAllocator *restrict stack_allocator) {
 static x86_StackSpace *
 x86_stack_allocator_insert(x86_StackAllocator *restrict stack_allocator,
                            u32 position) {
-    exp_assert(position <= stack_allocator->capacity);
-    exp_assert(position <= stack_allocator->length);
+    EXP_ASSERT(position <= stack_allocator->capacity);
+    EXP_ASSERT(position <= stack_allocator->length);
     if (x86_stack_allocator_full(stack_allocator)) {
         x86_stack_allocator_grow(stack_allocator);
     }
@@ -99,8 +99,8 @@ x86_stack_allocator_insert(x86_StackAllocator *restrict stack_allocator,
 static void
 x86_stack_allocator_remove(x86_StackAllocator *restrict stack_allocator,
                            u32 position) {
-    exp_assert(position <= stack_allocator->capacity);
-    exp_assert(position <= stack_allocator->length);
+    EXP_ASSERT(position <= stack_allocator->capacity);
+    EXP_ASSERT(position <= stack_allocator->length);
 
     for (u32 index = stack_allocator->length; index > position; --index) {
         stack_allocator->buffer[index] = stack_allocator->buffer[index - 1];
@@ -143,11 +143,11 @@ x86_stack_allocator_remove(x86_StackAllocator *restrict stack_allocator,
 void x86_stack_allocator_allocate_to_next_available(
     x86_StackAllocator *restrict stack_allocator,
     x86_Allocation *restrict allocation) {
-    exp_assert(stack_allocator != NULL);
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(stack_allocator != NULL);
+    EXP_ASSERT(allocation != NULL);
 
     u64 allocation_size = x86_allocation_size_of(allocation);
-    exp_assert(allocation_size < i32_MAX);
+    EXP_ASSERT(allocation_size < i32_MAX);
     i32 size = (i32)allocation_size;
 
     for (u32 index = 0; index < stack_allocator->length; ++index) {
@@ -210,7 +210,7 @@ void x86_stack_allocator_allocate_to_next_available(
 // 2: for each expired allocation mark the stack allocation as free
 void x86_stack_allocator_release_expired(
     x86_StackAllocator *restrict stack_allocator, u32 block_index) {
-    exp_assert(stack_allocator != NULL);
+    EXP_ASSERT(stack_allocator != NULL);
     for (u32 index = 0; index < stack_allocator->length; ++index) {
         x86_StackSpace *space = stack_allocator->buffer + index;
         if (space->kind != X86_STACK_SPACE_KIND_ALLOCATION) { continue; }
@@ -227,7 +227,7 @@ void x86_stack_allocator_release_expired(
         // allocate function.
 
         u64 allocation_size = x86_allocation_size_of(allocation);
-        exp_assert(allocation_size < i32_MAX);
+        EXP_ASSERT(allocation_size < i32_MAX);
         i32 size = (i32)allocation_size;
 
         // if there is no next element, we don't need to combine.

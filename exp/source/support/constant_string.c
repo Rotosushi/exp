@@ -29,18 +29,18 @@ ConstantString *constant_string_create(StringView view) {
 }
 
 void constant_string_destroy(ConstantString *restrict str) {
-    exp_assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     deallocate(str);
 }
 
 bool constant_string_equal(ConstantString const *restrict string,
                            StringView view) {
-    exp_assert(string != NULL);
+    EXP_ASSERT(string != NULL);
 
     return string_view_equal(string_view(string->data, string->length), view);
 }
 
 StringView constant_string_to_view(ConstantString const *restrict str) {
-    exp_assert(str != NULL);
+    EXP_ASSERT(str != NULL);
     return string_view(str->data, str->length);
 }

@@ -26,9 +26,9 @@ bool evaluate_neg_constant(Value const **restrict result,
                            Context *restrict context) {
     // negation only supports signed integer types.
     // in the future this is also supported by real number types
-    exp_assert_debug(result != NULL);
-    exp_assert_debug(constant != NULL);
-    exp_assert_debug(context != NULL);
+    EXP_ASSERT_DEBUG(result != NULL);
+    EXP_ASSERT_DEBUG(constant != NULL);
+    EXP_ASSERT_DEBUG(context != NULL);
     switch (constant->kind) {
     case VALUE_KIND_I8:
         *result = context_constant_i8(context, -(constant->i8_));
@@ -52,19 +52,19 @@ bool evaluate_neg_constant(Value const **restrict result,
 bool evaluate_neg(Instruction instruction,
                   Frame      *frame,
                   Context *restrict context) {
-    exp_assert_debug(instruction.opcode == OPCODE_NEG);
-    exp_assert_debug(instruction.A_kind == OPERAND_KIND_SSA);
+    EXP_ASSERT_DEBUG(instruction.opcode == OPCODE_NEG);
+    EXP_ASSERT_DEBUG(instruction.A_kind == OPERAND_KIND_LOCAL);
     Local *local =
-        function_lookup_local(frame->function, instruction.A_data.ssa);
-    exp_assert_debug(local->type != NULL);
+        function_lookup_local(frame->function, instruction.A_data.local);
+    EXP_ASSERT_DEBUG(local->type != NULL);
 
     // compute the negation operation and place the result in a new constant.
     // pointed to by result.
     Value const *result = NULL;
     switch (instruction.B_kind) {
-    case OPERAND_KIND_SSA: {
-        Value const *constant =
-            context_stack_peek(context, frame->offset, instruction.B_data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Value const *constant = context_stack_peek(
+            context, frame->offset, instruction.B_data.local);
         if (!evaluate_neg_constant(&result, constant, context)) {
             return false;
         }
@@ -85,7 +85,7 @@ bool evaluate_neg(Instruction instruction,
         if (!evaluate_label_to_constant(&constant, name, frame, context)) {
             return false;
         }
-        exp_assert_debug(constant != NULL);
+        EXP_ASSERT_DEBUG(constant != NULL);
 
         // else we found some constant value
         if (!evaluate_neg_constant(&result, constant, context)) {

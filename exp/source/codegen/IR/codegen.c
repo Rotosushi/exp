@@ -23,8 +23,8 @@
 #include "support/config.h"
 
 i32 ir_header(String *restrict buffer, Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
     ir_directive_version(SV("1.0"), buffer);
     ir_directive_file(context_source_path(context), buffer);
     return 0;
@@ -33,9 +33,9 @@ i32 ir_header(String *restrict buffer, Context *restrict context) {
 i32 ir_codegen(String *restrict buffer,
                Symbol const *restrict symbol,
                Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(symbol != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
     ir_directive_let(symbol->name, buffer);
     string_append(buffer, SV(": "));
     print_type(buffer, symbol->type);
@@ -46,8 +46,8 @@ i32 ir_codegen(String *restrict buffer,
 }
 
 i32 ir_footer(String *restrict buffer, Context *restrict context) {
-    exp_assert(buffer != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
     ir_directive_comment(SV(EXP_VERSION_STRING), buffer);
     return 0;
 }

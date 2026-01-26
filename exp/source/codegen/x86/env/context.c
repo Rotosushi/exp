@@ -23,12 +23,12 @@
 
 void *x86_context_allocate() {
     x86_Context *context = callocate(1, sizeof(x86_Context));
-    exp_assert_debug(context != NULL);
+    EXP_ASSERT(context != NULL);
     return context;
 }
 
 void x86_context_deallocate(void *restrict context) {
-    exp_assert(context != NULL);
+    EXP_ASSERT(context != NULL);
 
     deallocate(context);
 }

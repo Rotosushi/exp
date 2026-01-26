@@ -21,7 +21,7 @@
 #include "support/assert.h"
 
 void local_create(Local *restrict local, u32 ssa) {
-    exp_assert(local != NULL);
+    EXP_ASSERT(local != NULL);
     local->ssa      = ssa;
     local->name     = SV("");
     local->type     = NULL;

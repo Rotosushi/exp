@@ -56,7 +56,7 @@ x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
     }
 
     x86_Allocation *allocation = x86_allocation_allocate(local);
-    exp_assert(allocation->ssa < allocations->capacity);
+    EXP_ASSERT(allocation->ssa < allocations->capacity);
 
     allocations->buffer[allocation->ssa] = allocation;
     allocations->length += 1;
@@ -65,24 +65,24 @@ x86_Allocation *x86_allocations_append(x86_Allocations *restrict allocations,
 
 x86_Allocation *x86_allocations_at(x86_Allocations *restrict allocations,
                                    u32 ssa) {
-    exp_assert(allocations != NULL);
-    exp_assert(ssa < allocations->capacity);
+    EXP_ASSERT(allocations != NULL);
+    EXP_ASSERT(ssa < allocations->capacity);
 
     x86_Allocation *allocation = allocations->buffer[ssa];
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     return allocation;
 }
 
 x86_Allocation *x86_allocations_named(x86_Allocations *restrict allocations,
                                       ConstantString const *name) {
-    exp_assert(allocations != NULL);
-    exp_assert(name != NULL);
+    EXP_ASSERT(allocations != NULL);
+    EXP_ASSERT(name != NULL);
 
     StringView view = constant_string_to_view(name);
 
     for (u32 index = 0; index < allocations->length; ++index) {
         x86_Allocation *allocation = allocations->buffer[index];
-        exp_assert(allocation != NULL);
+        EXP_ASSERT(allocation != NULL);
         if (string_view_equal(view, allocation->name)) { return allocation; }
     }
 

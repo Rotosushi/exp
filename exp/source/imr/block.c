@@ -24,47 +24,53 @@
 #include "support/array_growth.h"
 #include "support/assert.h"
 
-void bytecode_create(Block *restrict bytecode) {
-    exp_assert(bytecode != NULL);
-    bytecode->length   = 0;
-    bytecode->capacity = 0;
-    bytecode->buffer   = NULL;
+void block_create(Block *restrict block) {
+    EXP_ASSERT(block != NULL);
+    block->length   = 0;
+    block->capacity = 0;
+    block->buffer   = NULL;
 }
 
-void bytecode_destroy(Block *restrict bytecode) {
-    exp_assert(bytecode != NULL);
-    bytecode->length   = 0;
-    bytecode->capacity = 0;
-    deallocate(bytecode->buffer);
-    bytecode->buffer = NULL;
+void block_destroy(Block *restrict block) {
+    EXP_ASSERT(block != NULL);
+    block->length   = 0;
+    block->capacity = 0;
+    deallocate(block->buffer);
+    block->buffer = NULL;
 }
 
-static bool bytecode_full(Block *restrict bytecode) {
-    return bytecode->capacity <= (bytecode->length + 1);
+static bool block_full(Block *restrict block) {
+    EXP_ASSERT(block != NULL);
+    return block->capacity <= (block->length + 1);
 }
 
-static void bytecode_grow(Block *restrict bytecode) {
-    Growth_u32 g = array_growth_u32(bytecode->capacity, sizeof(Instruction));
-    bytecode->buffer   = reallocate(bytecode->buffer, g.alloc_size);
-    bytecode->capacity = g.new_capacity;
+static void block_grow(Block *restrict block) {
+    EXP_ASSERT(block != NULL);
+    Growth_u32 g    = array_growth_u32(block->capacity, sizeof(Instruction));
+    block->buffer   = reallocate(block->buffer, g.alloc_size);
+    block->capacity = g.new_capacity;
 }
 
-void bytecode_append(Block *restrict bytecode, Instruction I) {
-    if (bytecode_full(bytecode)) { bytecode_grow(bytecode); }
+void block_append(Block *restrict block, Instruction I) {
+    EXP_ASSERT(block != NULL);
+    if (block_full(block)) { block_grow(block); }
 
-    bytecode->buffer[bytecode->length] = I;
-    bytecode->length += 1;
+    block->buffer[block->length] = I;
+    block->length += 1;
 }
 
-void print_bytecode(String *restrict string,
-                    Block const *restrict bc,
-                    struct Context *restrict context) {
+void print_block(String *restrict string,
+                 Block const *restrict block,
+                 struct Context *restrict context) {
+    EXP_ASSERT(string != NULL);
+    EXP_ASSERT(block != NULL);
+    EXP_ASSERT(context != NULL);
     // walk the entire buffer and print each instruction
-    for (u32 i = 0; i < bc->length; ++i) {
+    for (u32 i = 0; i < block->length; ++i) {
         string_append(string, SV("  "));
         string_append_u64(string, i);
         string_append(string, SV(": "));
-        print_instruction(string, bc->buffer[i], context);
+        print_instruction(string, block->buffer[i], context);
         string_append(string, SV("\n"));
     }
 }

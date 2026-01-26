@@ -105,7 +105,7 @@ static void print_x86_rip_label(String *restrict buffer, StringView label) {
 }
 
 void print_x86_operand(String *restrict buffer, x86_Operand operand) {
-    exp_assert(buffer != NULL);
+    EXP_ASSERT(buffer != NULL);
     switch (operand.kind) {
     case X86_OPERAND_KIND_LOCATION:
         print_x86_location(buffer, operand.data.location);

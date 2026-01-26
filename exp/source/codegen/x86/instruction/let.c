@@ -21,14 +21,15 @@
 #include "codegen/x86/instruction/let.h"
 #include "codegen/x86/intrinsics/load.h"
 #include "support/unreachable.h"
-
+/*
 void x86_codegen_let(Instruction I,
                      u64         block_index,
                      x86_Context *restrict context) {
-    assert(I.A_kind == OPERAND_KIND_SSA);
+    assert(I.A_kind == OPERAND_KIND_LOCAL);
     Local *local = I.A_data.ssa;
+
     switch (I.B_kind) {
-    case OPERAND_KIND_SSA: {
+    case OPERAND_KIND_LOCAL: {
         x86_Allocation *B = x86_context_allocation_of(context, I.B_data.ssa);
         x86_context_allocate_from_active(context, local, B, block_index);
         break;
@@ -53,4 +54,4 @@ void x86_codegen_let(Instruction I,
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
     }
-}
+}*/

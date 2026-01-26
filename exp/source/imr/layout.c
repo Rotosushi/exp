@@ -18,14 +18,17 @@
  */
 
 #include "imr/layout.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
 void layout_create_primary(Layout *restrict layout, LayoutPrimary primary) {
+    EXP_ASSERT(layout != NULL);
     layout->kind         = LAYOUT_KIND_PRIMARY;
     layout->data.primary = primary;
 }
 
 void layout_create_padding(Layout *restrict layout, u64 length) {
+    EXP_ASSERT(layout != NULL);
     layout->kind         = LAYOUT_KIND_PADDING;
     layout->data.padding = length;
 }
@@ -33,16 +36,21 @@ void layout_create_padding(Layout *restrict layout, u64 length) {
 void layout_create_tuple(Layout *restrict layout,
                          TypeTuple const *restrict tuple,
                          struct LayoutInterner *restrict interner) {
+    EXP_ASSERT(layout != NULL);
+    EXP_ASSERT(tuple != NULL);
+    EXP_ASSERT(interner != NULL);
     layout->kind = LAYOUT_KIND_TUPLE;
     layout_tuple_create(&layout->data.tuple, tuple, interner);
 }
 
 void layout_create_function(Layout *restrict layout, LayoutPrimary primary) {
+    EXP_ASSERT(layout != NULL);
     layout->kind         = LAYOUT_KIND_FUNCTION;
     layout->data.primary = primary;
 }
 
 void layout_destroy(Layout *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case LAYOUT_KIND_TUPLE: layout_tuple_destroy(&layout->data.tuple);
 
@@ -51,6 +59,7 @@ void layout_destroy(Layout *restrict layout) {
 }
 
 u64 layout_size_of(Layout const *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case LAYOUT_KIND_PRIMARY:  return layout->data.primary.size;
     case LAYOUT_KIND_TUPLE:    return layout->data.tuple.primary.size;
@@ -62,6 +71,7 @@ u64 layout_size_of(Layout const *restrict layout) {
 }
 
 u64 layout_align_of(Layout const *restrict layout) {
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case LAYOUT_KIND_PRIMARY:  return layout->data.primary.alignment;
     case LAYOUT_KIND_TUPLE:    return layout->data.tuple.primary.alignment;

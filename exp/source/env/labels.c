@@ -14,12 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#include <assert.h>
 #include <stddef.h>
 
 #include "env/labels.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 
 Labels labels_create() {
     Labels symbols = {.count = 0, .capacity = 0, .buffer = NULL};
@@ -27,7 +27,7 @@ Labels labels_create() {
 }
 
 void labels_destroy(Labels *restrict symbols) {
-    assert(symbols != NULL);
+    EXP_ASSERT(symbols != NULL);
     deallocate(symbols->buffer);
     symbols->buffer   = NULL;
     symbols->count    = 0;
@@ -45,7 +45,7 @@ static void global_labels_grow(Labels *restrict symbols) {
 }
 
 u32 labels_insert(Labels *restrict symbols, StringView symbol) {
-    assert(symbols != NULL);
+    EXP_ASSERT(symbols != NULL);
 
     if (global_labels_full(symbols)) { global_labels_grow(symbols); }
 
@@ -61,7 +61,7 @@ u32 labels_insert(Labels *restrict symbols, StringView symbol) {
 }
 
 StringView labels_at(Labels *restrict symbols, u32 index) {
-    assert(symbols != NULL);
-    assert(index < symbols->count);
+    EXP_ASSERT(symbols != NULL);
+    EXP_ASSERT(index < symbols->count);
     return symbols->buffer[index];
 }

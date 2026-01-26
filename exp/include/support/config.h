@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "f905026"
+#define EXP_GIT_REVISION "602140b"
 #define EXP_TEST_DIR "/home/cadence/Projects/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/cadence/Projects/exp/test/resources"
 #define EXP_BINARY_DIR "/home/cadence/Projects/exp/build"
@@ -32,7 +32,7 @@
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-01-23 16:29:54) git revision (f905026)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-01-25 18:58:26) git revision (602140b)"
 // NOLINTEND
 // clang-format on
 

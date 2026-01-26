@@ -28,8 +28,8 @@ static void infer_lifetime_operand_A(OperandKind kind,
                                      u32         block_index,
                                      Function const *restrict function) {
     switch (kind) {
-    case OPERAND_KIND_SSA: {
-        Local *local          = function_lookup_local(function, data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Local *local          = function_lookup_local(function, data.local);
         local->lifetime.start = block_index;
         break;
     }
@@ -43,8 +43,8 @@ static void infer_lifetime_operand(OperandKind kind,
                                    u32         block_index,
                                    Function const *restrict function) {
     switch (kind) {
-    case OPERAND_KIND_SSA: {
-        Local *local = function_lookup_local(function, data.ssa);
+    case OPERAND_KIND_LOCAL: {
+        Local *local = function_lookup_local(function, data.local);
         if (block_index > local->lifetime.end) {
             local->lifetime.end = block_index;
         }
@@ -65,6 +65,9 @@ static void infer_lifetime_operand(OperandKind kind,
         break;
     }
 
+    // Labels are globals, thus have infinite lifetime
+    // Immediates are values and thus also have infinite lifetime
+    // Types are de-facto values here, and thus also have infinit lifetimes.
     default: break;
     }
 }
@@ -91,7 +94,7 @@ static void infer_lifetime_ABC(Instruction I,
 }
 
 bool infer_lifetimes(Function *restrict function) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     Block *body = &function->body;
 
     for (u8 i = 0; i < function->arguments.length; ++i) {
@@ -109,23 +112,28 @@ bool infer_lifetimes(Function *restrict function) {
             break;
         }
 
+        case OPCODE_LET: {
+            infer_lifetime_ABC(I, block_index, function);
+            break;
+        }
+
+        case OPCODE_AS: {
+            infer_lifetime_ABC(I, block_index, function);
+            break;
+        }
+
         case OPCODE_CALL: {
             infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
-        case OPCODE_LET: {
-            infer_lifetime_AB(I, block_index, function);
+        case OPCODE_DOT: {
+            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 
         case OPCODE_NEG: {
             infer_lifetime_AB(I, block_index, function);
-            break;
-        }
-
-        case OPCODE_DOT: {
-            infer_lifetime_ABC(I, block_index, function);
             break;
         }
 

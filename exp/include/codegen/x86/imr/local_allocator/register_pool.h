@@ -28,19 +28,19 @@ typedef struct x86_RegisterPool {
 #define x86_register_count() x86_gpr_count()
 
 inline void x86_register_pool_initialize(x86_RegisterPool *restrict pool) {
-    exp_assert(pool != NULL);
+    EXP_ASSERT(pool != NULL);
     bitset_initialize(&pool->gpr_pool);
 }
 
 inline bool x86_register_pool_gpr_check(x86_RegisterPool const *restrict pool,
                                         x86_GPR gpr) {
-    exp_assert(pool != NULL);
+    EXP_ASSERT(pool != NULL);
     return bitset_check(&pool->gpr_pool, x86_gpr_to_index(gpr));
 }
 
 inline bool x86_register_pool_gpr_aquire(x86_RegisterPool *restrict pool,
                                          x86_GPR gpr) {
-    exp_assert(pool != NULL);
+    EXP_ASSERT(pool != NULL);
     u8 index = x86_gpr_to_index(gpr);
     if (bitset_check(&pool->gpr_pool, index)) { return false; }
 
@@ -51,8 +51,8 @@ inline bool x86_register_pool_gpr_aquire(x86_RegisterPool *restrict pool,
 inline bool
 x86_register_pool_gpr_aquire_next_available(x86_RegisterPool *restrict pool,
                                             u8 *restrict gpr_index) {
-    exp_assert(pool != NULL);
-    exp_assert(gpr_index != NULL);
+    EXP_ASSERT(pool != NULL);
+    EXP_ASSERT(gpr_index != NULL);
     for (u8 index = 0; index < x86_gpr_count(); ++index) {
         if (bitset_check(&pool->gpr_pool, index)) { continue; }
         bitset_set(&pool->gpr_pool, index);
@@ -65,7 +65,7 @@ x86_register_pool_gpr_aquire_next_available(x86_RegisterPool *restrict pool,
 
 inline bool x86_register_pool_gpr_release(x86_RegisterPool *restrict pool,
                                           x86_GPR gpr) {
-    exp_assert(pool != NULL);
+    EXP_ASSERT(pool != NULL);
     u8 index = x86_gpr_to_index(gpr);
     if (!bitset_check(&pool->gpr_pool, index)) { return false; }
 

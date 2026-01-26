@@ -18,31 +18,37 @@
  */
 
 #include "codegen/GAS/directives.h"
+#include "support/assert.h"
 #include "support/unreachable.h"
 
-void gas_directive_file(StringView path, String *restrict str) {
-    string_append(str, SV("\t.file \""));
-    string_append(str, path);
-    string_append(str, SV("\"\n"));
+void gas_directive_file(StringView path, String *restrict out) {
+    EXP_ASSERT(out != NULL);
+    string_append(out, SV("\t.file \""));
+    string_append(out, path);
+    string_append(out, SV("\"\n"));
 }
 
-void gas_directive_intel_syntax(String *restrict buffer) {
-    string_append(buffer, SV("\t.intel_syntax noprefix\n"));
+void gas_directive_intel_syntax(String *restrict out) {
+    EXP_ASSERT(out != NULL);
+    string_append(out, SV("\t.intel_syntax noprefix\n"));
 }
 
-void gas_directive_arch(StringView cpu_type, String *restrict str) {
-    string_append(str, SV("\t.arch "));
-    string_append(str, cpu_type);
-    string_append(str, SV("\n"));
+void gas_directive_arch(StringView cpu_type, String *restrict out) {
+    EXP_ASSERT(out != NULL);
+    string_append(out, SV("\t.arch "));
+    string_append(out, cpu_type);
+    string_append(out, SV("\n"));
 }
 
-void gas_directive_ident(StringView comment, String *restrict str) {
-    string_append(str, SV("\t.ident \""));
-    string_append(str, comment);
-    string_append(str, SV("\"\n"));
+void gas_directive_ident(StringView comment, String *restrict out) {
+    EXP_ASSERT(out != NULL);
+    string_append(out, SV("\t.ident \""));
+    string_append(out, comment);
+    string_append(out, SV("\"\n"));
 }
 
-void gas_directive_noexecstack(String *restrict str) {
+void gas_directive_noexecstack(String *restrict out) {
+    EXP_ASSERT(out != NULL);
     /**
      * this is the assembly directive which marks the stack as unexecutable.
      * (as far as I can tell, I cannot find documentation which explicitly
@@ -53,34 +59,40 @@ void gas_directive_noexecstack(String *restrict str) {
      * the emitted assembly from a call to GCC)
      */
     StringView noexecstack = SV("\t.section .note.GNU-stack,\"\",@progbits\n");
-    string_append(str, noexecstack);
+    string_append(out, noexecstack);
 }
 
 void gas_directive_globl(StringView name, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.globl "));
     string_append(str, name);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_data(String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.data\n"));
 }
 
 void gas_directive_bss(String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.bss\n"));
 }
 
 void gas_directive_text(String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.text\n"));
 }
 
 void gas_directive_balign(u64 align, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.balign "));
     string_append_u64(str, align);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_size(StringView name, u64 size, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.size "));
     string_append(str, name);
     string_append(str, SV(", "));
@@ -89,6 +101,7 @@ void gas_directive_size(StringView name, u64 size, String *restrict str) {
 }
 
 void gas_directive_size_label_relative(StringView name, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.size "));
     string_append(str, name);
     // the '.' symbol refers to the current address, the '-' is
@@ -102,6 +115,7 @@ void gas_directive_size_label_relative(StringView name, String *restrict str) {
 }
 
 void gas_directive_type(StringView name, STT_Type kind, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.type "));
     string_append(str, name);
     string_append(str, SV(", "));
@@ -116,66 +130,77 @@ void gas_directive_type(StringView name, STT_Type kind, String *restrict str) {
 }
 
 void gas_directive_u8(u8 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.byte "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_u16(u16 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.short "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_u32(u32 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.int "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_u64(u64 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.quad "));
     string_append_u64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_i8(i8 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.byte "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_i16(i16 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.short "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_i32(i32 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.int "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_i64(i64 value, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.quad "));
     string_append_i64(str, value);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_zero(u64 bytes, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.zero "));
     string_append_u64(str, bytes);
     string_append(str, SV("\n"));
 }
 
 void gas_directive_string(StringView sv, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, SV("\t.string \""));
     string_append(str, sv);
     string_append(str, SV("\"\n"));
 }
 
 void gas_directive_label(StringView name, String *restrict str) {
+    EXP_ASSERT(str != NULL);
     string_append(str, name);
     string_append(str, SV(":\n"));
 }

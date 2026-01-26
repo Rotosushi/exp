@@ -49,20 +49,20 @@ static void x86_formal_arguments_grow(x86_FormalArgumentList *restrict args) {
 
 void x86_formal_argument_list_append(x86_FormalArgumentList *restrict args,
                                      x86_Allocation *arg) {
-    exp_assert(args != NULL);
-    exp_assert(arg != NULL);
+    EXP_ASSERT(args != NULL);
+    EXP_ASSERT(arg != NULL);
     if (x86_formal_arguments_full(args)) { x86_formal_arguments_grow(args); }
     args->buffer[args->length++] = arg;
 }
 
 static x86_Allocation *
 x86_formal_argument_list_at(x86_FormalArgumentList *restrict args, u8 index) {
-    exp_assert(args->length > index);
+    EXP_ASSERT(args->length > index);
     return args->buffer[index];
 }
 
 void x86_function_create(x86_Function *restrict function) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     x86_formal_argument_list_create(&function->arguments);
     x86_body_create(&function->body);
     x86_local_allocator_create(&function->local_allocator);
@@ -70,7 +70,7 @@ void x86_function_create(x86_Function *restrict function) {
 }
 
 void x86_function_destroy(x86_Function *restrict function) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     x86_formal_arguments_destroy(&function->arguments);
     x86_body_destroy(&function->body);
     x86_local_allocator_create(&function->local_allocator);
@@ -79,13 +79,13 @@ void x86_function_destroy(x86_Function *restrict function) {
 
 x86_Allocation *
 x86_function_formal_argument_at(x86_Function *restrict x86_function, u8 index) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     return x86_formal_argument_list_at(&x86_function->arguments, index);
 }
 
 x86_Allocation *x86_function_allocation_at(x86_Function *restrict x86_function,
                                            u32 ssa) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     return x86_local_allocator_allocation_at(&x86_function->local_allocator,
                                              ssa);
 }
@@ -93,64 +93,64 @@ x86_Allocation *x86_function_allocation_at(x86_Function *restrict x86_function,
 x86_Allocation *
 x86_function_allocation_named(x86_Function *restrict x86_function,
                               ConstantString const *name) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     return x86_local_allocator_allocation_named(&x86_function->local_allocator,
                                                 name);
 }
 
 void x86_function_insert_block(x86_Function *restrict x86_function,
                                u32 position) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     x86_body_insert(&x86_function->body, position);
 }
 
 void x86_function_prepend_block(x86_Function *restrict x86_function) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     x86_body_prepend(&x86_function->body);
 }
 
 u32 x86_function_append_block(x86_Function *restrict x86_function) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     return x86_body_append(&x86_function->body);
 }
 
 void x86_function_target_block(x86_Function *restrict x86_function, u32 block) {
-    exp_assert(x86_function != NULL);
-    exp_assert(block < x86_function->body.length);
+    EXP_ASSERT(x86_function != NULL);
+    EXP_ASSERT(block < x86_function->body.length);
     x86_function->current_block = block;
 }
 
 u32 x86_function_current_block(x86_Function *restrict x86_function) {
-    exp_assert(x86_function != NULL);
+    EXP_ASSERT(x86_function != NULL);
     return x86_function->current_block;
 }
 
 void x86_function_insert(x86_Function *restrict function,
                          x86_Instruction instruction,
                          u32             block_index) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     x86_Block *block = x86_body_at(&function->body, function->current_block);
     x86_block_insert(block, instruction, block_index);
 }
 
 void x86_function_prepend(x86_Function *restrict function,
                           x86_Instruction instruction) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     x86_Block *block = x86_body_at(&function->body, function->current_block);
     x86_block_prepend(block, instruction);
 }
 
 void x86_function_append(x86_Function *restrict function,
                          x86_Instruction instruction) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     x86_Block *block = x86_body_at(&function->body, function->current_block);
     x86_block_append(block, instruction);
 }
 
 void x86_function_setup(x86_Function *restrict x86_function,
                         Function const *restrict function) {
-    exp_assert(x86_function != NULL);
-    exp_assert(function != NULL);
+    EXP_ASSERT(x86_function != NULL);
+    EXP_ASSERT(function != NULL);
 
     x86_function->name = function->name;
 
@@ -179,7 +179,7 @@ void x86_function_setup(x86_Function *restrict x86_function,
 }
 
 void x86_function_header(x86_Function *restrict function) {
-    exp_assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     // Set up the function to insert instructions in the new first
     // basic block.
     u32 previous_block = function->current_block;

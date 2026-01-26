@@ -26,6 +26,8 @@ static void print_x86_tuple(String *restrict buffer,
                             Value const *restrict value);
 
 void print_x86_value(String *restrict buffer, Value const *restrict value) {
+    EXP_ASSERT(value != NULL);
+    EXP_ASSERT(buffer != NULL);
     Layout const *layout = value->type->layout;
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED:
@@ -50,14 +52,16 @@ static void print_x86_element(String *restrict buffer, Operand element);
 
 static void print_x86_tuple(String *restrict buffer,
                             Value const *restrict value) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(value != NULL);
     Type const *type = value->type;
-    exp_assert_debug(value->kind == VALUE_KIND_TUPLE);
+    EXP_ASSERT_DEBUG(value->kind == VALUE_KIND_TUPLE);
     Tuple const *tuple = &value->tuple;
 
     Layout const *layout = type->layout;
     // It is safe to access this as if it was a tuple layout,
     // unless I made a silly mistake, or some memory was corrupted.
-    exp_assert_debug(layout->kind == LAYOUT_KIND_TUPLE);
+    EXP_ASSERT_DEBUG(layout->kind == LAYOUT_KIND_TUPLE);
     LayoutTuple const *tuple_layout = &layout->data.tuple;
     // So, the length of the tuple and it's layout should be the "same"
     // except that the layout takes into account the padding that must be
@@ -69,7 +73,7 @@ static void print_x86_tuple(String *restrict buffer,
         print_x86_element(buffer, element);
         if (tuple_index >= (tuple->length - 1)) { continue; }
 
-        exp_assert(layout_index < (tuple_layout->length - 1));
+        EXP_ASSERT(layout_index < (tuple_layout->length - 1));
         Layout const *next_layout = tuple_layout->buffer[layout_index + 1];
         if (next_layout->kind != LAYOUT_KIND_PADDING) { continue; }
 
@@ -77,13 +81,13 @@ static void print_x86_tuple(String *restrict buffer,
         ++layout_index;
         // Since we "know" that the layout length is the same or less,
         // this assertion should never fire.
-        exp_assert_debug(layout_index < tuple_layout->length);
+        EXP_ASSERT_DEBUG(layout_index < tuple_layout->length);
     }
 }
 
 static void print_x86_element(String *restrict buffer, Operand element) {
     switch (element.kind) {
-    case OPERAND_KIND_SSA:
+    case OPERAND_KIND_LOCAL:
     case OPERAND_KIND_LABEL:
         PANIC("Not an allowable initializer for a global tuple");
         break;

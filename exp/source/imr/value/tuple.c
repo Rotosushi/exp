@@ -23,21 +23,21 @@
 #include "support/assert.h"
 
 void tuple_create(Tuple *restrict tuple) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     tuple->length   = 0;
     tuple->capacity = 0;
     tuple->elements = NULL;
 }
 
 void tuple_destroy(Tuple *restrict tuple) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     deallocate(tuple->elements);
     tuple_create(tuple);
 }
 
 bool tuple_equal(Tuple const *A, Tuple const *B) {
-    exp_assert(A != NULL);
-    exp_assert(B != NULL);
+    EXP_ASSERT(A != NULL);
+    EXP_ASSERT(B != NULL);
     if (A == B) { return true; }
     if (A->length != B->length) { return false; }
 
@@ -49,7 +49,7 @@ bool tuple_equal(Tuple const *A, Tuple const *B) {
 }
 
 bool tuple_index_in_bounds(Tuple const *restrict tuple, u32 index) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     return index < tuple->length;
 }
 
@@ -70,7 +70,7 @@ void tuple_append(Tuple *restrict tuple, Operand element) {
 }
 
 Operand tuple_at(Tuple const *restrict tuple, u32 index) {
-    exp_assert(tuple != NULL);
-    exp_assert(tuple_index_in_bounds(tuple, index));
+    EXP_ASSERT(tuple != NULL);
+    EXP_ASSERT(tuple_index_in_bounds(tuple, index));
     return tuple->elements[index];
 }

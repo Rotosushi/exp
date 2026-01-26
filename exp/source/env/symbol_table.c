@@ -26,13 +26,13 @@
 #define SYMBOL_TABLE_MAX_LOAD 0.75
 
 void symbol_table_create(SymbolTable *restrict symbol_table) {
-    exp_assert(symbol_table != NULL);
+    EXP_ASSERT(symbol_table != NULL);
     symbol_table->capacity = symbol_table->count = 0;
     symbol_table->elements                       = NULL;
 }
 
 void symbol_table_destroy(SymbolTable *restrict symbol_table) {
-    exp_assert(symbol_table != NULL);
+    EXP_ASSERT(symbol_table != NULL);
 
     for (u64 i = 0; i < symbol_table->capacity; ++i) {
         Symbol *element = symbol_table->elements[i];
@@ -90,7 +90,7 @@ static bool symbol_table_full(SymbolTable *restrict symbol_table) {
 }
 
 Symbol *symbol_table_at(SymbolTable *restrict symbol_table, StringView name) {
-    exp_assert(symbol_table != NULL);
+    EXP_ASSERT(symbol_table != NULL);
 
     if (symbol_table_full(symbol_table)) { symbol_table_grow(symbol_table); }
 

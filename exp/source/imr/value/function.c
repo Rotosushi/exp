@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,16 +23,17 @@
 #include "imr/value/function.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
+#include "support/assert.h"
 
 void formal_argument_list_create(FormalArgumentList *restrict fal) {
-    assert(fal != NULL);
+    EXP_ASSERT(fal != NULL);
     fal->capacity = 0;
     fal->length   = 0;
     fal->list     = NULL;
 }
 
 void formal_argument_list_destroy(FormalArgumentList *restrict fal) {
-    assert(fal != NULL);
+    EXP_ASSERT(fal != NULL);
     fal->capacity = 0;
     fal->length   = 0;
     deallocate(fal->list);
@@ -52,8 +52,8 @@ static void formal_argument_list_grow(FormalArgumentList *restrict fal) {
 
 Local *formal_argument_list_append(FormalArgumentList *restrict fal,
                                    Local *restrict arg) {
-    assert(fal != NULL);
-    assert(arg != NULL);
+    EXP_ASSERT(fal != NULL);
+    EXP_ASSERT(arg != NULL);
     if (formal_argument_list_full(fal)) { formal_argument_list_grow(fal); }
 
     fal->list[fal->length++] = arg;
@@ -62,24 +62,24 @@ Local *formal_argument_list_append(FormalArgumentList *restrict fal,
 }
 
 void function_create(Function *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     formal_argument_list_create(&function->arguments);
     locals_create(&function->locals);
-    bytecode_create(&function->body);
+    block_create(&function->body);
     u32 ssa          = locals_declare(&function->locals);
     function->result = locals_lookup(&function->locals, ssa);
 }
 
 void function_destroy(Function *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     formal_argument_list_destroy(&function->arguments);
     locals_destroy(&function->locals);
-    bytecode_destroy(&function->body);
+    block_destroy(&function->body);
     function->result = NULL;
 }
 
 u32 function_declare_argument(Function *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     u32    ssa   = locals_declare(&function->locals);
     Local *local = locals_lookup(&function->locals, ssa);
     formal_argument_list_append(&function->arguments, local);
@@ -87,36 +87,34 @@ u32 function_declare_argument(Function *restrict function) {
 }
 
 u32 function_declare_local(Function *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     return locals_declare(&function->locals);
 }
 
 Local *function_lookup_argument(Function const *restrict function, u8 index) {
-    assert(function != NULL);
-    assert(index < function->arguments.length);
+    EXP_ASSERT(function != NULL);
+    EXP_ASSERT(index < function->arguments.length);
     return function->arguments.list[index];
 }
 
 Local *function_lookup_local(Function const *restrict function, u32 ssa) {
-    assert(function != NULL);
-
+    EXP_ASSERT(function != NULL);
     return locals_lookup(&function->locals, ssa);
 }
 
 Local *function_lookup_local_name(Function const *restrict function,
                                   StringView name) {
-    assert(function != NULL);
-
+    EXP_ASSERT(function != NULL);
     return locals_lookup_name(&function->locals, name);
 }
 
 u32 function_locals_length(Function const *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     return function->locals.size;
 }
 
 u8 function_arguments_length(Function const *restrict function) {
-    assert(function != NULL);
+    EXP_ASSERT(function != NULL);
     return function->arguments.length;
 }
 
@@ -138,5 +136,5 @@ void print_function(String *restrict string,
         if (i < (u8)(args->length - 1)) { string_append(string, SV(", ")); }
     }
     string_append(string, SV(")\n"));
-    print_bytecode(string, &f->body, context);
+    print_block(string, &f->body, context);
 }

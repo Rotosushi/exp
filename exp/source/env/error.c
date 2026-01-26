@@ -70,8 +70,12 @@ StringView error_code_to_view(ErrorCode code) {
 
     case ERROR_EVALUATION_UNSIGNED_OVERFLOW:
         return SV("Unsigned Overflow/Underflow: ");
+    case ERROR_EVALUATION_UNSIGNED_DIVISION_BY_ZERO:
+        return SV("Unsigned Division by zero: ");
     case ERROR_EVALUATION_SIGNED_OVERFLOW:
         return SV("Signed Overflow/Underflow: ");
+    case ERROR_EVALUATION_SIGNED_DIVISION_BY_ZERO:
+        return SV("Signed Division by zero: ");
 
     default: EXP_UNREACHABLE();
     }
@@ -113,14 +117,14 @@ void error_assign_string(Error *restrict error, ErrorCode code, String str) {
 
 void error_print(Error const *restrict error, StringView file, u64 line) {
     String msg = string_create();
+    string_append(&msg, file);
+    string_append(&msg, SV(":"));
+    string_append_u64(&msg, line);
+    string_append(&msg, SV(" "));
     string_append(&msg, SV(ANSI_COLOR_RED));
     string_append(&msg, error_code_to_view(error->code));
     string_append(&msg, SV(ANSI_COLOR_RESET));
-    string_append(&msg, SV("["));
-    string_append(&msg, SV(ANSI_COLOR_RED));
     string_append_string(&msg, &error->message);
-    string_append(&msg, SV(ANSI_COLOR_RESET));
-    string_append(&msg, SV("]"));
-    message(MESSAGE_ERROR, file.ptr, line, string_to_view(&msg), stderr);
+    message(MESSAGE_ERROR, string_to_cstring(&msg), stderr);
     string_destroy(&msg);
 }

@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <ctype.h>
 #include <stddef.h>
 
+#include "support/assert.h"
 #include "support/numeric_conversions.h"
 
 u64 u64_safe_strlen(u64 value) {
@@ -54,9 +54,9 @@ u64 i64_safe_strlen(i64 value) {
 }
 
 char *i64_to_str(i64 value, char *restrict buffer) {
-    assert(buffer != NULL);
+    EXP_ASSERT(buffer != NULL);
 
-    i64 tmp_value;
+    i64   tmp_value;
     char *ptr1, *ptr2;
     char mapping[] = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijkl"
                      "mnopqrstuvwxyz";
@@ -87,7 +87,7 @@ char *i64_to_str(i64 value, char *restrict buffer) {
 }
 
 char *u64_to_str(u64 value, char *restrict buffer) {
-    assert(buffer != NULL);
+    EXP_ASSERT(buffer != NULL);
 
     char *ptr1, *ptr2;
     char mapping[] = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijkl"
@@ -118,8 +118,8 @@ char *u64_to_str(u64 value, char *restrict buffer) {
 
 static bool
 base10_stou64(u64 *result, char const *restrict buffer, u64 length) {
-    assert(buffer != NULL);
-    assert(result != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(result != NULL);
     u64 acc = 0;
     u64 i   = 0;
 
@@ -143,11 +143,11 @@ base10_stou64(u64 *result, char const *restrict buffer, u64 length) {
 
 static bool
 base10_stoi64(i64 *result, char const *restrict buffer, u64 length) {
-    assert(buffer != NULL);
-    assert(result != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(result != NULL);
     char const *cursor = buffer;
-    i64 sign           = 1;
-    u64 val            = 0;
+    i64         sign   = 1;
+    u64         val    = 0;
     if (*cursor == '-') {
         sign = -1;
         ++cursor;
@@ -177,13 +177,13 @@ base10_stoi64(i64 *result, char const *restrict buffer, u64 length) {
 }
 
 bool str_to_i64(i64 *result, char const *restrict buffer, u64 length) {
-    assert(buffer != NULL);
-    assert(result != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(result != NULL);
     return base10_stoi64(result, buffer, length);
 }
 
 bool str_to_u64(u64 *result, char const *restrict buffer, u64 length) {
-    assert(buffer != NULL);
-    assert(result != NULL);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(result != NULL);
     return base10_stou64(result, buffer, length);
 }

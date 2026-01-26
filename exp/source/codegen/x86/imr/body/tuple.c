@@ -23,14 +23,14 @@
 #include "support/assert.h"
 
 void x86_tuple_create(x86_Tuple *restrict tuple) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     tuple->length   = 0;
     tuple->capacity = 0;
     tuple->buffer   = NULL;
 }
 
 void x86_tuple_destroy(x86_Tuple *restrict tuple) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     deallocate(tuple->buffer);
     x86_tuple_create(tuple);
 }
@@ -46,7 +46,7 @@ static void x86_tuple_grow(x86_Tuple *restrict tuple) {
 }
 
 void x86_tuple_append(x86_Tuple *restrict tuple, x86_Operand operand) {
-    exp_assert(tuple != NULL);
+    EXP_ASSERT(tuple != NULL);
     if (x86_tuple_full(tuple)) { x86_tuple_grow(tuple); }
 
     tuple->buffer[tuple->length++] = operand;

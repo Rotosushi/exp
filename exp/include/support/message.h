@@ -19,9 +19,6 @@
 
 #include <stdio.h>
 
-#include "support/scalar.h"
-#include "support/string_view.h"
-
 typedef enum MessageLevel {
     MESSAGE_FATAL,
     MESSAGE_ERROR,
@@ -34,30 +31,12 @@ typedef enum MessageLevel {
  * @brief logs a message to the given stream.
  *
  * @note message is formatted as
- * "[<fatal|error|warning|status> (@ <file>:<line>)?] <message>\n"
+ * "[<fatal|error|warning|status|trace>] <message>\n"
  *
  * @param level the severity of the message
- * @param file the filename related to the message (can be NULL)
- * @param line the linenum related to the message
  * @param message the message to print
  * @param stream the stream to write to
  */
-void message(MessageLevel level,
-             const char *restrict file,
-             u64        line,
-             StringView msg,
-             FILE *restrict stream);
-
-/**
- * @brief wrapper for message that does not take a file and line number.
- * and uses MESSAGE_STATUS as the MessageLevel.
- */
-void status(StringView msg, FILE *restrict stream);
-void status_u64(u64 value, FILE *restrict stream);
-void status_i64(i64 value, FILE *restrict stream);
-void status_command(StringView   cmd,
-                    i32          argc,
-                    char const **argv,
-                    FILE *restrict stream);
+void message(MessageLevel level, char const *msg, FILE *restrict stream);
 
 #endif // !EXP_UTILITY_LOG_MESSAGE_H

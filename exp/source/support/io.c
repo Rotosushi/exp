@@ -16,25 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "support/assert.h"
 #include "support/config.h"
 #include "support/io.h"
 #include "support/numeric_conversions.h"
 #include "support/panic.h"
 
 FILE *file_open(char const *restrict path, char const *restrict modes) {
-    assert(path != NULL);
-    assert(modes != NULL);
+    EXP_ASSERT(path != NULL);
+    EXP_ASSERT(modes != NULL);
     FILE *file = fopen(path, modes);
     if (file == NULL) { PANIC_ERRNO("fopen failed"); }
     return file;
 }
 
 void file_close(FILE *restrict file) {
-    assert(file != NULL);
+    EXP_ASSERT(file != NULL);
     if (fclose(file) == EOF) { PANIC_ERRNO("fclose failed"); }
 }
 

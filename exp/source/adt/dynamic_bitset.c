@@ -21,17 +21,18 @@
 
 #include "adt/dynamic_bitset.h"
 #include "support/allocation.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/panic.h"
 
 void dynamic_bitset_create(DynamicBitset *restrict bitset) {
-    exp_assert(bitset != NULL);
+    EXP_ASSERT(bitset != NULL);
     bitset->capacity = 0;
     bitset->buffer   = NULL;
 }
 
 void dynamic_bitset_destroy(DynamicBitset *restrict bitset) {
-    exp_assert(bitset != NULL);
+    EXP_ASSERT(bitset != NULL);
     deallocate(bitset->buffer);
     dynamic_bitset_create(bitset);
 }
@@ -50,8 +51,7 @@ static bool index_in_range(DynamicBitset const *restrict bitset, u64 index) {
 
 void dynamic_bitset_resize(DynamicBitset *restrict bitset, u64 capacity) {
     u64 alloc_size;
-    if (__builtin_mul_overflow(
-            capacity, sizeof(*bitset->buffer), &alloc_size)) {
+    if (mul_u64(capacity, sizeof(*bitset->buffer), &alloc_size)) {
         PANIC("dynamic array capacity overflow");
     }
 
@@ -63,20 +63,20 @@ void dynamic_bitset_resize(DynamicBitset *restrict bitset, u64 capacity) {
 }
 
 void dynamic_bitset_set(DynamicBitset *restrict bitset, u64 index) {
-    exp_assert(bitset != NULL);
-    exp_assert(index_in_range(bitset, index));
+    EXP_ASSERT(bitset != NULL);
+    EXP_ASSERT(index_in_range(bitset, index));
     bitset->buffer[element_of_index(index)] |= (1ULL << bit_of_element(index));
 }
 
 void dynamic_bitset_clear(DynamicBitset *restrict bitset, u64 index) {
-    exp_assert(bitset != NULL);
-    exp_assert(index_in_range(bitset, index));
+    EXP_ASSERT(bitset != NULL);
+    EXP_ASSERT(index_in_range(bitset, index));
     bitset->buffer[element_of_index(index)] &= ~(1ULL << bit_of_element(index));
 }
 
 bool dynamic_bitset_check(DynamicBitset *restrict bitset, u64 index) {
-    exp_assert(bitset != NULL);
-    exp_assert(index_in_range(bitset, index));
+    EXP_ASSERT(bitset != NULL);
+    EXP_ASSERT(index_in_range(bitset, index));
     return (bitset->buffer[element_of_index(index)] >> bit_of_element(index)) &
            1ULL;
 }

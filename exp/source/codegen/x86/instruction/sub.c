@@ -21,7 +21,7 @@
 #include "codegen/x86/instruction/sub.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
-
+/*
 static void x86_codegen_subtract_ssa(Instruction  I,
                                      u64          block_index,
                                      Local       *local,
@@ -82,52 +82,48 @@ static void x86_codegen_subtract_immediate(Instruction  I,
                                            Local       *local,
                                            x86_Context *context) {
     switch (I.C_kind) {
-        /*
+        *
          * #NOTE: there is no x64 sub instruction which takes an
          * immediate value on the lhs. so we have to move the
          * value of B into a gpr and allocate A there.
-         * Then we can emit the sub instruction.
-         */
-    case OPERAND_KIND_SSA: {
-        x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
+         * then we can emit the sub instruction.
+         *
+case OPERAND_KIND_SSA: {
+    x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
-        x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
-        exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
-        x86_GPR gpr = A->location.gpr;
-        x86_context_append(
-            context,
-            x86_mov(x86_operand_gpr(gpr), x86_operand_i64(I.B_data.i64_)));
+    x86_Allocation *A = x86_context_allocate_to_any_gpr(context, local);
+    exp_assert_debug(A->location.kind == X86_LOCATION_GPR);
+    x86_GPR gpr = A->location.gpr;
+    x86_context_append(
+        context, x86_mov(x86_operand_gpr(gpr), x86_operand_i64(I.B_data.i64_)));
 
-        x86_context_append(context,
-                           x86_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
-        break;
-    }
+    x86_context_append(context,
+                       x86_sub(x86_operand_alloc(A), x86_operand_alloc(C)));
+    break;
+}
 
-    case OPERAND_KIND_I64: {
-        x86_Allocation *A = x86_context_allocate(context, local, block_index);
-        x86_context_append(
-            context,
-            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
-        x86_context_append(
-            context,
-            x86_sub(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
-        break;
-    }
+case OPERAND_KIND_I64: {
+    x86_Allocation *A = x86_context_allocate(context, local, block_index);
+    x86_context_append(
+        context, x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
+    x86_context_append(
+        context, x86_sub(x86_operand_alloc(A), x86_operand_i64(I.C_data.i64_)));
+    break;
+}
 
-    case OPERAND_KIND_CONSTANT: {
-        x86_Allocation *A = x86_context_allocate(context, local, block_index);
-        x86_context_append(
-            context,
-            x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
-        x86_context_append(context,
-                           x86_sub(x86_operand_alloc(A),
-                                   x86_operand_constant(I.C_data.constant)));
-        break;
-    }
+case OPERAND_KIND_CONSTANT: {
+    x86_Allocation *A = x86_context_allocate(context, local, block_index);
+    x86_context_append(
+        context, x86_mov(x86_operand_alloc(A), x86_operand_i64(I.B_data.i64_)));
+    x86_context_append(
+        context,
+        x86_sub(x86_operand_alloc(A), x86_operand_constant(I.C_data.constant)));
+    break;
+}
 
-    case OPERAND_KIND_LABEL:
-    default:                 EXP_UNREACHABLE();
-    }
+case OPERAND_KIND_LABEL:
+default:                 EXP_UNREACHABLE();
+}
 }
 
 void x86_codegen_subtract_constant(Instruction  I,
@@ -135,12 +131,12 @@ void x86_codegen_subtract_constant(Instruction  I,
                                    Local       *local,
                                    x86_Context *context) {
     switch (I.C_kind) {
-        /*
+        *
          * #NOTE: there is no x64 sub instruction which takes an
          *  constant value on the lhs. so we have to move the
          *  value of B into a gpr and allocate A there.
          *  Then we can emit the sub instruction.
-         */
+         *
     case OPERAND_KIND_SSA: {
         x86_Allocation *C = x86_context_allocation_of(context, I.C_data.ssa);
 
@@ -208,3 +204,4 @@ void x86_codegen_sub(Instruction I,
     default:                 EXP_UNREACHABLE();
     }
 }
+*/

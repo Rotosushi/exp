@@ -23,11 +23,13 @@
 #include "codegen/IR/target.h"
 #include "codegen/x86/target.h"
 #include "env/cli_options.h"
+#include "support/assert.h"
 #include "support/config.h"
 #include "support/io.h"
 #include "support/message.h"
 
 void cli_options_create(CLIOptions *restrict cli_options) {
+    EXP_ASSERT(cli_options != NULL);
     cli_options->context_options.prolix                     = false;
     cli_options->context_options.create_assembly_artifact   = true;
     cli_options->context_options.create_object_artifact     = true;
@@ -38,6 +40,7 @@ void cli_options_create(CLIOptions *restrict cli_options) {
 }
 
 void cli_options_destroy(CLIOptions *restrict cli_options) {
+    EXP_ASSERT(cli_options != NULL);
     string_destroy(&cli_options->source);
 }
 
@@ -62,6 +65,8 @@ static void print_help(FILE *file) {
 void parse_cli_options(i32         argc,
                        char const *argv[],
                        CLIOptions *restrict cli_options) {
+    EXP_ASSERT(argv != NULL);
+    EXP_ASSERT(cli_options != NULL);
     static char const *short_options = "hvpcst:";
 
     // Set the default target
@@ -124,7 +129,7 @@ void parse_cli_options(i32         argc,
             string_append(&string, SV("unknown option ["));
             string_append(&string, option_view);
             string_append(&string, SV("]\n"));
-            message(MESSAGE_ERROR, NULL, 0, string_to_view(&string), stderr);
+            message(MESSAGE_ERROR, string_to_cstring(&string), stderr);
             string_destroy(&string);
             break;
         }
@@ -135,11 +140,7 @@ void parse_cli_options(i32         argc,
         string_assign(&(cli_options->source),
                       string_view_from_cstring(argv[optind]));
     } else { // no input file given
-        message(MESSAGE_ERROR,
-                NULL,
-                0,
-                SV("an input file must be specified.\n"),
-                stderr);
+        message(MESSAGE_ERROR, "an input file must be specified.\n", stderr);
         exit(EXIT_SUCCESS);
     }
 }

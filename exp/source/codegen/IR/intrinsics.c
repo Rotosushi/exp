@@ -22,7 +22,7 @@
 #include "support/unreachable.h"
 
 u64 ir_size_of_primary(TypePrimary const *restrict primary) {
-    exp_assert(primary != NULL);
+    EXP_ASSERT(primary != NULL);
     switch (primary->kind) {
     case TYPE_PRIMARY_KIND_NIL:  return 1;
     case TYPE_PRIMARY_KIND_BOOL: return 1;
@@ -39,7 +39,7 @@ u64 ir_size_of_primary(TypePrimary const *restrict primary) {
 }
 
 u64 ir_align_of_primary(TypePrimary const *restrict primary) {
-    exp_assert(primary != NULL);
+    EXP_ASSERT(primary != NULL);
 
     switch (primary->kind) {
     case TYPE_PRIMARY_KIND_NIL:  return 1;

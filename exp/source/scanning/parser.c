@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -25,6 +24,7 @@
 #include "imr/value/tuple.h"
 #include "scanning/lexer.h"
 #include "scanning/parser.h"
+#include "support/arithmetic.h"
 #include "support/assert.h"
 #include "support/constant_string.h"
 #include "support/numeric_conversions.h"
@@ -57,7 +57,7 @@ typedef struct ParseRule {
 } ParseRule;
 
 void parser_create(Parser *restrict parser, Context *restrict context) {
-    assert(parser != NULL);
+    EXP_ASSERT(parser != NULL);
     parser->context  = context;
     parser->function = NULL;
     lexer_init(&(parser->lexer));
@@ -65,14 +65,14 @@ void parser_create(Parser *restrict parser, Context *restrict context) {
 }
 
 void parser_set_file(Parser *restrict parser, StringView file) {
-    assert(parser != NULL);
+    EXP_ASSERT(parser != NULL);
     lexer_set_file(&parser->lexer, file);
 }
 
 void parser_current_source_location(Parser const *restrict parser,
                                     SourceLocation *restrict source_location) {
-    assert(parser != NULL);
-    assert(source_location != NULL);
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(source_location != NULL);
     lexer_current_source_location(&parser->lexer, source_location);
 }
 
@@ -109,8 +109,8 @@ static bool nexttok(Parser *restrict parser) {
 }
 
 bool parser_setup(Parser *restrict parser, StringView view) {
-    assert(parser != NULL);
-    assert(!string_view_empty(view));
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(!string_view_empty(view));
     lexer_set_view(&(parser->lexer), view);
     if (!nexttok(parser)) {
         context_print_error(parser->context,
@@ -124,15 +124,15 @@ bool parser_setup(Parser *restrict parser, StringView view) {
 
 static void parser_emit_instruction(Parser *restrict parser,
                                     Instruction instruction) {
-    assert(parser != NULL);
-    assert(parser->function != NULL);
-    bytecode_append(&parser->function->body, instruction);
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(parser->function != NULL);
+    block_append(&parser->function->body, instruction);
 }
 
 static Operand parser_declare_local(Parser *restrict parser) {
-    assert(parser != NULL);
-    assert(parser->function != NULL);
-    return operand_ssa(function_declare_local(parser->function));
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(parser->function != NULL);
+    return operand_local(function_declare_local(parser->function));
 }
 
 static void parser_emit_B(Parser *restrict parser, Opcode opcode, Operand B) {
@@ -229,7 +229,7 @@ static bool parse_tuple_type(Type const **restrict result,
     default:                            EXP_UNREACHABLE();
     }
 
-    assert(peek(parser, TOK_BEGIN_PAREN));
+    EXP_ASSERT(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; } // eat '('
 
     TypeTuple tuple_type;
@@ -239,7 +239,7 @@ static bool parse_tuple_type(Type const **restrict result,
     do {
         Type const *element = NULL;
         if (!parse_type(&element, parser)) { return false; }
-        assert(element != NULL);
+        EXP_ASSERT(element != NULL);
 
         type_tuple_append(&tuple_type, element);
 
@@ -331,7 +331,7 @@ static bool parse_formal_argument(Local *restrict arg,
 
     Type const *type = NULL;
     if (!parse_type(&type, parser)) { return false; }
-    assert(type != NULL);
+    EXP_ASSERT(type != NULL);
 
     arg->name = constant_string_to_view(name);
     arg->type = type;
@@ -410,9 +410,9 @@ static bool return_(Operand *restrict result, Parser *restrict parser) {
     return true;
 }
 
-// constant = "const" identifier "=" expression ";"
+// constant = "const" identifier (":" type)? "=" expression ";"
 static bool let(Operand *restrict result, Parser *restrict parser) {
-    exp_assert_debug(peek(parser, TOK_LET));
+    EXP_ASSERT(peek(parser, TOK_LET));
     if (!nexttok(parser)) { return false; } // eat 'let'
 
     if (!peek(parser, TOK_IDENTIFIER)) {
@@ -421,6 +421,10 @@ static bool let(Operand *restrict result, Parser *restrict parser) {
     StringView name = constant_string_to_view(
         context_intern(parser->context, curtxt(parser)));
     if (!nexttok(parser)) { return false; }
+
+    switch (expect(parser, TOK_COLON)) {
+    case EXPECT_RESULT_SUCCESS: break;
+    }
 
     switch (expect(parser, TOK_EQUAL)) {
     case EXPECT_RESULT_SUCCESS: break;
@@ -441,7 +445,7 @@ static bool let(Operand *restrict result, Parser *restrict parser) {
     }
 
     *result      = parser_emit_let(parser, *result);
-    Local *local = function_lookup_local(parser->function, result->data.ssa);
+    Local *local = function_lookup_local(parser->function, result->data.local);
     local->name  = name;
 
     return true;
@@ -504,7 +508,7 @@ static bool parse_block(Operand *restrict result, Parser *restrict parser) {
 }
 
 static bool function(Operand *restrict result, Parser *restrict parser) {
-    exp_assert_debug(peek(parser, TOK_FN));
+    EXP_ASSERT(peek(parser, TOK_FN));
     if (!nexttok(parser)) { return false; } // eat "fn"
 
     if (!peek(parser, TOK_IDENTIFIER)) {
@@ -538,15 +542,15 @@ static bool function(Operand *restrict result, Parser *restrict parser) {
     parser->function = previous;
     Value const *fn  = context_constant_function(parser->context, function);
     *result          = parser_emit_let(parser, operand_constant(fn));
-    exp_assert_debug(result->kind == OPERAND_KIND_SSA);
-    Local *local = function_lookup_local(parser->function, result->data.ssa);
+    EXP_ASSERT(result->kind == OPERAND_KIND_LOCAL);
+    Local *local = function_lookup_local(parser->function, result->data.local);
     local->name  = name;
 
     return true;
 }
 
 static bool lambda(Operand *restrict result, Parser *restrict parser) {
-    exp_assert_debug(peek(parser, TOK_BACKSLASH));
+    EXP_ASSERT(peek(parser, TOK_BACKSLASH));
     if (!nexttok(parser)) { return false; } // eat "\"
 
     Function function;
@@ -583,7 +587,7 @@ static bool parse_tuple(Tuple *restrict tuple, Parser *restrict parser) {
     default:                            EXP_UNREACHABLE();
     }
 
-    assert(peek(parser, TOK_BEGIN_PAREN));
+    EXP_ASSERT(peek(parser, TOK_BEGIN_PAREN));
     if (!nexttok(parser)) { return false; }
 
     switch (expect(parser, TOK_END_PAREN)) {
@@ -687,28 +691,28 @@ call(Operand *restrict result, Operand left, Parser *restrict parser) {
 }
 
 static bool nil(Operand *restrict result, Parser *restrict parser) {
-    assert(peek(parser, TOK_NIL));
+    EXP_ASSERT(peek(parser, TOK_NIL));
     if (!nexttok(parser)) { return false; }
     *result = operand_nil();
     return true;
 }
 
 static bool boolean_true(Operand *restrict result, Parser *restrict parser) {
-    assert(peek(parser, TOK_TRUE));
+    EXP_ASSERT(peek(parser, TOK_TRUE));
     if (!nexttok(parser)) { return false; }
     *result = operand_bool(true);
     return true;
 }
 
 static bool boolean_false(Operand *restrict result, Parser *restrict parser) {
-    assert(peek(parser, TOK_FALSE));
+    EXP_ASSERT(peek(parser, TOK_FALSE));
     if (!nexttok(parser)) { return false; }
     *result = operand_bool(false);
     return true;
 }
 
 static bool integer(Operand *restrict result, Parser *restrict parser) {
-    assert(peek(parser, TOK_INTEGER));
+    EXP_ASSERT(peek(parser, TOK_INTEGER));
     StringView sv      = curtxt(parser);
     u64        integer = 0;
 
@@ -727,7 +731,7 @@ static bool integer(Operand *restrict result, Parser *restrict parser) {
 }
 
 static bool identifier(Operand *restrict result, Parser *restrict parser) {
-    exp_assert_debug(peek(parser, TOK_IDENTIFIER));
+    EXP_ASSERT(peek(parser, TOK_IDENTIFIER));
     ConstantString *name = context_intern(parser->context, curtxt(parser));
     if (!nexttok(parser)) { return false; }
     // We could perform lookup here, but that forces the source code to provide
@@ -841,8 +845,8 @@ static bool top_level_expression(Parser *restrict parser) {
 
 bool parser_parse_expression(Parser *restrict parser,
                              Function *restrict expression) {
-    assert(parser != NULL);
-    assert(expression != NULL);
+    EXP_ASSERT(parser != NULL);
+    EXP_ASSERT(expression != NULL);
     parser->function = expression;
     return top_level_expression(parser);
 }

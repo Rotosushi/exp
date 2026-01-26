@@ -53,7 +53,7 @@ x86_location_address(x86_GPR base, x86_PtrKind ptr_kind, i32 offset) {
 
 x86_Location x86_location_address_indexed(
     x86_GPR base, x86_PtrKind ptr_kind, x86_GPR index, u8 scale, i32 offset) {
-    exp_assert(valid_scale(scale));
+    EXP_ASSERT(valid_scale(scale));
     return (x86_Location){
         .base     = base,
         .ptr_kind = ptr_kind,
@@ -83,8 +83,8 @@ static bool x86_location_address_equality(x86_Location A, x86_Location B) {
 }
 
 bool x86_location_equality(x86_Location A, x86_Location B) {
-    exp_assert(A.is_alive);
-    exp_assert(B.is_alive);
+    EXP_ASSERT(A.is_alive);
+    EXP_ASSERT(B.is_alive);
 
     if (A.is_address && B.is_address) {
         return x86_location_address_equality(A, B);
@@ -96,7 +96,7 @@ bool x86_location_equality(x86_Location A, x86_Location B) {
 }
 
 x86_Location x86_location_address_increment(x86_Location location, i32 offset) {
-    exp_assert(location.is_address);
+    EXP_ASSERT(location.is_address);
     if (__builtin_add_overflow(location.offset, offset, &location.offset)) {
         PANIC("address increment overflow.");
     }
@@ -111,7 +111,7 @@ static void print_x86_address(String *restrict buffer, x86_Location address) {
     string_append(buffer, x86_gpr_mnemonic(address.base));
 
     if (address.is_index) {
-        exp_assert(valid_scale(address.scale));
+        EXP_ASSERT(valid_scale(address.scale));
         string_append(buffer, SV(" + "));
         string_append(buffer, x86_gpr_mnemonic(address.index));
         string_append(buffer, SV(" * "));
@@ -130,8 +130,8 @@ static void print_x86_address(String *restrict buffer, x86_Location address) {
 }
 
 void print_x86_location(String *restrict buffer, x86_Location location) {
-    exp_assert(buffer != NULL);
-    exp_assert(location.is_alive);
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(location.is_alive);
 
     if (location.is_address) {
         print_x86_address(buffer, location);

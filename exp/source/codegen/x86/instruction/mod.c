@@ -21,7 +21,7 @@
 
 #include "codegen/x86/instruction/mod.h"
 #include "support/unreachable.h"
-
+/*
 static void x86_codegen_modulus_ssa(Instruction  I,
                                     u64          block_index,
                                     Local       *local,
@@ -261,4 +261,4 @@ void x86_codegen_mod(Instruction I,
     case OPERAND_KIND_LABEL:
     default:                 EXP_UNREACHABLE();
     }
-}
+}*/

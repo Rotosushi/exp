@@ -56,12 +56,12 @@ void x86_codegen_initialize_local_from_value(
     u32 block_index,
     x86_Function *restrict x86_function,
     Context *restrict context) {
-    exp_assert(allocation != NULL);
-    exp_assert(value != NULL);
-    exp_assert(x86_function != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(allocation != NULL);
+    EXP_ASSERT(value != NULL);
+    EXP_ASSERT(x86_function != NULL);
+    EXP_ASSERT(context != NULL);
 
-    exp_assert(x86_allocation_alive(allocation, block_index));
+    EXP_ASSERT(x86_allocation_alive(allocation, block_index));
     x86_codegen_copy_value(
         allocation->location, value, block_index, x86_function, context);
 }
@@ -73,18 +73,18 @@ void x86_codegen_initialize_local_from_operand(
     Function *restrict function,
     x86_Function *restrict x86_function,
     Context *restrict context) {
-    exp_assert(allocation != NULL);
-    exp_assert(x86_function != NULL);
-    exp_assert(context != NULL);
+    EXP_ASSERT(allocation != NULL);
+    EXP_ASSERT(x86_function != NULL);
+    EXP_ASSERT(context != NULL);
 
-    exp_assert(x86_allocation_alive(allocation, block_index));
+    EXP_ASSERT(x86_allocation_alive(allocation, block_index));
 
     switch (operand.kind) {
         // Initialize a local from another local, this can be implemented as
         // a copy.
-    case OPERAND_KIND_SSA:
+    case OPERAND_KIND_LOCAL:
         x86_codegen_initialize_local_from_local(allocation,
-                                                operand.data.ssa,
+                                                operand.data.local,
                                                 block_index,
                                                 function,
                                                 x86_function,

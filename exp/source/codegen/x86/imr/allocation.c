@@ -24,7 +24,7 @@
 #include "support/assert.h"
 
 x86_Allocation *x86_allocation_allocate(Local const *restrict local) {
-    exp_assert(local != NULL);
+    EXP_ASSERT(local != NULL);
     x86_Allocation *allocation = callocate(1, sizeof(x86_Allocation));
     allocation->ssa            = local->ssa;
     allocation->alive          = true;
@@ -35,37 +35,37 @@ x86_Allocation *x86_allocation_allocate(Local const *restrict local) {
 }
 
 void x86_allocation_deallocate(x86_Allocation *restrict allocation) {
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     deallocate(allocation);
 }
 
 bool x86_allocation_alive(x86_Allocation const *restrict allocation,
                           u32 block_index) {
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     if (!allocation->alive) { return false; }
     if (block_index < allocation->lifetime.start) { return false; }
     return block_index <= allocation->lifetime.end;
 }
 
 void x86_allocation_expire(x86_Allocation *restrict allocation) {
-    exp_assert(allocation != NULL);
-    exp_assert(allocation->alive);
+    EXP_ASSERT(allocation != NULL);
+    EXP_ASSERT(allocation->alive);
     allocation->alive    = false;
     allocation->location = x86_location_expire();
 }
 
 u64 x86_allocation_size_of(x86_Allocation const *restrict allocation) {
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     return layout_size_of(allocation->type->layout);
 }
 
 u64 x86_allocation_align_of(x86_Allocation const *restrict allocation) {
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     return layout_align_of(allocation->type->layout);
 }
 
 x86_PtrKind
 x86_allocation_ptr_kind_of(x86_Allocation const *restrict allocation) {
-    exp_assert(allocation != NULL);
+    EXP_ASSERT(allocation != NULL);
     return x86_ptr_kind_of(allocation->type->layout);
 }

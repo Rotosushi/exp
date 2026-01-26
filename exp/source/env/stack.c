@@ -23,25 +23,25 @@
 #include "support/assert.h"
 
 void stack_create(Stack *restrict stack) {
-    exp_assert(stack != NULL);
+    EXP_ASSERT(stack != NULL);
     stack->size     = 0;
     stack->capacity = 0;
     stack->buffer   = NULL;
 }
 
 void stack_destroy(Stack *restrict stack) {
-    exp_assert(stack != NULL);
+    EXP_ASSERT(stack != NULL);
     deallocate(stack->buffer);
     stack_create(stack);
 }
 
 bool stack_empty(Stack const *restrict stack) {
-    exp_assert(stack != NULL);
+    EXP_ASSERT(stack != NULL);
     return stack->size == 0;
 }
 
 u32 stack_size(Stack const *restrict stack) {
-    exp_assert(stack != NULL);
+    EXP_ASSERT(stack != NULL);
     return stack->size;
 }
 
@@ -56,8 +56,8 @@ static void stack_grow(Stack *restrict stack) {
 }
 
 void stack_push(Stack *restrict stack, Value const *value) {
-    exp_assert(stack != NULL);
-    exp_assert(value != NULL);
+    EXP_ASSERT(stack != NULL);
+    EXP_ASSERT(value != NULL);
 
     if (stack_full(stack)) { stack_grow(stack); }
 
@@ -65,19 +65,19 @@ void stack_push(Stack *restrict stack, Value const *value) {
 }
 
 Value const *stack_pop(Stack *restrict stack) {
-    exp_assert(stack != NULL);
-    exp_assert(!stack_empty(stack));
+    EXP_ASSERT(stack != NULL);
+    EXP_ASSERT(!stack_empty(stack));
     return stack->buffer[--stack->size];
 }
 
 void stack_pop_n(Stack *restrict stack, u32 n) {
-    exp_assert(stack != NULL);
-    exp_assert(stack->size >= n);
+    EXP_ASSERT(stack != NULL);
+    EXP_ASSERT(stack->size >= n);
     stack->size -= n;
 }
 
 Value const *stack_peek(Stack const *restrict stack, u32 index) {
-    exp_assert(stack != NULL);
-    exp_assert(stack->size >= index);
+    EXP_ASSERT(stack != NULL);
+    EXP_ASSERT(stack->size >= index);
     return stack->buffer[index];
 }
