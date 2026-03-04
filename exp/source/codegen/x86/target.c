@@ -23,13 +23,14 @@
 #include "codegen/x86/intrinsics/size_of.h"
 
 Target x86_target_info = {
-    .tag                  = {              .length = sizeof("x86-64") - 1,.ptr = "x86-64"                                                                          },
-    .triple               = {.length = sizeof("x86_64-Linux-GNU-ELF") - 1,
-                             .ptr    = "x86_64-Linux-GNU-ELF"                             },
-    .assembly_extension   = {                   .length = sizeof("s") - 1,      .ptr = "s"},
-    .object_extension     = {                   .length = sizeof("o") - 1,      .ptr = "o"},
-    .library_extension    = {                   .length = sizeof("a") - 1,      .ptr = "a"},
-    .executable_extension = {                    .length = sizeof("") - 1,       .ptr = ""},
+    .tag                  = {.length = sizeof("x86-64") - 1, 
+                             .ptr    = "x86-64"                          },
+    .triple               = {.length = sizeof("x86_64-linux-gnu") - 1,
+                             .ptr    = "x86_64-linux-gnu"                },
+    .assembly_extension   = {.length = sizeof("s") - 1,      .ptr = "s"  },
+    .object_extension     = {.length = sizeof("o") - 1,      .ptr = "o"  },
+    .library_extension    = {.length = sizeof("a") - 1,      .ptr = "a"  },
+    .executable_extension = {.length = sizeof("") - 1,       .ptr = ""   },
     .size_of_primary      = x86_size_of_primary,
     .size_of_function     = x86_size_of_function,
     .align_of_primary     = x86_align_of_primary,
@@ -40,3 +41,4 @@ Target x86_target_info = {
 };
 
 Target *x86_target = &x86_target_info;
+

@@ -21,8 +21,13 @@
 #include "codegen/x86/instruction/dot.h"
 #include "codegen/x86/intrinsics/copy.h"
 #include "codegen/x86/intrinsics/get_element_address.h"
-#include "codegen/x86/intrinsics/load.h"
 #include "support/unreachable.h"
+
+void x86_codegen_dot(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
 /*
 void x86_codegen_dot(Instruction I,
                      u64         block_index,

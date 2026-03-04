@@ -19,9 +19,7 @@
 #include <assert.h>
 
 #include "codegen/x86/instruction/call.h"
-#include "codegen/x86/intrinsics/load.h"
-#include "intrinsics/size_of.h"
-#include "intrinsics/type_of.h"
+#include "codegen/x86/intrinsics/copy.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 /*

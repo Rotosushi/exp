@@ -14,10 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_INSTRUCTION_H
-#define EXP_IMR_INSTRUCTION_H
+#ifndef EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_INSTRUCTION_H
+#define EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_INSTRUCTION_H
 
-#include "imr/block/operand.h"
+#include "imr/operand.h"
 #include "support/assert.h"
 
 /*
@@ -36,10 +36,10 @@
 
 /*
  * #NOTE The current design only allows the definition of names to occur by
- * way of the "let" or "fn" instructions. This forces each other instruction
+ * way of the "let" instructions. This forces each other instruction
  * with a destination (add, sub, mul, etc...) to use a local temporary to
- * communicate the result to the "let" instruction. It would be faster and
- * result in smaller bytecode if we allowed any instruction with a destination
+ * communicate the result to the "let" instruction. It would result in smaller 
+ * bytecode if we allowed any instruction with a destination
  * to act as a "let" expression, by way of a label being the target destination.
  * example source code:
  ```
@@ -60,8 +60,29 @@
  * `let x = 5;`
  * `let x = (1, 2);`
  * These would need to be compiled into let instructions.
- * So the change would be mostly within the parser. plus modifying
- * the evaluator to handle non SSA operand As.
+ * This would require modification of the parser to handle the fold,
+ * Modification of each place in the compiler where we attempt to disambiguate
+ * an instruction (type checking, validation, evaluation, code generation) to 
+ * accomidate the potential for non local destinations in the bytecode.
+ * it is a major change, so further discussion is warrented.
+ * pros: 
+ *  - it reduces the count of instructions in a basic block.
+ *      - this reduces cache pressure
+ *  - it makes the instruction format more flexible. we can fold assignment
+ *    away into other operations as well, not just let expressions. Though
+ *    assignment is a whole topic on its own in SSA form. We need the PSI
+ *    instruction to handle the logic of assignment, it is far more complex 
+ *    than it appears at first glance.
+ *  - it reduces the pressure on the register allocator. as there are less 
+ *    intermediate values which need to be accounted for.
+ *
+ * cons:
+ *  - it increases the complexity of the compiler basically everywhere.
+ *    it isnt a significant amount, basically another layer of switch 
+ *    statements. The way we disambiguate instructions is essentially
+ *    what is the kind of operand A? and then for each kind of operand 
+ *    A we have to ask what is the kind of operand B, and then for each 
+ *    kind of operand B we have to ask what is the kind of operand C.
  */
 
 /*
@@ -222,4 +243,4 @@ void print_instruction(String *restrict string,
                        Instruction instruction,
                        struct Context *restrict context);
 
-#endif // !EXP_IMR_INSTRUCTION_H
+#endif // !EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_INSTRUCTION_H

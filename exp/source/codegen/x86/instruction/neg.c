@@ -21,6 +21,12 @@
 #include "codegen/x86/instruction/neg.h"
 #include "support/unreachable.h"
 
+void x86_codegen_neg(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
+
 // void x86_codegen_neg(Instruction I,
 //                      u64         block_index,
 //                      x86_Context *restrict context) {

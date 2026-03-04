@@ -18,7 +18,7 @@
  */
 
 #include "analysis/infer_lifetimes.h"
-#include "imr/block/instruction.h"
+#include "imr/instruction.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/unreachable.h"

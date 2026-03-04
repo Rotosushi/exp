@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #include "env/error.h"
-#include "imr/block/operand.h"
+#include "imr/operand.h"
 #include "imr/value/tuple.h"
 #include "scanning/lexer.h"
 #include "scanning/parser.h"

@@ -14,10 +14,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef EXP_IMR_BYTECODE_H
-#define EXP_IMR_BYTECODE_H
+#ifndef EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_H
+#define EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_H
 
-#include "imr/block/instruction.h"
+#include "imr/instruction.h"
 
 /**
  * @brief represents a section of instructions.
@@ -37,4 +37,4 @@ struct Context;
 void print_block(String *restrict string,
                  Block const *restrict block,
                  struct Context *restrict context);
-#endif // !EXP_IMR_BYTECODE_H
+#endif // !EXP_IMR_VALUE_FUNCTION_BODY_BLOCK_H

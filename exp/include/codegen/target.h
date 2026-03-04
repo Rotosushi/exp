@@ -55,6 +55,14 @@ typedef u64 (*align_of_function_fn)();
 // code generation with emission. However, this removes
 // the need for a target dependent context, which should be
 // less code overall.
+// #NOTE: #UPDATE: Feb, 24 2026. I have changed my mind on this,
+// the flexibility of the target specific context is the point of 
+// having one, and the codegeneration routines themselves are unaffected
+// by the presence or absence of a target specific context. Thus code 
+// generation complexity is not abated by the removal of the context.
+// However, given the lack of any real use of the context at this moment,
+// the code generation subroutines themselves are far more important,
+// so this is a #TODO:
 typedef i32 (*codegen_fn)(struct String *restrict buffer,
                           struct Symbol const *restrict symbol,
                           struct Context *restrict context);
@@ -62,6 +70,12 @@ typedef i32 (*header_fn)(struct String *restrict buffer,
                          struct Context *restrict context);
 typedef i32 (*footer_fn)(struct String *restrict buffer,
                          struct Context *restrict context);
+
+// #NOTE: Define a target specific context, to allow for the definition of 
+// target specific operations.
+typedef void * (*target_context_allocate)();
+typedef void   (*target_context_deallocate)(void *);
+
 
 // #TODO: This structure needs to be broken up into more components
 // for supporting target specific CPU features.

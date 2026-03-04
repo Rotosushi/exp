@@ -17,7 +17,7 @@
 #ifndef EXP_IMR_FUNCTION_H
 #define EXP_IMR_FUNCTION_H
 
-#include "imr/block.h"
+#include "imr/value/function/body/block.h"
 #include "imr/value/function/locals.h"
 #include "support/string_view.h"
 

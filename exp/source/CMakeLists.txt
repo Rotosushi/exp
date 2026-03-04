@@ -60,16 +60,16 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/ptr_kind_of.c
   ${EXP_SOURCE_DIR}/codegen/x86/intrinsics/size_of.c
 
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/let.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/add.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/call.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/div.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/dot.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/let.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mod.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/mul.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/neg.c
   ${EXP_SOURCE_DIR}/codegen/x86/instruction/ret.c
-  #${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
+  ${EXP_SOURCE_DIR}/codegen/x86/instruction/sub.c
 
   ${EXP_SOURCE_DIR}/codegen/x86/imr/allocation/location.c
 
@@ -118,20 +118,21 @@ set(SOURCE_FILES
   ${EXP_SOURCE_DIR}/evaluate/top.c
   ${EXP_SOURCE_DIR}/evaluate/evaluate.c
 
-  ${EXP_SOURCE_DIR}/imr/block/instruction.c
-  ${EXP_SOURCE_DIR}/imr/block/operand.c
   ${EXP_SOURCE_DIR}/imr/layout/primary.c
   ${EXP_SOURCE_DIR}/imr/layout/tuple.c
   ${EXP_SOURCE_DIR}/imr/type/composite.c
   ${EXP_SOURCE_DIR}/imr/type/function.c
   ${EXP_SOURCE_DIR}/imr/type/primary.c
   ${EXP_SOURCE_DIR}/imr/type/tuple.c
+  ${EXP_SOURCE_DIR}/imr/value/function/body/block.c
+  ${EXP_SOURCE_DIR}/imr/value/function/body.c
   ${EXP_SOURCE_DIR}/imr/value/function/local.c
   ${EXP_SOURCE_DIR}/imr/value/function/locals.c
   ${EXP_SOURCE_DIR}/imr/value/function.c
   ${EXP_SOURCE_DIR}/imr/value/tuple.c
-  ${EXP_SOURCE_DIR}/imr/block.c
+  ${EXP_SOURCE_DIR}/imr/instruction.c
   ${EXP_SOURCE_DIR}/imr/layout.c
+  ${EXP_SOURCE_DIR}/imr/operand.c
   ${EXP_SOURCE_DIR}/imr/type.c
   ${EXP_SOURCE_DIR}/imr/value.c
 

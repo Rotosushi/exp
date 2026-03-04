@@ -16,11 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_BACKEND_X86_CODEGEN_LOAD_H
-#define EXP_BACKEND_X86_CODEGEN_LOAD_H
+#ifndef EXP_BACKEND_X86_CODEGEN_LET_H
+#define EXP_BACKEND_X86_CODEGEN_LET_H
 
-#include "codegen/x86/env/context.h"
+#include "codegen/x86/imr/function.h"
+#include "env/context.h"
 
-void x86_codegen_let(Instruction I, u64 Idx, x86_Context *restrict context);
+void x86_codegen_let(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context);
 
-#endif // !EXP_BACKEND_X86_CODEGEN_LOAD_H
+#endif // !EXP_BACKEND_X86_CODEGEN_LET_H

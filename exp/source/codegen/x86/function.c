@@ -19,8 +19,17 @@
 
 #include "codegen/x86/function.h"
 #include "codegen/x86/imr/function.h"
+#include "codegen/x86/instruction/add.h"
+#include "codegen/x86/instruction/call.h"
+#include "codegen/x86/instruction/div.h"
+#include "codegen/x86/instruction/dot.h"
+#include "codegen/x86/instruction/let.h"
+#include "codegen/x86/instruction/mod.h"
+#include "codegen/x86/instruction/mul.h"
+#include "codegen/x86/instruction/neg.h"
 #include "codegen/x86/instruction/ret.h"
-#include "imr/block.h"
+#include "codegen/x86/instruction/sub.h"
+#include "imr/value/function/body/block.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 
@@ -69,6 +78,31 @@ static void x86_codegen_instruction(Instruction instruction,
         x86_codegen_ret(instruction, block_index, x86_function, context);
         break;
 
+    case OPCODE_CALL:
+        x86_codegen_call(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_LET:
+        x86_codegen_let(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_DOT:
+        x86_codegen_dot(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_NEG:
+        x86_codegen_neg(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_ADD:
+        x86_codegen_add(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_SUB:
+        x86_codegen_sub(instruction, block_index, x86_function, context);
+        break;
+    
+    
     default: EXP_UNREACHABLE();
     }
 }

@@ -19,8 +19,12 @@
 #ifndef EXP_BACKEND_X86_CODEGEN_MUL_H
 #define EXP_BACKEND_X86_CODEGEN_MUL_H
 
-#include "codegen/x86/env/context.h"
+#include "codegen/x86/imr/function.h"
+#include "env/context.h"
 
-void x86_codegen_mul(Instruction I, u64 Idx, x86_Context *restrict context);
+void x86_codegen_mul(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context);
 
 #endif // !EXP_BACKEND_X86_CODEGEN_MUL_H

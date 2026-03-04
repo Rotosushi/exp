@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #include "env/context.h"
-#include "imr/block/operand.h"
+#include "imr/operand.h"
 #include "imr/value.h"
 #include "support/assert.h"
 #include "support/string.h"

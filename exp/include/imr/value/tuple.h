@@ -22,7 +22,7 @@
 #ifndef EXP_IMR_TUPLE_H
 #define EXP_IMR_TUPLE_H
 
-#include "imr/block/operand.h"
+#include "imr/operand.h"
 
 typedef struct Tuple {
     u32      length;

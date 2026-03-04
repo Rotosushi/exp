@@ -21,6 +21,11 @@
 #include "codegen/x86/instruction/add.h"
 #include "support/unreachable.h"
 
+void x86_codegen_add(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
 // #TODO: I think I discovered a bug in the codegen for all arithemtic
 // operations. We need to make sure that the result of the operation is
 // never the memory location of a local variable. Since that would modify

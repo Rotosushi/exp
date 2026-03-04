@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #include "env/context.h"
-#include "imr/block.h"
+#include "imr/value/function/body/block.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"

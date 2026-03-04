@@ -21,6 +21,12 @@
 #include "codegen/x86/instruction/sub.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
+
+void x86_codegen_sub(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
 /*
 static void x86_codegen_subtract_ssa(Instruction  I,
                                      u64          block_index,

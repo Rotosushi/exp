@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef EXP_BACKEND_X86_RETURN_H
-#define EXP_BACKEND_X86_RETURN_H
+#ifndef EXP_CODEGEN_X86_INSTRUCTION_RETURN_H
+#define EXP_CODEGEN_X86_INSTRUCTION_RETURN_H
 
 #include "codegen/x86/imr/function.h"
 #include "env/context.h"
@@ -27,4 +27,4 @@ void x86_codegen_ret(Instruction instruction,
                      x86_Function *restrict x86_function,
                      Context *restrict context);
 
-#endif // !EXP_BACKEND_X86_RETURN_H
+#endif // !EXP_CODEGEN_X86_INSTRUCTION_RETURN_H
