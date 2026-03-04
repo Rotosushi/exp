@@ -19,7 +19,7 @@
 #ifndef EXP_CODEGEN_X86_INSTRUCTION_RETURN_H
 #define EXP_CODEGEN_X86_INSTRUCTION_RETURN_H
 
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
 #include "env/context.h"
 
 void x86_codegen_ret(Instruction instruction,

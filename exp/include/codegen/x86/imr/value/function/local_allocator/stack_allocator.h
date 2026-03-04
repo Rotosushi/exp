@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_IMR_STACK_ALLOCATOR_H
 #define EXP_CODEGEN_X86_IMR_STACK_ALLOCATOR_H
 
-#include "codegen/x86/imr/allocation.h"
+#include "codegen/x86/imr/value/function/allocation.h"
 
 typedef enum x86_StackSpaceKind {
     X86_STACK_SPACE_KIND_ALLOCATION,

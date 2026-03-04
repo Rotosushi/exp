@@ -17,8 +17,8 @@
 #ifndef EXP_BACKEND_X86_FUNCTION_BODY_H
 #define EXP_BACKEND_X86_FUNCTION_BODY_H
 
-#include "codegen/x86/imr/body.h"
-#include "codegen/x86/imr/local_allocator.h"
+#include "codegen/x86/imr/value/function/body.h"
+#include "codegen/x86/imr/value/function/local_allocator.h"
 #include "imr/value/function.h"
 
 typedef struct x86_FormalArgumentList {

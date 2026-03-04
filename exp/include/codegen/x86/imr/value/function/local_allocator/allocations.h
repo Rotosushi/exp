@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_IMR_ALLOCATIONS_H
 #define EXP_CODEGEN_X86_IMR_ALLOCATIONS_H
 
-#include "codegen/x86/imr/allocation.h"
+#include "codegen/x86/imr/value/function/allocation.h"
 #include "support/constant_string.h"
 
 typedef struct x86_Allocations {

@@ -44,7 +44,7 @@
 #else
 #define EXP_ASSERT(cond)                                                       \
     do {                                                                       \
-        if (!(cond)) { assert_failed(#cond, __func__, __FILE__, __LINE__); }     \
+        if (!(cond)) { assert_failed(#cond, __func__, __FILE__, __LINE__); }   \
     } while (false)
 #endif // !NDEBUG
 

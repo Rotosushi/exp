@@ -17,10 +17,10 @@
 #ifndef EXP_CODEGEN_X86_IMR_LOCAL_ALLOCATOR_H
 #define EXP_CODEGEN_X86_IMR_LOCAL_ALLOCATOR_H
 
-#include "codegen/x86/imr/local_allocator/allocations.h"
-#include "codegen/x86/imr/local_allocator/incoming_argument_allocator.h"
-#include "codegen/x86/imr/local_allocator/register_allocator.h"
-#include "codegen/x86/imr/local_allocator/stack_allocator.h"
+#include "codegen/x86/imr/value/function/local_allocator/allocations.h"
+#include "codegen/x86/imr/value/function/local_allocator/incoming_argument_allocator.h"
+#include "codegen/x86/imr/value/function/local_allocator/register_allocator.h"
+#include "codegen/x86/imr/value/function/local_allocator/stack_allocator.h"
 #include "imr/value/function.h"
 
 /**

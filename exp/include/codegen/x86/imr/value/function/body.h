@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_IMR_BODY_H
 #define EXP_CODEGEN_X86_IMR_BODY_H
 
-#include "codegen/x86/imr/body/block.h"
+#include "codegen/x86/imr/value/function/body/block.h"
 
 typedef struct x86_Body {
     u32        length;

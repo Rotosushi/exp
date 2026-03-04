@@ -170,7 +170,7 @@ static void x86_tuple_layout_append(x86_TupleLayout *restrict tuple,
 }
 
 static void x86_tuple_layout_create(x86_TupleLayout *restrict layout,
-                                    TupleType const *restrict tuple,
+                                    TypeTuple const *restrict tuple,
                                     x86_Layouts *restrict layouts) {
     Type const       *element        = NULL;
     Type const       *next           = NULL;
@@ -216,7 +216,7 @@ static void x86_layout_create_padding(x86_Layout *restrict layout,
 }
 
 static void x86_layout_create_tuple(x86_Layout *restrict layout,
-                                    TupleType const *tuple,
+                                    TypeTuple const *tuple,
                                     x86_Layouts *restrict layouts) {
     layout->kind = X86_LAYOUT_KIND_TUPLE;
     x86_tuple_layout_create(&layout->data.tuple, tuple, layouts);
@@ -234,7 +234,7 @@ static void x86_layout_destroy(x86_Layout *restrict layout) {
 }
 
 u64 x86_layout_size_of(x86_Layout const *restrict layout) {
-    exp_assert(layout != NULL);
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case X86_LAYOUT_KIND_SCALAR: return layout->data.scalar.size;
     case X86_LAYOUT_KIND_TUPLE:  return layout->data.tuple.size;
@@ -243,7 +243,7 @@ u64 x86_layout_size_of(x86_Layout const *restrict layout) {
 }
 
 u64 x86_layout_align_of(x86_Layout const *restrict layout) {
-    exp_assert(layout != NULL);
+    EXP_ASSERT(layout != NULL);
     switch (layout->kind) {
     case X86_LAYOUT_KIND_SCALAR: return layout->data.scalar.alignment;
     case X86_LAYOUT_KIND_TUPLE:  return layout->data.tuple.alignment;
@@ -290,8 +290,8 @@ static x86_LayoutListElement *
 x86_layout_list_lookup_padding(x86_LayoutList *restrict list, u64 padding) {
     for (u32 index = 0; index < list->length; ++index) {
         x86_LayoutListElement *element = list->buffer + index;
-        exp_assert(element->type == NULL);
-        exp_assert(element->layout->kind == X86_LAYOUT_KIND_PADDING);
+        EXP_ASSERT(element->type == NULL);
+        EXP_ASSERT(element->layout->kind == X86_LAYOUT_KIND_PADDING);
         if (padding == element->layout->data.padding) { return element; }
     }
     return NULL;
@@ -308,7 +308,7 @@ static void x86_layout_list_append(x86_LayoutList *restrict list,
 }
 
 void x86_layouts_create(x86_Layouts *restrict layouts) {
-    exp_assert(layouts != NULL);
+    EXP_ASSERT(layouts != NULL);
     // #NOTE: single byte objects do not
     // have an alignment specified by gcc or
     // clang. I believe this is
@@ -324,7 +324,8 @@ void x86_layouts_create(x86_Layouts *restrict layouts) {
     // to their size. quad-words are 8 bytes, and their
     // alignment is 8. double-words are 4 bytes, and their
     // alignment is 4. words are 2 bytes, alignment is 2 bytes.
-    // string literals are align 8.
+    // string literals are align 8 because they are functionally
+    // pointers, and pointers have alignment 8.
     x86_layout_create_scalar(&layouts->nil, 1, 1);
     x86_layout_create_scalar(&layouts->bool_, 1, 1);
     x86_layout_create_scalar(&layouts->u8_, 1, 1);

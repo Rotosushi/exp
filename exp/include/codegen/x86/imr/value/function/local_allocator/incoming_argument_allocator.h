@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_IMR_INCOMING_ARGUMENT_ALLOCATOR_H
 #define EXP_CODEGEN_X86_IMR_INCOMING_ARGUMENT_ALLOCATOR_H
 
-#include "codegen/x86/imr/local_allocator/stack_allocator.h"
+#include "codegen/x86/imr/value/function/local_allocator/stack_allocator.h"
 
 /*
  * NOTE: System-V x86-64 ABI:

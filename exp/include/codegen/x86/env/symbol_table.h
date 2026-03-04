@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Cade Weinberg
+// Copyright (C) 2026 Cade Weinberg
 //
 // This file is part of exp.
 //
@@ -14,20 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
-#define EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
+#ifndef EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
+#define EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
 
-#include "codegen/x86/imr/body/operand.h"
+#include "codegen/x86/imr/function.h"
 
-typedef struct x86_Tuple {
-    u32          length;
-    u32          capacity;
-    x86_Operand *buffer;
-} x86_Tuple;
-
-void x86_tuple_create(x86_Tuple *restrict tuple);
-void x86_tuple_destroy(x86_Tuple *restrict tuple);
-
-void x86_tuple_append(x86_Tuple *restrict tuple, x86_Operand operand);
-
-#endif // !EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
+#endif // !EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H

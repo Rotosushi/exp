@@ -19,7 +19,7 @@
 #ifndef EXP_BACKEND_X86_CODEGEN_MOD_H
 #define EXP_BACKEND_X86_CODEGEN_MOD_H
 
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
 #include "env/context.h"
 
 void x86_codegen_mod(Instruction instruction,

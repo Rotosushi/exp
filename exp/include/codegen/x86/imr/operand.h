@@ -17,7 +17,7 @@
 #ifndef EXP_BACKEND_X86_OPERAND_H
 #define EXP_BACKEND_X86_OPERAND_H
 
-#include "codegen/x86/imr/allocation/location.h"
+#include "codegen/x86/imr/value/function/allocation/location.h"
 #include "support/constant_string.h"
 
 typedef enum x86_OperandKind : u8 {

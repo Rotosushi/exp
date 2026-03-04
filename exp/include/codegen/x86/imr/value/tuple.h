@@ -14,22 +14,24 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with exp.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef EXP_CODEGEN_X86_LOCATIONS_H
-#define EXP_CODEGEN_X86_LOCATIONS_H
+#ifndef EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
+#define EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
 
-#include "codegen/x86/imr/location.h"
+#include "codegen/x86/imr/operand.h"
 
-typedef struct x86_Locations {
-    u32           capacity;
-    x86_Location *buffer;
-} x86_Locations;
+typedef struct x86_Tuple {
+    u32          length;
+    u32          capacity;
+    x86_Operand *buffer;
+} x86_Tuple;
 
-void x86_locations_create(x86_Locations *restrict locations);
-void x86_locations_destroy(x86_Locations *restrict locations);
+void x86_tuple_create(x86_Tuple *restrict tuple);
+void x86_tuple_destroy(x86_Tuple *restrict tuple);
 
-void x86_locations_allocate(x86_Locations *restrict locations, u32 capacity);
+void x86_tuple_reserve(x86_Tuple *restrict tuple, u32 size);
 
-x86_Location *x86_locations_at(x86_Locations const *restrict locations,
-                               u32 ssa);
+void x86_tuple_append(x86_Tuple *restrict tuple, x86_Operand operand);
 
-#endif // !EXP_CODEGEN_X86_LOCATIONS_H
+x86_Operand *x86_tuple_at(x86_Tuple *restrict tuple, u32 index);
+
+#endif // !EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
