@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/body/block.h"
+#include "codegen/x86/imr/value/function/body/block.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"

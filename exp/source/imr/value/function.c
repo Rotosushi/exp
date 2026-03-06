@@ -117,24 +117,3 @@ u8 function_arguments_length(Function const *restrict function) {
     EXP_ASSERT(function != NULL);
     return function->arguments.length;
 }
-
-static void print_formal_argument(String *restrict string,
-                                  Local *restrict arg) {
-    string_append(string, arg->name);
-    string_append(string, SV(": "));
-    print_type(string, arg->type);
-}
-
-void print_function(String *restrict string,
-                    Function const *restrict f,
-                    Context *restrict context) {
-    string_append(string, SV("("));
-    FormalArgumentList const *args = &f->arguments;
-    for (u8 i = 0; i < args->length; ++i) {
-        print_formal_argument(string, args->list[i]);
-
-        if (i < (u8)(args->length - 1)) { string_append(string, SV(", ")); }
-    }
-    string_append(string, SV(")\n"));
-    print_block(string, &f->body, context);
-}

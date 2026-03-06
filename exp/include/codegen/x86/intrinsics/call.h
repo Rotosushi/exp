@@ -17,8 +17,8 @@
 #ifndef EXP_CODEGEN_X86_INTRINSICS_CALL_H
 #define EXP_CODEGEN_X86_INTRINSICS_CALL_H
 
-#include "codegen/x86/imr/body/tuple.h"
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
+#include "codegen/x86/imr/value/tuple.h"
 #include "env/context.h"
 
 void x86_codegen_call(Function const *restrict callee,

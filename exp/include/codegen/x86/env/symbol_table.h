@@ -17,6 +17,6 @@
 #ifndef EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
 #define EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
 
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value.h"
 
 #endif // !EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H

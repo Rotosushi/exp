@@ -19,7 +19,7 @@
 #ifndef EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 #define EXP_BACKEND_X64_INTRINSICS_GET_ELEMENT_ADDRESS_H
 
-#include "codegen/x86/imr/allocation/location.h"
+#include "codegen/x86/imr/value/function/allocation/location.h"
 #include "imr/layout.h"
 
 /**

@@ -20,8 +20,8 @@
 #ifndef EXP_BACKEND_X86_INTRINSICS_LOAD_H
 #define EXP_BACKEND_X86_INTRINSICS_LOAD_H
 
-#include "codegen/x86/imr/allocation.h"
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
+#include "codegen/x86/imr/value/function/allocation.h"
 #include "env/context.h"
 
 void x86_codegen_initialize_local_from_value(

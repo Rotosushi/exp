@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/allocation/location.h"
+#include "codegen/x86/imr/value/function/allocation/location.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 

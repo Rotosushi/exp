@@ -18,7 +18,7 @@
  */
 #include <assert.h>
 
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
 #include "codegen/x86/intrinsics/call.h"
 #include "codegen/x86/intrinsics/copy.h"
 #include "imr/type.h"

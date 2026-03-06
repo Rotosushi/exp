@@ -100,7 +100,9 @@ static void print_operand_local(String *restrict string, u32 ssa) {
 
 static void print_operand_value(String *restrict string,
                                 Value const *constant,
-                                Context *restrict context) {}
+                                Context *restrict context) {
+    print_value(string, constant, context);
+}
 
 static void print_operand_label(String *restrict string,
                                 ConstantString const *restrict cs) {
@@ -118,7 +120,7 @@ void print_operand(String *restrict string,
         print_operand_local(string, operand.data.local);
         break;
     case OPERAND_KIND_CONSTANT:
-        print_value(string, operand.data.constant, context);
+        print_operand_value(string, operand.data.constant, context);
         break;
     case OPERAND_KIND_TYPE: print_type(string, operand.data.type); break;
     case OPERAND_KIND_LABEL:

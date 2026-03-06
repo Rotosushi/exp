@@ -21,6 +21,12 @@
 
 #include "codegen/x86/instruction/mod.h"
 #include "support/unreachable.h"
+
+void x86_codegen_mod(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
 /*
 static void x86_codegen_modulus_ssa(Instruction  I,
                                     u64          block_index,

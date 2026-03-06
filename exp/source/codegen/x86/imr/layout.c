@@ -18,6 +18,7 @@
  */
 
 #include "codegen/x86/imr/layout.h"
+#include "imr/type/composite.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
@@ -326,6 +327,10 @@ void x86_layouts_create(x86_Layouts *restrict layouts) {
     // alignment is 4. words are 2 bytes, alignment is 2 bytes.
     // string literals are align 8 because they are functionally
     // pointers, and pointers have alignment 8.
+
+    // #NOTE: Each of these definitions have to exactly match the
+    // size and alignemnt specified within x86_size_of_primary
+    // and x86_align_of_primary respectively.
     x86_layout_create_scalar(&layouts->nil, 1, 1);
     x86_layout_create_scalar(&layouts->bool_, 1, 1);
     x86_layout_create_scalar(&layouts->u8_, 1, 1);
@@ -341,34 +346,40 @@ void x86_layouts_create(x86_Layouts *restrict layouts) {
 }
 
 void x86_layouts_destroy(x86_Layouts *restrict layouts) {
-    exp_assert(layouts != NULL);
+    EXP_ASSERT(layouts != NULL);
     x86_layout_list_destroy(&layouts->paddings);
     x86_layout_list_destroy(&layouts->tuples);
 }
 
-x86_Layout const *x86_layouts_layout_of_type(x86_Layouts *restrict layouts,
-                                             Type const *type) {
-    exp_assert(layouts != NULL);
-    exp_assert(type != NULL);
-    switch (type->kind) {
-    case TYPE_KIND_NIL:  return &layouts->nil;
-    case TYPE_KIND_BOOL: return &layouts->bool_;
-    case TYPE_KIND_U8:   return &layouts->u8_;
-    case TYPE_KIND_U16:  return &layouts->u16_;
-    case TYPE_KIND_U32:  return &layouts->u32_;
-    case TYPE_KIND_U64:  return &layouts->u64_;
-    case TYPE_KIND_I8:   return &layouts->i8_;
-    case TYPE_KIND_I16:  return &layouts->i16_;
-    case TYPE_KIND_I32:  return &layouts->i32_;
-    case TYPE_KIND_I64:  return &layouts->i64_;
+static x86_Layout const *
+x86_layouts_layout_of_type_primary(x86_Layouts *restrict layouts,
+                                   Type const *type) {
+    switch (type->primary.kind) {
+    case TYPE_PRIMARY_KIND_NIL:  return &layouts->nil;
+    case TYPE_PRIMARY_KIND_BOOL: return &layouts->bool_;
+    case TYPE_PRIMARY_KIND_U8:   return &layouts->u8_;
+    case TYPE_PRIMARY_KIND_U16:  return &layouts->u16_;
+    case TYPE_PRIMARY_KIND_U32:  return &layouts->u32_;
+    case TYPE_PRIMARY_KIND_U64:  return &layouts->u64_;
+    case TYPE_PRIMARY_KIND_I8:   return &layouts->i8_;
+    case TYPE_PRIMARY_KIND_I16:  return &layouts->i16_;
+    case TYPE_PRIMARY_KIND_I32:  return &layouts->i32_;
+    case TYPE_PRIMARY_KIND_I64:  return &layouts->i64_;
+    default:                     EXP_UNREACHABLE();
+    }
+}
 
-    case TYPE_KIND_TUPLE: {
+static x86_Layout const *
+x86_layouts_layout_of_composite(x86_Layouts *restrict layouts,
+                                Type const *type) {
+    switch (type->composite.kind) {
+    case TYPE_COMPOSITE_KIND_TUPLE: {
         x86_LayoutListElement *existing =
             x86_layout_list_lookup(&layouts->tuples, type);
         if (existing != NULL) { return existing->layout; }
 
         x86_Layout *layout = allocate(sizeof(x86_Layout));
-        x86_layout_create_tuple(layout, &type->tuple, layouts);
+        x86_layout_create_tuple(layout, &type->composite.data.tuple, layouts);
         x86_layout_list_append(&layouts->tuples, type, layout);
         return layout;
     }
@@ -376,6 +387,17 @@ x86_Layout const *x86_layouts_layout_of_type(x86_Layouts *restrict layouts,
     // we don't compute a layout for functions, as the size is not
     // known until after they are assembled, though their alignment
     // is 8. (machine word size aligned)
+    case TYPE_COMPOSITE_KIND_FUNCTION:
+    default:                           EXP_UNREACHABLE();
+    }
+}
+
+x86_Layout const *x86_layouts_layout_of_type(x86_Layouts *restrict layouts,
+                                             Type const *type) {
+    EXP_ASSERT(layouts != NULL);
+    EXP_ASSERT(type != NULL);
+    switch (type->kind) {
+
     default: EXP_UNREACHABLE();
     }
 }

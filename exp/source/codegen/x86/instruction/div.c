@@ -22,6 +22,11 @@
 #include "codegen/x86/instruction/div.h"
 #include "support/unreachable.h"
 
+void x86_codegen_div(Instruction instruction,
+                     u32         block_index,
+                     x86_Function *restrict x86_function,
+                     Context *restrict context) {}
+
 /*
  * #NOTE: There are six relevant divide instructions in x86_64:
  * 1. idiv  - signed division

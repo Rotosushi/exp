@@ -18,7 +18,7 @@
  */
 #include <stddef.h>
 
-#include "codegen/x86/imr/body/operand.h"
+#include "codegen/x86/imr/operand.h"
 #include "support/assert.h"
 #include "support/unreachable.h"
 

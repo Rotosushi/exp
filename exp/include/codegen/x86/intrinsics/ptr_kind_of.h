@@ -17,7 +17,7 @@
 #ifndef EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
 #define EXP_CODEGEN_X86_INTRINSICS_PTR_KIND_OF_H
 
-#include "codegen/x86/imr/allocation/location.h"
+#include "codegen/x86/imr/value/function/allocation/location.h"
 #include "imr/layout.h"
 
 /**

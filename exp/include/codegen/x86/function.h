@@ -18,7 +18,7 @@
 #ifndef EXP_CODEGEN_X86_FUNCTION_H
 #define EXP_CODEGEN_X86_FUNCTION_H
 
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
 #include "env/context.h"
 #include "imr/value.h"
 

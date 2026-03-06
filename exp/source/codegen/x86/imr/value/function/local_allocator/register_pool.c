@@ -17,7 +17,7 @@
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "codegen/x86/imr/local_allocator/register_pool.h"
+#include "codegen/x86/imr/value/function/local_allocator/register_pool.h"
 
 extern void x86_register_pool_initialize(x86_RegisterPool *restrict pool);
 extern bool x86_register_pool_gpr_check(x86_RegisterPool const *restrict pool,

@@ -61,9 +61,4 @@ Local *function_lookup_local_name(Function const *restrict function,
 u32    function_locals_length(Function const *restrict function);
 u8     function_arguments_length(Function const *restrict function);
 
-struct Context;
-void print_function(String *restrict string,
-                    Function const *restrict function,
-                    struct Context *restrict context);
-
 #endif // !EXP_IMR_FUNCTION_H

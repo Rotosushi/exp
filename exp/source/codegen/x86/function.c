@@ -18,7 +18,7 @@
  */
 
 #include "codegen/x86/function.h"
-#include "codegen/x86/imr/function.h"
+#include "codegen/x86/imr/value/function.h"
 #include "codegen/x86/instruction/add.h"
 #include "codegen/x86/instruction/call.h"
 #include "codegen/x86/instruction/div.h"
@@ -101,8 +101,19 @@ static void x86_codegen_instruction(Instruction instruction,
     case OPCODE_SUB:
         x86_codegen_sub(instruction, block_index, x86_function, context);
         break;
-    
-    
+
+    case OPCODE_MUL:
+        x86_codegen_mul(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_DIV:
+        x86_codegen_div(instruction, block_index, x86_function, context);
+        break;
+
+    case OPCODE_MOD:
+        x86_codegen_mod(instruction, block_index, x86_function, context);
+        break;
+
     default: EXP_UNREACHABLE();
     }
 }

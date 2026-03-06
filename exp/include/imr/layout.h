@@ -19,6 +19,20 @@
 
 #include "imr/layout/tuple.h"
 
+/**
+ * @note when we add support for floating point types,
+ * vector types, and matrix types, these each will have
+ * a kind of layout. Or, we can treat vector types as a
+ * tuple of floating point types. But this raises questions
+ * - how does the allocator assign two or more registers as the
+ *   location of a larger tuple object? i.e. (i64, i64) being
+ *   stored in rdx:rax.
+ * - how does the allocator assign one register to hold more than
+ *   one element of a given tuple object? i.e. (i32, i32) being
+ *   held, packed, in rax. or (f32, f32, f32, f32) being held,
+ *   packed, in XMM0.
+ */
+
 typedef enum LayoutKind {
     LAYOUT_KIND_PRIMARY,
     LAYOUT_KIND_PADDING,

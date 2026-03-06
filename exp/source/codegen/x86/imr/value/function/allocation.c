@@ -18,7 +18,7 @@
  */
 #include <stddef.h>
 
-#include "codegen/x86/imr/allocation.h"
+#include "codegen/x86/imr/value/function/allocation.h"
 #include "codegen/x86/intrinsics/ptr_kind_of.h"
 #include "support/allocation.h"
 #include "support/assert.h"

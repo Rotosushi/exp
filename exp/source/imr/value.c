@@ -208,6 +208,10 @@ bool value_equal(Value const *A, Value const *B) {
         return tuple_equal(&A->tuple, &B->tuple);
     }
 
+    case VALUE_KIND_FUNCTION: {
+        return A == B;
+    }
+
     default: EXP_UNREACHABLE();
     }
 }
@@ -255,6 +259,28 @@ static void print_tuple(String *restrict string,
     string_append(string, SV(")"));
 }
 
+static void print_formal_argument(String *restrict string,
+                                  Local *restrict arg) {
+    string_append(string, arg->name);
+    string_append(string, SV(": "));
+    print_type(string, arg->type);
+}
+
+static void print_function(String *restrict string,
+                           Function const *restrict function,
+                           Context *restrict context) {
+    string_append(string, constant_string_to_view(function->name));
+    string_append(string, SV(" ("));
+    FormalArgumentList const *args = &function->arguments;
+    for (u8 i = 0; i < args->length; ++i) {
+        print_formal_argument(string, args->list[i]);
+
+        if (i < (u8)(args->length - 1)) { string_append(string, SV(", ")); }
+    }
+    string_append(string, SV(")\n"));
+    print_block(string, &function->body, context);
+}
+
 void print_value(String *restrict string,
                  Value const *restrict v,
                  Context *restrict context) {
@@ -282,6 +308,10 @@ void print_value(String *restrict string,
     case VALUE_KIND_I64: string_append_i64(string, v->i64_); break;
 
     case VALUE_KIND_TUPLE: print_tuple(string, &v->tuple, context); break;
+
+    case VALUE_KIND_FUNCTION:
+        print_function(string, &v->function, context);
+        break;
 
     default: EXP_UNREACHABLE();
     }
