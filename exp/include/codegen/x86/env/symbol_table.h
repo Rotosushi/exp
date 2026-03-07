@@ -18,5 +18,24 @@
 #define EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
 
 #include "codegen/x86/imr/value.h"
+#include "support/string_view.h"
+
+typedef struct x86_Symbol {
+    StringView  name;
+    Type const *type;
+    x86_Value  *value;
+} x86_Symbol;
+
+typedef struct x86_SymbolTable {
+    u32          count;
+    u32          capacity;
+    x86_Symbol **elements;
+} x86_SymbolTable;
+
+void x86_symbol_table_create(x86_SymbolTable *restrict table);
+void x86_symbol_table_destroy(x86_SymbolTable *restrict table);
+
+x86_Symbol *x86_symbol_table_at(x86_SymbolTable *restrict table,
+                                StringView name);
 
 #endif // !EXP_CODEGEN_X86_ENV_SYMBOL_TABLE_H
