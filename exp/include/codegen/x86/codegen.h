@@ -19,10 +19,7 @@
 
 #include "env/context.h"
 
-i32 x86_header(String *restrict buffer, Context *restrict context);
-i32 x86_codegen(String *restrict buffer,
-                Symbol const *restrict symbol,
-                Context *restrict context);
-i32 x86_footer(String *restrict buffer, Context *restrict context);
+void x86_compile_symbol(Symbol *restrict symbol, Context *restrict context);
+void x86_print_assembly(String *restrict buffer, Context *restrict context);
 
 #endif // !EXP_CODEGEN_X86_CODEGEN_H

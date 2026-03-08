@@ -37,7 +37,46 @@
  *  for generation is some form of Graph Covering.
  */
 
-i32 x86_header(String *restrict buffer, Context *restrict context) {
+void x86_compile_symbol(Symbol *restrict symbol, Context *restrict context) {
+    EXP_ASSERT(symbol != NULL);
+    EXP_ASSERT(context != NULL);
+}
+
+static void x86_print_assembly_header(String *restrict buffer,
+                                      Context *restrict context);
+static void x86_print_assembly_footer(String *restrict buffer,
+                                      Context *restrict context);
+static void x86_print_assembly_primary(String *restrict buffer,
+                                       x86_Symbol const *restrict symbol);
+static void x86_print_assembly_function(String *restrict buffer,
+                                        x86_Symbol const *restrict symbol);
+static void x86_print_assembly_composite(String *restrict buffer,
+                                         x86_Symbol const *restrict symbol);
+static void x86_print_assembly_symbol(String *restrict buffer,
+                                      x86_Symbol const *restrict symbol);
+
+void x86_print_assembly(String *restrict buffer, Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
+
+    x86_Context *x86_context =
+        (x86_Context *)context_get_target_context(context);
+
+    x86_print_assembly_header(buffer, context);
+
+    x86_SymbolTable *symbols = &x86_context->symbols;
+    for (u32 i = 0; i < symbols->capacity; ++i) {
+        x86_Symbol *symbol = symbols->elements[i];
+        if (symbol == NULL) { continue; }
+
+        x86_print_assembly_symbol(buffer, symbol);
+    }
+
+    x86_print_assembly_footer(buffer, context);
+}
+
+static void x86_print_assembly_header(String *restrict buffer,
+                                      Context *restrict context) {
     EXP_ASSERT(buffer != NULL);
     EXP_ASSERT(context != NULL);
     gas_directive_file(context_source_path(context), buffer);
@@ -46,15 +85,22 @@ i32 x86_header(String *restrict buffer, Context *restrict context) {
     gas_directive_arch(SV("znver3"), buffer);
     gas_directive_intel_syntax(buffer);
     string_append(buffer, SV("\n"));
-    return 0;
 }
 
-i32 x86_codegen_primary(String *restrict buffer,
-                        Symbol const *restrict symbol,
-                        [[maybe_unused]] Context *restrict context) {
+static void
+x86_print_assembly_footer(String *restrict buffer,
+                          [[maybe_unused]] Context *restrict context) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(context != NULL);
+    gas_directive_noexecstack(buffer);
+    gas_directive_ident(SV(EXP_VERSION_STRING), buffer);
+}
+
+static void x86_print_assembly_primary(String *restrict buffer,
+                                       x86_Symbol const *restrict symbol) {
     EXP_ASSERT(buffer != NULL);
     EXP_ASSERT(symbol != NULL);
-    EXP_ASSERT(context != NULL);
+    // EXP_ASSERT(context != NULL);
     u64 size      = layout_size_of(symbol->type->layout);
     u64 alignment = layout_align_of(symbol->type->layout);
     gas_directive_data(buffer);
@@ -63,70 +109,57 @@ i32 x86_codegen_primary(String *restrict buffer,
     gas_directive_type(symbol->name, STT_OBJECT, buffer);
     gas_directive_size(symbol->name, size, buffer);
     gas_directive_label(symbol->name, buffer);
-    print_x86_value(buffer, symbol->value);
-    return 0;
+    x86_value_print(buffer, symbol->value);
 }
 
-i32 x86_codegen_function(String *restrict buffer,
-                         Symbol const *restrict symbol,
-                         Context *restrict context) {
+static void x86_print_assembly_function(String *restrict buffer,
+                                        x86_Symbol const *restrict symbol) {
     EXP_ASSERT(buffer != NULL);
     EXP_ASSERT(symbol != NULL);
-    EXP_ASSERT(context != NULL);
+    // EXP_ASSERT(context != NULL);
     u64 alignment = layout_align_of(symbol->type->layout);
     gas_directive_text(buffer);
     gas_directive_globl(symbol->name, buffer);
     gas_directive_balign(alignment, buffer);
     gas_directive_type(symbol->name, STT_FUNC, buffer);
     gas_directive_label(symbol->name, buffer);
-    print_x86_function(buffer, symbol->value, context);
+    x86_value_print(buffer, symbol->value);
     gas_directive_size_label_relative(symbol->name, buffer);
-    return 0;
 }
 
-i32 x86_codegen_composite(String *restrict buffer,
-                          Symbol const *restrict symbol,
-                          Context *restrict context) {
+static void x86_print_assembly_composite(String *restrict buffer,
+                                         x86_Symbol const *restrict symbol) {
     EXP_ASSERT(buffer != NULL);
     EXP_ASSERT(symbol != NULL);
-    EXP_ASSERT(context != NULL);
-    Value const         *value     = symbol->value;
+    x86_Value const     *value     = symbol->value;
     Type const          *type      = value->type;
     TypeComposite const *composite = &type->composite;
     switch (composite->kind) {
     case TYPE_COMPOSITE_KIND_TUPLE:
-        return x86_codegen_primary(buffer, symbol, context);
+        x86_print_assembly_primary(buffer, symbol);
+        break;
 
     case TYPE_COMPOSITE_KIND_FUNCTION:
-        return x86_codegen_function(buffer, symbol, context);
+        x86_print_assembly_function(buffer, symbol);
+        break;
 
     default: EXP_UNREACHABLE();
     }
 }
 
-i32 x86_codegen(String *restrict buffer,
-                Symbol const *restrict symbol,
-                Context *restrict context) {
+static void x86_print_assembly_symbol(String *restrict buffer,
+                                      x86_Symbol const *restrict symbol) {
     EXP_ASSERT(buffer != NULL);
     EXP_ASSERT(symbol != NULL);
-    EXP_ASSERT(context != NULL);
+    x86_Value const *value = symbol->value;
+    Type const      *type  = value->type;
+    switch (type->kind) {
+    case TYPE_KIND_PRIMARY: x86_print_assembly_primary(buffer, symbol); break;
 
-    switch (symbol->type->kind) {
-    case TYPE_KIND_PRIMARY: return x86_codegen_primary(buffer, symbol, context);
     case TYPE_KIND_COMPOSITE:
-        return x86_codegen_composite(buffer, symbol, context);
+        x86_print_assembly_composite(buffer, symbol);
+        break;
 
     default: EXP_UNREACHABLE();
     }
-
-    string_append(buffer, SV("\n"));
-    return 0;
-}
-
-i32 x86_footer(String *restrict buffer, Context *restrict context) {
-    EXP_ASSERT(buffer != NULL);
-    EXP_ASSERT(context != NULL);
-    gas_directive_noexecstack(buffer);
-    gas_directive_ident(SV(EXP_VERSION_STRING), buffer);
-    return 0;
 }

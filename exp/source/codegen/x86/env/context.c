@@ -21,14 +21,20 @@
 #include "support/allocation.h"
 #include "support/assert.h"
 
-void *x86_context_allocate() {
+x86_Context *x86_context_allocate() {
     x86_Context *context = callocate(1, sizeof(x86_Context));
     EXP_ASSERT(context != NULL);
+    x86_symbol_table_create(&context->symbols);
     return context;
 }
 
-void x86_context_deallocate(void *restrict context) {
+void x86_context_deallocate(x86_Context *restrict context) {
     EXP_ASSERT(context != NULL);
-
+    x86_symbol_table_destroy(&context->symbols);
     deallocate(context);
+}
+
+x86_Symbol *x86_context_symbol_table_at(x86_Context *context, StringView name) {
+    EXP_ASSERT(context != NULL);
+    return x86_symbol_table_at(&context->symbols, name);
 }

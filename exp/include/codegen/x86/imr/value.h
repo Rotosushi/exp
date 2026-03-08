@@ -75,4 +75,6 @@ x86_Value *x86_value_allocate_tuple(x86_Tuple tuple,
 x86_Value *x86_value_allocate_function(x86_Function function,
                                        struct Context *restrict context);
 
+void x86_value_print(String *restrict buffer, x86_Value const *restrict value);
+
 #endif // !EXP_CODEGEN_X86_IMR_VALUE_H

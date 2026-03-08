@@ -26,6 +26,7 @@
 #ifndef EXP_CODEGEN_TARGET_H
 #define EXP_CODEGEN_TARGET_H
 
+#include "support/string.h"
 #include "support/string_view.h"
 
 struct String;
@@ -51,48 +52,53 @@ typedef u64 (*align_of_primary_fn)(struct TypePrimary const *type);
 typedef u64 (*size_of_function_fn)();
 typedef u64 (*align_of_function_fn)();
 
-// #NOTE with this signature we are forced into combining
-// code generation with emission. However, this removes
-// the need for a target dependent context, which should be
-// less code overall.
-// #NOTE: #UPDATE: Feb, 24 2026. I have changed my mind on this,
-// the flexibility of the target specific context is the point of 
-// having one, and the codegeneration routines themselves are unaffected
-// by the presence or absence of a target specific context. Thus code 
-// generation complexity is not abated by the removal of the context.
-// However, given the lack of any real use of the context at this moment,
-// the code generation subroutines themselves are far more important,
-// so this is a #TODO:
-typedef i32 (*codegen_fn)(struct String *restrict buffer,
-                          struct Symbol const *restrict symbol,
-                          struct Context *restrict context);
-typedef i32 (*header_fn)(struct String *restrict buffer,
-                         struct Context *restrict context);
-typedef i32 (*footer_fn)(struct String *restrict buffer,
-                         struct Context *restrict context);
+/**
+ * @brief allocate a target dependent context
+ *
+ * This context will hold all of the needed information to handle
+ * the target specific in memory representation.
+ */
+typedef void *(*target_context_allocate_fn)();
 
-// #NOTE: Define a target specific context, to allow for the definition of 
-// target specific operations.
-typedef void * (*target_context_allocate)();
-typedef void   (*target_context_deallocate)(void *);
+/**
+ * @brief Clean up the memory allocated to the target dependent context
+ */
+typedef void (*target_context_deallocate_fn)(void *);
 
+/**
+ * @brief Compile the target independent representation into the
+ * target dependent representation.
+ */
+typedef void (*target_compile_symbol_fn)(struct Symbol *restrict symbol,
+                                         struct Context *restrict context);
 
-// #TODO: This structure needs to be broken up into more components
-// for supporting target specific CPU features.
+/**
+ * @brief Print the target dependent assembly to the given string.
+ *
+ * Shall be called after the entire translation unit has been generated.
+ *
+ * @param String * the buffer the buffer to print the assembly to
+ * @param Context * the translation unit to print the assembly from
+ */
+typedef void (*target_print_assembly_fn)(String *restrict buffer,
+                                         struct Context *restrict context);
+
+// #TODO: Extend the structure to specify CPU specific extensions.
 typedef struct Target {
-    StringView           tag;
-    StringView           triple;
-    StringView           assembly_extension;
-    StringView           object_extension;
-    StringView           library_extension;
-    StringView           executable_extension;
-    size_of_primary_fn   size_of_primary;
-    size_of_function_fn  size_of_function;
-    align_of_primary_fn  align_of_primary;
-    align_of_function_fn align_of_function;
-    header_fn            header;
-    codegen_fn           codegen;
-    footer_fn            footer;
+    StringView                   tag;
+    StringView                   triple;
+    StringView                   assembly_extension;
+    StringView                   object_extension;
+    StringView                   library_extension;
+    StringView                   executable_extension;
+    size_of_primary_fn           size_of_primary;
+    size_of_function_fn          size_of_function;
+    align_of_primary_fn          align_of_primary;
+    align_of_function_fn         align_of_function;
+    target_context_allocate_fn   context_allocate;
+    target_context_deallocate_fn context_deallocate;
+    target_compile_symbol_fn     compile_symbol;
+    target_print_assembly_fn     print_assembly;
 } Target;
 
 #endif // !EXP_CODEGEN_TARGET_H

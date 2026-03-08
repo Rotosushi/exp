@@ -31,6 +31,9 @@
 #include "support/string_view.h"
 #include "support/unreachable.h"
 
+// #NOTE: #QUESTION: 08/03/2026
+// are these #defines necessary with the new target interface?
+
 #define EXP_IR_EXTENSION  "eir"
 #define EXP_ASM_EXTENSION "s"
 #define EXP_OBJ_EXTENSION "o"
@@ -191,22 +194,19 @@ i32 context_compile_source(Context *restrict context, StringView source_path) {
 i32 context_create_assembly_artifact(Context *restrict context) {
     EXP_ASSERT(context != NULL);
     Target *target = context->options.target;
-    String  assembly;
-    string_initialize(&assembly);
-
-    target->header(&assembly, context);
 
     SymbolTable *symbols = &context->global_symbol_table;
     for (u64 index = 0; index < symbols->capacity; ++index) {
         Symbol *symbol = symbols->elements[index];
         if (symbol == NULL) { continue; }
 
-        target->codegen(&assembly, symbol, context);
-
-        string_append(&assembly, SV("\n"));
+        target->compile_symbol(symbol, context);
     }
 
-    target->footer(&assembly, context);
+    String assembly;
+    string_initialize(&assembly);
+
+    target->print_assembly(&assembly, context);
 
     String assembly_path;
     string_initialize(&assembly_path);
