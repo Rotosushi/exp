@@ -37,20 +37,6 @@ static void x86_codegen_function(x86_Function *restrict x86_function,
                                  Function const *restrict function,
                                  Context *restrict context);
 
-void print_x86_function(String *restrict buffer,
-                        Value const *restrict value,
-                        Context *restrict context) {
-    EXP_ASSERT(buffer != NULL);
-    EXP_ASSERT(value != NULL);
-    EXP_ASSERT(context != NULL);
-    Function const *function = &value->function;
-    x86_Function    x86_function;
-    x86_function_create(&x86_function);
-    x86_codegen_function(&x86_function, function, context);
-    print_x86_body(buffer, &x86_function.body);
-    x86_function_destroy(&x86_function);
-}
-
 static void x86_codegen_instruction(Instruction instruction,
                                     u32         block_index,
                                     x86_Function *restrict x86_function,

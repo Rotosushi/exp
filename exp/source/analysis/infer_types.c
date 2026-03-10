@@ -51,16 +51,16 @@ static bool infer_types_constant(Type const **result,
         return context_failure_uninitialized_value(context);
     }
 
-    case VALUE_KIND_NIL:  return success(result, context_nil_type(context));
-    case VALUE_KIND_BOOL: return success(result, context_bool_type(context));
-    case VALUE_KIND_U8:   return success(result, context_u8_type(context));
-    case VALUE_KIND_U16:  return success(result, context_u16_type(context));
-    case VALUE_KIND_U32:  return success(result, context_u32_type(context));
-    case VALUE_KIND_U64:  return success(result, context_u64_type(context));
-    case VALUE_KIND_I8:   return success(result, context_i8_type(context));
-    case VALUE_KIND_I16:  return success(result, context_i16_type(context));
-    case VALUE_KIND_I32:  return success(result, context_i32_type(context));
-    case VALUE_KIND_I64:  return success(result, context_i64_type(context));
+    case VALUE_KIND_NIL:  return success(result, context_type_nil(context));
+    case VALUE_KIND_BOOL: return success(result, context_type_bool(context));
+    case VALUE_KIND_U8:   return success(result, context_type_u8(context));
+    case VALUE_KIND_U16:  return success(result, context_type_u16(context));
+    case VALUE_KIND_U32:  return success(result, context_type_u32(context));
+    case VALUE_KIND_U64:  return success(result, context_type_u64(context));
+    case VALUE_KIND_I8:   return success(result, context_type_i8(context));
+    case VALUE_KIND_I16:  return success(result, context_type_i16(context));
+    case VALUE_KIND_I32:  return success(result, context_type_i32(context));
+    case VALUE_KIND_I64:  return success(result, context_type_i64(context));
 
     case VALUE_KIND_TUPLE: {
         Tuple const *tuple = &constant->tuple;
@@ -78,7 +78,7 @@ static bool infer_types_constant(Type const **result,
             }
             type_tuple_append(&tuple_type, element_type);
         }
-        return success(result, context_tuple_type(context, tuple_type));
+        return success(result, context_type_tuple(context, tuple_type));
     }
 
     case VALUE_KIND_FUNCTION: {
@@ -139,35 +139,35 @@ static bool infer_types_operand(Type const **result,
     }
 
     case OPERAND_KIND_U8: {
-        return success(result, context_u8_type(context));
+        return success(result, context_type_u8(context));
     }
 
     case OPERAND_KIND_U16: {
-        return success(result, context_u16_type(context));
+        return success(result, context_type_u16(context));
     }
 
     case OPERAND_KIND_U32: {
-        return success(result, context_u32_type(context));
+        return success(result, context_type_u32(context));
     }
 
     case OPERAND_KIND_U64: {
-        return success(result, context_u64_type(context));
+        return success(result, context_type_u64(context));
     }
 
     case OPERAND_KIND_I8: {
-        return success(result, context_i8_type(context));
+        return success(result, context_type_i8(context));
     }
 
     case OPERAND_KIND_I16: {
-        return success(result, context_i16_type(context));
+        return success(result, context_type_i16(context));
     }
 
     case OPERAND_KIND_I32: {
-        return success(result, context_i32_type(context));
+        return success(result, context_type_i32(context));
     }
 
     case OPERAND_KIND_I64: {
-        return success(result, context_i64_type(context));
+        return success(result, context_type_i64(context));
     }
 
     default: EXP_UNREACHABLE();
@@ -366,7 +366,7 @@ static bool infer_types_neg(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(context);
+    Type const *type_i64 = context_type_i64(context);
     return infer_types_unop(result, function, context, I, type_i64, type_i64);
 }
 
@@ -402,7 +402,7 @@ static bool infer_types_add(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(context);
+    Type const *type_i64 = context_type_i64(context);
     return infer_types_binop(
         result, function, context, I, type_i64, type_i64, type_i64);
 }
@@ -411,7 +411,7 @@ static bool infer_types_sub(Type const **result,
                             Function *restrict function,
                             Context *restrict c,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(c);
+    Type const *type_i64 = context_type_i64(c);
     return infer_types_binop(
         result, function, c, I, type_i64, type_i64, type_i64);
 }
@@ -420,7 +420,7 @@ static bool infer_types_mul(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(context);
+    Type const *type_i64 = context_type_i64(context);
     return infer_types_binop(
         result, function, context, I, type_i64, type_i64, type_i64);
 }
@@ -429,7 +429,7 @@ static bool infer_types_div(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(context);
+    Type const *type_i64 = context_type_i64(context);
     return infer_types_binop(
         result, function, context, I, type_i64, type_i64, type_i64);
 }
@@ -438,7 +438,7 @@ static bool infer_types_mod(Type const **result,
                             Function *restrict function,
                             Context *restrict context,
                             Instruction I) {
-    Type const *type_i64 = context_i64_type(context);
+    Type const *type_i64 = context_type_i64(context);
     return infer_types_binop(
         result, function, context, I, type_i64, type_i64, type_i64);
 }
@@ -555,7 +555,7 @@ static bool infer_types_function(Type const **restrict result,
     // not accounted for that anywhere else.
 
     // #NOTE: first, an empty function body is an implicit `return nil;`
-    if (return_type == NULL) { return_type = context_nil_type(context); }
+    if (return_type == NULL) { return_type = context_type_nil(context); }
 
     // #NOTE: second, if the function did not have it's return type set by a
     // return instruction, then we use the type of it's last instruction as

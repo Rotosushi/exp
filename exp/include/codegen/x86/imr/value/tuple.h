@@ -18,6 +18,7 @@
 #define EXP_CODEGEN_X86_IMR_BODY_TUPLE_H
 
 #include "codegen/x86/imr/operand.h"
+#include "imr/type.h"
 
 typedef struct x86_Tuple {
     u32          length;
@@ -33,5 +34,11 @@ void x86_tuple_reserve(x86_Tuple *restrict tuple, u32 size);
 void x86_tuple_append(x86_Tuple *restrict tuple, x86_Operand operand);
 
 x86_Operand *x86_tuple_at(x86_Tuple *restrict tuple, u32 index);
+
+bool x86_tuple_equal(x86_Tuple const *A, x86_Tuple const *B);
+
+void print_x86_tuple(String *restrict buffer,
+                     x86_Tuple const *restrict value,
+                     Type const *type);
 
 #endif // !EXP_CODEGEN_X86_IMR_BODY_TUPLE_H

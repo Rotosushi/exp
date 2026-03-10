@@ -98,6 +98,28 @@ x86_Operand x86_operand_i64(i64 value) {
     return (x86_Operand){.kind = X86_OPERAND_KIND_I64, .data.i64_ = value};
 }
 
+bool x86_operand_equal(x86_Operand A, x86_Operand B) {
+    if (A.kind != B.kind) { return false; }
+
+    switch (A.kind) {
+    case X86_OPERAND_KIND_RIP: return A.data.label == B.data.label;
+    case X86_OPERAND_KIND_LOCATION:
+        return x86_location_equality(A.data.location, B.data.location);
+    case X86_OPERAND_KIND_LABEL: return A.data.label == B.data.label;
+    case X86_OPERAND_KIND_NIL:   return true;
+    case X86_OPERAND_KIND_BOOL:  return A.data.bool_ == B.data.bool_;
+    case X86_OPERAND_KIND_U8:    return A.data.u8_ == B.data.u8_;
+    case X86_OPERAND_KIND_U16:   return A.data.u16_ == B.data.u16_;
+    case X86_OPERAND_KIND_U32:   return A.data.u32_ == B.data.u32_;
+    case X86_OPERAND_KIND_U64:   return A.data.u64_ == B.data.u64_;
+    case X86_OPERAND_KIND_I8:    return A.data.i8_ == B.data.i8_;
+    case X86_OPERAND_KIND_I16:   return A.data.i16_ == B.data.i16_;
+    case X86_OPERAND_KIND_I32:   return A.data.i32_ == B.data.i32_;
+    case X86_OPERAND_KIND_I64:   return A.data.i64_ == B.data.i64_;
+    default:                     EXP_UNREACHABLE();
+    }
+}
+
 static void print_x86_rip_label(String *restrict buffer, StringView label) {
     string_append(buffer, SV("[rip +"));
     string_append(buffer, label);

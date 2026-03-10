@@ -528,62 +528,62 @@ ConstantString *context_intern(Context *context, StringView sv) {
     return string_interner_insert(&(context->string_interner), sv);
 }
 
-Type const *context_nil_type(Context *context) {
+Type const *context_type_nil(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_nil_type(&(context->type_interner));
 }
 
-Type const *context_bool_type(Context *context) {
+Type const *context_type_bool(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_bool_type(&(context->type_interner));
 }
 
-Type const *context_u8_type(Context *context) {
+Type const *context_type_u8(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_u8_type(&(context->type_interner));
 }
 
-Type const *context_u16_type(Context *context) {
+Type const *context_type_u16(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_u16_type(&(context->type_interner));
 }
 
-Type const *context_u32_type(Context *context) {
+Type const *context_type_u32(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_u32_type(&(context->type_interner));
 }
 
-Type const *context_u64_type(Context *context) {
+Type const *context_type_u64(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_u64_type(&(context->type_interner));
 }
 
-Type const *context_i8_type(Context *context) {
+Type const *context_type_i8(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_i8_type(&(context->type_interner));
 }
 
-Type const *context_i16_type(Context *context) {
+Type const *context_type_i16(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_i16_type(&(context->type_interner));
 }
 
-Type const *context_i32_type(Context *context) {
+Type const *context_type_i32(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_i32_type(&(context->type_interner));
 }
 
-Type const *context_i64_type(Context *context) {
+Type const *context_type_i64(Context *context) {
     EXP_ASSERT(context != nullptr);
     return type_interner_i64_type(&(context->type_interner));
 }
 
-Type const *context_tuple_type(Context *context, TypeTuple tuple) {
+Type const *context_type_tuple(Context *context, TypeTuple tuple) {
     EXP_ASSERT(context != nullptr);
     return type_interner_tuple_type(&context->type_interner, tuple, context);
 }
 
-Type const *context_function_type(Context    *context,
+Type const *context_type_function(Context    *context,
                                   Type const *argument,
                                   Type const *result) {
     EXP_ASSERT(context != nullptr);
@@ -719,16 +719,16 @@ Type const *context_type_of_value(Context *restrict context,
                                   Value const *restrict value) {
     switch (value->kind) {
     case VALUE_KIND_UNINITIALIZED: PANIC("uninitialized Value");
-    case VALUE_KIND_NIL:           return context_nil_type(context);
-    case VALUE_KIND_BOOL:          return context_bool_type(context);
-    case VALUE_KIND_U8:            return context_u8_type(context);
-    case VALUE_KIND_U16:           return context_u16_type(context);
-    case VALUE_KIND_U32:           return context_u32_type(context);
-    case VALUE_KIND_U64:           return context_u64_type(context);
-    case VALUE_KIND_I8:            return context_i8_type(context);
-    case VALUE_KIND_I16:           return context_i16_type(context);
-    case VALUE_KIND_I32:           return context_i32_type(context);
-    case VALUE_KIND_I64:           return context_i64_type(context);
+    case VALUE_KIND_NIL:           return context_type_nil(context);
+    case VALUE_KIND_BOOL:          return context_type_bool(context);
+    case VALUE_KIND_U8:            return context_type_u8(context);
+    case VALUE_KIND_U16:           return context_type_u16(context);
+    case VALUE_KIND_U32:           return context_type_u32(context);
+    case VALUE_KIND_U64:           return context_type_u64(context);
+    case VALUE_KIND_I8:            return context_type_i8(context);
+    case VALUE_KIND_I16:           return context_type_i16(context);
+    case VALUE_KIND_I32:           return context_type_i32(context);
+    case VALUE_KIND_I64:           return context_type_i64(context);
 
     case VALUE_KIND_TUPLE:
         return context_type_of_tuple(context, function, &value->tuple);
@@ -749,12 +749,12 @@ Type const *context_type_of_function(Context *restrict context,
     Type const *result = function->result->type;
 
     if (function->arguments.length == 0) {
-        return context_function_type(
-            context, context_nil_type(context), result);
+        return context_type_function(
+            context, context_type_nil(context), result);
     }
 
     if (function->arguments.length == 1) {
-        return context_function_type(
+        return context_type_function(
             context, function->arguments.list[0]->type, result);
     }
 
@@ -766,8 +766,8 @@ Type const *context_type_of_function(Context *restrict context,
         type_tuple_append(&argument_types, argument_type);
     }
 
-    Type const *argument = context_tuple_type(context, argument_types);
-    return context_function_type(context, argument, result);
+    Type const *argument = context_type_tuple(context, argument_types);
+    return context_type_function(context, argument, result);
 }
 
 Type const *context_type_of_tuple(Context *restrict context,
@@ -783,7 +783,7 @@ Type const *context_type_of_tuple(Context *restrict context,
             context_type_of_operand(context, function, tuple->elements[i]);
         type_tuple_append(&tuple_type, T);
     }
-    return context_tuple_type(context, tuple_type);
+    return context_type_tuple(context, tuple_type);
 }
 
 Type const *context_type_of_operand(Context *restrict context,
@@ -815,16 +815,16 @@ Type const *context_type_of_operand(Context *restrict context,
         }
     }
 
-    case OPERAND_KIND_NIL:  return context_nil_type(context);
-    case OPERAND_KIND_BOOL: return context_bool_type(context);
-    case OPERAND_KIND_U8:   return context_u8_type(context);
-    case OPERAND_KIND_U16:  return context_u16_type(context);
-    case OPERAND_KIND_U32:  return context_u32_type(context);
-    case OPERAND_KIND_U64:  return context_u64_type(context);
-    case OPERAND_KIND_I8:   return context_i8_type(context);
-    case OPERAND_KIND_I16:  return context_i16_type(context);
-    case OPERAND_KIND_I32:  return context_i32_type(context);
-    case OPERAND_KIND_I64:  return context_i64_type(context);
+    case OPERAND_KIND_NIL:  return context_type_nil(context);
+    case OPERAND_KIND_BOOL: return context_type_bool(context);
+    case OPERAND_KIND_U8:   return context_type_u8(context);
+    case OPERAND_KIND_U16:  return context_type_u16(context);
+    case OPERAND_KIND_U32:  return context_type_u32(context);
+    case OPERAND_KIND_U64:  return context_type_u64(context);
+    case OPERAND_KIND_I8:   return context_type_i8(context);
+    case OPERAND_KIND_I16:  return context_type_i16(context);
+    case OPERAND_KIND_I32:  return context_type_i32(context);
+    case OPERAND_KIND_I64:  return context_type_i64(context);
 
     default: EXP_UNREACHABLE();
     }

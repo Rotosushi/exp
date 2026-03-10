@@ -19,10 +19,9 @@
 
 #include "codegen/x86/codegen.h"
 #include "codegen/GAS/directives.h"
-#include "codegen/x86/function.h"
-#include "codegen/x86/value.h"
 #include "imr/type.h"
 #include "imr/type/composite.h"
+#include "imr/value.h"
 #include "support/assert.h"
 #include "support/config.h"
 #include "support/unreachable.h"
@@ -40,6 +39,21 @@
 void x86_compile_symbol(Symbol *restrict symbol, Context *restrict context) {
     EXP_ASSERT(symbol != NULL);
     EXP_ASSERT(context != NULL);
+    x86_Context *x86_context = context_get_target_context(context);
+    StringView   name        = symbol->name;
+    Value const *value       = symbol->value;
+    Type const  *type        = symbol->type;
+
+    x86_Symbol *x86_symbol = x86_context_symbol_table_at(x86_context, name);
+    x86_symbol->type       = type;
+
+    switch (value->kind) {
+    case VALUE_KIND_UNINITIALIZED: {
+        x86_symbol->value =
+            x86_context_constant_uninitialized(x86_context, type);
+        break;
+    }
+    }
 }
 
 static void x86_print_assembly_header(String *restrict buffer,

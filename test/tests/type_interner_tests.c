@@ -27,12 +27,12 @@ i32 type_interner_tests([[maybe_unused]] i32   argc,
 
     bool failure = 0;
 
-    Type const *t0 = context_i64_type(&context);
-    Type const *t1 = context_i64_type(&context);
+    Type const *t0 = context_type_i64(&context);
+    Type const *t1 = context_type_i64(&context);
     failure |= !type_equality(t0, t1);
     failure |= t0 != t1;
 
-    Type const *t2 = context_nil_type(&context);
+    Type const *t2 = context_type_nil(&context);
     failure |= type_equality(t2, t0);
     failure |= t0 == t2;
 

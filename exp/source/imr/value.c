@@ -52,7 +52,7 @@ Value *value_allocate_nil(Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_NIL;
     value->nil   = 0;
-    value->type  = context_nil_type(context);
+    value->type  = context_type_nil(context);
     return value;
 }
 
@@ -61,7 +61,7 @@ Value *value_allocate_bool(bool b, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_BOOL;
     value->bool_ = b;
-    value->type  = context_bool_type(context);
+    value->type  = context_type_bool(context);
     return value;
 }
 
@@ -70,7 +70,7 @@ Value *value_allocate_u8(u8 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U8;
     value->u8_   = u;
-    value->type  = context_u8_type(context);
+    value->type  = context_type_u8(context);
     return value;
 }
 
@@ -79,7 +79,7 @@ Value *value_allocate_u16(u16 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U16;
     value->u16_  = u;
-    value->type  = context_u16_type(context);
+    value->type  = context_type_u16(context);
     return value;
 }
 
@@ -88,7 +88,7 @@ Value *value_allocate_u32(u32 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U32;
     value->u32_  = u;
-    value->type  = context_u32_type(context);
+    value->type  = context_type_u32(context);
     return value;
 }
 
@@ -97,7 +97,7 @@ Value *value_allocate_u64(u64 u, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_U64;
     value->u64_  = u;
-    value->type  = context_u64_type(context);
+    value->type  = context_type_u64(context);
     return value;
 }
 
@@ -106,7 +106,7 @@ Value *value_allocate_i8(i8 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I8;
     value->i8_   = i;
-    value->type  = context_i8_type(context);
+    value->type  = context_type_i8(context);
     return value;
 }
 
@@ -115,7 +115,7 @@ Value *value_allocate_i16(i16 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I16;
     value->i16_  = i;
-    value->type  = context_i16_type(context);
+    value->type  = context_type_i16(context);
     return value;
 }
 
@@ -124,7 +124,7 @@ Value *value_allocate_i32(i32 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I32;
     value->i32_  = i;
-    value->type  = context_i32_type(context);
+    value->type  = context_type_i32(context);
     return value;
 }
 
@@ -133,7 +133,7 @@ Value *value_allocate_i64(i64 i, Context *restrict context) {
     Value *value = value_allocate();
     value->kind  = VALUE_KIND_I64;
     value->i64_  = i;
-    value->type  = context_i64_type(context);
+    value->type  = context_type_i64(context);
     return value;
 }
 

@@ -28,7 +28,7 @@ static bool
 div_u8_checked(u8 A, u8 B, u8 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_unsigned_division_by_zero(
-            context, context_u16_type(context), A, B);
+            context, context_type_u16(context), A, B);
     }
 
     *C = A / B;
@@ -39,7 +39,7 @@ static bool
 div_u16_checked(u16 A, u16 B, u16 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_unsigned_division_by_zero(
-            context, context_u32_type(context), A, B);
+            context, context_type_u32(context), A, B);
     }
 
     *C = A / B;
@@ -50,7 +50,7 @@ static bool
 div_u32_checked(u32 A, u32 B, u32 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_unsigned_division_by_zero(
-            context, context_u64_type(context), A, B);
+            context, context_type_u64(context), A, B);
     }
 
     *C = A / B;
@@ -61,7 +61,7 @@ static bool
 div_u64_checked(u64 A, u64 B, u64 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_unsigned_division_by_zero(
-            context, context_u64_type(context), A, B);
+            context, context_type_u64(context), A, B);
     }
 
     *C = A / B;
@@ -72,12 +72,12 @@ static bool
 div_i8_checked(i8 A, i8 B, i8 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_signed_division_by_zero(
-            context, context_i8_type(context), A, B);
+            context, context_type_i8(context), A, B);
     }
 
     if (div_i8(A, B, C)) {
         return context_failure_signed_overflow(
-            context, SV("/"), context_i8_type(context), A, B);
+            context, SV("/"), context_type_i8(context), A, B);
     }
 
     return true;
@@ -87,12 +87,12 @@ static bool
 div_i16_checked(i16 A, i16 B, i16 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_signed_division_by_zero(
-            context, context_i16_type(context), A, B);
+            context, context_type_i16(context), A, B);
     }
 
     if (div_i16(A, B, C)) {
         return context_failure_signed_overflow(
-            context, SV("/"), context_i16_type(context), A, B);
+            context, SV("/"), context_type_i16(context), A, B);
     }
 
     return true;
@@ -102,12 +102,12 @@ static bool
 div_i32_checked(i32 A, i32 B, i32 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_signed_division_by_zero(
-            context, context_i32_type(context), A, B);
+            context, context_type_i32(context), A, B);
     }
 
     if (div_i32(A, B, C)) {
         return context_failure_signed_overflow(
-            context, SV("/"), context_i32_type(context), A, B);
+            context, SV("/"), context_type_i32(context), A, B);
     }
 
     return true;
@@ -117,12 +117,12 @@ static bool
 div_i64_checked(i64 A, i64 B, i64 *restrict C, Context *restrict context) {
     if (B == 0) {
         return context_failure_signed_division_by_zero(
-            context, context_i64_type(context), A, B);
+            context, context_type_i64(context), A, B);
     }
 
     if (div_i64(A, B, C)) {
         return context_failure_signed_overflow(
-            context, SV("/"), context_i64_type(context), A, B);
+            context, SV("/"), context_type_i64(context), A, B);
     }
 
     return true;

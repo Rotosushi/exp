@@ -76,6 +76,8 @@ x86_Operand x86_operand_i16(i16 i16_);
 x86_Operand x86_operand_i32(i32 i32_);
 x86_Operand x86_operand_i64(i64 value);
 
+bool x86_operand_equal(x86_Operand A, x86_Operand B);
+
 void print_x86_operand(String *restrict buffer, x86_Operand operand);
 
 #endif // !EXP_BACKEND_X86_OPERAND_H

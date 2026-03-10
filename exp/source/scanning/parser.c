@@ -220,7 +220,7 @@ static bool parse_tuple_type(Type const **restrict result,
     // an empty tuple type is equivalent to a nil type.
     switch (expect(parser, TOK_NIL)) {
     case EXPECT_RESULT_SUCCESS: {
-        *result = context_nil_type(parser->context);
+        *result = context_type_nil(parser->context);
         return true;
     }
 
@@ -264,7 +264,7 @@ static bool parse_tuple_type(Type const **restrict result,
         *result = tuple_type.types[0];
         type_tuple_destroy(&tuple_type);
     } else {
-        *result = context_tuple_type(parser->context, tuple_type);
+        *result = context_type_tuple(parser->context, tuple_type);
     }
 
     return true;
@@ -277,17 +277,17 @@ static bool parse_type(Type const **restrict result, Parser *restrict parser) {
     case TOK_BEGIN_PAREN: parse_tuple_type(result, parser); break;
 
     // scalar types
-    case TOK_NIL:       *result = context_nil_type(parser->context); break;
-    case TOK_TYPE_NIL:  *result = context_nil_type(parser->context); break;
-    case TOK_TYPE_BOOL: *result = context_bool_type(parser->context); break;
-    case TOK_TYPE_U8:   *result = context_u8_type(parser->context); break;
-    case TOK_TYPE_U16:  *result = context_u16_type(parser->context); break;
-    case TOK_TYPE_U32:  *result = context_u32_type(parser->context); break;
-    case TOK_TYPE_U64:  *result = context_u64_type(parser->context); break;
-    case TOK_TYPE_I8:   *result = context_i8_type(parser->context); break;
-    case TOK_TYPE_I16:  *result = context_i16_type(parser->context); break;
-    case TOK_TYPE_I32:  *result = context_i32_type(parser->context); break;
-    case TOK_TYPE_I64:  *result = context_i64_type(parser->context); break;
+    case TOK_NIL:       *result = context_type_nil(parser->context); break;
+    case TOK_TYPE_NIL:  *result = context_type_nil(parser->context); break;
+    case TOK_TYPE_BOOL: *result = context_type_bool(parser->context); break;
+    case TOK_TYPE_U8:   *result = context_type_u8(parser->context); break;
+    case TOK_TYPE_U16:  *result = context_type_u16(parser->context); break;
+    case TOK_TYPE_U32:  *result = context_type_u32(parser->context); break;
+    case TOK_TYPE_U64:  *result = context_type_u64(parser->context); break;
+    case TOK_TYPE_I8:   *result = context_type_i8(parser->context); break;
+    case TOK_TYPE_I16:  *result = context_type_i16(parser->context); break;
+    case TOK_TYPE_I32:  *result = context_type_i32(parser->context); break;
+    case TOK_TYPE_I64:  *result = context_type_i64(parser->context); break;
 
     default: return error(parser, ERROR_PARSER_EXPECTED_TYPE);
     }

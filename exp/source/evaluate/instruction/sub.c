@@ -36,7 +36,7 @@ static bool sub_value_value(Value const **restrict A,
         u8 u8_;
         if (sub_u8(B->u8_, C->u8_, &u8_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u8_type(context), B->u8_, C->u8_);
+                context, SV("-"), context_type_u8(context), B->u8_, C->u8_);
         }
         *A = context_constant_u8(context, u8_);
         break;
@@ -46,7 +46,7 @@ static bool sub_value_value(Value const **restrict A,
         u16 u16_;
         if (sub_u16(B->u16_, C->u16_, &u16_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u16_type(context), B->u16_, C->u16_);
+                context, SV("-"), context_type_u16(context), B->u16_, C->u16_);
         }
         *A = context_constant_u16(context, u16_);
         break;
@@ -56,7 +56,7 @@ static bool sub_value_value(Value const **restrict A,
         u32 u32_;
         if (sub_u32(B->u32_, C->u32_, &u32_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u32_type(context), B->u32_, C->u32_);
+                context, SV("-"), context_type_u32(context), B->u32_, C->u32_);
         }
         *A = context_constant_u32(context, u32_);
         break;
@@ -66,7 +66,7 @@ static bool sub_value_value(Value const **restrict A,
         u64 u64_;
         if (sub_u64(B->u64_, C->u64_, &u64_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u64_type(context), B->u64_, C->u64_);
+                context, SV("-"), context_type_u64(context), B->u64_, C->u64_);
         }
         *A = context_constant_u64(context, u64_);
         break;
@@ -76,7 +76,7 @@ static bool sub_value_value(Value const **restrict A,
         i8 i8_;
         if (sub_i8(B->i8_, C->i8_, &i8_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i8_type(context), B->i8_, C->i8_);
+                context, SV("-"), context_type_i8(context), B->i8_, C->i8_);
         }
         *A = context_constant_i8(context, i8_);
         break;
@@ -86,7 +86,7 @@ static bool sub_value_value(Value const **restrict A,
         i16 i16_;
         if (sub_i16(B->i16_, C->i16_, &i16_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i16_type(context), B->i16_, C->i16_);
+                context, SV("-"), context_type_i16(context), B->i16_, C->i16_);
         }
         *A = context_constant_i16(context, i16_);
         break;
@@ -96,7 +96,7 @@ static bool sub_value_value(Value const **restrict A,
         i32 i32_;
         if (sub_i32(B->i32_, C->i32_, &i32_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i32_type(context), B->i32_, C->i32_);
+                context, SV("-"), context_type_i32(context), B->i32_, C->i32_);
         }
         *A = context_constant_i32(context, i32_);
         break;
@@ -106,7 +106,7 @@ static bool sub_value_value(Value const **restrict A,
         i64 i64_;
         if (sub_i64(B->i64_, C->i64_, &i64_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i64_type(context), B->i64_, C->i64_);
+                context, SV("-"), context_type_i64(context), B->i64_, C->i64_);
         }
         *A = context_constant_i64(context, i64_);
         break;
@@ -132,7 +132,7 @@ static bool sub_value_operand(Value const **restrict A,
         u8 u8_;
         if (sub_u8(B->u8_, C.data.u8_, &u8_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u8_type(context), B->u8_, C.data.u8_);
+                context, SV("-"), context_type_u8(context), B->u8_, C.data.u8_);
         }
         *A = context_constant_u8(context, u8_);
         break;
@@ -144,7 +144,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_u16(B->u16_, C.data.u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u16_type(context),
+                                                     context_type_u16(context),
                                                      B->u16_,
                                                      C.data.u16_);
         }
@@ -158,7 +158,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_u32(B->u32_, C.data.u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u32_type(context),
+                                                     context_type_u32(context),
                                                      B->u32_,
                                                      C.data.u32_);
         }
@@ -172,7 +172,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_u64(B->u64_, C.data.u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u64_type(context),
+                                                     context_type_u64(context),
                                                      B->u64_,
                                                      C.data.u64_);
         }
@@ -185,7 +185,7 @@ static bool sub_value_operand(Value const **restrict A,
         i8 i8_;
         if (sub_i8(B->i8_, C.data.i8_, &i8_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i8_type(context), B->i8_, C.data.i8_);
+                context, SV("-"), context_type_i8(context), B->i8_, C.data.i8_);
         }
         *A = context_constant_i8(context, i8_);
         break;
@@ -197,7 +197,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_i16(B->i16_, C.data.i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i16_type(context),
+                                                   context_type_i16(context),
                                                    B->i16_,
                                                    C.data.i16_);
         }
@@ -211,7 +211,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_i32(B->i32_, C.data.i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i32_type(context),
+                                                   context_type_i32(context),
                                                    B->i32_,
                                                    C.data.i32_);
         }
@@ -225,7 +225,7 @@ static bool sub_value_operand(Value const **restrict A,
         if (sub_i64(B->i64_, C.data.i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i64_type(context),
+                                                   context_type_i64(context),
                                                    B->i64_,
                                                    C.data.i64_);
         }
@@ -253,7 +253,7 @@ static bool sub_operand_value(Value const **restrict A,
         u8 u8_;
         if (sub_u8(B.data.u8_, C->u8_, &u8_)) {
             return context_failure_unsigned_overflow(
-                context, SV("-"), context_u8_type(context), B.data.u8_, C->u8_);
+                context, SV("-"), context_type_u8(context), B.data.u8_, C->u8_);
         }
         *A = context_constant_u8(context, u8_);
         break;
@@ -265,7 +265,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_u16(B.data.u16_, C->u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u16_type(context),
+                                                     context_type_u16(context),
                                                      B.data.u16_,
                                                      C->u16_);
         }
@@ -279,7 +279,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_u32(B.data.u32_, C->u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u32_type(context),
+                                                     context_type_u32(context),
                                                      B.data.u32_,
                                                      C->u32_);
         }
@@ -293,7 +293,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_u64(B.data.u64_, C->u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u64_type(context),
+                                                     context_type_u64(context),
                                                      B.data.u64_,
                                                      C->u64_);
         }
@@ -306,7 +306,7 @@ static bool sub_operand_value(Value const **restrict A,
         i8 i8_;
         if (sub_i8(B.data.i8_, C->i8_, &i8_)) {
             return context_failure_signed_overflow(
-                context, SV("-"), context_i8_type(context), B.data.i8_, C->i8_);
+                context, SV("-"), context_type_i8(context), B.data.i8_, C->i8_);
         }
         *A = context_constant_i8(context, i8_);
         break;
@@ -318,7 +318,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_i16(B.data.i16_, C->i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i16_type(context),
+                                                   context_type_i16(context),
                                                    B.data.i16_,
                                                    C->i16_);
         }
@@ -332,7 +332,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_i32(B.data.i32_, C->i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i32_type(context),
+                                                   context_type_i32(context),
                                                    B.data.i32_,
                                                    C->i32_);
         }
@@ -346,7 +346,7 @@ static bool sub_operand_value(Value const **restrict A,
         if (sub_i64(B.data.i64_, C->i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i64_type(context),
+                                                   context_type_i64(context),
                                                    B.data.i64_,
                                                    C->i64_);
         }
@@ -414,7 +414,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_u8(B.data.u8_, C.data.u8_, &u8_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u8_type(context),
+                                                     context_type_u8(context),
                                                      B.data.u8_,
                                                      C.data.u8_);
         }
@@ -427,7 +427,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_u16(B.data.u16_, C.data.u16_, &u16_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u16_type(context),
+                                                     context_type_u16(context),
                                                      B.data.u16_,
                                                      C.data.u16_);
         }
@@ -440,7 +440,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_u32(B.data.u32_, C.data.u32_, &u32_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u32_type(context),
+                                                     context_type_u32(context),
                                                      B.data.u32_,
                                                      C.data.u32_);
         }
@@ -453,7 +453,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_u64(B.data.u64_, C.data.u64_, &u64_)) {
             return context_failure_unsigned_overflow(context,
                                                      SV("-"),
-                                                     context_u64_type(context),
+                                                     context_type_u64(context),
                                                      B.data.u64_,
                                                      C.data.u64_);
         }
@@ -466,7 +466,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_i8(B.data.i8_, C.data.i8_, &i8_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i8_type(context),
+                                                   context_type_i8(context),
                                                    B.data.i8_,
                                                    C.data.i8_);
         }
@@ -479,7 +479,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_i16(B.data.i16_, C.data.i16_, &i16_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i16_type(context),
+                                                   context_type_i16(context),
                                                    B.data.i16_,
                                                    C.data.i16_);
         }
@@ -492,7 +492,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_i32(B.data.i32_, C.data.i32_, &i32_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i32_type(context),
+                                                   context_type_i32(context),
                                                    B.data.i32_,
                                                    C.data.i32_);
         }
@@ -505,7 +505,7 @@ static bool sub_operand_operand(Value const **restrict A,
         if (sub_i64(B.data.i64_, C.data.i64_, &i64_)) {
             return context_failure_signed_overflow(context,
                                                    SV("-"),
-                                                   context_i64_type(context),
+                                                   context_type_i64(context),
                                                    B.data.i64_,
                                                    C.data.i64_);
         }

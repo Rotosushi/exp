@@ -72,4 +72,7 @@ void x86_function_append(x86_Function *restrict function,
 void x86_function_header(x86_Function *restrict function);
 void x86_function_footer(x86_Function *restrict function);
 
+void print_x86_function(String *restrict buffer,
+                        x86_Function const *restrict function);
+
 #endif // !EXP_BACKEND_X86_FUNCTION_BODY_H

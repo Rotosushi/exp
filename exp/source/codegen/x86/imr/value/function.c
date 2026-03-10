@@ -16,13 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with exp.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <string.h>
 
+#include "codegen/GAS/directives.h"
 #include "codegen/x86/imr/value/function.h"
 #include "codegen/x86/imr/value/function/allocation.h"
 #include "codegen/x86/imr/value/function/local_allocator.h"
 #include "support/allocation.h"
 #include "support/array_growth.h"
 #include "support/assert.h"
+#include "support/numeric_conversions.h"
 
 static void
 x86_formal_argument_list_create(x86_FormalArgumentList *restrict args) {
@@ -237,4 +240,35 @@ void x86_function_footer(x86_Function *restrict function) {
                         x86_pop(x86_operand_location_gpr(X86_GPR_RBP)));
 
     x86_function_append(function, x86_ret());
+}
+
+static void print_x86_block_label(String *restrict target,
+                                  StringView function_name,
+                                  u32        block_index) {
+    u64  block_index_strlen = u64_safe_strlen(block_index);
+    u64  block_label_length = function_name.length + block_index_strlen + 2;
+    char block_label[block_label_length + 1];
+    u64  cursor = 0;
+    memcpy(block_label + cursor, function_name.ptr, function_name.length);
+    cursor += function_name.length;
+    memcpy(block_label + cursor, "_", 1);
+    cursor += 1;
+    u64_to_str(block_index, block_label);
+    cursor += block_index_strlen;
+    block_label[block_label_length] = '\0';
+
+    gas_directive_label(string_view(block_label, block_label_length), target);
+}
+
+void print_x86_function(String *restrict buffer,
+                        x86_Function const *restrict x86_function) {
+    EXP_ASSERT(buffer != NULL);
+    EXP_ASSERT(x86_function != NULL);
+    x86_Body const *body = &x86_function->body;
+    for (u32 i = 0; i < body->length; ++i) {
+        x86_Block const *block = body->buffer + i;
+        print_x86_block_label(
+            buffer, constant_string_to_view(x86_function->name), i);
+        print_x86_block(buffer, block);
+    }
 }

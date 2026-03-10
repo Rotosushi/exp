@@ -137,18 +137,18 @@ bool context_failure_signed_division_by_zero(Context *restrict context,
 ConstantString *context_intern(Context *restrict context, StringView sv);
 
 // type interner functions
-Type const *context_nil_type(Context *restrict context);
-Type const *context_bool_type(Context *restrict context);
-Type const *context_u8_type(Context *restrict context);
-Type const *context_u16_type(Context *restrict context);
-Type const *context_u32_type(Context *restrict context);
-Type const *context_u64_type(Context *restrict context);
-Type const *context_i8_type(Context *restrict context);
-Type const *context_i16_type(Context *restrict context);
-Type const *context_i32_type(Context *restrict context);
-Type const *context_i64_type(Context *restrict context);
-Type const *context_tuple_type(Context *restrict context, TypeTuple tuple);
-Type const *context_function_type(Context *restrict context,
+Type const *context_type_nil(Context *restrict context);
+Type const *context_type_bool(Context *restrict context);
+Type const *context_type_u8(Context *restrict context);
+Type const *context_type_u16(Context *restrict context);
+Type const *context_type_u32(Context *restrict context);
+Type const *context_type_u64(Context *restrict context);
+Type const *context_type_i8(Context *restrict context);
+Type const *context_type_i16(Context *restrict context);
+Type const *context_type_i32(Context *restrict context);
+Type const *context_type_i64(Context *restrict context);
+Type const *context_type_tuple(Context *restrict context, TypeTuple tuple);
+Type const *context_type_function(Context *restrict context,
                                   Type const *argument,
                                   Type const *result);
 

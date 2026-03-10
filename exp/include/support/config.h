@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "10da865"
+#define EXP_GIT_REVISION "b59bcee"
 #define EXP_TEST_DIR "/home/cade/Projects/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/cade/Projects/exp/test/resources"
 #define EXP_BINARY_DIR "/home/cade/Projects/exp/build"
@@ -32,7 +32,7 @@
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-03-08 07:22:34) git revision (10da865)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-03-10 11:25:05) git revision (b59bcee)"
 // NOLINTEND
 // clang-format on
 
