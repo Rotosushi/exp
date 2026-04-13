@@ -58,7 +58,6 @@ endif()
 message(STATUS "C compiler ${CMAKE_C_COMPILER}")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 
-add_subdirectory(${EXP_LIBEXP_SUPPORT_DIR})
 add_subdirectory(${EXP_LIBEXP_RUNTIME_DIR})
 add_subdirectory(${EXP_SOURCE_DIR})
 
