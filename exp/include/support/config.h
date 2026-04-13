@@ -21,7 +21,7 @@
 #define EXP_VERSION_MAJOR 0
 #define EXP_VERSION_MINOR 2 
 #define EXP_VERSION_PATCH 0
-#define EXP_GIT_REVISION "5482409"
+#define EXP_GIT_REVISION "2b5673c"
 #define EXP_TEST_DIR "/home/cade-weinberg/Projects/Programming/Compilers/exp/test"
 #define EXP_TEST_RESOURCES_DIR "/home/cade-weinberg/Projects/Programming/Compilers/exp/test/resources"
 #define EXP_BINARY_DIR "/home/cade-weinberg/Projects/Programming/Compilers/exp/build"
@@ -32,7 +32,7 @@
 /* #undef EXP_HOST_SYSTEM_APPLE */
 #define EXP_HOST_CPU_x64
 
-#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-04-13 13:03:50) git revision (5482409)"
+#define EXP_VERSION_STRING "exp version (0.2.0) built at (2026-04-13 15:59:48) git revision (2b5673c)"
 // NOLINTEND
 // clang-format on
 
