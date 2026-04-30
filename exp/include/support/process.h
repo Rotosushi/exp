@@ -22,6 +22,10 @@
 /**
  * @brief fork/execvp the given file, passing args
  *
+ * I called it process as a nod to the stdlib function
+ * process, but that is a symbol conflict, so lets use 
+ * something else
+ *
  * @warning args must have a NULL at the end
  *
  * @param executable

@@ -26,7 +26,7 @@
 #include "support/panic.h"
 
 /**
- * @def ASSERT(cond)
+ * @def exp_assert(cond)
  * @brief Asserts that the condition is true.
  *
  * @note if EXP_REMOVE_ASSERTS is defined, this macro will expand to nothing.
@@ -41,7 +41,7 @@
 #endif // !NDEBUG
 
 /**
- * @def ASSERT_DEBUG(cond)
+ * @def exp_assert_debug(cond)
  * @brief Asserts that the condition is true
  *
  * @note if NDEBUG is defined, this macro will expand to nothing.
@@ -55,7 +55,7 @@
 #endif // !NDEBUG
 
 /**
- * @def ASSERT_ALWAYS(cond)
+ * @def exp_assert_always(cond)
  * @brief Asserts that the condition is true.
  *
  * @note this macro will always be checked, regardless of NDEBUG or
