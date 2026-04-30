@@ -1,14 +1,12 @@
 .vscode/
 .cache/
+.old/
 
 [Bb]uild/
 [Ss]cratch/
 [Tt]esting/
 
 docs/.obsidian
-
-exp/include/support/config.h
-test/**/*.s
 
 *.swp
 *.idx

@@ -1,4 +1,0 @@
-fn main () {
-	let x = 18;
-	return x / 9;
-}

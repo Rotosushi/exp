@@ -1,6 +1,0 @@
-fn main() {
-	let x = 6;
-	let y = 2;
-	let z = 3;
-	return x + (y * z);
-}

@@ -1,16 +1,8 @@
 # exp
 
-I am writing this to learn about programming language implementation.
+I am writing this to learn about programming language code generation.
 
 ## Build
-
-There are no build dependencies other than the C standard library.
-
-The only supported Operating System is Linux currently.
-The only supported Host Architecture is x86-64 currently.
-We do not support debugging information currently.
-Assembling is done with a fork/exec of "as", and this is hardcoded for now.
-Linking is done with a fork/exec of "ld", and this is also hardcoded for now.
 
 Standard CMake usage should work:
 
