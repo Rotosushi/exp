@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 #ifndef EXP_SUPPORT_TEST_TEST_CLI_OPTION_PARSER_H
 #define EXP_SUPPORT_TEST_TEST_CLI_OPTION_PARSER_H

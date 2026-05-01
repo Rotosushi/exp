@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.20)
 
@@ -9,6 +9,7 @@ add_library(test-exp-support)
 target_sources(test-exp-support
     PRIVATE
         ${EXP_SUPPORT_TEST_SOURCE_DIR}/support/test_cli_option_parser.c
+        ${EXP_SUPPORT_TEST_SOURCE_DIR}/support/test_string_view.c
 )
 target_include_directories(test-exp-support
     PUBLIC

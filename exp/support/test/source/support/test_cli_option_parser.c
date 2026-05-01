@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 #include "support/test_cli_option_parser.h"
 #include "support/cli_option_parser.h"

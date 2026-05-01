@@ -9,6 +9,7 @@
 #include "support/cli_option_parser.h"
 
 #include "support/test_cli_option_parser.h"
+#include "support/test_string_view.h"
 
 static CliOption const test_options[] = {
     {
@@ -31,10 +32,14 @@ static const size_t test_options_length =
 
 static SRunner *register_all_tests(void) {
     SRunner *runner = srunner_create(test_cli_option_parser_suite());
+    srunner_add_suite(runner, test_string_view_suite());
     return runner;
 }
 
-static void list_all_tests(void) { test_cli_option_parser_list_all(stdout); }
+static void list_all_tests(FILE *out) {
+    test_cli_option_parser_list_all(out);
+    test_string_view_list_all(out);
+}
 
 int main(int argc, char const *argv[], char const *envp[]) {
     CliOptionParser parser;
@@ -72,8 +77,8 @@ int main(int argc, char const *argv[], char const *envp[]) {
             srunner_run_all(runner, CK_NORMAL);
             return EXIT_SUCCESS;
 
-        case 'l': // --list
-            list_all_tests();
+        case 'l': // --list_content
+            list_all_tests(stdout);
             return EXIT_SUCCESS;
 
         default: return EXIT_FAILURE; // Unhandled option, exit with failure
