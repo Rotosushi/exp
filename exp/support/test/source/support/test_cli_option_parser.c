@@ -74,7 +74,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_none) {
     char const *argv[] = {"program", "--help", "--version", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --help
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -101,7 +101,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_required) {
     char const *argv[] = {"program", "--output=output.txt", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --output=output.txt
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -123,7 +123,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_required_next) {
     char const *argv[] = {"program", "--output", "output.txt", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --output=output.txt
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -145,7 +145,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_required_missing) {
     char const *argv[] = {"program", "--output", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
     // Parse --output (missing required argument)
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
     ck_assert_int_eq(result.option, CLI_OPTION_MISSING_ARGUMENT);
@@ -161,7 +161,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_optional_present) {
     char const *argv[] = {"program", "--optimize=2", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --optimize=2
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -184,7 +184,7 @@ START_TEST(
     char const *argv[] = {"program", "--optimize", "2", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --optimize 2
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -206,7 +206,7 @@ START_TEST(test_cli_option_parser_parse_option_long_argument_optional_missing) {
     char const *argv[] = {"program", "--optimize", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --optimize (optional argument missing)
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -228,7 +228,7 @@ START_TEST(test_cli_option_parser_parse_option_long_unrecognized) {
     char const *argv[] = {"program", "--unknown", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse --unknown
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -250,7 +250,7 @@ START_TEST(test_cli_option_parser_parse_option_short_argument_none) {
     char const *argv[] = {"program", "-h", "-v", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -h
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -277,7 +277,7 @@ START_TEST(test_cli_option_parser_parse_option_short_argument_none_combined) {
     char const *argv[] = {"program", "-hjkl", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -h
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -314,7 +314,7 @@ START_TEST(test_cli_option_parser_parse_option_short_argument_required) {
     char const *argv[] = {"program", "-ooutput.txt", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -ooutput.txt
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -336,7 +336,7 @@ START_TEST(test_cli_option_parser_parse_option_short_argument_required_next) {
     char const *argv[] = {"program", "-o", "output.txt", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -o output.txt
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -359,7 +359,7 @@ START_TEST(
     char const *argv[] = {"program", "-o", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -o (missing required argument)
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -382,7 +382,7 @@ START_TEST(
     char const *argv[] = {"program", "-O2", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -O2
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -405,7 +405,7 @@ START_TEST(
     char const *argv[] = {"program", "-O", "2", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -O 2
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -428,7 +428,7 @@ START_TEST(
     char const *argv[] = {"program", "-O", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -O (optional argument missing)
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -450,7 +450,7 @@ START_TEST(test_cli_option_parser_parse_option_short_unrecognized) {
     char const *argv[] = {"program", "-x", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -x
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -472,7 +472,7 @@ START_TEST(test_cli_option_parser_parse_option_positional) {
     char const *argv[] = {"program", "positional_arg", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse positional_arg (not an option)
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);
@@ -495,7 +495,7 @@ START_TEST(test_cli_option_parser_parse_option_mixed) {
         "program", "-h", "--output=output.txt", "positional_arg", NULL};
     char const *envp[] = {"PATH=/usr/bin", NULL};
 
-    OptionResult result;
+    CliOptionResult result;
 
     // Parse -h
     result = cli_option_parser_parse_option(&parser, argc, argv, envp);

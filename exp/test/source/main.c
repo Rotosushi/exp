@@ -45,7 +45,7 @@ int main(int argc, char const *argv[], char const *envp[]) {
     // srunner_set_fork_status(runner, CK_NOFORK);
 
     while (true) {
-        OptionResult result =
+        CliOptionResult result =
             cli_option_parser_parse_option(&parser, argc, argv, envp);
 
         switch (result.option) {

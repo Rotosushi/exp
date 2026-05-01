@@ -14,7 +14,9 @@
 
 #### cli_option_parser
 
-- how do we want to handle positional arguments?
+- [x] how do we want to handle positional arguments?
+  - We handle them one at a time as we are processing
+      arguments.
 
 ### tiir
 

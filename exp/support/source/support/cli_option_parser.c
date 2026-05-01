@@ -1,11 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+/*!
+ * \file cli_option_parser.c
+ * \brief Implements the CliOptionParser type and member functions.
+ */
+
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
 #include "support/cli_option_parser.h"
 
+/**
+ * \brief Initializes a CliOptionParser with the given options and option
+ *        count.
+ * \memberof CliOptionParser
+ * \param parser The CliOptionParser to initialize.
+ * \param options An array of CliOption structures representing the available
+ *        options.
+ * \param option_count The number of options in the options array.
+ */
 void cli_option_parser_init(CliOptionParser *parser,
                             CliOption const *options,
                             int32_t          option_count) {
@@ -19,16 +33,16 @@ void cli_option_parser_init(CliOptionParser *parser,
     parser->options      = options;
 }
 
-static OptionResult
+static CliOptionResult
 parse_result(CliOptionParser *parser, int32_t option, char const *argument) {
     parser->option_index++; // Move to the next option for the next call
-    return (OptionResult){.option = option, .argument = argument};
+    return (CliOptionResult){.option = option, .argument = argument};
 }
 
-static OptionResult
+static CliOptionResult
 parse_subresult(CliOptionParser *parser, int32_t option, char const *argument) {
     parser->suboption_index++; // Move to the next suboption for the next call
-    return (OptionResult){.option = option, .argument = argument};
+    return (CliOptionResult){.option = option, .argument = argument};
 }
 
 static size_t option_text_length(char const *option_text) {
@@ -40,11 +54,11 @@ static size_t option_text_length(char const *option_text) {
     return length;
 }
 
-static OptionResult parse_long_option_argument(CliOptionParser *parser,
-                                               CliOption const *option,
-                                               char const      *option_text,
-                                               int32_t          argc,
-                                               char const      *argv[]) {
+static CliOptionResult parse_long_option_argument(CliOptionParser *parser,
+                                                  CliOption const *option,
+                                                  char const      *option_text,
+                                                  int32_t          argc,
+                                                  char const      *argv[]) {
     if (option->argument_kind == OPTION_ARGUMENT_NONE) {
         return parse_result(parser, option->short_name, NULL);
     }
@@ -105,10 +119,10 @@ static OptionResult parse_long_option_argument(CliOptionParser *parser,
                         option->name); // Missing required argument
 }
 
-static OptionResult parse_long_option(CliOptionParser *parser,
-                                      char const      *option_text,
-                                      int32_t          argc,
-                                      char const      *argv[]) {
+static CliOptionResult parse_long_option(CliOptionParser *parser,
+                                         char const      *option_text,
+                                         int32_t          argc,
+                                         char const      *argv[]) {
     size_t option_name_len = option_text_length(option_text);
     for (int32_t i = 0; i < parser->option_count; ++i) {
         CliOption const *option = &parser->options[i];
@@ -123,11 +137,11 @@ static OptionResult parse_long_option(CliOptionParser *parser,
         parser, CLI_OPTION_UNRECOGNIZED, option_text); // Unrecognized option
 }
 
-static OptionResult parse_short_option_argument(CliOptionParser *parser,
-                                                CliOption const *option,
-                                                char const      *option_text,
-                                                int32_t          argc,
-                                                char const      *argv[]) {
+static CliOptionResult parse_short_option_argument(CliOptionParser *parser,
+                                                   CliOption const *option,
+                                                   char const      *option_text,
+                                                   int32_t          argc,
+                                                   char const      *argv[]) {
     /// if the short option requires an argument it cannot be combined with
     /// other
     // options (e.g., -abc is not valid if -a requires an argument)
@@ -191,10 +205,10 @@ static OptionResult parse_short_option_argument(CliOptionParser *parser,
                         option->name); // Missing required argument
 }
 
-static OptionResult parse_short_option(CliOptionParser *parser,
-                                       char const      *option_text,
-                                       int32_t          argc,
-                                       char const      *argv[]) {
+static CliOptionResult parse_short_option(CliOptionParser *parser,
+                                          char const      *option_text,
+                                          int32_t          argc,
+                                          char const      *argv[]) {
     for (int32_t i = 0; i < parser->option_count; ++i) {
         CliOption const *option = &parser->options[i];
         if (option->short_name == option_text[parser->suboption_index]) {
@@ -207,10 +221,19 @@ static OptionResult parse_short_option(CliOptionParser *parser,
         parser, CLI_OPTION_UNRECOGNIZED, option_text); // Unrecognized option
 }
 
-OptionResult cli_option_parser_parse_option(CliOptionParser *parser,
-                                            int32_t          argc,
-                                            char const      *argv[],
-                                            char const      *envp[]) {
+/**
+ * \brief Parses the next command-line option.
+ * \memberof CliOptionParser
+ * \param parser The CliOptionParser to use for parsing.
+ * \param argc The number of arguments in argv.
+ * \param argv The array of command-line arguments.
+ * \param envp The array of environment variables. (may be NULL)
+ * \return An CliOptionResult representing the parsed option.
+ */
+CliOptionResult cli_option_parser_parse_option(CliOptionParser *parser,
+                                               int32_t          argc,
+                                               char const      *argv[],
+                                               char const      *envp[]) {
     assert(parser != NULL);
     assert(argc >= 0);
     assert(argv != NULL);
@@ -237,3 +260,19 @@ OptionResult cli_option_parser_parse_option(CliOptionParser *parser,
     // Positional argument
     return parse_result(parser, CLI_OPTION_POSITIONAL_ARGUMENT, current_arg);
 }
+
+/** \struct CliOptionResult
+ * \brief Represents the result of parsing the next available command-line
+ * option.
+ *
+ * \property int32_t CliOptionResult::option: The short name of the parsed
+ * option (e.g., 'h' for
+ * --help), 0 if no more options are available. ? if an unrecognized option was
+ *  encountered. and ! if a positional argument was encountered.
+ *  -1 if the option was recognized but a required argument was missing.
+ *
+ * \property char const *CliOptionResult::argument The argument provided for the
+ * option, or NULL if no argument was provided or if the option does not take an
+ * argument. If the option was not recognized, this will contain the
+ *               unrecognized option.
+ */

@@ -73,59 +73,59 @@
 - [] rewrite the lexer in re2c to begin support for utf8
 - [] rewrite the parser to the new grammar
   - [] The parser uses a new InstructionBuilder Struct to construct instructions
-       We can use the implementation of InstructionBuilder to encapsulate trivial 
+       We can use the implementation of InstructionBuilder to encapsulate trivial
        constant folding, and reduce the complexity of the Context
 
 ### IMR -> TIIR
 
-- [] rename IMR to TIIR project wide. 
+- [] rename IMR to TIIR project wide.
 - [] Instructions need to be reworked to support the new grammar.
-  - [] There structure of Opcode kind + 3 variant Operands forces our 
-       hand into having 3 nested switch statements to support the 
+  - [] There structure of Opcode kind + 3 variant Operands forces our
+       hand into having 3 nested switch statements to support the
        generation of code for each form of the instruction.
-       it is my opinion that a single large switch statement will be 
-       faster, and less of a maintinence headache. We will be moving 
-       towards encoding the layout of the instruction into the Opcode 
-       of the instruction. so once you select over the opcode you 
-       immediately know which variant each of the operands to the 
+       it is my opinion that a single large switch statement will be
+       faster, and less of a maintinence headache. We will be moving
+       towards encoding the layout of the instruction into the Opcode
+       of the instruction. so once you select over the opcode you
+       immediately know which variant each of the operands to the
        instruction are, and can begin generating code.
 - [] rewrite Tuples, they need to be held per function, instead of globally.
 - [] The context and the current TranslationUnit are currently the same structure.
-     This might be too much responsibility for a single object. We need to 
-     define a TranslationUnit object and have it model only the responsibilities 
-     of the TU specifically. The Context can manage the responsibilities which 
+     This might be too much responsibility for a single object. We need to
+     define a TranslationUnit object and have it model only the responsibilities
+     of the TU specifically. The Context can manage the responsibilities which
      are more general than a particular TU, such as which target we are lowering to,
      and the storage of the current error set and so on.
-- [] Locals currently store their lifetime, is that pass-specific knowledge 
+- [] Locals currently store their lifetime, is that pass-specific knowledge
      or is that knowledge that each pass will use?
 - [] Design a PassManager which allows the definition and sequencing of distinct
-     passes over the IR. Currently, the set and sequence of passes is hard-coded 
-     into the definition of the "compile" function. We can create a structure 
-     which allows us to register a set and sequence of passes, and then run that 
-     sequence in order to perform all analysis, optimization, code generation, and 
+     passes over the IR. Currently, the set and sequence of passes is hard-coded
+     into the definition of the "compile" function. We can create a structure
+     which allows us to register a set and sequence of passes, and then run that
+     sequence in order to perform all analysis, optimization, code generation, and
      serialization work.
 
 ### Intrinsics
 
-- [] compiler intrinsics are specific functionality that is built into the compiler 
-     and not provided by the standard library to user code. they are meant to be 
-     the necessary bits of plumbing to build a standard library on top of. 
-     I am not satisfied with their implementation as a free-function which always 
+- [] compiler intrinsics are specific functionality that is built into the compiler
+     and not provided by the standard library to user code. they are meant to be
+     the necessary bits of plumbing to build a standard library on top of.
+     I am not satisfied with their implementation as a free-function which always
      takes a Context pointer. Though I am not sure where to take them either.
-- [] align_of and size_of are target dependent functionality. we need to decide on 
-     a target specific API boundary that we can interface with, so the functions are 
+- [] align_of and size_of are target dependent functionality. we need to decide on
+     a target specific API boundary that we can interface with, so the functions are
      available, and provided by a backed that can be selected over.
-- [] type_of is an intrinsic in a higher level language, I wanted to provide it for a 
-     theoretical typeof(...) expression in said higher level language. As our target 
+- [] type_of is an intrinsic in a higher level language, I wanted to provide it for a
+     theoretical typeof(...) expression in said higher level language. As our target
      is no longer a higher level language, is the intrinsic even needed?
 
 ### Support
 
 - [] rewrite error handling
   - [] errors need to be held in a list in the context.
-  - [] we need a new ErrorBuilder structure to construct Errors, this will reduce 
+  - [] we need a new ErrorBuilder structure to construct Errors, this will reduce
        the complexity of the Context struct.
-  - [] we don't want to panic on stdlib errors, we want to produce an error with the 
+  - [] we don't want to panic on stdlib errors, we want to produce an error with the
        ErrorBuilding, and Log it to the Context.
 
 ## Cleanup
@@ -134,4 +134,3 @@
 - [] support/string.h is taking over the responsibilities of a support/path.h structure.
      lets move path related functionality into a separate file. it can still use a string
      as an implementation detail.
-
