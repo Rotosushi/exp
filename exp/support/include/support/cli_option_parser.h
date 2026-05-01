@@ -43,16 +43,25 @@ typedef struct CliOption {
 /**
  * @brief Represents a command-line option parser.
  *
- * @var option_index The index of the next option to parse in the options array.
+ * @var option_index The index of the next option to parse in argv.
  * @var option_count The total number of options in the options array.
+ * @var suboption_index The index of the next suboption to parse for the current
+ * option (used for parsing single-character options that can be combined, e.g.,
+ * -abc).
  * @var options An array of CliOption structures representing the available
  *              options that the parser can recognize.
  */
 typedef struct CliOptionParser {
     int32_t          option_index;
+    int32_t          suboption_index;
     int32_t          option_count;
     CliOption const *options;
 } CliOptionParser;
+
+#define CLI_OPTION_END                 0
+#define CLI_OPTION_MISSING_ARGUMENT    -1
+#define CLI_OPTION_UNRECOGNIZED        '?'
+#define CLI_OPTION_POSITIONAL_ARGUMENT '!'
 
 /**
  * @brief Represents the result of parsing the next available command-line
@@ -61,6 +70,7 @@ typedef struct CliOptionParser {
  * @var option The short name of the parsed option (e.g., 'h' for --help),
  *  0 if no more options are available. ? if an unrecognized option was
  *  encountered. and ! if a positional argument was encountered.
+ *  -1 if the option was recognized but a required argument was missing.
  *
  * @var argument The argument provided for the option, or NULL if no argument
  *               was provided or if the option does not take an argument. If

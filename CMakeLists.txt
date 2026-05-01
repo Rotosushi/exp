@@ -9,5 +9,6 @@ set(EXP_CMAKE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(CTest)
 include(${EXP_CMAKE_DIR}/deps.cmake)
+include(${EXP_CMAKE_DIR}/discoverTests.cmake)
 
 add_subdirectory(${EXP_BASE_DIR})

@@ -19,6 +19,4 @@ target_link_libraries(test-exp
         PkgConfig::Check
 )
 
-add_test(NAME exp.support.CliOptionParser.init
-         COMMAND test-exp
-)
+discoverTests(test-exp)
